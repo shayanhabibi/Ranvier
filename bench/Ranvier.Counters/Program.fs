@@ -414,6 +414,7 @@ let main argv =
                             "R3", packageVersion typeof<R3.Unit>
                             ".NET", string Environment.Version
                         ]
+                RanvierTrace = Report.ranvierTrace ()
             }
 
         let node = options.Fable |> Option.map (measureNode options sha)

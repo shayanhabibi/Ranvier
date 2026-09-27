@@ -4,6 +4,8 @@
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <IsPackable>false</IsPackable>
+        <!-- Measured builds are untraced; the trace log would be measured. -->
+        <RanvierTrace>false</RanvierTrace>
         <RootNamespace>FableCounters</RootNamespace>
         <!-- Measurements are the product here; the docs would be noise. -->
         <GenerateDocumentationFile>false</GenerateDocumentationFile>

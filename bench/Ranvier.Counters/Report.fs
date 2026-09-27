@@ -333,7 +333,17 @@ type Header =
         /// Engine and runtime versions, by name.
         /// </summary>
         Versions: Map<string, string>
+        /// <summary>The <c>RanvierTrace</c> metadata of the measured Ranvier assembly: "true" or "false".</summary>
+        RanvierTrace: string
     }
+
+/// <summary>"true" when the loaded Ranvier assembly is a traced build, otherwise "false".</summary>
+let ranvierTrace () =
+    typeof<Ranvier.Graph>.Assembly.GetCustomAttributes (typeof<Reflection.AssemblyMetadataAttribute>, false)
+    |> Array.exists (fun a ->
+        let a = a :?> Reflection.AssemblyMetadataAttribute
+        a.Key = "RanvierTrace" && a.Value = "true")
+    |> fun traced -> if traced then "true" else "false"
 
 let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: Calibration) =
     let text = StringBuilder ()
@@ -347,6 +357,7 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
     line $"- Library counters: %s{header.Counters}"
     line $"- Versions: %s{versionLine header.Versions}"
     line $"- Worker environment: %s{header.Environment}"
+    line $"- RanvierTrace: %s{header.RanvierTrace}"
     line "- Every figure is (m(2N) - m(N)) / N. Processor counters are the median over runs."
     line "- Instruction counts differing by under 5 % are within run-to-run noise. Compare only reports taken at the same --scale."
     line ""

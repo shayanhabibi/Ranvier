@@ -80,9 +80,9 @@ try {
     # Fable cracks the project with MSBuild, which reads RanvierCounters from the
     # environment.
     Remove-Item Env:RanvierCounters -ErrorAction SilentlyContinue
-    Invoke-Checked dotnet @('fable', $fableProject, '-e', '.fs.js', '-o', "$fableOutput/plain", '--noCache')
+    Invoke-Checked dotnet @('fable', $fableProject, '-e', '.fs.js', '-o', "$fableOutput/plain", '--noCache', '--configuration', 'Release')
     $env:RanvierCounters = 'true'
-    Invoke-Checked dotnet @('fable', $fableProject, '-e', '.fs.js', '-o', "$fableOutput/counters", '--noCache')
+    Invoke-Checked dotnet @('fable', $fableProject, '-e', '.fs.js', '-o', "$fableOutput/counters", '--noCache', '--configuration', 'Release')
     Remove-Item Env:RanvierCounters
 
     $countersWorker = 'bench/Ranvier.Counters/bin/counters'
@@ -91,10 +91,11 @@ try {
         # Built before the measured build, which then recompiles the shared
         # intermediate files without RANVIER_COUNTERS.
         Invoke-Checked dotnet @('build', 'bench/Ranvier.Counters', '-c', 'Release',
-            '-p:RanvierCounters=true', '-o', $countersWorker)
+            '-p:RanvierCounters=true', '-p:RanvierTrace=false', '-o', $countersWorker)
     }
 
-    $arguments = @('run', '--project', 'bench/Ranvier.Counters', '-c', 'Release')
+    # Untraced whatever the environment says: the trace log would be measured.
+    $arguments = @('run', '--project', 'bench/Ranvier.Counters', '-c', 'Release', '-p:RanvierTrace=false')
     $arguments += if ($pmc) { '-p:RanvierCounters=false' } else { '-p:RanvierCounters=true' }
     $arguments += @('--', '--repeat', "$Repeat", '--scale', "$Scale", '--fable', $fableOutput)
 
