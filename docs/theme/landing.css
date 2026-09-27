@@ -120,6 +120,7 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
 /* ---- Small screens ---- */
 @media (max-width: 60rem) {
   .rv-hero { grid-template-columns: 1fr; gap: 2.5rem; padding-top: 2.5rem; }
+  .rv-hero::before { inset: -4rem 0 -2rem; }
 }
 @media (max-width: 40rem) {
   .nacara-layout--splash .nacara-content h2 { margin-top: 4rem; }
@@ -129,3 +130,20 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) {
   .rv-demo__frames > li, .rv-demo__step { transition: none; }
 }
+
+/* ---- State dial: the animated state mark above the state list ---- */
+.rv-dial { display: flex; align-items: center; gap: 1.5rem; margin: 0 0 2rem; }
+.rv-arc { flex: none; width: 5.5rem; height: 5.5rem; overflow: visible; }
+.rv-arc * { transform-box: view-box; transform-origin: 48px 48px; }
+.rv-arc .rv-arc__term, .rv-arc .rv-arc__term > * { transform-origin: 16px 45px; }
+.rv-arc__frame { fill: none; stroke: var(--rv-contour); stroke-width: 7; stroke-linecap: round; }
+.rv-arc__g { opacity: 0; }
+.rv-arc__pulse, .rv-arc__bar { fill: var(--rv-pending); }
+.rv-arc__ring { fill: none; stroke: var(--rv-pending); stroke-width: 4.5; }
+.rv-arc__x { fill: none; stroke: var(--rv-error); stroke-width: 5; stroke-linecap: round; }
+.rv-arc__value { fill: var(--rv-value); }
+.rv-dial__label { display: grid; gap: .25rem; min-width: 0; }
+.rv-dial__label strong {
+  font-family: var(--rv-font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: -.02em;
+  color: var(--nacara-heading); }
+.rv-dial__label span { font-size: .9375rem; color: var(--nacara-text-muted); }

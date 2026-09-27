@@ -47,6 +47,93 @@ layout: splash
 
 Every reader observes one of six states. The docs, the marks and the API use the same names.
 
+```fsharp solid setup
+open Browser
+open Browser.Types
+open Partas.Solid.Svg
+
+[<Import("createTimeline", "animejs")>]
+let createTimeline (parameters: obj) : obj = jsNative
+
+[<Import("utils", "animejs")>]
+let animeUtils: obj = jsNative
+
+/// A state's key, label, caption and the glyphs of its mark, in the order a flight moves through them.
+let stateFlow =
+    [|
+        "pending", "Pending", "An async source starts a flight.", ".rv-arc__ring"
+        "fallback", "Fallback", "A boundary shows its fallback while its body waits.", ".rv-arc__ring, .rv-arc__bar"
+        "ready", "Ready", "The flight settles and readers get the value.", ".rv-arc__pulse"
+        "retained", "Retained value", "A new flight starts. Peek still returns the last value.", ".rv-arc__ring, .rv-arc__value"
+        "failed", "Failed", "The flight fails and the read raises.", ".rv-arc__x"
+        "recovered", "Recovered", "A boundary shows its recovered value.", ".rv-arc__x, .rv-arc__value"
+    |]
+
+/// The state mark, turning a sixth of a revolution clockwise at each transition.
+[<SolidComponent>]
+let StateDial () =
+    let step, setStep = createSignal 0
+    let mutable root: HTMLDivElement = JS.undefined
+    let mutable timer = 0.0
+
+    let entry () = stateFlow[step () % stateFlow.Length]
+    let name () = let _, name, _, _ = entry () in name
+    let note () = let _, _, note, _ = entry () in note
+
+    let show (n: int) (instant: bool) =
+        let _, _, _, on = stateFlow[n % stateFlow.Length]
+        let turn = root.querySelector ".rv-arc__turn"
+        let term = root.querySelector ".rv-arc__term"
+        let incoming = root.querySelectorAll on
+        let outgoing = root.querySelectorAll $".rv-arc__g:not({on})"
+        let degrees = n * 60
+        setStep n
+        if instant then
+            animeUtils?set (turn, {| rotate = degrees |})
+            animeUtils?set (term, {| rotate = -degrees |})
+            animeUtils?set (outgoing, {| opacity = 0 |})
+            animeUtils?set (incoming, {| opacity = 1 |})
+        else
+            let timeline = createTimeline {| defaults = {| ease = "inOutQuart" |} |}
+            timeline?add (outgoing, {| opacity = 0; duration = 200 |}, 0)
+            timeline?add (turn, {| rotate = degrees; duration = 700 |}, 0)
+            timeline?add (term, {| rotate = -degrees; duration = 700 |}, 0)
+            timeline?add (incoming, {| opacity = {| from = 0; ``to`` = 1 |}; scale = {| from = 0.6; ``to`` = 1 |}; duration = 350; ease = "outBack(2)" |}, 560)
+
+    onSettled (fun () ->
+        root.setAttribute ("aria-hidden", "true")
+        if window?matchMedia("(prefers-reduced-motion: reduce)")?matches then
+            show 2 true
+        else
+            show 0 true
+            timer <- window.setInterval ((fun () -> show (step () + 1) false), 2400))
+
+    onCleanup (fun () -> window.clearInterval timer)
+
+    div(class' = "rv-dial").ref (root) {
+        svg (class' = "rv-arc", viewBox = "0 0 96 96") {
+            g (class' = "rv-arc__turn") {
+                path (class' = "rv-arc__frame", d = "M35 18A31 31 0 1 1 24 71")
+                g (class' = "rv-arc__term") {
+                    circle (class' = "rv-arc__g rv-arc__pulse", cx = 16.0, cy = 45.0, r = 7.0)
+                    circle (class' = "rv-arc__g rv-arc__ring", cx = 16.0, cy = 45.0, r = 8.0)
+                    path (class' = "rv-arc__g rv-arc__x", d = "m10 39 12 12m0-12L10 51")
+                }
+            }
+            circle (class' = "rv-arc__g rv-arc__value", cx = 48.0, cy = 48.0, r = 5.0)
+            rect (class' = "rv-arc__g rv-arc__bar", x = 41.0, y = 45.0, width = 14.0, height = 6.0, rx = 3.0)
+        }
+        div (class' = "rv-dial__label") {
+            strong () { name () }
+            span () { note () }
+        }
+    }
+```
+
+```fsharp solid show=inline
+StateDial ()
+```
+
 <div class="rv-statelist">
 <div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--ready"></span><strong>Ready</strong><p>A settled value. <code>TryValue</code> returns <code>Ready</code>.</p></div>
 <div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--pending"></span><strong>Pending</strong><p>No usable value yet. <code>TryValue</code> returns <code>Pending</code>, and the pending flag propagates to readers.</p></div>

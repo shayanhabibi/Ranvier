@@ -164,7 +164,6 @@ let theme =
     |> Theme.menu "about" [ Menu.section "About" [ Menu.page "about/provenance.md" ] ]
     |> Theme.navbarEnd
         [
-            NavbarDynamicWidget(Versions.switcher (Versions.versions versions Versions.defaults))
             NavbarIcon("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
         ]
     |> Theme.editUrl "https://github.com/shayanhabibi/Ranvier/edit/main/docs"
@@ -197,6 +196,14 @@ let theme =
             ]
     )
 
+/// Live Partas.Solid components on the pages (the landing page's animated state mark), compiled
+/// against the Partas.Solid 3 build committed under feed/.
+let private solidExamples (options: SolidExamplesOptions) =
+    options
+    |> SolidExamples.partasVersion "3.0.0-local.e08ad85"
+    |> SolidExamples.feed (Path.Combine(__SOURCE_DIRECTORY__, "feed"))
+    |> SolidExamples.npm "animejs" "4.5.0"
+
 let site =
     Site.create "Ranvier"
     |> Site.baseUrl baseUrl
@@ -208,6 +215,7 @@ let site =
     |> Directives.register []
     |> Sitemap.register
     |> LinkValidator.register
+    |> SolidExamples.registerWith solidExamples
     |> LightningCss.register
     |> Esbuild.register
     |> Nuglify.minifyHtml

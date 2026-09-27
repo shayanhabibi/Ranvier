@@ -22,13 +22,13 @@
         <PackageReference Include="Nacara.Plugin.Assets.Nuglify" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Deploy.GitHubPages" Version="1.0.0-*" />
     </ItemGroup>
-    <!-- Built from Partas.Nacara.Plugins (master 5973517) and committed under feed/,
-         until those packages are published. -->
     <ItemGroup>
-        <!-- The feed's Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;
+        <!-- The Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;
              without this, the implicit FSharp.Core of an older SDK wins and the site fails to start. -->
         <PackageReference Include="FSharp.Core" Version="11.0.101-rc1.26425.128" />
-        <PackageReference Include="Partas.Nacara.Theme" Version="0.2.0-local.5973517" />
-        <PackageReference Include="Partas.Nacara.Plugins.Directives" Version="0.1.0-local.5973517" />
+        <PackageReference Include="Partas.Nacara.Theme" Version="0.2.0" />
+        <PackageReference Include="Partas.Nacara.Plugins.Directives" Version="0.1.0" />
+        <!-- Unpublished; committed under feed/. -->
+        <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.44d0693" />
     </ItemGroup>
 </Project>
