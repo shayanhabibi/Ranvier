@@ -345,7 +345,9 @@ let permittedAdditions =
     set
         [
             "type Ranvier.Trace : System.Object"
-            "member Ranvier.Trace static named<1>(String,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0"
+            "member Ranvier.Trace static label(Ranvier.Graph,Ranvier.INode,String) : Void"
+            "type Ranvier.TraceModule : System.Object"
+            "member Ranvier.TraceModule static named<1>(String,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0"
         ]
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -756,14 +758,14 @@ let packGate () =
     let baseline = File.ReadAllLines baselineFile |> Array.filter (fun l -> l <> "") |> set
     let added = surface - baseline - permittedAdditions |> Seq.map (fun l -> "added:   " + l)
     let removed = baseline - surface |> Seq.map (fun l -> "removed: " + l)
-    check "gate 1: packed public surface equals the baseline plus Trace.named" (List.ofSeq (Seq.append added removed)) ""
+    check "gate 1: packed public surface equals the baseline plus Trace.named and Trace.label" (List.ofSeq (Seq.append added removed)) ""
 
     let (debugCode, _) =
         run root [] "dotnet" [ "pack"; "src/Ranvier"; "-c"; "Debug"; "-o"; Path.Combine (work, "pack-debug") ]
 
     check "gate 1: a traced pack fails" [ if debugCode = 0 then yield "dotnet pack -c Debug succeeded" ] ""
 
-let namedProject =
+let sampleProject =
     """<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -771,11 +773,14 @@ let namedProject =
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(NamedSample)' == 'true'">
-    <DefineConstants>$(DefineConstants);NAMED</DefineConstants>
+  <PropertyGroup Condition="'$(WithCall)' == 'true'">
+    <DefineConstants>$(DefineConstants);%DEFINE%</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CallerTrace)' == 'true'">
+    <DefineConstants>$(DefineConstants);RANVIER_TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="NamedZeroCost.fs" />
+    <Compile Include="%MODULE%.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="%SRC%" />
@@ -783,51 +788,106 @@ let namedProject =
 </Project>
 """
 
-let namedGate () =
-    let dir = Path.Combine (work, "named")
+/// <summary>
+/// Checks that <c>samples/&lt;sample&gt;.fsx</c>, compiled against the untraced library with and without
+/// <c>define</c>, gives the same IL, and the same JS when Fable runs.
+/// </summary>
+/// <remarks>
+/// With <c>control</c> set, the sample built with <c>define</c> and <c>RANVIER_TRACE</c> against the traced library
+/// must call that method, in IL and in JS.
+/// </remarks>
+let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: string) (control: string option) () =
+    let key = sample.Replace ("-zero-cost", "")
+    let dir = Path.Combine (work, key)
     Directory.CreateDirectory dir |> ignore
-    let project = Path.Combine (dir, "NamedZeroCost.fsproj")
-    File.WriteAllText (project, namedProject.Replace ("%SRC%", Path.Combine (src, "Ranvier.fsproj")))
-    File.Copy (Path.Combine (root, "samples", "named-zero-cost.fsx"), Path.Combine (dir, "NamedZeroCost.fs"), true)
+    let project = Path.Combine (dir, moduleName + ".fsproj")
 
-    let build (named: bool) =
-        let out = Path.Combine (work, (if named then "named-with" else "named-without"))
+    let text =
+        sampleProject
+            .Replace("%SRC%", Path.Combine (src, "Ranvier.fsproj"))
+            .Replace("%DEFINE%", define)
+            .Replace ("%MODULE%", moduleName)
 
-        runChecked dir [] "dotnet" [ "build"; project; "-c"; "Release"; "-p:RanvierTrace=false"; $"-p:NamedSample=%b{named}"; "-o"; out ]
+    File.WriteAllText (project, text)
+    File.Copy (Path.Combine (root, "samples", sample + ".fsx"), Path.Combine (dir, moduleName + ".fs"), true)
+
+    let build (withCall: bool) (callerTrace: bool) =
+        let out = Path.Combine (work, key + (if withCall then "-with" else "-without") + (if callerTrace then "-traced" else ""))
+
+        runChecked
+            dir
+            []
+            "dotnet"
+            [
+                "build"
+                project
+                "-c"
+                "Release"
+                $"-p:RanvierTrace=%b{callerTrace}"
+                $"-p:WithCall=%b{withCall}"
+                $"-p:CallerTrace=%b{callerTrace}"
+                "-o"
+                out
+            ]
         |> ignore
 
-        ilListing (Path.Combine (out, "NamedZeroCost.dll"))
+        ilListing (Path.Combine (out, moduleName + ".dll"))
 
-    let without = build false
-    let withNamed = build true
+    let without = build false false
+    let withCall = build true false
 
     let diff =
-        if without = withNamed then
+        if without = withCall then
             []
         else
             let a = set without
-            let b = set withNamed
-            [ for l in a - b -> "without only: " + l ] @ [ for l in b - a -> "named only:   " + l ]
+            let b = set withCall
+            [ for l in a - b -> "without only: " + l ] @ [ for l in b - a -> "with only:    " + l ]
 
-    check "gate 1: Trace.named sample IL equals the sample without it" diff ""
+    check $"gate 1: %s{call} sample IL equals the sample without it" diff ""
+
+    match control with
+    | Some name ->
+        let calls = build true true |> List.filter (fun l -> l.Contains ("::" + name))
+
+        check $"gate 1: positive control, %s{call} sample built with RANVIER_TRACE calls %s{name}" [ if calls.IsEmpty then yield "no call site" ] ""
+    | None -> ()
 
     if runFable then
-        let js (named: bool) =
-            let out = Path.Combine (work, (if named then "named-js-with" else "named-js-without"))
-            fable project out [] (if named then [ "--define"; "NAMED" ] else [])
-            File.ReadAllText (Path.Combine (out, "NamedZeroCost.fs.js"))
+        let js (withCall: bool) (callerTrace: bool) =
+            let out = Path.Combine (work, key + (if withCall then "-js-with" else "-js-without") + (if callerTrace then "-traced" else ""))
 
-        let a = js false
-        let b = js true
+            let defines =
+                [
+                    if withCall then yield! [ "--define"; define ]
+                    if callerTrace then yield! [ "--define"; "RANVIER_TRACE" ]
+                ]
+
+            fable project out (if callerTrace then [ ("RanvierTrace", "true") ] else []) defines
+            File.ReadAllText (Path.Combine (out, moduleName + ".fs.js"))
+
+        let a = js false false
+        let b = js true false
 
         check
-            "gate 1: Trace.named sample JS equals the sample without it"
+            $"gate 1: %s{call} sample JS equals the sample without it"
             [
                 if a <> b then
-                    yield "NamedZeroCost.fs.js differs:"
-                    yield! (b.Split '\n' |> Array.filter (fun l -> not (a.Contains l)) |> Array.map (fun l -> "named only: " + l.TrimEnd ()))
+                    yield moduleName + ".fs.js differs:"
+                    yield! (b.Split '\n' |> Array.filter (fun l -> not (a.Contains l)) |> Array.map (fun l -> "with only: " + l.TrimEnd ()))
             ]
             ""
+
+        match control with
+        | Some name ->
+            check
+                $"gate 1: positive control, %s{call} sample JS built with RANVIER_TRACE calls %s{name}"
+                [ if not (Regex.IsMatch (js true true, "_" + name + @"(_\w+)?\(")) then yield "no call site" ]
+                ""
+        | None -> ()
+
+let namedGate = zeroCostGate "Trace.named" "named-zero-cost" "NamedZeroCost" "NAMED" None
+let labelGate = zeroCostGate "Trace.label" "label-zero-cost" "LabelZeroCost" "LABEL" (Some "label")
 
 let fableGate () =
     let untraced = Path.Combine (work, "fable-untraced")
@@ -959,6 +1019,7 @@ if not lintOnly then
     step "gate 1: IL scan" ilGate
     step "gate 1: pack" packGate
     step "gate 1: Trace.named sample" namedGate
+    step "gate 1: Trace.label sample" labelGate
     step "gate 2: trace-sample.fsx" sampleGate
     step "gate 3: reconcile" reconcileGate
 

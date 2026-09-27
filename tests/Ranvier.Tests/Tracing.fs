@@ -225,6 +225,40 @@ let tests =
                     "each label must go to the first node its own thunk creates"
             }
 
+            test "label gives a node computed text as its path segment" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let i = 7
+                let a = createSignal 1
+                Trace.label (g, a, $"row {i}")
+                let s = Trace.snapshot g
+
+                Expect.equal s.Nodes[(a :> INode).Id].Path "/row 7" "the label must replace the node's segment"
+                Expect.equal s.Nodes[(a :> INode).Id].Label (Some "row 7") "the snapshot must carry the label"
+                Expect.equal (Trace.origin g a).Label (Some "row 7") "origin must report the label"
+                Expect.equal (Trace.resolve g "/row 7") (Some (a :> INode).Id) "the labelled path must resolve"
+            }
+
+            test "label moves the paths beneath the node" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let count = createSignal 1
+                let mutable inner = Unchecked.defaultof<Memo<int>>
+
+                let m =
+                    Trace.named "outer" (fun () ->
+                        createMemoWith (fun () ->
+                            inner <- Trace.named "inner" (fun () -> createMemo (fun () -> 0))
+                            count.Value))
+
+                m.Value |> ignore
+                let before = (Trace.snapshot g).Nodes[(inner :> INode).Id].Path
+                Trace.label (g, m, "renamed")
+                let after = (Trace.snapshot g).Nodes[(inner :> INode).Id].Path
+
+                Expect.equal (before, after) ("/outer/inner", "/renamed/inner") "a child path must follow its host's label"
+            }
+
             test "a projection takes its label ahead of the nodes it creates" {
                 use g = new Graph ()
                 use _ = g.Activate ()

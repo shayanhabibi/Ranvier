@@ -1,5 +1,25 @@
 namespace Ranvier
 
+open System.Diagnostics
+
+/// <summary>Trace calls that compile only into callers built with <c>RANVIER_TRACE</c>.</summary>
+/// <remarks>A caller built without <c>RANVIER_TRACE</c> drops each call and evaluates none of its arguments.</remarks>
+[<AbstractClass; Sealed>]
+type Trace =
+    /// <summary>Labels <c>node</c> in <c>graph</c>'s log with <c>text</c>, which may be computed.</summary>
+    /// <remarks>
+    /// The label replaces the node's path segment, and the paths beneath the node move with it.
+    /// A caller built without <c>RANVIER_TRACE</c> drops the call, so a computed <c>text</c> costs nothing there.
+    /// </remarks>
+    [<Conditional("RANVIER_TRACE")>]
+    static member label(graph: Graph, node: INode, text: string) : unit =
+#if RANVIER_TRACE
+        ((box graph) :?> ITraced).TraceLog.Append(TraceEventKind.Label, node.Id, 0, 1, 0, 0, text)
+        |> ignore
+#else
+        ()
+#endif
+
 /// <summary>Provenance queries over a graph's event log, compiled in by <c>RanvierTrace=true</c>.</summary>
 /// <remarks>An untraced build carries <c>Trace.named</c> alone.</remarks>
 [<RequireQualifiedAccess>]
@@ -36,13 +56,21 @@ module Trace =
         | Some i ->
             let created = events[i]
 
+            let relabel =
+                events
+                |> Array.tryFindBack (fun e -> e.Kind = TraceEventKind.Label && e.Arg = 1 && e.Node = id)
+
             let label =
-                if i + 1 < events.Length
-                   && events[i + 1].Kind = TraceEventKind.Label
-                   && events[i + 1].Node = id then
+                match relabel with
+                | Some e -> Some (string e.Payload)
+                | None when
+                    i + 1 < events.Length
+                    && events[i + 1].Kind = TraceEventKind.Label
+                    && events[i + 1].Arg = 0
+                    && events[i + 1].Node = id
+                    ->
                     Some (string events[i + 1].Payload)
-                else
-                    None
+                | None -> None
 
             {
                 Seq = created.Seq

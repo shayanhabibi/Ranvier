@@ -141,7 +141,7 @@ Sites are an attribute of `NodeNew`/`OwnerNew` (§4.4), not an event.
 | `GraphNew` | 0 | root owner id | 0 | 0 | 0 | null |
 | `NodeNew` | node id | owner id, or 0 | `TraceNodeKind` | 0 | `RunStart` seq of the creating run, or 0 | site |
 | `OwnerNew` | owner id | parent owner id, or 0 | host node id when it is a node's run scope, else 0 | 1 for a `createRoot` scope | `RunStart` seq of the creating run, or 0 | site |
-| `Label` | labelled node or owner id; 0 when unused | 0 | 0 | 0 | 0 | label string |
+| `Label` | labelled node or owner id; 0 when unused | 0 | 0 from `Trace.named`, 1 from `Trace.label` | 0 | 0 | label string |
 | `Dispose` / `OwnerDispose` | id | 0 | 0 | 0 | 0 | null |
 | `Write` | signal | running computation, or 0 | 0 | 1 when the value moved | that computation's `RunStart` seq, or 0 | null |
 | `Mark` | target | source | 1 check, 2 dirty | 0 | `Write`, `Moved` or `Publish` seq | null |
@@ -244,8 +244,10 @@ let inline named (_: string) ([<InlineIfLambda>] f: unit -> 'T) : 'T = f ()
   unaffected. Nested `named` calls label their own first node. A thunk that creates no node records a `Label` event with
   `Node = 0` (a lint warning).
 - The pending-label stack is thread-static in the traced `Tracer`.
-- **[interpretation]** Zero Release cost holds for a literal label. A computed label (`$"row {i}"`) is evaluated in
-  Release.
+- Zero Release cost holds for a literal label. A computed label (`$"row {i}"`) goes through `Trace.label (graph,
+  node, text)` (§11 decision 1): a `Conditional("RANVIER_TRACE")` member whose call and arguments compile away in a caller
+  built without `RANVIER_TRACE`. It records `Label` with `Arg = 1`; the node's path segment becomes the text, and the paths
+  beneath it move with it.
 
 ### 5.2 Queries
 
@@ -413,7 +415,7 @@ Conventions for every step:
 
 | # | Decision pressed | Interpretation in this spec | Alternative |
 | --- | --- | --- | --- |
-| 1 | Zero Release cost vs `Trace.named` | Zero cost holds for a literal label; a computed label is evaluated in Release (§5.1). | `named` takes `unit -> string`, which costs a closure unless inlined. |
+| 1 | Zero Release cost vs `Trace.named` | **Resolved (option C).** `Trace.named` keeps its literal-label contract. A computed label goes through `Trace.label (graph, node, text)`, a `[<Conditional("RANVIER_TRACE")>]` static member: a caller built without `RANVIER_TRACE` drops the call and its arguments. Gate 1 checks this on `samples/label-zero-cost.fsx` (IL, and JS under Fable). | `named` takes `unit -> string`, which costs a closure unless inlined. |
 | 2 | Conditional hooks with stub bodies | Hooks stay `Conditional`. Traced state lives in `#if RANVIER_TRACE` declaration blocks on four engine types (Appendix A), because `ObserverSet` and `SourceList` have no graph in scope. | Tracer-side weak tables (`ConditionalWeakTable`) with no engine `#if`, at one table lookup per mark. |
 | 3 | Counter equality in Gate 1 | Exact equality on bytes/op, objects/op and library counters. `InstructionRetired` within max(0.5%, calibration spread). Merge-base vs HEAD replaces a committed baseline. The deterministic IL scan is the primary check. | A fixed 0.5% against a committed baseline, which fails on noise. |
 | 4 | Diff by identity path falling back to id | One step between them: the path with site segments replaced by `<kind>#n`, reported as `moved site`, so a REPL edit that shifts line numbers still matches (§5.3). | Path, then id only. |
@@ -423,11 +425,11 @@ Conventions for every step:
 
 ## Appendix A. `#if RANVIER_TRACE` blocks in engine files
 
-Declaration blocks only; the lint matches this list. Phase 1a fills in line numbers.
+Declaration blocks only; the lint matches this list. Line numbers are the `#if RANVIER_TRACE` lines at commit time.
 
-| File | Type | Contents |
-| --- | --- | --- |
-| `Core.fs` | `Graph` | `TraceLog` field created before the root owner; `interface ITraced`. |
-| `Core.fs` | `Owner` | `TraceLog` and `TraceId` fields; `interface ITraced`. |
-| `Core.fs` | `ObserverSet` | `TraceLog` and owner-id fields; `interface ITraced`. |
-| `Core.fs` | `SourceList` | `TraceLog` and owner-id fields; `interface ITraced`. |
+| File | Type | Contents | Lines |
+| --- | --- | --- | --- |
+| `Core.fs` | `Graph` | `interface ITraced`, reading and writing the root owner's `TraceLog`. | 1049 |
+| `Core.fs` | `Owner` | `TraceLog` and `TraceId` fields; `interface ITraced`. | 547, 753 |
+| `Core.fs` | `ObserverSet` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 126, 298 |
+| `Core.fs` | `SourceList` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 368, 465 |

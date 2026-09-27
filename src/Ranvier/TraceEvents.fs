@@ -19,8 +19,8 @@ type TraceEventKind =
     /// <summary>An owner was disposed.</summary>
     | OwnerDispose = 5
     /// <summary>
-    /// A <c>Trace.named</c> label. <c>Node</c>: the labelled node or owner id, or 0 when the thunk created neither.
-    /// <c>Payload</c>: the label.
+    /// A <c>Trace.named</c> or <c>Trace.label</c> label. <c>Node</c>: the labelled node or owner id, or 0 when the
+    /// thunk created neither. <c>Arg</c>: 1 from <c>Trace.label</c>, else 0. <c>Payload</c>: the label.
     /// </summary>
     | Label = 6
     /// <summary>A signal was written. <c>Other</c>: the running computation, or 0. <c>Flag</c>: 1 when the value moved.</summary>

@@ -480,7 +480,7 @@ module TraceModel =
             if i + 1 < events.Length then
                 let l = events[i + 1]
 
-                if l.Kind = TraceEventKind.Label && l.Node = id && id <> 0 then
+                if l.Kind = TraceEventKind.Label && l.Arg = 0 && l.Node = id && id <> 0 then
                     Some (string l.Payload)
                 else
                     None
@@ -615,6 +615,33 @@ module TraceModel =
                     { s with
                         Observers = (if set.IsEmpty then s.Observers.Remove e.Node else s.Observers.Add (e.Node, set))
                     }
+            | TraceEventKind.Label when e.Arg = 1 ->
+                match s.Nodes.TryFind e.Node with
+                | Some n ->
+                    let label = string e.Payload
+                    let old = n.Path
+                    let path = child (parentPath n.Owner) (segment (Some label) n.Site (string n.Kind))
+                    let k = (s.Incarnations.TryFind path |> Option.defaultValue 0) + 1
+
+                    let moved (p: string) =
+                        if p = old then path
+                        elif p.StartsWith (old + "/", StringComparison.Ordinal) then path + p.Substring old.Length
+                        else p
+
+                    s <-
+                        { s with
+                            Incarnations = s.Incarnations.Add (path, k)
+                            Nodes =
+                                s.Nodes
+                                |> Map.map (fun id m ->
+                                    if id = e.Node then
+                                        { m with Path = path; Label = Some label; Incarnation = k }
+                                    else
+                                        { m with Path = moved m.Path })
+                            Owners = s.Owners |> Map.map (fun _ o -> { o with Path = moved o.Path })
+                            Siblings = s.Siblings |> Map.toSeq |> Seq.map (fun (p, m) -> moved p, m) |> Map.ofSeq
+                        }
+                | None -> ()
             | _ -> ()
 
             s <- { s with Seq = e.Seq }
