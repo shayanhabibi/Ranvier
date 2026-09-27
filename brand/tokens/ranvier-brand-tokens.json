@@ -1,0 +1,56 @@
+{
+  "name": "Ranvier brand tokens",
+  "version": "1.0",
+  "defaultTheme": "dark",
+  "themes": {
+    "dark": {
+      "colors": {
+        "canvas": "#0D1118",
+        "surface": "#171E28",
+        "raised": "#202936",
+        "border": "#33414F",
+        "border-strong": "#586B78",
+        "text": "#EBF3F7",
+        "muted": "#9BAAB5",
+        "contour": "#64D9EE",
+        "accent-text": "#64D9EE",
+        "violet": "#9D8CFF",
+        "pending": "#F4B971",
+        "value": "#7CE3B0",
+        "error": "#F4868B",
+        "on-accent": "#0D1118"
+      },
+      "gradients": {
+        "accent": "linear-gradient(115deg, #64D9EE 0%, #6D9FFB 53%, #9D8CFF 100%)",
+        "feature": "linear-gradient(125deg, #0D1118 0%, #173047 57%, #1B5165 100%)"
+      }
+    },
+    "light": {
+      "colors": {
+        "canvas": "#F7F9FB",
+        "surface": "#FFFFFF",
+        "raised": "#EFF3F7",
+        "border": "#CBD7E0",
+        "border-strong": "#7C91A0",
+        "text": "#17232D",
+        "muted": "#526574",
+        "contour": "#087F99",
+        "accent-text": "#08758F",
+        "violet": "#6953C5",
+        "pending": "#A85D11",
+        "value": "#187E54",
+        "error": "#AD3543",
+        "on-accent": "#FFFFFF"
+      },
+      "gradients": {
+        "accent": "linear-gradient(115deg, #08758F 0%, #376BAF 53%, #6953C5 100%)",
+        "feature": "linear-gradient(125deg, #F7F9FB 0%, #EAF4FA 57%, #E5EAF9 100%)"
+      }
+    }
+  },
+  "usage": {
+    "accent": "large logo contour, feature headings, prominent actions",
+    "feature": "hero and broad editorial surfaces",
+    "semantic": "pending, value, and error remain flat colors with distinct glyphs and labels"
+  }
+}

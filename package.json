@@ -1,0 +1,12 @@
+{
+  "name": "ranvier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "mocha dist/tests"
+  },
+  "devDependencies": {
+    "mocha": "^11.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/.environment/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path=".config/dotnet-tools.json" />
+    <File Path="global.json" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="README.md" />
+    <File Path="package.json" />
+  </Folder>
+  <Folder Name="/Build/">
+    <File Path="build.fsx" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Ranvier/Ranvier.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ranvier.Tests/Ranvier.Tests.fsproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <Project Path="docs/docs.fsproj" />
+  </Folder>
+</Solution>
