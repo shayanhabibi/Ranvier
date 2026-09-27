@@ -217,6 +217,10 @@ let site =
     |> Sitemap.register
     |> LinkValidator.register
     |> SolidExamples.registerWith solidExamples
+    |> AgentFriendly.registerWith (
+        AgentFriendly.summary "Fine-grained reactive computation for .NET, with a Fable target planned"
+        >> AgentFriendly.details "Start with the guide. Concepts explains the engine's model; Benchmarks holds measured results."
+    )
     |> LightningCss.register
     |> Esbuild.register
     |> Nuglify.minifyHtml
