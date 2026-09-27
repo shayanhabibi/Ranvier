@@ -197,11 +197,11 @@ let theme =
     )
 
 /// Live Partas.Solid components on the pages (the landing page's animated state mark), compiled
-/// against the Partas.Solid 3 build committed under feed/.
+/// against the Partas.Solid 3 build committed under feed/. The generated project inherits
+/// docs/nuget.config, whose partas-local source serves it.
 let private solidExamples (options: SolidExamplesOptions) =
     options
     |> SolidExamples.partasVersion "3.0.0-local.e08ad85"
-    |> SolidExamples.feed (Path.Combine(__SOURCE_DIRECTORY__, "feed"))
     |> SolidExamples.npm "animejs" "4.5.0"
 
 let site =
