@@ -416,6 +416,9 @@ limited to N events.
   binary; Fable has no JIT constant folding.
 - **`[<Conditional>]`.** Inside the library it equals `#if`, and it also elides argument evaluation, so
   a side-effecting argument makes the builds differ.
+  *Update 2026-09-27:* the spec adopts it with arguments restricted to locals, fields and ids. A throwaway
+  spike (Fable 5.18.0, .NET 10) showed the call and its argument expressions removed on .NET Release and
+  in Fable JS, with the caller's module importing nothing from `Tracer`.
 - **EventSource / DiagnosticSource / ActivitySource.** Asynchronous, buffered, timestamped, lossy: not
   a diffable log.
 - **Live inspector with per-node wake fields (`RANVIER_INSPECT`).** Last-writer-wins history loses
