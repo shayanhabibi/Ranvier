@@ -327,21 +327,31 @@ module TraceModel =
         let disposed () =
             first TraceEventKind.Dispose |> Option.map (fun e -> Disposed e.Seq)
 
+        let answered (e: TraceEvent) =
+            on TraceEventKind.RunStart e
+            || (on TraceEventKind.CheckResolved e && e.Flag = 0)
+            || e.Kind = TraceEventKind.FlushEnd
+
         let queued () =
             window
             |> Array.tryFindIndexBack (on TraceEventKind.Schedule)
             |> Option.bind (fun i ->
-                if window[i + 1 ..] |> Array.exists (on TraceEventKind.RunStart) then
+                if window[i + 1 ..] |> Array.exists answered then
                     None
                 else
                     Some (Queued window[i].Seq))
+
+        let pulled (e: TraceEvent) =
+            on TraceEventKind.RunStart e
+            || on TraceEventKind.Schedule e
+            || on TraceEventKind.CheckStart e
+            || on TraceEventKind.CheckResolved e
 
         let unobserved () =
             match first TraceEventKind.Mark with
             | Some mark when
                 not (observers events |> Map.containsKey node)
-                && not (window |> Array.exists (on TraceEventKind.RunStart))
-                && not (window |> Array.exists (on TraceEventKind.Schedule))
+                && not (window |> Array.exists pulled)
                 ->
                 Some (Unobserved mark.Seq)
             | _ -> None

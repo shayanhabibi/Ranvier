@@ -13,6 +13,13 @@ let private traced () =
 
 exception private Boom
 
+[<CustomEquality; NoComparison>]
+type private ThrowingEquals =
+    | ThrowingEquals of int
+
+    override _.Equals(_: obj) = raise Boom
+    override _.GetHashCode() = 0
+
 #if RANVIER_TRACE
 let private ofKind (kind: TraceEventKind) (g: Graph) =
     Trace.events g |> Array.filter (fun e -> e.Kind = kind)
@@ -21,12 +28,12 @@ let private labels (g: Graph) =
     ofKind TraceEventKind.Label g
     |> Array.map (fun e -> e.Node, string e.Payload)
 
-/// The puller named by the last RunStart of node `id`.
+/// <summary>The puller named by the last <c>RunStart</c> of node <c>id</c>.</summary>
 let private pullerOf (g: Graph) (id: int) =
     let run = ofKind TraceEventKind.RunStart g |> Array.findBack (fun e -> e.Node = id)
     run.Other
 
-/// The ids of the nodes of `kind`, in creation order.
+/// <summary>The ids of the nodes of <c>kind</c>, in creation order.</summary>
 let private idsOf (kind: TraceNodeKind) (g: Graph) =
     ofKind TraceEventKind.NodeNew g
     |> Array.filter (fun e -> e.Arg = int kind)
@@ -288,6 +295,20 @@ let tests =
                 Expect.equal created.Kind TraceEventKind.NodeNew "Seq must point at the NodeNew"
             }
 
+            test "origin reports the owner chain and the identity path" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let mutable inner = Unchecked.defaultof<Memo<int>>
+
+                createRoot (fun _ ->
+                    inner <- Trace.named "inner" (fun () -> createMemo (fun () -> 1)))
+                |> ignore
+
+                let origin = Trace.origin g inner
+                Expect.equal origin.Path "/root#0/inner" "the path runs through the createRoot owner"
+                Expect.equal origin.Owners [ origin.Owner; 1 ] "the chain climbs from the owner to the graph root"
+            }
+
             test "folded edges equal live sources after a diamond, a dynamic dependency switch and a dispose" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -472,23 +493,98 @@ let tests =
                 use _ = g.Activate ()
                 let u = createSignal 0
                 let s = createSignal 0
-                createEffect (fun () -> u.Value + s.Value |> ignore)
+                let t = createSignal 0
+                createEffect (fun () -> t.Value <- u.Value + s.Value * 0)
                 createEffect (fun () ->
-                    let v = u.Value
+                    let v = t.Value
                     onCleanup (fun () -> s.Value <- v + 100))
+                let writer = (ofKind TraceEventKind.NodeNew g).[3].Node
                 let before = (Trace.events g).Length
                 u.Value <- 1
-                u.Value <- 2
                 let window = (Trace.events g)[before..]
                 let flush = window |> Array.findIndex (fun e -> e.Kind = TraceEventKind.FlushStart)
-                let flushEnd = window |> Array.findIndexBack (fun e -> e.Kind = TraceEventKind.FlushEnd)
-                let first = (ofKind TraceEventKind.NodeNew g).[2].Node
+                let flushEnd = window |> Array.findIndex (fun e -> e.Kind = TraceEventKind.FlushEnd)
+                let inFlush = window[flush..flushEnd]
+
+                Expect.equal
+                    (window |> Array.filter (fun e -> e.Kind = TraceEventKind.FlushStart)).Length
+                    1
+                    "a single write must flush once"
+
+                Expect.exists inFlush (fun e -> e.Kind = TraceEventKind.DischargeStart) "the flush must discharge"
 
                 let starts =
-                    window[flush..flushEnd]
-                    |> Array.filter (fun e -> e.Kind = TraceEventKind.RunStart && e.Node = first)
+                    inFlush |> Array.filter (fun e -> e.Kind = TraceEventKind.RunStart && e.Node = writer)
 
-                Expect.isGreaterThanOrEqual starts.Length 2 "the reader must run twice within the flushes"
+                Expect.equal starts.Length 2 "the discharge write must re-run the writer within the flush"
+            }
+
+            test "a projection whose keys change ends its run with Flag 1" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal [ 1; 2 ]
+                let p = createProjection id id (fun () -> s.Value)
+                p.Keys |> ignore
+                s.Value <- [ 1; 2; 3 ]
+                p.Keys |> ignore
+                let node = (p :> INode).Id
+                let ended = ofKind TraceEventKind.RunEnd g |> Array.filter (fun e -> e.Node = node)
+                Expect.equal (ended |> Array.map (fun e -> e.Flag)) [| 1; 1 |] "both passes publish new keys"
+                Expect.exists (ofKind TraceEventKind.Moved g) (fun e -> e.Node = node) "the keys publish records Moved"
+            }
+
+            test "an async memo's settle marks its readers with its Moved as cause" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let gate = TaskCompletionSource<int> ()
+                let a = createAsync (fun _ -> gate.Task)
+                createEffect (fun () -> a.TryValue |> ignore)
+                gate.SetResult 5
+                let node = (a :> INode).Id
+                let moved = ofKind TraceEventKind.Moved g |> Array.findBack (fun e -> e.Node = node)
+                let mark = ofKind TraceEventKind.Mark g |> Array.findBack (fun e -> e.Other = node)
+                Expect.equal mark.Cause moved.Seq "the settle's Moved causes the mark"
+            }
+
+            test "a run left open by a throwing comparer ends Abandoned" {
+                use g = new Graph ({ GraphOptions.Default with Equality = StructuralPolicy () })
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun () -> ThrowingEquals s.Value)
+                m.Value |> ignore
+                s.Value <- 2
+                Expect.throws (fun () -> m.Value |> ignore) "the comparer throws out of the run"
+                Trace.dumpText g |> ignore
+                let node = (m :> INode).Id
+                let starts = ofKind TraceEventKind.RunStart g |> Array.filter (fun e -> e.Node = node)
+                let ends = ofKind TraceEventKind.RunEnd g |> Array.filter (fun e -> e.Node = node)
+                Expect.equal ends.Length starts.Length "every RunStart has its RunEnd"
+                Expect.equal (enum<RunStatus> (Array.last ends).Arg) RunStatus.Abandoned "the open run ends Abandoned"
+            }
+
+            test "a run left open inside another run ends Abandoned" {
+                use g = new Graph ({ GraphOptions.Default with Equality = StructuralPolicy () })
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun () -> ThrowingEquals s.Value)
+                m.Value |> ignore
+                s.Value <- 2
+
+                let reader =
+                    createMemo (fun () ->
+                        try
+                            m.Value |> ignore
+                        with Boom ->
+                            ())
+
+                reader.Value
+                let node = (m :> INode).Id
+                let events = Trace.events g
+                let abandoned = events |> Array.filter (fun e -> e.Kind = TraceEventKind.RunEnd && e.Node = node && enum<RunStatus> e.Arg = RunStatus.Abandoned)
+                Expect.isNonEmpty abandoned "a run left open is closed Abandoned"
+
+                for run in events |> Array.filter (fun e -> e.Kind = TraceEventKind.RunStart && e.Node = node) do
+                    Expect.exists events (fun e -> e.Kind = TraceEventKind.RunEnd && e.Cause = run.Seq) "each RunStart is closed"
             }
 
             test "why ends at UserWrite" {
@@ -589,17 +685,38 @@ let tests =
                 Expect.equal (Trace.whyNot g m) (Some (Unobserved mark.Seq)) "nothing reads the marked memo"
             }
 
-            test "whyNot reports CheckedClean" {
-                let events =
-                    [|
-                        { Seq = 1; Kind = TraceEventKind.EdgeAdd; Node = 3; Other = 1; Arg = 0; Flag = 0; Cause = 0; Payload = null }
-                        { Seq = 2; Kind = TraceEventKind.ObserverAdd; Node = 3; Other = 9; Arg = 0; Flag = 0; Cause = 0; Payload = null }
-                        { Seq = 3; Kind = TraceEventKind.RunEnd; Node = 3; Other = 0; Arg = 0; Flag = 1; Cause = 0; Payload = null }
-                        { Seq = 4; Kind = TraceEventKind.CheckStart; Node = 3; Other = 0; Arg = 0; Flag = 0; Cause = 0; Payload = null }
-                        { Seq = 5; Kind = TraceEventKind.CheckResolved; Node = 3; Other = 0; Arg = 0; Flag = 0; Cause = 4; Payload = null }
-                    |]
+            test "whyNot reports CheckedClean for an effect behind a cutoff memo" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun () -> s.Value % 2)
+                createEffect (fun () -> m.Value |> ignore)
+                let effect = (ofKind TraceEventKind.NodeNew g |> Array.last).Node
+                s.Value <- 3
+                Expect.exists (ofKind TraceEventKind.Schedule g) (fun e -> e.Node = effect) "the write schedules the effect"
+                let resolved = ofKind TraceEventKind.CheckResolved g |> Array.findBack (fun e -> e.Node = effect)
 
-                Expect.equal (TraceModel.whyNot events 3) (Some (CheckedClean (5, [ 1 ]))) "the walk found it clean"
+                Expect.equal
+                    (TraceModel.whyNot (Trace.events g) effect)
+                    (Some (CheckedClean (resolved.Seq, [ (m :> INode).Id ])))
+                    "the flush checked the effect clean"
+            }
+
+            test "whyNot reports CheckedClean for a pulled memo behind a cutoff memo" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value % 2)
+                let m = createMemo (fun () -> a.Value)
+                m.Value |> ignore
+                s.Value <- 3
+                m.Value |> ignore
+                let resolved = ofKind TraceEventKind.CheckResolved g |> Array.findBack (fun e -> e.Node = (m :> INode).Id)
+
+                Expect.equal
+                    (Trace.whyNot g m)
+                    (Some (CheckedClean (resolved.Seq, [ (a :> INode).Id ])))
+                    "the pull checked the memo clean"
             }
 
             test "whyNot reports SkippedAsRunningReader" {

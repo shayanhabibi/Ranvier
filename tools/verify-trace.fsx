@@ -340,7 +340,10 @@ let publicSurface (dll: string) : string list =
     ]
     |> List.sort
 
-/// <summary>Surface lines the untraced build may add to the baseline: <c>Trace.named</c> (section 5.1).</summary>
+/// <summary>
+/// Surface lines the untraced build may add to the baseline: the <c>Trace</c> module (compiled <c>TraceModule</c>)
+/// with <c>Trace.named</c>, and the <c>Trace</c> class with <c>Trace.label</c> (section 5.1).
+/// </summary>
 let permittedAdditions =
     set
         [
@@ -500,7 +503,7 @@ let lintTraceFiles () : string list =
                 if formatting.IsMatch code then
                     yield $"%s{file}:%d{n + 1}: formatting outside TraceModel and TraceApi: %s{trimmed}"
 
-                // A `RunStatus` case names a run status, not a node's `Error` member.
+                // Strips `RunStatus` cases, so `RunStatus.Error` passes the `Error` rule.
                 let body = runStatus.Replace (code, "")
 
                 for r in forbidden do
@@ -720,6 +723,48 @@ let ilGate () =
                 yield "the traced build lacks AssemblyMetadata(RanvierTrace, true)"
         ]
         ""
+
+/// <summary>
+/// Per method of <c>dll</c>, its instructions with closure line numbers removed, keyed by the method with its closure
+/// line numbers removed. Methods sharing a key are merged in metadata order.
+/// </summary>
+let methodBodies (dll: string) : Map<string, string list> =
+    use a = new Assembly (dll)
+
+    a.Instructions ()
+    |> List.groupBy (fun (caller, _, _) -> closureLine.Replace (caller, "@"))
+    |> List.map (fun (caller, body) ->
+        caller, body |> List.map (fun (_, o, operand) -> o.Name + " " + closureLine.Replace (operand, "@")))
+    |> Map.ofList
+
+/// <summary>
+/// Fails on each method of the merge-base Release build whose untraced HEAD body differs by any instruction, or that
+/// HEAD lacks.
+/// </summary>
+let mergeBaseIlGate () =
+    let mergeBase = git [ "merge-base"; "HEAD"; "main" ]
+    let baseTree = Path.Combine (work, "il-base")
+    let out = Path.Combine (work, "il-base-out")
+    git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
+
+    try
+        runChecked baseTree [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-o"; out ] |> ignore
+    finally
+        run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ] |> ignore
+
+    let baseBodies = methodBodies (Path.Combine (out, "Ranvier.dll"))
+    let headBodies = methodBodies (Path.Combine (work, "untraced", "Ranvier.dll"))
+
+    check
+        $"gate 1: untraced IL equals merge-base %s{mergeBase.Substring (0, 7)} method by method"
+        [
+            for KeyValue (m, body) in baseBodies do
+                match headBodies.TryFind m with
+                | None -> yield $"missing: %s{m}"
+                | Some head when head <> body -> yield $"changed: %s{m} (%d{body.Length} -> %d{head.Length} instructions)"
+                | Some _ -> ()
+        ]
+        $" (%d{baseBodies.Count} methods)"
 
 let packGate () =
     let out = Path.Combine (work, "pack")
@@ -1017,6 +1062,7 @@ step "lint" lint
 
 if not lintOnly then
     step "gate 1: IL scan" ilGate
+    step "gate 1: IL against the merge-base" mergeBaseIlGate
     step "gate 1: pack" packGate
     step "gate 1: Trace.named sample" namedGate
     step "gate 1: Trace.label sample" labelGate

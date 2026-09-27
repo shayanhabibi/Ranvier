@@ -373,8 +373,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     /// <summary>Marks the readers of the summary for a check, which brings the pending rows current.</summary>
     let touchSummary () =
+        Tracer.Unattributed graph
         anyPending.NotifyCheck ()
         inFlightVersion.NotifyCheck ()
+        Tracer.Notified graph
 
     let watch = RowWatch (graph, (fun () -> this.RefreshSummary ()), touchSummary)
 
@@ -408,7 +410,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             i <- i + 1
 
         if not same then
+            Tracer.Moved (graph, id)
             keys.WriteExcept (passKeys.ToArray (), puller)
+            Tracer.Notified graph
 
     /// <summary>
     /// Whether anything other than the projection's <c>RowWatch</c> reads the row.
@@ -576,9 +580,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
                 if previousStatus <> Status.None then
+                    Tracer.Moved (graph, id)
                     beacon.NotifyFailure this.Running
-
-            Tracer.RunEnd (graph, id, status)
+                    Tracer.Notified graph
+                    Tracer.RunEnd (graph, id, status)
+                else
+                    Tracer.RunEnd (graph, id, status)
+            else
+                Tracer.RunEnd (graph, id, status)
         with
         | NotReadyException _ ->
             // Membership is unknown until the awaited source settles. The
@@ -590,7 +599,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             status <- Status.Pending
 
             if not (previousStatus.HasFlag Status.Pending) then
+                Tracer.Moved (graph, id)
                 beacon.NotifyFailure this.Running
+                Tracer.Notified graph
 
             Tracer.RunEnd (graph, id, status)
             reraise ()
@@ -608,7 +619,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 not (previousStatus.HasFlag Status.Error)
                 || (not retry && not (obj.ReferenceEquals (ex, previousError)))
             then
+                Tracer.Moved (graph, id)
                 beacon.NotifyFailure this.Running
+                Tracer.Notified graph
 
             Tracer.RunEnd (graph, id, status)
             reraise ()
@@ -1596,14 +1609,15 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         if suspended then
             failed.Add key |> ignore
             cell.Suspend ()
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         elif isNull failure then
             failed.Remove key
             cell.Write v
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         else
             failed.Add key |> ignore
             cell.Fail failure
-
-        Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
 
     /// <summary>
     /// Recomputes the live cells among <c>affectedKeys</c>, and every failed cell.

@@ -87,7 +87,10 @@ type RunStatus =
     | Ok = 0
     | Pending = 1
     | Error = 2
-    /// <summary>The run was closed by recovery: its frame unwound, or its flush ended with the run open.</summary>
+    /// <summary>
+    /// The run was still open when its flush ended, an enclosing run ended, the node started its next run, or a dump
+    /// ran outside every run.
+    /// </summary>
     | Abandoned = 3
 
 /// <summary>One entry of a graph's trace log.</summary>
@@ -116,10 +119,14 @@ type TraceOrigin =
         Seq: int
         Node: int
         Kind: TraceNodeKind
-        /// <summary>The <c>Trace.named</c> label the node took, if any.</summary>
+        /// <summary>The node's latest label, from <c>Trace.label</c> or else <c>Trace.named</c>, if any.</summary>
         Label: string option
         /// <summary>The owner id the node attached to, or 0.</summary>
         Owner: int
+        /// <summary>The owner ids from <c>Owner</c> up to the graph root, innermost first; empty when <c>Owner</c> is 0.</summary>
+        Owners: int list
+        /// <summary>The identity path, with its <c>@k</c> suffix when more than one node has held the path.</summary>
+        Path: string
         /// <summary>The <c>RunStart</c> seq of the creating run, or 0.</summary>
         Run: int
         /// <summary>The creation site, or null when none was captured.</summary>

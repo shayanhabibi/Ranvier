@@ -1,7 +1,4 @@
-/// <summary>
-/// Gate 3 of the graph provenance spec: the trace log of each Ranvier case accounts for every library counter
-/// the case moved.
-/// </summary>
+/// <summary>Checks that each Ranvier case's trace log accounts for every library counter changed by the case.</summary>
 module CounterBench.Reconcile
 
 #if RANVIER_TRACE && RANVIER_COUNTERS

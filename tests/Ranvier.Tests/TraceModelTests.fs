@@ -16,7 +16,7 @@ let private ev kind node other arg flag : TraceEvent =
         Payload = null
     }
 
-/// Numbers <c>events</c> from seq 1.
+/// <summary>Numbers <c>events</c> from seq 1.</summary>
 let private numbered (events: TraceEvent list) =
     events |> List.mapi (fun i e -> { e with Seq = i + 1 }) |> Array.ofList
 

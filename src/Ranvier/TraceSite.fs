@@ -12,7 +12,7 @@ module internal TraceSite =
 
     let private library = typeof<TraceEvent>.Assembly
 
-    /// The frame's assembly name, or null.
+    /// <summary>The frame's assembly name, or null.</summary>
     let private assemblyOf (frame: StackFrame) =
         match frame.GetMethod () with
         | null -> null

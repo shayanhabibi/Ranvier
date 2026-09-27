@@ -17,8 +17,8 @@ type internal ITracedEdges =
 
 /// <summary>A graph's append-only event log, with the graph's clock, owner-id counter and walk state.</summary>
 /// <remarks>
-/// The log holds ids and payloads only; it references no node, owner or graph. A log built with <c>locked</c>
-/// serialises every member, so an <c>Unchecked</c> graph used from several threads records every event.
+/// Holds ids, payloads and the bound edge sets (weakly on .NET). A log built with <c>locked</c> records every event of
+/// an <c>Unchecked</c> graph used from several threads.
 /// </remarks>
 [<Sealed; AllowNullLiteral>]
 type internal TraceLog(locked: bool) =
@@ -27,62 +27,64 @@ type internal TraceLog(locked: bool) =
     let mutable clock = 0
     let mutable owners = 0
 
-    /// Node id to the owner id recorded by its `NodeNew`.
+    // Node id to the owner id recorded by its `NodeNew`.
     let nodeOwners = Dictionary<int, int>()
 
-    /// Run-scope owner id to its host node id.
+    // Run-scope owner id to its host node id.
     let scopeHosts = Dictionary<int, int>()
 
-    /// Node id to the `RunStart` seq of its open run.
+    // Node id to the `RunStart` seq of its open run.
     let openRuns = Dictionary<int, int>()
 
-    /// Node id to the first dirty `Mark` seq since its last `RunStart`.
+    // Node id to the first dirty `Mark` seq since its last `RunStart`.
     let firstDirty = Dictionary<int, int>()
 
-    /// Node ids of the running computations, innermost last.
+    // Node ids of the running computations, innermost last.
     let running = ResizeArray<int>()
 
-    /// Node id to the label held for its `NodeNew`.
+    // Node id to the label held for its `NodeNew`.
     let reserved = Dictionary<int, string>()
 
-    /// Node ids of the walker frames, innermost last.
+    // Node ids of the walker frames, innermost last.
     let walkers = ResizeArray<int>()
 
-    /// The `CheckStart` seq of each walker frame, parallel to `walkers`.
+    // The `CheckStart` seq of each walker frame, parallel to `walkers`.
     let walkStarts = ResizeArray<int>()
 
-    /// `Write` and `Moved` seqs whose notification is in progress, innermost last.
+    // Seqs of the notifications in progress, innermost last: a `Write` or `Moved` seq, or 0 when unattributed.
     let causes = ResizeArray<int>()
 
-    /// Node id to the run number of its open run.
+    // Node id to the run number of its open run.
     let runNumbers = Dictionary<int, int>()
 
-    /// Node id to the number of runs recorded for it.
+    // Node id to the number of runs recorded for it.
     let runCounts = Dictionary<int, int>()
 
-    /// Node ids whose open run recorded `Moved`.
+    // Node ids whose open run recorded `Moved`.
     let movedRuns = HashSet<int>()
 
-    /// The seq and target of the latest `Mark`.
+    // The seq of the latest `Mark`.
     let mutable lastMark = 0
+
+    // The target node id of the latest `Mark`.
     let mutable lastMarkTarget = 0
 
     let mutable flushes = 0
 
-    /// The number of run-scope discharges in progress.
+    // The number of run-scope discharges in progress.
     let mutable discharges = 0
 
-    /// Flush number and running-stack depth of each open flush, innermost last.
+    // Flush number and running-stack depth of each open flush, innermost last.
     let flushFrames = ResizeArray<struct (int * int)>()
 
-    /// Observer sets and source lists bound to the log. Fable holds them strongly.
+    // Observer sets and source lists bound to the log. Fable holds them strongly.
 #if FABLE_COMPILER
     let edgeSets = ResizeArray<ITracedEdges>()
 #else
     let edgeSets = ResizeArray<WeakReference<ITracedEdges>>()
 #endif
 
-    /// The index of the last <c>value</c> in <c>list</c>, or -1.
+    // The index of the last `value` in `list`, or -1.
     let lastIndexOf (list: ResizeArray<int>) (value: int) =
         let mutable i = list.Count - 1
 
@@ -186,6 +188,31 @@ type internal TraceLog(locked: bool) =
 
     /// <summary>The node ids with an open run, innermost last.</summary>
     member _.Running = sync (fun () -> running.ToArray ())
+
+    /// <summary>
+    /// The running node ids opened after <c>node</c>'s innermost open run, and that run's node too when
+    /// <c>including</c> is true, innermost first. Empty when <c>node</c> has no open run.
+    /// </summary>
+    member _.RunningFrom(node: int, including: bool) =
+        sync (fun () ->
+            let i = lastIndexOf running node
+
+            if i < 0 then
+                [||]
+            else
+                [| for j in running.Count - 1 .. -1 .. (if including then i else i + 1) -> running[j] |])
+
+    /// <summary>
+    /// Empties the running stack and the notification stack when no flush or discharge is open, and returns the node
+    /// ids that were running, innermost first.
+    /// </summary>
+    member _.TakeStale() =
+        sync (fun () ->
+            if flushFrames.Count > 0 || discharges > 0 then
+                [||]
+            else
+                causes.Clear ()
+                [| for j in running.Count - 1 .. -1 .. 0 -> running[j] |])
 
     /// <summary>The first dirty <c>Mark</c> seq since <c>node</c>'s last run, or 0.</summary>
     member _.FirstDirty(node: int) = sync (fun () -> lookup firstDirty node)
@@ -327,6 +354,9 @@ type internal TraceLog(locked: bool) =
             |])
 #endif
 
+    /// <summary>Runs <c>f</c> with no other thread's event appended in between, on a log built with <c>locked</c>.</summary>
+    member _.Atomic(f: unit -> unit) = sync f
+
     /// <summary>A copy of the recorded events, oldest first.</summary>
     member _.Events = sync (fun () -> events.ToArray ())
 
@@ -391,14 +421,18 @@ type internal Tracer =
         if ownerId <> 0 then
             log.SetOwner (id, ownerId)
 
-        log.Append (TraceEventKind.NodeNew, id, ownerId, int kind, 0, log.CreatingRun, TraceSite.capture ())
-        |> ignore
+        let site = TraceSite.capture ()
 
-        match log.TakeReserved id with
-        | null -> Tracer.Consume (log, id)
-        | label ->
-            log.Append (TraceEventKind.Label, id, 0, 0, 0, 0, label)
+        // The label follows its NodeNew with no other event between them.
+        log.Atomic (fun () ->
+            log.Append (TraceEventKind.NodeNew, id, ownerId, int kind, 0, log.CreatingRun, site)
             |> ignore
+
+            match log.TakeReserved id with
+            | null -> Tracer.Consume (log, id)
+            | label ->
+                log.Append (TraceEventKind.Label, id, 0, 0, 0, 0, label)
+                |> ignore)
 
     /// <summary>Gives <c>owner</c> <c>log</c> and the next owner id, and records its <c>OwnerNew</c>.</summary>
     static member private Joined(log: TraceLog, owner: ITraced, parent: int, host: int, root: int) =
@@ -409,12 +443,16 @@ type internal Tracer =
         if host <> 0 then
             log.SetHost (id, host)
 
-        log.Append (TraceEventKind.OwnerNew, id, parent, host, root, log.CreatingRun, TraceSite.capture ())
-        |> ignore
+        let site = TraceSite.capture ()
 
-        // A run scope adds no path segment, so a pending label stays for the next node.
-        if host = 0 then
-            Tracer.Consume (log, id)
+        // The label follows its OwnerNew with no other event between them. A run scope leaves the pending label for
+        // the next node.
+        log.Atomic (fun () ->
+            log.Append (TraceEventKind.OwnerNew, id, parent, host, root, log.CreatingRun, site)
+            |> ignore
+
+            if host = 0 then
+                Tracer.Consume (log, id))
 
     /// <summary>The log of <c>traced</c>, an <c>ITraced</c>.</summary>
     static member private LogOf(traced: obj) = (traced :?> ITraced).TraceLog
@@ -468,6 +506,14 @@ type internal Tracer =
             |> ignore
 
             log.EndRun id
+
+    /// <summary>
+    /// Closes with <c>RunEnd</c> <c>Abandoned</c> every run left open by an exception, when the caller is outside every
+    /// flush, discharge and run.
+    /// </summary>
+    static member internal AbandonStale(log: TraceLog) =
+        for id in log.TakeStale () do
+            Tracer.Close (log, id, RunStatus.Abandoned)
 #endif
 
     /// <summary>
@@ -713,11 +759,22 @@ type internal Tracer =
         ()
 #endif
 
-    /// <summary>Records <c>EdgeRemove</c>: <c>sources</c>, a node's source list, lost <c>source</c> at <c>slot</c>.</summary>
+    /// <summary>
+    /// Records an <c>EdgeRemove</c> for each slot of <c>sources</c>, a node's source list, from <c>from</c> on, before
+    /// the list drops them.
+    /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member EdgeRemove(sources: obj, source: obj, slot: int) =
+    static member EdgesRemove(sources: obj, from: int) =
 #if RANVIER_TRACE
-        Tracer.Edge (TraceEventKind.EdgeRemove, sources, source, slot)
+        let traced = sources :?> ITraced
+        let log = traced.TraceLog
+
+        if not (isNull log) then
+            let ids = (sources :?> ITracedEdges).Ids
+
+            for slot in from .. ids.Length - 1 do
+                log.Append (TraceEventKind.EdgeRemove, traced.TraceId, ids[slot], slot, 0, 0, null)
+                |> ignore
 #else
         ()
 #endif
@@ -787,6 +844,18 @@ type internal Tracer =
 
         if not (isNull log) then
             log.PopCause ()
+#else
+        ()
+#endif
+
+    /// <summary>Opens a notification with no recorded cause, closed by <c>Notified</c>.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member Unattributed(graph: obj) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+
+        if not (isNull log) then
+            log.PushCause 0
 #else
         ()
 #endif
@@ -922,6 +991,10 @@ type internal Tracer =
     static member RunStart(graph: obj, id: int, run: int) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
+
+        for stale in log.RunningFrom (id, true) do
+            Tracer.Close (log, stale, RunStatus.Abandoned)
+
         let walker = log.Walker
         let puller = if walker <> 0 then walker else log.Current
         let run = if run = 0 then log.RunCount id + 1 else run
@@ -943,7 +1016,12 @@ type internal Tracer =
             elif bits &&& 2uy <> 0uy then RunStatus.Error
             else RunStatus.Ok
 
-        Tracer.Close (Tracer.LogOf graph, id, outcome)
+        let log = Tracer.LogOf graph
+
+        for stale in log.RunningFrom (id, false) do
+            Tracer.Close (log, stale, RunStatus.Abandoned)
+
+        Tracer.Close (log, id, outcome)
 #else
         ()
 #endif

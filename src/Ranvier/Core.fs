@@ -285,9 +285,8 @@ type internal ObserverSet() =
                 i <- count - 1
 
             if i >= 0 then
-                let observer = (Platform.itemAt i items).Observer
-                Tracer.Mark (this, observer, true)
-                observer.MarkDirty ()
+                Tracer.Mark (this, (Platform.itemAt i items).Observer, true)
+                (Platform.itemAt i items).Observer.MarkDirty ()
                 i <- i - 1
 
     /// <summary>
@@ -332,9 +331,8 @@ type internal ObserverSet() =
                 i <- count - 1
 
             if i >= 0 then
-                let observer = (Platform.itemAt i items).Observer
-                Tracer.Mark (this, observer, false)
-                observer.MarkCheck ()
+                Tracer.Mark (this, (Platform.itemAt i items).Observer, false)
+                (Platform.itemAt i items).Observer.MarkCheck ()
                 i <- i - 1
 
 #if RANVIER_TRACE
@@ -450,7 +448,7 @@ type internal SourceList() =
     /// Drops the slots from <c>from</c> on. A source that also holds a kept slot
     /// keeps its observer entry.
     /// </summary>
-    member private this.TrimFrom(self: IComputation, from: int) =
+    let trimFrom (self: IComputation) from =
         for i in from .. count - 1 do
             let source = sourceAt i
 
@@ -459,7 +457,6 @@ type internal SourceList() =
 #if RANVIER_COUNTERS
             Counters.EdgeRemoved ()
 #endif
-            Tracer.EdgeRemove (this, source, i)
             // Blanked so a source dropped by a conditional body is not kept
             // alive by a slot past the end of the list.
             if i = 0 then
@@ -497,7 +494,8 @@ type internal SourceList() =
             ()
         else
             if cursor < count then
-                this.TrimFrom (self, cursor)
+                Tracer.EdgesRemove (this, cursor)
+                trimFrom self cursor
 
             if count = 0 then
                 first <- source
@@ -524,13 +522,15 @@ type internal SourceList() =
     /// </summary>
     member this.EndRun(self: IComputation) =
         if cursor < count then
-            this.TrimFrom (self, cursor)
+            Tracer.EdgesRemove (this, cursor)
+            trimFrom self cursor
 
     /// <summary>
     /// Drops every edge. Disposal, not re-collection.
     /// </summary>
     member this.Clear(self: IComputation) =
-        this.TrimFrom (self, 0)
+        Tracer.EdgesRemove (this, 0)
+        trimFrom self 0
         cursor <- 0
 
 #if RANVIER_TRACE
@@ -654,8 +654,8 @@ and Owner internal (sink: Owner) =
     member _.IsDisposed = disposed
 
     member internal this.SetParent(link: OwnerLink) =
-        parentLink <- link
         Tracer.OwnerAdopt (link.Owner, this, (this :? RootScope))
+        parentLink <- link
 
     /// <summary>
     /// Exceptions recorded by this scope: from its cleanups, and on <c>Graph.Root</c> from the inbox.
@@ -2266,8 +2266,9 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             Tracer.Moved (graph, id)
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
-
-        Tracer.RunEnd (graph, id, status)
+            Tracer.RunEnd (graph, id, status)
+        else
+            Tracer.RunEnd (graph, id, status)
 
     /// <summary>
     /// Resolves <c>Check</c> into <c>Clean</c> or <c>Dirty</c> by asking each source, in read
@@ -3061,11 +3062,14 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     let mutable launching = false
 
     let wake () =
+        Tracer.Moved (graph, id)
+
         if launching then
             observers.NotifyDirtyExcept graph.CurrentComputation
         else
             observers.NotifyDirty ()
 
+        Tracer.Notified graph
         graph.RequestFlush ()
 
     /// <summary>Applies the result of the run numbered <c>gen</c>. Runs on the graph thread.</summary>
@@ -3274,7 +3278,9 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             finally
                 launching <- false
 
-        Tracer.RunEnd (graph, id, status)
+            Tracer.RunEnd (graph, id, status)
+        else
+            Tracer.RunEnd (graph, id, status)
 
     member private this.EnsureCurrent() =
         // One comparison on the cached path, as on `Memo`.
@@ -3690,8 +3696,9 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             Tracer.Moved (graph, id)
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
-
-        Tracer.RunEnd (graph, id, status)
+            Tracer.RunEnd (graph, id, status)
+        else
+            Tracer.RunEnd (graph, id, status)
 
     member private this.EnsureCurrent() =
         // One comparison on the path a cached read takes. Testing `disposed`

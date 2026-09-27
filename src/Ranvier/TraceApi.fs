@@ -21,7 +21,7 @@ type Trace =
 #endif
 
 /// <summary>Provenance queries over a graph's event log, compiled in by <c>RanvierTrace=true</c>.</summary>
-/// <remarks>An untraced build carries <c>Trace.named</c> alone.</remarks>
+/// <remarks>An untraced build carries <c>Trace.named</c> and the <c>Conditional</c> <c>Trace.label</c>.</remarks>
 [<RequireQualifiedAccess>]
 module Trace =
 #if RANVIER_TRACE
@@ -72,12 +72,21 @@ module Trace =
                     Some (string events[i + 1].Payload)
                 | None -> None
 
+            let snap = TraceModel.snapshot events
+
+            let rec chain owner =
+                match snap.Owners.TryFind owner with
+                | Some o -> owner :: (if o.Parent = 0 then [] else chain o.Parent)
+                | None -> []
+
             {
                 Seq = created.Seq
                 Node = id
                 Kind = enum<TraceNodeKind> created.Arg
                 Label = label
                 Owner = created.Other
+                Owners = chain created.Other
+                Path = TraceModel.pathOf snap id
                 Run = created.Cause
                 Site = created.Payload
             }
@@ -166,6 +175,9 @@ module Trace =
     let private gate (graph: Graph) (operation: string) =
         if not graph.IsOnGraphThread then
             invalidOp (operation + " ran off the graph's thread. Marshal it through Graph.Dispatch.")
+
+        if isNull (box graph.CurrentComputation) then
+            Tracer.AbandonStale (logOf graph)
 
         if (logOf graph).Busy then
             invalidOp (operation + " ran inside a flush, a discharge or a computation's run. Call it between flushes.")
