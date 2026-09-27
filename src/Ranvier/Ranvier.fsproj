@@ -3,6 +3,9 @@
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <LangVersion>latest</LangVersion>
+        <!-- The JIT compiles a method with a `tail.` call straight to full
+             opts, so it never reaches Tier1 and its PGO-guided inlining. -->
+        <Tailcalls>false</Tailcalls>
         <RootNamespace>Ranvier</RootNamespace>
         <AssemblyName>Ranvier</AssemblyName>
         <PackageId>Ranvier</PackageId>
@@ -10,8 +13,29 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
+    <!-- `-p:RanvierCounters=true` compiles in the operation counts in
+         `Counters.fs`. Pass it as a global property, so every project in the
+         build sees the same define. -->
+    <PropertyGroup Condition="'$(RanvierCounters)' == 'true'">
+        <DefineConstants>$(DefineConstants);RANVIER_COUNTERS</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
-        <Compile Include="Library.fs" />
+        <!-- Compile-time only on .NET: attributes and the `JS.Map` / `JS.Set`
+             bindings. Every `[<Emit>]` member in `Platform.fs` has an F# body
+             behind `#if`. -->
+        <PackageReference Include="Fable.Core" Version="5.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="Counters.fs" Condition="'$(RanvierCounters)' == 'true'" />
+        <Compile Include="Types.fs" />
+        <Compile Include="PlatformDispatcher.fs" />
+        <Compile Include="Platform.fs" />
+        <Compile Include="Core.fs" />
+        <Compile Include="Projections.fs" />
+        <Compile Include="Api.fs" />
+        <Compile Include="Combinators.fs" />
         <None Include="../../README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
