@@ -77,7 +77,7 @@ let private label = Report.engineLabel
 let private Width = 760.0
 
 [<Literal>]
-let private LabelWidth = 200.0
+let private LabelWidth = 220.0
 
 [<Literal>]
 let private ValueWidth = 110.0
@@ -114,7 +114,26 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
     let text = StringBuilder ()
     let add (s: string) = text.Append(s).Append('\n') |> ignore
     let plot = Width - LabelWidth - ValueWidth
-    let header = 76.0
+
+    let legend =
+        let mutable x = 16.0
+        let mutable row = 0
+
+        [|
+            for engine in engines do
+                let name = label versions engine
+                let width = 14.0 + float name.Length * 6.6
+
+                if x > 16.0 && x + width > Width - 16.0 then
+                    x <- 16.0
+                    row <- row + 1
+
+                yield engine, name, x, 56.0 + float row * 18.0
+                x <- x + width + 18.0
+        |]
+
+    let header =
+        (legend |> Array.map (fun (_, _, _, y) -> y) |> Array.max) + 20.0
 
     let height =
         header
@@ -145,13 +164,9 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
     add
         """<text class="ink2" x="16" y="44">Instructions per operation. Each panel scales from zero to its largest bar.</text>"""
 
-    let mutable x = 16.0
-
-    for engine in engines do
-        let name = label versions engine
-        add $"""<rect class="s%d{slot engine}" x="%s{px x}" y="56" width="10" height="10" rx="2"/>"""
-        add $"""<text class="ink2" x="%s{px (x + 14.0)}" y="65">%s{escape name}</text>"""
-        x <- x + 14.0 + float name.Length * 6.6 + 18.0
+    for engine, name, x, y in legend do
+        add $"""<rect class="s%d{slot engine}" x="%s{px x}" y="%s{px y}" width="10" height="10" rx="2"/>"""
+        add $"""<text class="ink2" x="%s{px (x + 14.0)}" y="%s{px (y + 9.0)}">%s{escape name}</text>"""
 
     let mutable y = header
 
