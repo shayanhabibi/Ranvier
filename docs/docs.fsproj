@@ -28,6 +28,7 @@
         <PackageReference Include="Partas.Nacara.Theme" Version="0.2.0" />
         <PackageReference Include="Partas.Nacara.Plugins.Directives" Version="0.1.0" />
         <PackageReference Include="Partas.Nacara.Plugins.AgentFriendly" Version="0.1.0" />
+        <PackageReference Include="Partas.Nacara.Plugins.OgImage" Version="0.1.0" />
         <!-- Unpublished; committed under feed/. -->
         <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.44d0693" />
     </ItemGroup>

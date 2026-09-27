@@ -205,6 +205,35 @@ let private solidExamples (options: SolidExamplesOptions) =
     |> SolidExamples.partasVersion "3.0.0-local.e08ad85"
     |> SolidExamples.npm "animejs" "4.5.0"
 
+/// The og card of each section, keyed by the path segment that names it, with the card's alt text.
+let private ogCards =
+    [
+        "async-and-pending", "async", "Async and pending: boundary states along a nerve fibre"
+        "guide", "guide", "Ranvier guide: build with signals"
+        "concepts", "concepts", "Ranvier concepts: how the graph works"
+        "fable", "fable", "Ranvier on Fable: the JavaScript target"
+        "benchmarks", "benchmarks", "Ranvier benchmarks: measured per commit"
+        "about", "about", "About Ranvier: provenance"
+    ]
+
+/// The card of the most specific section named by a page's path.
+let private sectionCard (page: Page) =
+    let segments = page.Id.Split([| '/'; '\\'; ':' |]) |> Array.map (fun s -> s.Replace(".md", ""))
+
+    ogCards
+    |> List.tryFind (fun (segment, _, _) -> Array.contains segment segments)
+    |> Option.map (fun (_, card, alt) ->
+        OgImage.image $"/og/%s{card}.png" |> OgImage.withAlt alt |> OgImage.withSize 1200 630)
+
+let private ogImages (options: OgImageOptions) =
+    options
+    |> OgImage.fallback sectionCard
+    |> OgImage.defaultImage (
+        OgImage.image "/og/home.png"
+        |> OgImage.withAlt "Ranvier: fine-grained reactive computation for .NET"
+        |> OgImage.withSize 1200 630
+    )
+
 let site =
     Site.create "Ranvier"
     |> Site.baseUrl baseUrl
@@ -217,6 +246,7 @@ let site =
     |> Sitemap.register
     |> LinkValidator.register
     |> SolidExamples.registerWith solidExamples
+    |> OgImage.registerWith ogImages
     |> AgentFriendly.registerWith (
         AgentFriendly.summary "Fine-grained reactive computation for .NET, with a Fable target planned"
         >> AgentFriendly.details "Start with the guide. Concepts explains the engine's model; Benchmarks holds measured results."
