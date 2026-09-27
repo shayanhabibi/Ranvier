@@ -123,6 +123,28 @@ let private commit (root: string option) =
             | _ -> sha + "-dirty"
 
 /// <summary>
+/// The package version of the assembly defining <c>t</c>, without source-revision metadata.
+/// </summary>
+let private packageVersion (t: Type) =
+    match t.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute> () with
+    | null -> string (t.Assembly.GetName().Version)
+    | a -> a.InformationalVersion.Split('+')[0]
+
+/// <summary>
+/// Package versions of the Fable build in <c>output</c>, read from its <c>fable_modules</c> directory names.
+/// </summary>
+let private fableVersions (output: string) =
+    let modules = Path.Combine (NodeRuns.script output "plain" |> Path.GetDirectoryName, "fable_modules")
+
+    if Directory.Exists modules then
+        Directory.GetDirectories modules
+        |> Array.choose (fun dir ->
+            let m = Text.RegularExpressions.Regex.Match (Path.GetFileName dir, @"^(.+?)\.(\d.*)$")
+            if m.Success then Some (m.Groups[1].Value, m.Groups[2].Value) else None)
+    else
+        [||]
+
+/// <summary>
 /// This executable, as a host and the arguments preceding the worker's own.
 /// </summary>
 let private selfWorker () =
@@ -240,7 +262,7 @@ let private mark (isBegin: bool) (region: int) =
 /// counters from the <c>counters</c> build, and processor counters from <c>plain</c>
 /// runs with the region handshake.
 /// </summary>
-let private measureNode (options: Options) (output: string) : Report.NodeSection =
+let private measureNode (options: Options) (sha: string) (output: string) : Report.NodeSection =
     let plain = NodeRuns.script output "plain"
     let counters = NodeRuns.script output "counters"
 
@@ -296,10 +318,13 @@ let private measureNode (options: Options) (output: string) : Report.NodeSection
         else
             "not collected (--no-pmc)"
 
+    let node = NodeRuns.version options.Node
+
     {
-        Node = NodeRuns.version options.Node
+        Node = node
         Flags = String.Join (" ", NodeRuns.flags)
         Mode = mode
+        Versions = Map [ yield "Ranvier", sha; yield "Node.js", node; yield! fableVersions output ]
         AllocationRuns = allocation
         CounterRuns = counterRuns
         PmcRuns = pmc
@@ -381,17 +406,17 @@ let main argv =
                     | None when Worker.countersCompiled -> "from the measured build"
                     | None -> "not collected (built without RanvierCounters)"
                 Environment = String.Join (" ", workerEnvironment |> List.map (fun (k, v) -> $"%s{k}=%s{v}"))
+                Versions =
+                    Map
+                        [
+                            "Ranvier", sha
+                            "FSharp.Data.Adaptive", packageVersion typeof<FSharp.Data.Adaptive.AdaptiveToken>
+                            "R3", packageVersion typeof<R3.Unit>
+                            ".NET", string Environment.Version
+                        ]
             }
 
-        let node = options.Fable |> Option.map (measureNode options)
-
-        let markdown =
-            Report.markdown header sources table calibration
-            + (node
-               |> Option.map (fun section -> "\r\n" + Report.nodeMarkdown sources section)
-               |> Option.defaultValue "")
-
-        printfn "%s" markdown
+        let node = options.Fable |> Option.map (measureNode options sha)
 
         let outDirectory =
             match options.Out, root with
@@ -401,6 +426,32 @@ let main argv =
 
         Directory.CreateDirectory outDirectory |> ignore
         let stem = Path.Combine (outDirectory, sha + (if options.Pmc then "" else "-nopmc"))
+
+        let chart (suffix: string) (title: string) (versions: Map<string, string>) (panels: Charts.Panel[]) =
+            if panels.Length = 0 then
+                None
+            else
+                let file = stem + suffix
+                File.WriteAllText (file, Charts.svg title versions panels)
+                Some (Path.GetFileName file)
+
+        let dotnetChart =
+            chart "-dotnet.svg" $".NET, %s{sha}" header.Versions (Charts.dotnetPanels table)
+
+        let nodeChart =
+            node
+            |> Option.bind (fun section ->
+                chart "-node.svg" $"Fable under Node.js, %s{sha}" section.Versions (Charts.nodePanels sources section.Rows))
+
+        let markdown =
+            Report.markdown header sources table calibration
+            + (node
+               |> Option.map (fun section -> "\r\n" + Report.nodeMarkdown sources section)
+               |> Option.defaultValue "")
+            + "\r\n"
+            + Charts.appendix dotnetChart nodeChart
+
+        printfn "%s" markdown
 
         let json =
             JsonSerializer.Serialize (

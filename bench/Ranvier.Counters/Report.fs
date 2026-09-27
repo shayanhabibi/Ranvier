@@ -290,6 +290,15 @@ let format (value: float) =
     else
         value.ToString ("N2", invariant)
 
+/// <summary>The engine followed by its version from <c>versions</c>, when present.</summary>
+let engineLabel (versions: Map<string, string>) (engine: string) =
+    match versions.TryFind engine with
+    | Some version -> $"%s{engine} %s{version}"
+    | None -> engine
+
+let private versionLine (versions: Map<string, string>) =
+    String.Join (", ", versions |> Seq.map (fun (KeyValue (name, version)) -> $"%s{name} %s{version}"))
+
 let private shortName (source: string) =
     match source with
     | "InstructionRetired" -> "instr/op"
@@ -308,6 +317,10 @@ type Header =
         /// </summary>
         Counters: string
         Environment: string
+        /// <summary>
+        /// Engine and runtime versions, by name.
+        /// </summary>
+        Versions: Map<string, string>
     }
 
 let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: Calibration) =
@@ -320,6 +333,7 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
     line $"- Machine: %s{header.Machine}"
     line $"- Instructions: %s{header.Mode}"
     line $"- Library counters: %s{header.Counters}"
+    line $"- Versions: %s{versionLine header.Versions}"
     line $"- Worker environment: %s{header.Environment}"
     line "- Every figure is (m(2N) - m(N)) / N. Processor counters are the median over runs."
     line "- Instruction counts differing by under 5 % are within run-to-run noise. Compare only reports taken at the same --scale."
@@ -371,7 +385,7 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
             let gc = if row.GcFree then "" else " (GC in region)"
 
             line
-                ("| " + String.Join (" | ", [| row.Engine; yield! pmc; format row.BytesPerOp + gc; objects; counters |]) + " |")
+                ("| " + String.Join (" | ", [| engineLabel header.Versions row.Engine; yield! pmc; format row.BytesPerOp + gc; objects; counters |]) + " |")
 
         line ""
 
@@ -459,6 +473,10 @@ type NodeSection =
         /// What the instruction columns hold.
         /// </summary>
         Mode: string
+        /// <summary>
+        /// Engine and runtime versions, by name.
+        /// </summary>
+        Versions: Map<string, string>
         AllocationRuns: NodeRuns.NodeRun[]
         CounterRuns: NodeRuns.NodeRun[]
         PmcRuns: NodeRuns.NodePmcRun[]
@@ -572,6 +590,7 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
 
     line $"# Fable under Node.js %s{section.Node}"
     line ""
+    line $"- Versions: %s{versionLine section.Versions}"
     line $"- node flags: %s{section.Flags}"
     line $"- Instructions: %s{section.Mode}"
 
@@ -635,7 +654,7 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
                 + String.Join (
                     " | ",
                     [|
-                        row.Engine
+                        engineLabel section.Versions row.Engine
                         yield! pmc
                         format row.Bytes.Median + gc
                         range row.Bytes

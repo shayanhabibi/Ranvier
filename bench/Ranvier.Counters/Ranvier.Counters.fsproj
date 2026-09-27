@@ -27,6 +27,7 @@
         <Compile Include="Pmc.fs" />
         <Compile Include="NodeRuns.fs" />
         <Compile Include="Report.fs" />
+        <Compile Include="Charts.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
