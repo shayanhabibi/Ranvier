@@ -455,7 +455,7 @@ projection row` and `createOptionMemo: an unrelated root write wakes no dependen
 
 ## Combinator views
 
-`Projection.filter`, `Projection.map`, `Projection.mapWith`, `Projection.sortBy` and `Projection.groupBy` derive a projection from another. Each view keeps a row per key, and its
+`Projection.filter`, `Projection.choose`, `Projection.map`, `Projection.mapWith`, `Projection.sortBy` and `Projection.groupBy` derive a projection from another. Each view keeps a row per key, and its
 function re-runs for a key only when the upstream row for that key changes. A reader of the view wakes as a reader of
 any projection does: `Keys` on a membership or order change, `Get key` on a changed value.
 
@@ -486,6 +486,11 @@ byLength.Keys (*** include-it ***)
 When every sort key, membership and the upstream order are unchanged, a `sortBy` pass costs O(N) and publishes no new
 `Keys`; otherwise it re-sorts in O(N log N).
 
+`Projection.choose` keeps the keys whose chooser returns `Some`, each with the value inside it, in one view: the chooser
+runs once per key per upstream row change. A change from one
+`Some` value to another wakes only readers of the key's row. A pending or raising chooser follows the predicate rules
+below.
+
 A predicate or sort key that raises leaves the key out of `Keys`, and `Get` of the key raises the exception. A mapping
 that raises keeps the key, with the same `Get` behaviour. A pending predicate keeps the key's last membership; a
 pending sort key keeps its last settled sort key. A key whose predicate or sort key has never settled appears in
@@ -500,7 +505,9 @@ Pinned by `a throwing predicate excludes the key, and Get and TryGet raise its e
 membership; a never-settled key is only in PendingKeys`, `an effect reading Keys and Get runs exactly once per write`,
 `sorts ascending, and equal sort keys keep upstream order`, `ties keep upstream order at 40 keys, across reorder and
 removal`, `NaN sort keys sort after every other key, across updates`, `None sorts before Some, across updates`, `a pass whose sort keys and upstream order are unchanged does not re-sort` and
-`a pending sort key keeps its last settled sort key; a never-settled key is only in PendingKeys`, and the
+`a pending sort key keeps its last settled sort key; a never-settled key is only in PendingKeys`, `a pending chooser
+keeps membership; a never-settled key is only in PendingKeys`, `a throwing chooser excludes the key, and Get and TryGet
+raise its error`, and the
 `chained pending` tests
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
 

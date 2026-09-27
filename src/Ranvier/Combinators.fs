@@ -53,22 +53,15 @@ type internal MapView<'K, 'V, 'U when 'K: equality>
         heldOut.Publish upstream
 
 /// <summary>
-/// The keys of <c>inclusion</c> whose predicate row holds <c>true</c>, each with a row reading the upstream value.
+/// The keys of <c>inclusion</c> whose predicate row holds <c>true</c>, each with the value of <c>read</c> at the key.
 /// </summary>
 /// <remarks>
 /// A pending predicate keeps the key's last settled membership. A failed predicate leaves the key out of <c>Keys</c> and
-/// keeps its row, which raises the failure.
+/// keeps its row, which raises the failure. <c>read</c> raises when the key's predicate row is pending or failed.
 /// </remarks>
-type internal FilterView<'K, 'V when 'K: equality>
-    (graph: Graph, upstream: Projection<'K, 'V>, inclusion: Projection<'K, bool> ref) =
-    inherit
-        RowsOf<'K, 'K, 'V>(
-            graph,
-            (fun key ->
-                inclusion.Value.Get key |> ignore
-                upstream.Get key),
-            Unchecked.defaultof<_>
-        )
+type internal FilterView<'K, 'V, 'U when 'K: equality>
+    (graph: Graph, upstream: Projection<'K, 'V>, inclusion: Projection<'K, bool> ref, read: 'K -> 'U) =
+    inherit RowsOf<'K, 'K, 'U>(graph, read, Unchecked.defaultof<_>)
 
     let heldOut = HeldOut<'K> graph
 
@@ -392,7 +385,12 @@ module Projection =
     let filter (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Projection<'K, 'V> =
         let graph = upstream.Graph
         let inclusion = ref Unchecked.defaultof<Projection<'K, bool>>
-        let view = new FilterView<'K, 'V> (graph, upstream, inclusion)
+
+        let read key =
+            inclusion.Value.Get key |> ignore
+            upstream.Get key
+
+        let view = new FilterView<'K, 'V, 'V> (graph, upstream, inclusion, read)
 
         inclusion.Value <-
             graph.RunOwned (
@@ -410,6 +408,60 @@ module Projection =
 
         view.PendingExtra <- fun () -> view.HeldOut
         view :> Projection<'K, 'V>
+
+    /// <summary>
+    /// The keys of <c>upstream</c> whose value <c>chooser</c> maps to <c>Some</c>, in upstream order, each with the value
+    /// inside the <c>Some</c>.
+    /// </summary>
+    /// <remarks>
+    /// <c>chooser</c> runs once per key when its upstream row changes, and a change between two <c>Some</c> values wakes only
+    /// readers of the key's row. A pending <c>chooser</c> keeps the key's last membership; a key whose <c>chooser</c> has
+    /// never settled is absent from <c>Keys</c> and present in <c>PendingKeys</c>, while <c>AnyPending</c> counts only rows
+    /// of keys in <c>Keys</c>. A throwing <c>chooser</c> excludes the key, and <c>Get</c> and <c>TryGet</c> of the key raise
+    /// its exception.
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let rows = createProjection (fun t -> t.Id) id (fun () -> todos.Value)
+    /// let due = rows |> Projection.choose (fun t -> t.Due)
+    /// </code>
+    /// </example>
+    let choose (chooser: 'V -> 'U option) (upstream: Projection<'K, 'V>) : Projection<'K, 'U> =
+        let graph = upstream.Graph
+        let choices = ref Unchecked.defaultof<Projection<'K, 'U option>>
+        let inclusion = ref Unchecked.defaultof<Projection<'K, bool>>
+
+        let read key =
+            match choices.Value.Get key with
+            | Some value -> value
+            | None -> raise (System.Collections.Generic.KeyNotFoundException $"The projection has no key %A{key}.")
+
+        let view = new FilterView<'K, 'V, 'U> (graph, upstream, inclusion, read)
+
+        graph.RunOwned (
+            view.Scope,
+            fun () ->
+                choices.Value <-
+                    new KeyedProjection<'K, 'K, 'U option> (
+                        graph,
+                        id,
+                        (fun key -> chooser (upstream.Get key)),
+                        Unchecked.defaultof<_>,
+                        fun () -> upstream.Keys
+                    )
+
+                inclusion.Value <-
+                    new KeyedProjection<'K, 'K, bool> (
+                        graph,
+                        id,
+                        (fun key -> Option.isSome (choices.Value.Get key)),
+                        Unchecked.defaultof<_>,
+                        fun () -> upstream.Keys
+                    )
+        )
+
+        view.PendingExtra <- fun () -> view.HeldOut
+        view :> Projection<'K, 'U>
 
     /// <summary>The keys of <c>upstream</c>, in upstream order, each with <c>mapping</c> of its value.</summary>
     /// <remarks>

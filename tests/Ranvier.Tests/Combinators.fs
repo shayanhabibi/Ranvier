@@ -266,6 +266,257 @@ let filterTests =
     ]
 
 [<Tests>]
+let chooseTests =
+    let halves (n: int) = if n % 2 = 0 then Some (n / 2) else None
+
+    testList "Projection.choose" [
+        test "choose keeps the Some keys in upstream order with their values" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 4; 2, 3; 3, 8; 4, 6 ])
+            let view = rows source |> Projection.choose halves
+
+            Expect.sequenceEqual view.Keys [ 1; 3; 4 ] "the Some keys, in upstream order"
+            Expect.sequenceEqual [ for key in view.Keys -> view.Get key ] [ 2; 4; 3 ] "the Some values"
+            Expect.equal (view.TryGet 2) None "TryGet of a None key"
+
+            Expect.throwsT<Collections.Generic.KeyNotFoundException>
+                (fun () -> view.Get 2 |> ignore)
+                "Get of a None key"
+        }
+
+        test "200 single edits at N=1000 make 200 chooser calls" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..1000 -> i, i ])
+            let calls = ref 0
+
+            let view =
+                rows source
+                |> Projection.choose (fun n ->
+                    calls.Value <- calls.Value + 1
+                    halves n)
+
+            keysAndRows view |> ignore
+            calls.Value <- 0
+
+            for i in 1..200 do
+                source.Value <- setN i (i + 1) source.Value
+
+            Expect.equal calls.Value 200 "one chooser call per edit"
+        }
+
+        test "a Keys reader wakes only when membership flips, and a Get reader when the value changes" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 4; 2, 8; 3, 3 ])
+            let view = rows source |> Projection.choose halves
+            let keysRuns = ref 0
+            let getRuns = ref 0
+
+            createEffect (fun () ->
+                view.Keys |> ignore
+                keysRuns.Value <- keysRuns.Value + 1)
+
+            createEffect (fun () ->
+                view.TryGet 1 |> ignore
+                getRuns.Value <- getRuns.Value + 1)
+
+            let passes = view.Runs
+            source.Value <- setN 1 12 source.Value
+            Expect.equal view.Runs passes "a Some to Some edit runs no view pass"
+            Expect.equal keysRuns.Value 1 "and keeps membership"
+            Expect.equal getRuns.Value 2 "and wakes the key's reader"
+            Expect.equal (view.Get 1) 6 "with the new value"
+
+            source.Value <- setN 2 16 source.Value
+            Expect.equal getRuns.Value 2 "another key's edit leaves the reader asleep"
+
+            source.Value <- setN 1 5 source.Value
+            Expect.equal keysRuns.Value 2 "a Some to None edit flips membership"
+
+            source.Value <- setN 3 10 source.Value
+            Expect.equal keysRuns.Value 3 "a None to Some edit flips a key in"
+            Expect.sequenceEqual view.Keys [ 2; 3 ] "the new membership"
+            Expect.equal (view.Get 3) 5 "the new member's value"
+        }
+
+        test "an effect reading Keys and Get runs exactly once per write" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..5 -> i, i ])
+            let view = rows source |> Projection.choose halves
+            let runs = keysAndRows view
+
+            once runs source "edit a member's value" (setN 2 6)
+            once runs source "flip a member out" (setN 4 5)
+            once runs source "flip a key in" (setN 1 8)
+            once runs source "remove a member" (List.filter (fun x -> x.Id <> 2))
+            once runs source "add a member" (fun xs -> xs @ items [ 6, 10 ])
+            once runs source "reorder" List.rev
+            Expect.sequenceEqual view.Keys [ 6; 1 ] "the final membership, in upstream order"
+            Expect.sequenceEqual [ view.Get 6; view.Get 1 ] [ 5; 4 ] "the final values"
+        }
+
+        test "a chooser reading a signal re-runs when the signal changes" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 10; 2, 20; 3, 30 ])
+            let threshold = createSignal 15
+            let calls = ref 0
+
+            let view =
+                rows source
+                |> Projection.choose (fun n ->
+                    calls.Value <- calls.Value + 1
+                    if n > threshold.Value then Some (n - threshold.Value) else None)
+
+            keysAndRows view |> ignore
+            Expect.sequenceEqual view.Keys [ 2; 3 ] "initial membership"
+            calls.Value <- 0
+            threshold.Value <- 5
+
+            Expect.equal calls.Value 3 "one chooser call per key"
+            Expect.sequenceEqual view.Keys [ 1; 2; 3 ] "the new membership"
+            Expect.sequenceEqual [ for key in view.Keys -> view.Get key ] [ 5; 15; 25 ] "the new values"
+        }
+
+        test "a pending chooser keeps membership; a never-settled key is only in PendingKeys" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let flights = dict [ for n in [ 10; 11; 12; 30 ] -> n, createAsyncSource<int option> () ]
+            flights[10].Settle (Some 1)
+            let source = createSignal (items [ 1, 10; 3, 30 ])
+            let view = rows source |> Projection.choose (fun n -> flights[n].Value)
+
+            Expect.sequenceEqual view.Keys [ 1 ] "key 3 has never settled"
+            Expect.sequenceEqual view.PendingKeys [ 3 ] "key 3 is pending"
+            Expect.isFalse view.AnyPending "AnyPending counts rows of keys in Keys"
+
+            source.Value <- setN 1 11 source.Value
+            Expect.sequenceEqual view.Keys [ 1 ] "key 1 keeps its last membership"
+            Expect.throwsT<NotReadyException> (fun () -> view.Get 1 |> ignore) "key 1's row is pending"
+            Expect.isTrue view.AnyPending "key 1's row counts as pending"
+
+            flights[30].Settle (Some 3)
+            Expect.sequenceEqual view.Keys [ 1; 3 ] "key 3 joins once settled"
+            Expect.equal (view.Get 3) 3 "with its value"
+            Expect.isFalse (Array.contains 3 view.PendingKeys) "key 3 is no longer pending"
+
+            flights[11].Settle None
+            Expect.sequenceEqual view.Keys [ 3 ] "key 1 leaves once its chooser settles None"
+
+            source.Value <- setN 1 12 source.Value
+            Expect.sequenceEqual view.Keys [ 3 ] "a pending chooser keeps key 1 out"
+            Expect.isEmpty view.PendingKeys "a key kept out after settling is not pending"
+        }
+
+        test "a throwing chooser excludes the key, and Get and TryGet raise its error" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 2; 2, 4 ])
+
+            let view =
+                rows source
+                |> Projection.choose (fun n -> if n = 13 then invalidOp "boom 13" else halves n)
+
+            let keysRuns = ref 0
+
+            createEffect (fun () ->
+                view.Keys |> ignore
+                keysRuns.Value <- keysRuns.Value + 1)
+
+            source.Value <- setN 2 13 source.Value
+
+            Expect.sequenceEqual view.Keys [ 1 ] "key 2 is excluded"
+            Expect.equal keysRuns.Value 2 "the Keys reader woke"
+
+            Expect.throwsC
+                (fun () -> view.Get 2 |> ignore)
+                (fun ex -> Expect.equal ex.Message "boom 13" "Get raises the chooser's error")
+
+            Expect.throwsC
+                (fun () -> view.TryGet 2 |> ignore)
+                (fun ex -> Expect.equal ex.Message "boom 13" "TryGet raises the chooser's error")
+
+            Expect.equal view.Status Status.None "the pass itself succeeded"
+
+            source.Value <- setN 2 4 source.Value
+            Expect.sequenceEqual view.Keys [ 1; 2 ] "key 2 returns once the chooser succeeds"
+            Expect.equal (view.Get 2) 2 "and reads its value"
+        }
+
+        test "disposing the view detaches it from the upstream" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 2; 2, 4 ])
+            let calls = ref 0
+
+            let view =
+                rows source
+                |> Projection.choose (fun n ->
+                    calls.Value <- calls.Value + 1
+                    halves n)
+
+            keysAndRows view |> ignore
+            view.Dispose ()
+            calls.Value <- 0
+            source.Value <- setN 1 6 source.Value
+
+            Expect.equal calls.Value 0 "no chooser runs after disposal"
+            Expect.isEmpty view.Keys "a disposed view is empty"
+        }
+
+        test "choose composes with filter and sortBy" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 8; 2, 3; 3, 4; 4, 12; 5, 20 ])
+
+            let view =
+                rows source
+                |> Projection.filter (fun n -> n < 20)
+                |> Projection.choose halves
+                |> Projection.sortBy (fun n -> -n)
+
+            let runs = keysAndRows view
+            Expect.sequenceEqual view.Keys [ 4; 1; 3 ] "filtered, chosen, then sorted descending"
+            Expect.sequenceEqual [ for key in view.Keys -> view.Get key ] [ 6; 4; 2 ] "the chosen values"
+
+            once runs source "flip a key in" (setN 2 18)
+            Expect.sequenceEqual view.Keys [ 2; 4; 1; 3 ] "key 2 joins at its rank"
+            once runs source "filter a key out" (setN 4 24)
+            Expect.sequenceEqual view.Keys [ 2; 1; 3 ] "key 4 leaves"
+
+            let chosenFirst =
+                rows source
+                |> Projection.choose halves
+                |> Projection.filter (fun n -> n > 2)
+
+            Expect.sequenceEqual chosenFirst.Keys [ 1; 2; 4; 5 ] "filter over the chosen values"
+        }
+
+        test "choose composes with choose, and keeps a Some None value" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 8; 2, 3; 3, 4 ])
+
+            let nested =
+                rows source
+                |> Projection.choose (fun n -> Some (if n % 2 = 0 then Some n else None))
+
+            Expect.sequenceEqual nested.Keys [ 1; 2; 3 ] "every key, Some None included"
+            Expect.equal (nested.Get 2) None "the inner None is the value"
+
+            let twice = nested |> Projection.choose id
+            Expect.sequenceEqual twice.Keys [ 1; 3 ] "the second choose drops the inner None"
+
+            source.Value <- items [ 1, 8; 2, 6; 3, 4 ]
+            Expect.sequenceEqual twice.Keys [ 1; 2; 3 ] "key 2 joins once its value is even"
+            Expect.equal (twice.Get 2) 6 "the unwrapped value"
+        }
+    ]
+
+[<Tests>]
 let mapTests =
     testList "Projection.map" [
         test "map follows upstream keys and order, and re-runs one mapping per edit" {
@@ -743,6 +994,8 @@ let chainTests =
         Projection.filter (fun n -> n % 2 = 0) >> Projection.sortBy (fun n -> n / 4) >> Projection.map (fun n -> n * 3)
         "sortBy then filter", Projection.sortBy (fun n -> n / 4) >> Projection.filter (fun n -> n % 2 = 0)
         "filter then mapWith", Projection.filter (fun n -> n % 2 = 0) >> Projection.mapWith (fun _ v -> fun () -> v () + 1)
+        "choose then sortBy",
+        Projection.choose (fun n -> if n % 2 = 0 then Some (n + 1) else None) >> Projection.sortBy (fun n -> n / 4)
     ]
 
     testList "chained views" [
@@ -1153,6 +1406,8 @@ let chainPendingTests =
         "filter then sortBy", Projection.filter (fun n -> n > 0), Projection.sortBy (fun n -> -n)
         "filter, map, then map", Projection.filter (fun n -> n > 0), Projection.map (fun n -> n * 10) >> Projection.map id
         "filter then mapWith", Projection.filter (fun n -> n > 0), Projection.mapWith (fun _ v -> fun () -> v () * 10)
+        "choose then map", Projection.choose (fun n -> if n > 0 then Some n else None), Projection.map (fun n -> n * 10)
+        "filter then choose", Projection.filter (fun n -> n > 0), Projection.choose (fun n -> Some (n * 10))
     ]
 
     testList "chained pending" [
