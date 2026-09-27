@@ -97,6 +97,10 @@ type Row =
         GcFree: bool
     }
 
+/// <summary>True for Ranvier and its variants, such as <c>Ranvier (createEffect)</c>.</summary>
+let private isRanvier (engine: string) =
+    engine = "Ranvier" || engine.StartsWith "Ranvier ("
+
 let private createdCounters =
     set [ "SignalsCreated"; "MemosCreated"; "EffectsCreated"; "OwnersCreated" ]
 
@@ -129,7 +133,7 @@ let rows (sources: string[]) (run: Run) : Row[] =
             | _ -> [||], [||]
 
         let counters =
-            if counterSource.CountersCompiled && case.Engine = "Ranvier" then
+            if counterSource.CountersCompiled && isRanvier case.Engine then
                 let source = counterCase counterSource index case
 
                 Array.map2
@@ -290,10 +294,18 @@ let format (value: float) =
     else
         value.ToString ("N2", invariant)
 
-/// <summary>The engine followed by its version from <c>versions</c>, when present.</summary>
+/// <summary>
+/// The engine followed by its version from <c>versions</c>, when present. A variant such as
+/// <c>Ranvier (createEffect)</c> takes the version of the engine before the parenthesis.
+/// </summary>
 let engineLabel (versions: Map<string, string>) (engine: string) =
-    match versions.TryFind engine with
-    | Some version -> $"%s{engine} %s{version}"
+    let name, variant =
+        match engine.IndexOf " (" with
+        | -1 -> engine, ""
+        | i -> engine.Substring (0, i), engine.Substring i
+
+    match versions.TryFind name with
+    | Some version -> $"%s{name} %s{version}%s{variant}"
     | None -> engine
 
 let private versionLine (versions: Map<string, string>) =
@@ -523,7 +535,7 @@ let nodeRows
         let counterCase =
             counters
             |> Array.tryHead
-            |> Option.filter (fun run -> run.CountersCompiled && case.Engine = "Ranvier")
+            |> Option.filter (fun run -> run.CountersCompiled && isRanvier case.Engine)
             |> Option.map (fun run -> run.Cases[i])
 
         let perOpCounters =

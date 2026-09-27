@@ -685,18 +685,18 @@ let all (scale: int) : Case list =
             ]
         yield!
             scenario "work-status" "write every 10th of 1000 rows; the act formats a label, 1 write in 10 changes it" (50 * scale) [
-                "createEffect", Ranvier.status false
-                "createEffectOn", Ranvier.status true
+                "Ranvier (createEffect)", Ranvier.status false
+                "Ranvier (createEffectOn)", Ranvier.status true
             ]
         yield!
             scenario "work-value" "write every 10th of 1000 rows; the act formats a label, every write changes it" (50 * scale) [
-                "createEffect", Ranvier.value false
-                "createEffectOn", Ranvier.value true
+                "Ranvier (createEffect)", Ranvier.value false
+                "Ranvier (createEffectOn)", Ranvier.value true
             ]
         yield!
             scenario "work-form" "write one field of each of 125 8-field forms; validity feeds a signal and an effect" (50 * scale) [
-                "createEffect", Ranvier.form false
-                "createEffectOn", Ranvier.form true
+                "Ranvier (createEffect)", Ranvier.form false
+                "Ranvier (createEffectOn)", Ranvier.form true
             ]
         yield!
             scenario "project-edit" $"change one row of a %d{RowCount}-row projection" (50 * scale) [
