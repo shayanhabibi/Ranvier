@@ -158,6 +158,7 @@ let theme =
                     Menu.page "benchmarks/lifetimes.md"
                     Menu.page "benchmarks/projections.md"
                     Menu.page "benchmarks/suspension.md"
+                    Menu.page "benchmarks/counters.md"
                 ]
         ]
     |> Theme.menu "fable" [ Menu.section "Fable" [ Menu.page "fable/index.md" ] ]

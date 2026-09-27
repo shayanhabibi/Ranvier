@@ -15,12 +15,13 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 | [Lifetimes](lifetimes.md) | Construction and disposal of nodes, fan-out on one source, and scopes with children. |
 | [Projections](projections.md) | Keyed projection reads, single-item edits, reorders, and selector (`Lookup`) reads. |
 | [Suspension](suspension.md) | The cost of the pending channel: throwing through a chain, boundaries, and settling a source. |
+| [Instruction counts](counters.md) | Whole scenarios by instructions per operation, against FSharp.Data.Adaptive, R3 and Fable.Ripple, on .NET and Node.js. |
 
 ## Provenance
 
 The benchmark sources and results were copied from Partas.Signals at commit `915f139`. Every result on these pages was recorded on **2026-09-27**; each table also states its own date and the benchmark class it came from. The engine has not yet been re-measured under the Ranvier name.
 
-The source repository also contains comparison runs against other .NET reactive libraries. Those are deliberately **not** published here while their methodology is reviewed. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
+The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 
 ## Configuration
 
