@@ -263,6 +263,13 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let sources = SourceList ()
 
     /// <summary>
+    /// The beacons among <c>sources</c>: the sources that can be stale without marking the projection. Collected from
+    /// <c>sources</c> by the first <c>Refresh</c> after each pass.
+    /// </summary>
+    let upstreamBeacons = ResizeArray<ISource> ()
+    let mutable beaconsStale = true
+
+    /// <summary>
     /// Parent of every key scope, and of the rows in the value form.
     /// </summary>
     let scope = new Owner (graph.Root)
@@ -550,6 +557,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 else
                     sources.EndRun (this :> IComputation)
 
+                beaconsStale <- true
+
             if not disposed then
                 graph.RunUntracked (fun () -> graph.Batch this.ApplyDiff)
 
@@ -724,11 +733,21 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             if status = Status.None && not disposed then
                 try
                     // A projection stays `Clean` until an upstream projection
-                    // republishes, so the upstream passes run first.
+                    // republishes, so the upstream passes run first. Every other
+                    // source marks the projection when it goes stale.
+                    if beaconsStale then
+                        beaconsStale <- false
+                        upstreamBeacons.Clear ()
+
+                        for i in 0 .. sources.Count - 1 do
+                            match sources.SourceAt i with
+                            | :? ProjectionBeacon as source -> upstreamBeacons.Add source
+                            | _ -> ()
+
                     let mutable i = 0
 
-                    while freshness = Freshness.Clean && i < sources.Count do
-                        sources.SourceAt(i).UpdateIfNecessary ()
+                    while freshness = Freshness.Clean && i < upstreamBeacons.Count do
+                        upstreamBeacons[i].UpdateIfNecessary ()
                         i <- i + 1
 
                     this.EnsureCurrent ()
