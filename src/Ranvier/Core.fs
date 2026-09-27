@@ -1060,10 +1060,6 @@ type Graph(options: GraphOptions) =
     let mutable batchDepth = 0
     let mutable flushing = false
 
-#if RANVIER_TRACE
-    let mutable traceLog = TraceLog ()
-#endif
-
     /// <summary>
     /// The scope everything created outside an explicit <c>Root</c> belongs to.
     /// Solid warns in this case and leaks; giving the graph a root instead
@@ -1071,9 +1067,6 @@ type Graph(options: GraphOptions) =
     /// test assertion rather than a console message.
     /// </summary>
     let root = new Owner ()
-#if RANVIER_TRACE
-    do (root :> ITraced).TraceLog <- traceLog
-#endif
     do Tracer.GraphNew root
 
     /// <summary>
@@ -1303,8 +1296,8 @@ type Graph(options: GraphOptions) =
 #if RANVIER_TRACE
     interface ITraced with
         member _.TraceLog
-            with get () = traceLog
-            and set log = traceLog <- log
+            with get () = (root :> ITraced).TraceLog
+            and set log = (root :> ITraced).TraceLog <- log
 
         member _.TraceId
             with get () = 0

@@ -2,15 +2,15 @@ namespace Ranvier
 
 /// <summary>Provenance queries over a graph's event log, compiled in by <c>RanvierTrace=true</c>.</summary>
 /// <remarks>An untraced build carries <c>Trace.named</c> alone.</remarks>
-[<AbstractClass; Sealed>]
-type Trace =
+[<RequireQualifiedAccess>]
+module Trace =
 #if RANVIER_TRACE
     /// <summary>Runs <c>f</c> and labels the first node or owner it creates on this thread.</summary>
     /// <remarks>
     /// A label <c>f</c> leaves unused is recorded as a <c>Label</c> event with <c>Node = 0</c> on the ambient graph.
     /// Untraced, <c>named</c> inlines to <c>f ()</c>, and a literal label costs nothing.
     /// </remarks>
-    static member named (label: string) (f: unit -> 'T) : 'T =
+    let named (label: string) (f: unit -> 'T) : 'T =
         Tracer.PushLabel label
 
         try
@@ -22,11 +22,10 @@ type Trace =
                 | ValueNone -> null
             )
 
-    /// <summary>A copy of the events <c>graph</c> has recorded since its last checkpoint, oldest first.</summary>
-    static member events(graph: Graph) : TraceEvent[] =
-        ((box graph) :?> ITraced).TraceLog.Events
+    /// <summary>A copy of the events <c>graph</c> has recorded, oldest first.</summary>
+    let events (graph: Graph) : TraceEvent[] = ((box graph) :?> ITraced).TraceLog.Events
 #else
     /// <summary>Runs <c>f</c>. A traced build also labels the first node or owner it creates on this thread.</summary>
-    /// <remarks>Inlines to <c>f ()</c>; a literal label costs nothing.</remarks>
-    static member inline named (_label: string) ([<InlineIfLambda>] f: unit -> 'T) : 'T = f ()
+    /// <remarks>Inlines to <c>f ()</c> on .NET and in Fable; a literal label costs nothing.</remarks>
+    let inline named (_label: string) ([<InlineIfLambda>] f: unit -> 'T) : 'T = f ()
 #endif

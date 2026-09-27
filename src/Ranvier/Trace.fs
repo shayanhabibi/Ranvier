@@ -84,13 +84,15 @@ type internal Tracer =
 #endif
 
     /// <summary>
-    /// Records <c>GraphNew</c> on the log of <c>root</c>, a graph's root owner, and gives the root its owner id.
+    /// Gives <c>root</c>, a new graph's root owner, the graph's log and owner id 1, and records <c>GraphNew</c>.
     /// </summary>
+    /// <remarks>The graph reaches its log through its root owner.</remarks>
     [<Conditional("RANVIER_TRACE")>]
     static member GraphNew(root: obj) =
 #if RANVIER_TRACE
         let traced = root :?> ITraced
-        let log = traced.TraceLog
+        let log = TraceLog ()
+        traced.TraceLog <- log
         let id = log.NextOwnerId ()
         traced.TraceId <- id
 
