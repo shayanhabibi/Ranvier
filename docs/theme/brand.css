@@ -308,6 +308,7 @@ body {
     font-size: .875rem;
     border: 1px solid var(--nacara-border);
     border-radius: var(--nacara-radius);
+    background: var(--nacara-bg-subtle);
 }
 .nacara-content th,
 .nacara-content td {
@@ -317,7 +318,7 @@ body {
     padding: .625rem .875rem;
 }
 .nacara-content th {
-    background: var(--nacara-bg-subtle);
+    background: var(--nacara-bg-raised);
     font-weight: 600;
     font-size: .8125rem;
     text-align: left;
@@ -325,6 +326,11 @@ body {
 .nacara-content tr:last-child td {
     border-bottom: 0;
 }
+.nacara-content tbody tr:hover td {
+    background: color-mix(in oklab, var(--rv-contour) 5%, transparent);
+}
+.nacara-content thead tr:first-child th:first-child { border-top-left-radius: calc(var(--nacara-radius) - 1px); }
+.nacara-content thead tr:first-child th:last-child { border-top-right-radius: calc(var(--nacara-radius) - 1px); }
 
 /* ---- Code blocks ---- */
 /* Code blocks carry the contour on their leading edge. */
@@ -559,3 +565,32 @@ nacara-tab > .nacara-code:only-child {
 .nacara-content :is(td, th)[style*="text-align: right"] {
     white-space: nowrap;
 }
+
+/* ---- Scrollbars: thin, rounded, tinted with the strong border token; contour on hover ----
+   Chromium and Safari use the ::-webkit-scrollbar rules (no arrow buttons); Firefox uses the standard properties. */
+@supports not selector(::-webkit-scrollbar) {
+    .nacara-code pre,
+    .nacara-content table,
+    .rv-demo__code pre {
+        scrollbar-width: thin;
+        scrollbar-color: var(--rv-border-strong) transparent;
+    }
+    .nacara-code pre:hover,
+    .nacara-content table:hover,
+    .rv-demo__code pre:hover {
+        scrollbar-color: color-mix(in oklab, var(--rv-contour) 55%, var(--rv-border)) transparent;
+    }
+}
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar { height: 8px; width: 8px; }
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar-track { background: transparent; }
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar-thumb {
+    background: var(--rv-border-strong);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--rv-contour) 55%, var(--rv-border));
+}
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar-corner { background: transparent; }
+:is(.nacara-code pre, .nacara-content table, .rv-demo__code pre)::-webkit-scrollbar-button { display: none; }
