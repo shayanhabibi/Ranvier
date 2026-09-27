@@ -1,6 +1,6 @@
 {
   "name": "Ranvier brand tokens",
-  "version": "1.0",
+  "version": "1.1",
   "defaultTheme": "dark",
   "themes": {
     "dark": {
@@ -21,8 +21,7 @@
         "on-accent": "#0D1118"
       },
       "gradients": {
-        "accent": "linear-gradient(115deg, #64D9EE 0%, #6D9FFB 53%, #9D8CFF 100%)",
-        "feature": "linear-gradient(125deg, #0D1118 0%, #173047 57%, #1B5165 100%)"
+        "accent": "linear-gradient(115deg, #64D9EE 0%, #6D9FFB 53%, #9D8CFF 100%)"
       }
     },
     "light": {
@@ -43,14 +42,12 @@
         "on-accent": "#FFFFFF"
       },
       "gradients": {
-        "accent": "linear-gradient(115deg, #08758F 0%, #376BAF 53%, #6953C5 100%)",
-        "feature": "linear-gradient(125deg, #F7F9FB 0%, #EAF4FA 57%, #E5EAF9 100%)"
+        "accent": "linear-gradient(115deg, #08758F 0%, #376BAF 53%, #6953C5 100%)"
       }
     }
   },
   "usage": {
-    "accent": "large logo contour, feature headings, prominent actions",
-    "feature": "hero and broad editorial surfaces",
+    "accent": "one accent moment per page: primary landing action, focus of the hero demo",
     "semantic": "pending, value, and error remain flat colors with distinct glyphs and labels"
   }
 }

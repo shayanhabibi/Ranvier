@@ -1,12 +1,4 @@
-<p align="center">
-  <a href="https://shayanhabibi.github.io/Ranvier/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="brand/logos/f2-arrival-pulse-wordmark-dark.svg">
-      <source media="(prefers-color-scheme: light)" srcset="brand/logos/f2-arrival-pulse-wordmark-light.svg">
-      <img alt="Ranvier" src="brand/logos/f2-arrival-pulse-wordmark-light.svg" height="72">
-    </picture>
-  </a>
-</p>
+<h1 align="center">ranvier</h1>
 
 <p align="center">Fine-grained reactive computation for .NET.</p>
 

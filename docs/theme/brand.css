@@ -13,6 +13,7 @@
     --rv-code-bg: color-mix(in oklab, var(--rv-surface) 60%, var(--rv-canvas));
     --rv-code-title-bg: var(--rv-surface);
     --rv-ease: cubic-bezier(.2, .8, .2, 1);
+  --rv-font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
     color-scheme: dark;
 }
 :root[data-theme="light"] {
@@ -45,12 +46,6 @@ body {
     outline-offset: 2px;
 }
 
-/* ---- Scheme-specific images: <img class="rv-only-dark"> / <img class="rv-only-light"> ---- */
-:root[data-theme="light"] .rv-only-dark,
-:root:not([data-theme="light"]) .rv-only-light {
-    display: none !important;
-}
-
 /* ---- Navbar: translucent, blurred ---- */
 .nacara-navbar {
     background: color-mix(in oklab, var(--nacara-bg) var(--nacara-navbar-opacity), transparent);
@@ -59,23 +54,28 @@ body {
     border-bottom: 1px solid var(--nacara-border);
     box-shadow: none;
 }
-/* Wordmark lockup. The theme renders the brand as the text "Ranvier"; the text stays in the DOM for
-   assistive technology and is moved out of view, and the supplied SVG is drawn in its place.
-   The SVG has built-in margins, so the box is taller than the visible letters. */
+/* Wordmark: the theme's text brand, set lowercase in Geist with a contour dot. */
 .nacara-navbar__brand {
-    display: block;
-    flex: none;
-    width: 7.75rem;
-    height: 2.4rem;
-    margin-inline-end: 1.25rem;
-    overflow: hidden;
-    white-space: nowrap;
-    text-indent: 110%;
-    color: transparent;
-    background: url("__BASE__brand/logos/f2-arrival-pulse-wordmark-dark.svg") left center / contain no-repeat;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  flex: none;
+  margin-inline-end: 1.5rem;
+  font-family: var(--rv-font-display);
+  font-size: 1.3125rem;
+  font-weight: 600;
+  letter-spacing: -.035em;
+  text-transform: lowercase;
+  color: var(--nacara-heading);
+  text-decoration: none;
 }
-:root[data-theme="light"] .nacara-navbar__brand {
-    background-image: url("__BASE__brand/logos/f2-arrival-pulse-wordmark-light.svg");
+.nacara-navbar__brand::after {
+  content: "";
+  width: .3rem;
+  height: .3rem;
+  margin-inline-start: .15rem;
+  border-radius: 50%;
+  background: var(--rv-contour);
 }
 .nacara-navbar__link {
     font-size: .875rem;
@@ -138,6 +138,7 @@ body {
 .nacara-sidebar__group-link[aria-current="page"] {
     color: var(--nacara-primary);
     background: var(--nacara-primary-subtle);
+    box-shadow: inset 2px 0 var(--rv-contour);
     font-weight: 550;
 }
 .nacara-sidebar__filter {
@@ -186,18 +187,29 @@ body {
     letter-spacing: -.025em;
     color: var(--nacara-heading);
 }
+.nacara-content :is(h1, h2, h3, h4),
+.nacara-navbar__link,
+.nacara-sidebar__title,
+.nacara-toc__title,
+.nacara-page-nav__label,
+.rv-btn {
+    font-family: var(--rv-font-display);
+}
+/* Section rule: a quiet border with a short contour segment at its start. */
 .nacara-content h2 {
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.25;
-    letter-spacing: -.015em;
+    letter-spacing: -.02em;
     margin-top: 3rem;
     padding-top: 2rem;
     border-top: 1px solid var(--nacara-border);
+    background: linear-gradient(var(--rv-contour), var(--rv-contour)) left -1px / 2.5rem 2px no-repeat;
 }
 .nacara-content > div > h2:first-child {
     border-top: 0;
     padding-top: 0;
+    background: none;
     margin-top: 1.5rem;
 }
 .nacara-content h3 {
@@ -315,10 +327,12 @@ body {
 }
 
 /* ---- Code blocks ---- */
+/* Code blocks carry the contour on their leading edge. */
 .nacara-code {
     border: 1px solid var(--nacara-border);
     border-radius: var(--nacara-radius);
     background: var(--rv-code-bg);
+    box-shadow: inset 2px 0 color-mix(in oklab, var(--rv-contour) 55%, transparent);
     margin: 1.75rem 0;
 }
 .nacara-code__title {
@@ -527,13 +541,9 @@ nacara-tab > .nacara-code:only-child {
     .rv-state--recovered { --rv-state-icon: url("__BASE__brand/states/recovered-mono.svg"); }
 }
 
-/* ---- Small screens: the lockup shrinks but keeps its proportions ---- */
+/* ---- Small screens ---- */
 @media (max-width: 40rem) {
-    .nacara-navbar__brand {
-        width: 6.5rem;
-        height: 2rem;
-        margin-inline-end: .5rem;
-    }
+    .nacara-navbar__brand { margin-inline-end: .5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

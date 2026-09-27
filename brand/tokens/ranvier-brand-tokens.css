@@ -1,4 +1,4 @@
-/* Ranvier brand tokens v1.0. Dark is the default theme. */
+/* Ranvier brand tokens v1.1. Dark is the default theme. */
 :root, [data-ranvier-theme="dark"] {
   --rv-canvas: #0D1118;
   --rv-surface: #171E28;
@@ -17,11 +17,7 @@
   --rv-grad-a: #64D9EE;
   --rv-grad-b: #6D9FFB;
   --rv-grad-c: #9D8CFF;
-  --rv-feature-a: #0D1118;
-  --rv-feature-b: #173047;
-  --rv-feature-c: #1B5165;
   --rv-gradient-accent: linear-gradient(115deg, #64D9EE 0%, #6D9FFB 53%, #9D8CFF 100%);
-  --rv-gradient-feature: linear-gradient(125deg, #0D1118 0%, #173047 57%, #1B5165 100%);
 }
 
 [data-ranvier-theme="light"] {
@@ -42,14 +38,9 @@
   --rv-grad-a: #08758F;
   --rv-grad-b: #376BAF;
   --rv-grad-c: #6953C5;
-  --rv-feature-a: #F7F9FB;
-  --rv-feature-b: #EAF4FA;
-  --rv-feature-c: #E5EAF9;
   --rv-gradient-accent: linear-gradient(115deg, #08758F 0%, #376BAF 53%, #6953C5 100%);
-  --rv-gradient-feature: linear-gradient(125deg, #F7F9FB 0%, #EAF4FA 57%, #E5EAF9 100%);
 }
 
-/* Feature surfaces use --rv-text; accent fills use --rv-on-accent.
+/* Accent fills use --rv-on-accent.
    Pending, value, and error use flat semantic colours. */
-.rv-feature-surface { background: var(--rv-gradient-feature); color: var(--rv-text); }
 .rv-accent-fill { background: var(--rv-gradient-accent); color: var(--rv-on-accent); }

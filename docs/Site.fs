@@ -78,7 +78,7 @@ let private sizing (t: Tokens) =
         FontSans =
             "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif"
         FontMono =
-            "ui-monospace, \"Cascadia Code\", \"JetBrains Mono\", SFMono-Regular, Menlo, Consolas, \"Liberation Mono\", monospace"
+            "\"Geist Mono\", ui-monospace, \"Cascadia Code\", \"JetBrains Mono\", SFMono-Regular, Menlo, Consolas, \"Liberation Mono\", monospace"
         Radius = "0.625rem"
         RadiusSm = "0.375rem"
         ContentWidth = "46rem"
@@ -87,6 +87,19 @@ let private sizing (t: Tokens) =
         NavbarOpacity = "76%"
         NavbarBlur = "12px"
     }
+
+/// Geist and Geist Mono from Google Fonts. Geist sets headings, navigation and the wordmark;
+/// body copy stays on the system stack.
+let private fontLinks =
+    [
+        Html.link [ prop.rel "preconnect"; prop.href "https://fonts.googleapis.com" ]
+        Html.link [ prop.rel "preconnect"; prop.href "https://fonts.gstatic.com"; prop.custom ("crossorigin", "") ]
+        Html.link
+            [
+                prop.rel "stylesheet"
+                prop.href "https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"
+            ]
+    ]
 
 /// Makes dark the default scheme. With no stored choice, the page renders dark before first paint
 /// and the scheme picker shows "Dark" once the DOM is loaded.
@@ -172,7 +185,7 @@ let theme =
     |> Theme.darkSyntax (fun s -> { brandSyntax s with String = "#9FDDBF" })
     |> Theme.layerAfter "responsive" "brand" (brandTokensCss + System.Environment.NewLine + themeCss "brand.css")
     |> Theme.layerAfter "brand" "landing" (themeCss "landing.css")
-    |> Theme.headExtra [ darkByDefault ]
+    |> Theme.headExtra (darkByDefault :: fontLinks)
     |> Theme.footer (
         Html.p
             [
