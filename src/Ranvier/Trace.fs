@@ -69,11 +69,27 @@ type internal TraceLog(locked: bool) =
 
     let mutable flushes = 0
 
+    /// The number of run-scope discharges in progress.
+    let mutable discharges = 0
+
     /// Flush number and running-stack depth of each open flush, innermost last.
     let flushFrames = ResizeArray<struct (int * int)>()
 
-    /// Observer sets and source lists bound to the log.
+    /// Observer sets and source lists bound to the log. Fable holds them strongly.
+#if FABLE_COMPILER
+    let edgeSets = ResizeArray<ITracedEdges>()
+#else
     let edgeSets = ResizeArray<WeakReference<ITracedEdges>>()
+#endif
+
+    /// The index of the last <c>value</c> in <c>list</c>, or -1.
+    let lastIndexOf (list: ResizeArray<int>) (value: int) =
+        let mutable i = list.Count - 1
+
+        while i >= 0 && list[i] <> value do
+            i <- i - 1
+
+        i
 
     let sync (f: unit -> 'T) : 'T = if locked then lock gate f else f ()
 
@@ -163,7 +179,7 @@ type internal TraceLog(locked: bool) =
             openRuns.Remove node |> ignore
             runNumbers.Remove node |> ignore
             movedRuns.Remove node |> ignore
-            let i = running.LastIndexOf node
+            let i = lastIndexOf running node
 
             if i >= 0 then
                 running.RemoveAt i)
@@ -222,6 +238,13 @@ type internal TraceLog(locked: bool) =
                 let open' = [| for i in running.Count - 1 .. -1 .. depth -> running[i] |]
                 struct (number, open'))
 
+    /// <summary>Counts a run-scope discharge in progress, or ends one when <c>entering</c> is false.</summary>
+    member _.Discharging(entering: bool) =
+        sync (fun () -> discharges <- discharges + (if entering then 1 else -1))
+
+    /// <summary>True while a flush, a run-scope discharge or a recorded run is in progress.</summary>
+    member _.Busy = sync (fun () -> flushFrames.Count > 0 || discharges > 0 || running.Count > 0)
+
     /// <summary>Holds <c>label</c> for the <c>NodeNew</c> of <c>node</c>.</summary>
     member _.Reserve(node: int, label: string) = sync (fun () -> reserved[node] <- label)
 
@@ -246,7 +269,7 @@ type internal TraceLog(locked: bool) =
     /// </summary>
     member _.Pop(node: int) =
         sync (fun () ->
-            let i = walkers.LastIndexOf node
+            let i = lastIndexOf walkers node
 
             if i < 0 then
                 0
@@ -283,6 +306,13 @@ type internal TraceLog(locked: bool) =
     /// <summary>The node id of the innermost open run, or 0.</summary>
     member _.Current = sync (fun () -> if running.Count = 0 then 0 else running[running.Count - 1])
 
+#if FABLE_COMPILER
+    /// <summary>Registers a node's observer set or source list for edge reconciliation.</summary>
+    member _.Register(set: ITracedEdges) = sync (fun () -> edgeSets.Add set)
+
+    /// <summary>The registered observer sets and source lists.</summary>
+    member _.EdgeSets: ITracedEdges[] = sync (fun () -> edgeSets.ToArray ())
+#else
     /// <summary>Registers a node's observer set or source list for edge reconciliation.</summary>
     member _.Register(set: ITracedEdges) = sync (fun () -> edgeSets.Add (WeakReference<ITracedEdges> set))
 
@@ -295,6 +325,7 @@ type internal TraceLog(locked: bool) =
                     | true, set -> yield set
                     | _ -> ()
             |])
+#endif
 
     /// <summary>A copy of the recorded events, oldest first.</summary>
     member _.Events = sync (fun () -> events.ToArray ())
@@ -381,7 +412,9 @@ type internal Tracer =
         log.Append (TraceEventKind.OwnerNew, id, parent, host, root, log.CreatingRun, TraceSite.capture ())
         |> ignore
 
-        Tracer.Consume (log, id)
+        // A run scope adds no path segment, so a pending label stays for the next node.
+        if host = 0 then
+            Tracer.Consume (log, id)
 
     /// <summary>The log of <c>traced</c>, an <c>ITraced</c>.</summary>
     static member private LogOf(traced: obj) = (traced :?> ITraced).TraceLog
@@ -647,6 +680,8 @@ type internal Tracer =
         let log = owner.TraceLog
 
         if not (isNull log) then
+            log.Discharging true
+
             log.Append (TraceEventKind.DischargeStart, owner.TraceId, log.HostOf owner.TraceId, 0, 0, 0, null)
             |> ignore
 #else
@@ -661,6 +696,8 @@ type internal Tracer =
         let log = owner.TraceLog
 
         if not (isNull log) then
+            log.Discharging false
+
             log.Append (TraceEventKind.DischargeEnd, owner.TraceId, log.HostOf owner.TraceId, 0, 0, 0, null)
             |> ignore
 #else
@@ -721,7 +758,10 @@ type internal Tracer =
         ()
 #endif
 
-    /// <summary>Records a <c>Write</c> to the node owning <c>observers</c>. A write that <c>moved</c> the value opens a notification, closed by <c>Notified</c>.</summary>
+    /// <summary>
+    /// Records a <c>Write</c> to the node owning <c>observers</c>. A write that <c>moved</c> the value opens a
+    /// notification, closed by <c>Notified</c>.
+    /// </summary>
     [<Conditional("RANVIER_TRACE")>]
     static member Write(observers: obj, moved: bool) =
 #if RANVIER_TRACE
@@ -874,7 +914,10 @@ type internal Tracer =
         ()
 #endif
 
-    /// <summary>Records <c>RunStart</c> for run number <c>run</c> of node <c>id</c>, or its next run number when <c>run</c> is 0, and opens the run.</summary>
+    /// <summary>
+    /// Records <c>RunStart</c> for run number <c>run</c> of node <c>id</c>, or its next run number when <c>run</c> is 0,
+    /// and opens the run.
+    /// </summary>
     [<Conditional("RANVIER_TRACE")>]
     static member RunStart(graph: obj, id: int, run: int) =
 #if RANVIER_TRACE

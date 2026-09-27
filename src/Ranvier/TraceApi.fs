@@ -99,6 +99,66 @@ module Trace =
                     if Set.ofArray live <> folded then
                         yield $"observers of {set.Owner}: live %A{live}, folded %A{folded}"
         ]
+
+    let private logOf (graph: Graph) = ((box graph) :?> ITraced).TraceLog
+
+    /// <summary>The state folded from every event in <c>graph</c>'s log.</summary>
+    let snapshot (graph: Graph) : TraceSnapshot = TraceModel.snapshot (events graph)
+
+    /// <summary>The state folded from the events in <c>graph</c>'s log up to and including seq <c>seq</c>.</summary>
+    let snapshotAt (graph: Graph) (seq: int) : TraceSnapshot = TraceModel.snapshotAt (events graph) seq
+
+    /// <summary>
+    /// The node id at identity path <c>path</c> in <c>graph</c>'s log: the <c>@k</c>-th holder, else the live holder,
+    /// else the latest.
+    /// </summary>
+    let resolve (graph: Graph) (path: string) : int option = TraceModel.resolve (snapshot graph) path
+
+    /// <summary>
+    /// <c>value</c> as text, with node ids shown as <c>graph</c>'s identity paths: a <c>Why</c>, a
+    /// <c>WhyNotReason option</c>, a <c>TraceSnapshot</c>, a <c>TraceEvent[]</c> with repeated marks folded, or a
+    /// <c>TraceOrigin</c>.
+    /// </summary>
+    /// <exception cref="T:System.ArgumentException"><c>value</c> is none of those types.</exception>
+    let render (graph: Graph) (value: obj) : string =
+        let snap = snapshot graph
+
+        match value with
+        | null -> TraceModel.renderWhyNot snap None
+        | :? Why as why -> TraceModel.renderWhy snap why
+        | :? option<WhyNotReason> as reason -> TraceModel.renderWhyNot snap reason
+        | :? TraceSnapshot as s -> TraceModel.renderSnapshot s
+        | :? (TraceEvent[]) as events -> TraceModel.renderEvents snap events
+        | :? TraceOrigin as o ->
+            let site = if isNull o.Site then "?" else string o.Site
+
+            TraceModel.pathOf snap o.Node + " " + string o.Kind + " at " + site + " #" + string o.Seq
+        | other -> invalidArg (nameof value) ("Trace.render has no text form for " + other.GetType().Name + ".")
+
+    let private gate (graph: Graph) (operation: string) =
+        if not graph.IsOnGraphThread then
+            invalidOp (operation + " ran off the graph's thread. Marshal it through Graph.Dispatch.")
+
+        if (logOf graph).Busy then
+            invalidOp (operation + " ran inside a flush, a discharge or a computation's run. Call it between flushes.")
+
+    /// <summary>The JSONL dump of <c>graph</c>'s log, schema 1.</summary>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// Called off the graph's thread, or while a flush, a discharge or a run is in progress. A <c>batch</c> is allowed.
+    /// </exception>
+    let dumpText (graph: Graph) : string =
+        gate graph "Trace.dumpText"
+        TraceModel.dumpText "net" null TraceModel.emptySnapshot (events graph)
+
+    /// <summary>Writes the JSONL dump of <c>graph</c>'s log, schema 1, to <c>path</c>, and returns the full path.</summary>
+    /// <exception cref="T:System.InvalidOperationException">As for <c>dumpText</c>.</exception>
+    let dump (graph: Graph) (path: string) : string =
+        gate graph "Trace.dump"
+        let text = TraceModel.dumpText "net" null TraceModel.emptySnapshot (events graph)
+        let full = System.IO.Path.GetFullPath path
+        System.IO.File.WriteAllText (full, text)
+        full
+
 #else
     /// <summary>Runs <c>f</c>. A traced build also labels the first node or owner it creates on this thread.</summary>
     /// <remarks>Inlines to <c>f ()</c> on .NET and in Fable; a literal label costs nothing.</remarks>
