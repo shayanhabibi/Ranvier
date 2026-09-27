@@ -20,7 +20,6 @@
         <PackageReference Include="Nacara.Plugin.Assets.LightningCss" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Assets.Esbuild" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Assets.Nuglify" Version="1.0.0-*" />
-        <PackageReference Include="Nacara.Plugin.Deploy.GitHubPages" Version="1.0.0-*" />
     </ItemGroup>
     <ItemGroup>
         <!-- The Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;

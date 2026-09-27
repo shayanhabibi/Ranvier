@@ -18,8 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-dotnet@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
       # The Solid plugin compiles the live examples with Fable and Node.
@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
       - name: Build the site
-        run: dotnet run --project docs/docs.fsproj -- build
+        run: dotnet fsi build.fsx -- docs --quick
       - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/output
