@@ -17,12 +17,15 @@ layout: splash
 </div>
 <figure class="rv-demo" data-rv-demo aria-label="A boundary moving through its states as its source settles, fails and settles again">
 <div class="rv-demo__code">
-<pre><code><span class="k">let</span> price = createAsyncSource&lt;<span class="t">decimal</span>&gt; ()
+<pre><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
+<span class="k">use</span> _ = graph.Activate ()
+<span></span>
+<span class="k">let</span> price = createAsyncSource&lt;<span class="t">decimal</span>&gt; ()
 <span class="k">let</span> total = createMemo (<span class="k">fun</span> () -&gt; price.Value * <span class="n">3m</span>)
 <span class="k">let</span> view =
     createBoundary
-        (<span class="k">fun</span> () -&gt; <span class="s">"Loading…"</span>)
-        (<span class="k">fun</span> ex -&gt; <span class="s">"Unavailable: "</span> + ex.Message)
+        (<span class="k">fun</span> _ -&gt; <span class="s">"Loading…"</span>)
+        (<span class="k">fun</span> ex _ -&gt; <span class="s">"Unavailable: "</span> + ex.Message)
         (<span class="k">fun</span> () -&gt; sprintf <span class="s">"Total %M"</span> total.Value)
 <span></span>
 <span class="rv-demo__step" data-step="0"><span class="c">// view: Fallback</span></span>
@@ -39,7 +42,7 @@ layout: splash
 <li data-step="3"><span class="rv-state rv-state--ready">Ready</span><code>Ready "Total 15"</code><small>Caught = null</small></li>
 </ol>
 </div>
-<figcaption>Output from running this code against Partas.Signals <code>915f139</code>.</figcaption>
+<figcaption>Output from running this code against Ranvier <code>ad2d84d</code>.</figcaption>
 </figure>
 </section>
 
