@@ -391,6 +391,387 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
             adds.Clear ()
             writes.Clear ()
 
+/// <summary>
+/// The reads of an aggregate's <c>add</c>, <c>subtract</c> or folder since its last full recompute. A change to any of them
+/// runs <c>changed</c>.
+/// </summary>
+[<Sealed>]
+type internal FoldReads(graph: Graph, changed: unit -> unit) =
+    let id = graph.NextId ()
+    let read = System.Collections.Generic.HashSet<ISource> (HashIdentity.Reference)
+    let order = ResizeArray<ISource> ()
+    let mutable dirty = false
+    let mutable check = false
+
+    /// <summary>Whether a read source moved since the last call. Brings each read source current first.</summary>
+    member _.Moved() =
+        if check && not dirty then
+            let mutable i = 0
+
+            while not dirty && i < order.Count do
+                order[i].UpdateIfNecessary ()
+                i <- i + 1
+
+        let moved = dirty
+        check <- false
+        dirty <- false
+        moved
+
+    /// <summary>Drops every read edge.</summary>
+    member this.Clear() =
+        for source in order do
+            source.RemoveObserver (this :> IComputation)
+
+        read.Clear ()
+        order.Clear ()
+        check <- false
+        dirty <- false
+
+    interface INode with
+        member _.Id = id
+        member _.Status = Status.None
+
+    interface IComputation with
+        member this.AddSource source =
+            if read.Add source then
+                order.Add source
+                source.AddObserver (this :> IComputation)
+
+        member _.MarkDirty() =
+            dirty <- true
+            changed ()
+
+        member _.MarkCheck() =
+            check <- true
+            changed ()
+
+    interface IScopeHost with
+        member _.Scope =
+            raise (
+                System.InvalidOperationException
+                    "A projection aggregate's add, subtract or folder created an owned node. These functions re-run on every row change; create the node outside the aggregate."
+            )
+
+/// <summary>
+/// One live key of an aggregate: the observer of the key's row and the row's last settled value.
+/// </summary>
+[<Sealed>]
+type internal FoldRow<'K, 'V>(graph: Graph, entry: RowEntry<'K, 'V>, touched: FoldRow<'K, 'V> -> unit) =
+    let id = graph.NextId ()
+
+    member _.Entry = entry
+
+    /// <summary>Whether the row waits in the aggregate's queue, or is being read.</summary>
+    member val Queued = false with get, set
+
+    /// <summary>Whether the aggregate observes the row.</summary>
+    member val Attached = false with get, set
+
+    /// <summary>Whether <c>Value</c> holds a settled value, contained in the aggregate state.</summary>
+    member val HasValue = false with get, set
+
+    member val Value = Unchecked.defaultof<'V> with get, set
+
+    /// <summary>The row's exception while the row is failed, or null.</summary>
+    member val Error: exn = null with get, set
+
+    /// <summary>The last membership diff containing the key.</summary>
+    member val Generation = 0 with get, set
+
+    interface INode with
+        member _.Id = id
+        member _.Status = Status.None
+
+    interface IComputation with
+        member _.AddSource _ = ()
+        member this.MarkDirty() = touched this
+        member this.MarkCheck() = touched this
+
+/// <summary>
+/// The fold of the settled row values of <c>upstream</c>, kept current in O(changed rows) when <c>subtract</c> is non-null
+/// and recomputed from the cached row values otherwise. Read through the memo it computes.
+/// </summary>
+/// <remarks>
+/// A pending row keeps its last settled value in the state, and a row contributes from its first settled value. The state
+/// returns to <c>zero</c> when the last row value leaves it. While a row is failed, the memo raises the row's exception. A throwing <c>add</c> or <c>subtract</c> makes the next
+/// read recompute from the cached row values.
+/// </remarks>
+[<Sealed>]
+type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
+    (graph: Graph, upstream: Projection<'K, 'V>, add: 'S -> 'V -> 'S, subtract: 'S -> 'V -> 'S, zero: 'S) as this =
+    let id = graph.NextId ()
+    let observers = ObserverSet ()
+    let invertible = not (isNull (box subtract))
+    let equal = graph.Options.Equality.Comparer<'V>()
+    let rows = Platform.KeyMap<'K, FoldRow<'K, 'V>> ()
+    let queue = ResizeArray<FoldRow<'K, 'V>> ()
+    let added = ResizeArray<FoldRow<'K, 'V>> ()
+    let removed = ResizeArray<'K> ()
+
+    /// <summary>The <c>Keys</c> array of the last membership diff, or null before the first read.</summary>
+    let mutable lastKeys: 'K[] = null
+
+    let mutable generation = 0
+    let mutable state = zero
+
+    /// <summary>Set when <c>state</c> no longer follows from the cached row values.</summary>
+    let mutable full = false
+
+    /// <summary>The count of rows with <c>HasValue</c> set.</summary>
+    let mutable valued = 0
+
+    let mutable failed = 0
+    let mutable failure: FoldRow<'K, 'V> = Unchecked.defaultof<_>
+
+    /// <summary>Set when <c>state</c> or the failed rows change.</summary>
+    let mutable moved = false
+
+    let mutable disposed = false
+    let mutable link: OwnerLink = null
+    let mutable memo: Memo<'S> = Unchecked.defaultof<Memo<'S>>
+
+    let touch () =
+        if not disposed then
+            observers.NotifyCheck ()
+
+    let reads = FoldReads (graph, touch)
+
+    let touched (row: FoldRow<'K, 'V>) =
+        if not row.Queued then
+            row.Queued <- true
+            queue.Add row
+            touch ()
+
+    do link <- graph.CurrentOwner.AttachLinked this
+
+    member _.Memo
+        with get () = memo
+        and set v = memo <- v
+
+    /// <summary>Applies <c>step</c> to the state, or marks the state for a full recompute when <c>step</c> raises.</summary>
+    member private _.Step(step: 'S -> 'S) =
+        if not full then
+            try
+                state <- graph.RunHosted (reads :> IComputation, fun () -> step state)
+                moved <- true
+            with _ ->
+                full <- true
+
+    member private this.Fail(row: FoldRow<'K, 'V>, ex: exn) =
+        if isNull row.Error then
+            failed <- failed + 1
+
+            if isNull (box failure) then
+                failure <- row
+
+        if not (obj.ReferenceEquals (row.Error, ex)) then
+            row.Error <- ex
+            moved <- true
+
+    member private _.Unfail(row: FoldRow<'K, 'V>) =
+        if not (isNull row.Error) then
+            row.Error <- null
+            failed <- failed - 1
+            moved <- true
+
+            if obj.ReferenceEquals (failure, row) then
+                failure <- Unchecked.defaultof<_>
+
+    /// <summary>Reads the row untracked and moves its contribution to the row's value.</summary>
+    member private this.Read(row: FoldRow<'K, 'V>) =
+        let reading = graph.RunUntracked (fun () -> row.Entry.Row.TryValue)
+        row.Queued <- false
+
+        match reading with
+        | Ready v ->
+            this.Unfail row
+
+            if not row.HasValue then
+                row.HasValue <- true
+                row.Value <- v
+                valued <- valued + 1
+
+                if invertible then this.Step (fun s -> add s v) else full <- true
+            elif not (equal.Equals (row.Value, v)) then
+                let old = row.Value
+                row.Value <- v
+
+                if invertible then
+                    this.Step (fun s -> add (subtract s old) v)
+                else
+                    full <- true
+        | Pending -> this.Unfail row
+        | Failed ex -> this.Fail (row, ex)
+
+    /// <summary>Stops observing the row and removes its contribution.</summary>
+    member private this.Detach(row: FoldRow<'K, 'V>) =
+        row.Attached <- false
+        (row.Entry.Row :> ISource).RemoveObserver (row :> IComputation)
+        this.Unfail row
+
+        if row.HasValue then
+            row.HasValue <- false
+            let old = row.Value
+            row.Value <- Unchecked.defaultof<'V>
+            valued <- valued - 1
+
+            if not invertible then
+                full <- true
+            elif valued = 0 && not full then
+                state <- zero
+                moved <- true
+            else
+                this.Step (fun s -> subtract s old)
+
+    /// <summary>Attaches a row to every added key and detaches the row of every removed key. O(N) in <c>keys</c>.</summary>
+    member private this.Diff(keys: 'K[]) =
+        generation <- generation + 1
+        added.Clear ()
+        removed.Clear ()
+
+        for key in keys do
+            let entry = upstream.Entries.Find key
+
+            if not (isNull entry) then
+                let row = rows.Find key
+
+                if not (isNull (box row)) && obj.ReferenceEquals (row.Entry, entry) then
+                    row.Generation <- generation
+                else
+                    if not (isNull (box row)) then
+                        this.Detach row
+
+                    let fresh = FoldRow<'K, 'V> (graph, entry, touched)
+                    fresh.Generation <- generation
+                    rows.Set (key, fresh)
+                    added.Add fresh
+
+        rows.Iterate (fun key row -> if row.Generation <> generation then removed.Add key)
+
+        for key in removed do
+            this.Detach (rows.Find key)
+            rows.Remove key
+
+        lastKeys <- keys
+
+        for row in added do
+            row.Queued <- true
+            row.Attached <- true
+            (row.Entry.Row :> ISource).AddObserver (row :> IComputation)
+            this.Read row
+
+        added.Clear ()
+        removed.Clear ()
+
+    /// <summary>Folds the cached row values in <c>Keys</c> order into a fresh state. O(N).</summary>
+    member private _.Recompute() =
+        reads.Clear ()
+
+        let fold () =
+            let mutable s = zero
+
+            for key in lastKeys do
+                let row = rows.Find key
+
+                if not (isNull (box row)) && row.HasValue then
+                    s <- add s row.Value
+
+            s
+
+        state <- graph.RunHosted (reads :> IComputation, fold)
+        full <- false
+        moved <- true
+
+    /// <summary>
+    /// Brings the state current: the membership of <c>keys</c> when non-null, then every queued row, then a full recompute
+    /// if a read of the fold functions moved or the fold is non-invertible.
+    /// </summary>
+    member private this.Sync(keys: 'K[]) =
+        if reads.Moved () then
+            full <- true
+
+        if not (isNull keys) && not (obj.ReferenceEquals (keys, lastKeys)) then
+            this.Diff keys
+
+        let mutable i = 0
+
+        while i < queue.Count do
+            let row = queue[i]
+
+            if row.Attached && row.Entry.Live then this.Read row else row.Queued <- false
+
+            i <- i + 1
+
+        queue.Clear ()
+
+        if full then
+            this.Recompute ()
+
+    member private _.Failure: exn =
+        if isNull (box failure) then
+            rows.Iterate (fun _ row -> if isNull (box failure) && not (isNull row.Error) then failure <- row)
+
+        failure.Error
+
+    /// <summary>The memo's body: tracks the upstream keys and this node, then returns the current state.</summary>
+    member this.Compute() : 'S =
+        if disposed then
+            state
+        else
+            let keys = upstream.Keys
+            graph.Track (this :> ISource)
+            this.Sync keys
+            moved <- false
+
+            if failed > 0 then
+                raise this.Failure
+
+            state
+
+    member this.Dispose() =
+        if not disposed then
+            disposed <- true
+
+            if not (isNull link) then
+                link.Detach ()
+                link <- null
+
+            rows.Iterate (fun _ row ->
+                row.Attached <- false
+                (row.Entry.Row :> ISource).RemoveObserver (row :> IComputation))
+
+            rows.Clear ()
+            queue.Clear ()
+            reads.Clear ()
+
+            if not (isNull (box memo)) then
+                memo.Dispose ()
+
+    interface INode with
+        member _.Id = id
+        member _.Status = Status.None
+
+    interface ISource with
+        member _.AddObserver c = observers.Add c
+        member _.RemoveObserver c = observers.Remove c
+
+        member this.UpdateIfNecessary() =
+            if not disposed && not (isNull lastKeys) then
+                moved <- false
+
+                try
+                    this.Sync null
+                with _ ->
+                    moved <- true
+
+                if moved then
+                    observers.NotifyDirty ()
+
+    interface IOwned with
+        member this.Release() =
+            link <- null
+            this.Dispose ()
+
 /// <summary>Views over a <c>Projection</c> that re-run the user function only for keys whose upstream row changed.</summary>
 /// <remarks>
 /// A view is a <c>Projection</c> owned by the scope that creates it. A membership or order change costs O(N) per view, and O(window) for <c>take</c>, <c>skip</c> and <c>sub</c>.
@@ -686,3 +1067,93 @@ module Projection =
             )
 
         view
+
+    /// <summary>
+    /// A memo of the settled values of <c>upstream</c> folded into <c>zero</c> with <c>add</c>, kept current by applying each
+    /// row change: <c>add</c> for an added key, <c>subtract</c> of its last value for a removed key, and both for a changed value.
+    /// </summary>
+    /// <remarks>
+    /// <c>subtract</c> must invert <c>add</c>. A row edit costs O(1) calls and reads the edited row alone; a key change costs
+    /// an O(N) key diff. The fold covers settled values: a pending row keeps its last one, as in <c>Snapshot</c>, and
+    /// <c>AnyPending</c> reports it. A failed row makes a read raise its exception. A value read by <c>add</c> or
+    /// <c>subtract</c> re-folds the cached values on change. The memo is disposed with the calling scope.
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let rows = createProjection (fun t -> t.Id) (fun t -> t.Estimate) (fun () -> todos.Value)
+    /// let total = rows |> Projection.foldGroup (+) (-) 0
+    /// </code>
+    /// </example>
+    let foldGroup
+        (add: 'S -> 'V -> 'S)
+        (subtract: 'S -> 'V -> 'S)
+        (zero: 'S)
+        (upstream: Projection<'K, 'V>)
+        : Memo<'S> =
+        if isNull (box subtract) then
+            nullArg (nameof subtract)
+
+        let graph = upstream.Graph
+        let aggregate = ProjectionFold<'K, 'V, 'S> (graph, upstream, add, subtract, zero)
+        aggregate.Memo <- Memo<'S>.Create (graph, aggregate.Compute, ScopeMode.Pure)
+        aggregate.Memo
+
+    /// <summary>A memo of the settled values of <c>upstream</c> folded with <c>folder</c> from <c>state</c>, in <c>Keys</c> order.</summary>
+    /// <remarks>
+    /// Any key or value change re-folds every row's cached value: O(N) calls of <c>folder</c>, reading only the changed rows.
+    /// Use <c>foldGroup</c> when the fold has an inverse. Pending, failed and disposal behave as in <c>foldGroup</c>.
+    /// </remarks>
+    let fold (folder: 'S -> 'V -> 'S) (state: 'S) (upstream: Projection<'K, 'V>) : Memo<'S> =
+        let graph = upstream.Graph
+        let aggregate = ProjectionFold<'K, 'V, 'S> (graph, upstream, folder, Unchecked.defaultof<_>, state)
+        aggregate.Memo <- Memo<'S>.Create (graph, aggregate.Compute, ScopeMode.Pure)
+        aggregate.Memo
+
+    /// <summary>A memo of the sum of <c>projection</c> over the values of <c>upstream</c>, kept current per row change.</summary>
+    /// <remarks>
+    /// <c>projection</c> re-runs for a key when its upstream row changes, in a view the memo reads as <c>foldGroup</c> does.
+    /// A pending or throwing <c>projection</c> behaves as a pending or failed row of <c>foldGroup</c>. While the sum is
+    /// infinite or NaN, each row change re-adds every cached value: O(N).
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let rows = createProjection (fun t -> t.Id) id (fun () -> todos.Value)
+    /// let hours = rows |> Projection.sumBy (fun t -> t.Hours)
+    /// </code>
+    /// </example>
+    let inline sumBy (projection: 'V -> ^N) (upstream: Projection<'K, 'V>) : Memo< ^N> =
+        upstream
+        |> map projection
+        |> foldGroup
+            (fun s n -> s + n)
+            (fun s n ->
+                let d = s - n
+
+                // A throwing subtract re-folds from the cached values. d - d is non-zero exactly when d is infinite or NaN.
+                if d - d <> LanguagePrimitives.GenericZero then
+                    raise (System.ArithmeticException ())
+
+                d)
+            LanguagePrimitives.GenericZero
+
+    /// <summary>A memo of how many values of <c>upstream</c> satisfy <c>predicate</c>, kept current per row change.</summary>
+    /// <remarks>
+    /// <c>predicate</c> re-runs for a key when its upstream row changes. A pending or throwing <c>predicate</c> behaves as a
+    /// pending or failed row of <c>foldGroup</c>.
+    /// </remarks>
+    let countBy (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<int> =
+        upstream
+        |> map predicate
+        |> foldGroup (fun n hit -> if hit then n + 1 else n) (fun n hit -> if hit then n - 1 else n) 0
+
+    /// <summary>A memo of whether some value of <c>upstream</c> satisfies <c>predicate</c>: a <c>countBy</c> above zero.</summary>
+    /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>false</c>.</remarks>
+    let exists (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
+        let count = countBy predicate upstream
+        Memo<bool>.Create (upstream.Graph, (fun () -> count.Value > 0), ScopeMode.Pure)
+
+    /// <summary>A memo of whether every value of <c>upstream</c> satisfies <c>predicate</c>: a <c>countBy</c> of misses at zero.</summary>
+    /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>true</c>.</remarks>
+    let forall (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
+        let misses = countBy (predicate >> not) upstream
+        Memo<bool>.Create (upstream.Graph, (fun () -> misses.Value = 0), ScopeMode.Pure)

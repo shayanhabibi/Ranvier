@@ -1702,3 +1702,340 @@ let chainPendingTests =
                 Expect.equal view.Status Status.None "Status describes the pass"
             }
     ]
+
+/// <summary>A reading of <c>memo</c> as text: the value, the exception message, or <c>pending</c>.</summary>
+let private describe (memo: Memo<'T>) =
+    match memo.TryValue with
+    | Ready v -> string v
+    | Failed ex -> ex.Message
+    | Pending -> "pending"
+
+[<Tests>]
+let foldTests =
+    testList "Projection.foldGroup" [
+        test "the sum follows edits, removals and additions" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..5 -> i, i ])
+            let total = rows source |> Projection.foldGroup (+) (-) 0
+            let seen = ResizeArray<int> ()
+
+            createEffect (fun () -> seen.Add total.Value)
+            source.Value <- setN 2 20 source.Value
+            source.Value <- source.Value |> List.filter (fun x -> x.Id <> 3)
+            source.Value <- source.Value @ items [ 9, 100 ]
+
+            Expect.sequenceEqual seen [ 15; 33; 30; 130 ] "one result per write"
+        }
+
+        test "an edit at N=1000 makes one add and one subtract" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..1000 -> i, i ])
+            let adds = ref 0
+            let subtracts = ref 0
+
+            let total =
+                rows source
+                |> Projection.foldGroup
+                    (fun s n ->
+                        adds.Value <- adds.Value + 1
+                        s + n)
+                    (fun s n ->
+                        subtracts.Value <- subtracts.Value + 1
+                        s - n)
+                    0
+
+            let runs = ref 0
+
+            createEffect (fun () ->
+                runs.Value <- runs.Value + 1
+                total.Value |> ignore)
+
+            Expect.equal adds.Value 1000 "one add per key on the first read"
+            adds.Value <- 0
+
+            for i in 1..100 do
+                source.Value <- setN i (i + 1) source.Value
+
+            Expect.equal (adds.Value, subtracts.Value) (100, 100) "one add and one subtract per edit"
+            Expect.equal runs.Value 101 "one reader run per edit"
+            Expect.equal total.Value (500500 + 100) "the sum"
+        }
+
+        test "an edit that leaves the row value equal leaves the reader asleep" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 3; 2, 4 ])
+            let parity = createProjection (fun x -> x.Id) (fun x -> x.N % 2) (fun () -> source.Value)
+            let odd = parity |> Projection.foldGroup (+) (-) 0
+            let runs = ref 0
+
+            createEffect (fun () ->
+                runs.Value <- runs.Value + 1
+                odd.Value |> ignore)
+
+            source.Value <- setN 1 5 source.Value
+            Expect.equal runs.Value 1 "the row value is still odd"
+            Expect.equal odd.Value 1 "one odd row"
+        }
+
+        test "a value read by add re-folds on change" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2 ])
+            let weight = createSignal 1
+
+            let total =
+                rows source
+                |> Projection.foldGroup (fun s n -> s + n * weight.Value) (fun s n -> s - n * weight.Value) 0
+
+            Expect.equal total.Value 3 "weight 1"
+            weight.Value <- 10
+            Expect.equal total.Value 30 "weight 10"
+            source.Value <- setN 1 5 source.Value
+            Expect.equal total.Value 70 "an edit under weight 10"
+        }
+
+        test "a key removed and re-added counts once, with its new value" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2 ])
+            let total = rows source |> Projection.foldGroup (+) (-) 0
+
+            Expect.equal total.Value 3 "initial"
+            source.Value <- source.Value |> List.filter (fun x -> x.Id <> 2)
+            source.Value <- source.Value @ items [ 2, 7 ]
+            Expect.equal total.Value 8 "key 2 re-added unread"
+        }
+
+        test "a pending row keeps its last settled value; a never-settled row adds nothing" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let flights = dict [ for n in [ 10; 11; 20 ] -> n, createAsyncSource<int> () ]
+            flights[10].Settle 5
+            let source = createSignal (items [ 1, 10; 2, 20 ])
+            let view = createProjection (fun x -> x.Id) (fun x -> flights[x.N].Value) (fun () -> source.Value)
+            let total = view |> Projection.foldGroup (+) (-) 0
+            let seen = ResizeArray<string> ()
+
+            createEffect (fun () -> seen.Add $"{total.Value} {view.AnyPending}")
+
+            source.Value <- setN 1 11 source.Value
+            Expect.equal total.Value 5 "key 1 keeps its last settled value"
+
+            flights[20].Settle 7
+            flights[11].Settle 9
+            Expect.equal total.Value 16 "both settled"
+            Expect.equal seen[0] "5 True" "the first run counts only the settled row"
+            Expect.equal (Seq.last seen) "16 False" "the reader sees the settled sum"
+        }
+
+        test "a failed row raises its error until it recovers" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let bad = createSignal false
+
+            let view =
+                createProjection id (fun k -> if k = 2 && bad.Value then invalidOp "boom 2" else k) (fun () -> [ 1; 2; 3 ])
+
+            let total = view |> Projection.foldGroup (+) (-) 0
+            let seen = ResizeArray<string> ()
+
+            createEffect (fun () -> seen.Add (describe total))
+            bad.Value <- true
+            bad.Value <- false
+
+            Expect.sequenceEqual seen [ "6"; "boom 2"; "6" ] "value, failure, value"
+        }
+
+        test "a removed failed row stops raising" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal [ 1; 2; 3 ]
+            let view = createProjection id (fun k -> if k = 2 then invalidOp "boom 2" else k) (fun () -> source.Value)
+            let total = view |> Projection.foldGroup (+) (-) 0
+
+            Expect.equal (describe total) "boom 2" "precondition"
+            source.Value <- [ 1; 3 ]
+            Expect.equal total.Value 4 "key 2 is gone"
+        }
+
+        test "disposing the calling scope stops the fold" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2 ])
+            let up = rows source
+            let adds = ref 0
+            let scope = ref Unchecked.defaultof<Owner>
+
+            let total =
+                createRoot (fun owner ->
+                    scope.Value <- owner
+
+                    up
+                    |> Projection.foldGroup
+                        (fun s n ->
+                            adds.Value <- adds.Value + 1
+                            s + n)
+                        (-)
+                        0)
+
+            Expect.equal total.Value 3 "precondition"
+            scope.Value.Dispose ()
+            adds.Value <- 0
+            source.Value <- setN 1 50 source.Value
+            total.Value |> ignore
+
+            Expect.equal adds.Value 0 "no add runs after disposal"
+            Expect.equal (up.Get 1) 50 "the upstream still follows its source"
+        }
+
+        test "a fold over filter then sortBy follows membership and values" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..6 -> i, i ])
+
+            let total =
+                rows source
+                |> Projection.filter (fun n -> n % 2 = 0)
+                |> Projection.sortBy (fun n -> -n)
+                |> Projection.foldGroup (+) (-) 0
+
+            Expect.equal total.Value 12 "2 + 4 + 6"
+            source.Value <- setN 1 8 source.Value
+            Expect.equal total.Value 20 "key 1 joins"
+            source.Value <- setN 2 3 source.Value
+            Expect.equal total.Value 18 "key 2 leaves"
+            source.Value <- setN 4 10 source.Value
+            Expect.equal total.Value 24 "key 4 changes"
+        }
+
+        test "fold visits settled values in Keys order and re-folds on change" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 3; 2, 1; 3, 2 ])
+            let calls = ref 0
+
+            let order =
+                rows source
+                |> Projection.sortBy id
+                |> Projection.fold
+                    (fun acc n ->
+                        calls.Value <- calls.Value + 1
+                        acc @ [ n ])
+                    []
+
+            Expect.equal order.Value [ 1; 2; 3 ] "ascending"
+            calls.Value <- 0
+            source.Value <- setN 1 0 source.Value
+            Expect.equal order.Value [ 0; 1; 2 ] "key 1 moves first"
+            Expect.equal calls.Value 3 "one folder call per row"
+        }
+
+        test "sumBy, countBy, exists and forall follow edits" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2; 3, 3 ])
+            let view = rows source
+            let sum = view |> Projection.sumBy float
+            let big = view |> Projection.countBy (fun n -> n > 1)
+            let any = view |> Projection.exists (fun n -> n > 2)
+            let all = view |> Projection.forall (fun n -> n > 0)
+
+            Expect.equal (sum.Value, big.Value, any.Value, all.Value) (6.0, 2, true, true) "initial"
+            source.Value <- setN 3 0 source.Value
+            Expect.equal (sum.Value, big.Value, any.Value, all.Value) (3.0, 1, false, false) "key 3 set to 0"
+            source.Value <- []
+            Expect.equal (sum.Value, big.Value, any.Value, all.Value) (0.0, 0, false, true) "empty"
+        }
+
+        test "a throwing countBy predicate fails the count" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2 ])
+            let count = rows source |> Projection.countBy (fun n -> if n = 13 then invalidOp "boom 13" else n > 1)
+
+            Expect.equal count.Value 1 "precondition"
+            source.Value <- setN 1 13 source.Value
+            Expect.equal (describe count) "boom 13" "the predicate's error"
+            source.Value <- setN 1 5 source.Value
+            Expect.equal count.Value 2 "recovered"
+        }
+
+        test "sumBy over floats recovers from infinity and NaN" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal [ 1, infinity; 2, 1.0 ]
+            let sum = createProjection fst snd (fun () -> source.Value) |> Projection.sumBy id
+
+            Expect.equal sum.Value infinity "an infinite row"
+            source.Value <- [ 1, 2.0; 2, 1.0 ]
+            Expect.equal sum.Value 3.0 "the infinite row edited"
+            source.Value <- [ 1, nan; 2, 1.0 ]
+            Expect.isTrue (Double.IsNaN sum.Value) "a NaN row"
+            source.Value <- [ 2, 1.0 ]
+            Expect.equal sum.Value 1.0 "the NaN row removed"
+        }
+
+        test "sumBy over floats reads zero once every row leaves" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal [ for i in 1..10 -> i, 0.1 * float i ]
+            let sum = createProjection fst snd (fun () -> source.Value) |> Projection.sumBy id
+
+            sum.Value |> ignore
+
+            for i in 1..10 do
+                source.Value <- source.Value |> List.filter (fun (id, _) -> id <> i)
+                sum.Value |> ignore
+
+            Expect.equal sum.Value 0.0 "exactly zero"
+        }
+
+        test "foldGroup rejects a null subtract" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1 ])
+
+            Expect.throwsT<ArgumentNullException>
+                (fun () -> rows source |> Projection.foldGroup (+) Unchecked.defaultof<_> 0 |> ignore)
+                "nullArg"
+        }
+
+        test "a throwing add recomputes from the cached values on the next read" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2 ])
+            let throwOn = ref -1
+
+            let total =
+                rows source
+                |> Projection.foldGroup (fun s n -> if n = throwOn.Value then invalidOp "boom" else s + n) (-) 0
+
+            Expect.equal total.Value 3 "precondition"
+            throwOn.Value <- 7
+            source.Value <- setN 1 7 source.Value
+            Expect.throwsT<InvalidOperationException> (fun () -> total.Value |> ignore) "the recompute raises"
+            throwOn.Value <- -1
+            source.Value <- setN 2 5 source.Value
+            Expect.equal total.Value 12 "7 + 5"
+        }
+
+        test "a batch of edits reads the combined result" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..4 -> i, i ])
+            let total = rows source |> Projection.foldGroup (+) (-) 0
+            let seen = ResizeArray<int> ()
+
+            createEffect (fun () -> seen.Add total.Value)
+
+            batch (fun () ->
+                source.Value <- setN 1 10 source.Value
+                source.Value <- source.Value |> List.filter (fun x -> x.Id <> 4)
+                source.Value <- source.Value @ items [ 5, 50 ])
+
+            Expect.sequenceEqual seen [ 10; 65 ] "one run for the batch"
+        }
+    ]
