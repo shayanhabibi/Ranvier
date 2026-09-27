@@ -186,7 +186,7 @@ type internal ObserverSet() =
     /// </summary>
     member _.Count = count
 
-    member _.Add(c: IComputation) =
+    member this.Add(c: IComputation) =
         if
             count = 1
             && obj.ReferenceEquals ((Platform.itemAt 0 items).Observer, c)
@@ -203,6 +203,7 @@ type internal ObserverSet() =
 #if RANVIER_COUNTERS
             Counters.ObserverInserted ()
 #endif
+            Tracer.ObserverAdd (this, c)
 
             if not (isNull index) then
                 Platform.refIndexSet index c 0
@@ -217,6 +218,7 @@ type internal ObserverSet() =
 #if RANVIER_COUNTERS
             Counters.ObserverInserted ()
 #endif
+            Tracer.ObserverAdd (this, c)
 
             if isNull index then
                 if count > IndexThreshold then
@@ -230,7 +232,7 @@ type internal ObserverSet() =
     /// dirty mark is a set operation — and preserving it would cost a shift on
     /// the path a conditional body takes every time it drops a branch.
     /// </summary>
-    member _.Remove(c: IComputation) =
+    member this.Remove(c: IComputation) =
         let last = count - 1
 
         let position =
@@ -246,6 +248,7 @@ type internal ObserverSet() =
 #if RANVIER_COUNTERS
             Counters.ObserverRemoved ()
 #endif
+            Tracer.ObserverRemove (this, c)
             if position <> last then
                 let moved = (Platform.itemAt last items).Observer
                 items[position] <- ObserverSlot moved
@@ -274,7 +277,7 @@ type internal ObserverSet() =
     /// visited twice, which is free because <c>MarkDirty</c> on an already-dirty
     /// node returns immediately. Forwards, the same removal would skip.
     /// </remarks>
-    member _.NotifyDirty() =
+    member this.NotifyDirty() =
         let mutable i = count - 1
 
         while i >= 0 do
@@ -282,7 +285,9 @@ type internal ObserverSet() =
                 i <- count - 1
 
             if i >= 0 then
-                (Platform.itemAt i items).Observer.MarkDirty()
+                let observer = (Platform.itemAt i items).Observer
+                Tracer.Mark (this, observer, true)
+                observer.MarkDirty ()
                 i <- i - 1
 
     /// <summary>
@@ -296,7 +301,7 @@ type internal ObserverSet() =
     /// already has. Without the skip, every cutoff decision taken mid-body
     /// costs the reader a spurious second run.
     /// </remarks>
-    member _.NotifyDirtyExcept(running: IComputation) =
+    member this.NotifyDirtyExcept(running: IComputation) =
         let mutable i = count - 1
 
         while i >= 0 do
@@ -307,7 +312,10 @@ type internal ObserverSet() =
                 let observer = (Platform.itemAt i items).Observer
 
                 if not (obj.ReferenceEquals (observer, running)) then
+                    Tracer.Mark (this, observer, true)
                     observer.MarkDirty ()
+                else
+                    Tracer.MarkSkip (this, observer)
 
                 i <- i - 1
 
@@ -316,7 +324,7 @@ type internal ObserverSet() =
     /// above it moved, without claiming that this node's own value did. Same
     /// backwards re-clamped walk, for the same reason.
     /// </summary>
-    member _.NotifyCheck() =
+    member this.NotifyCheck() =
         let mutable i = count - 1
 
         while i >= 0 do
@@ -324,7 +332,9 @@ type internal ObserverSet() =
                 i <- count - 1
 
             if i >= 0 then
-                (Platform.itemAt i items).Observer.MarkCheck()
+                let observer = (Platform.itemAt i items).Observer
+                Tracer.Mark (this, observer, false)
+                observer.MarkCheck ()
                 i <- i - 1
 
 #if RANVIER_TRACE
@@ -336,6 +346,11 @@ type internal ObserverSet() =
         member _.TraceId
             with get () = traceId
             and set id = traceId <- id
+
+    interface ITracedEdges with
+        member _.Owner = traceId
+        member _.IsSources = false
+        member _.Ids = Array.init count (fun i -> (Platform.itemAt i items).Observer.Id)
 #endif
 
 /// <summary>
@@ -435,7 +450,7 @@ type internal SourceList() =
     /// Drops the slots from <c>from</c> on. A source that also holds a kept slot
     /// keeps its observer entry.
     /// </summary>
-    let trimFrom (self: IComputation) from =
+    member private this.TrimFrom(self: IComputation, from: int) =
         for i in from .. count - 1 do
             let source = sourceAt i
 
@@ -444,6 +459,7 @@ type internal SourceList() =
 #if RANVIER_COUNTERS
             Counters.EdgeRemoved ()
 #endif
+            Tracer.EdgeRemove (this, source, i)
             // Blanked so a source dropped by a conditional body is not kept
             // alive by a slot past the end of the list.
             if i = 0 then
@@ -470,7 +486,7 @@ type internal SourceList() =
     member _.BeginRun() =
         cursor <- 0
 
-    member _.Add(self: IComputation, source: ISource) =
+    member this.Add(self: IComputation, source: ISource) =
         if cursor < count && obj.ReferenceEquals (sourceAt cursor, source) then
             cursor <- cursor + 1
         elif cursor > 0 && obj.ReferenceEquals (sourceAt (cursor - 1), source) then
@@ -481,7 +497,7 @@ type internal SourceList() =
             ()
         else
             if cursor < count then
-                trimFrom self cursor
+                this.TrimFrom (self, cursor)
 
             if count = 0 then
                 first <- source
@@ -498,6 +514,7 @@ type internal SourceList() =
 #if RANVIER_COUNTERS
             Counters.EdgeAdded ()
 #endif
+            Tracer.EdgeAdd (this, source, count - 1)
             source.AddObserver self
 
     /// <summary>
@@ -505,15 +522,15 @@ type internal SourceList() =
     /// run even when the body threw: a suspended body read a prefix, and the
     /// edges past that prefix are no longer ones it depends on.
     /// </summary>
-    member _.EndRun(self: IComputation) =
+    member this.EndRun(self: IComputation) =
         if cursor < count then
-            trimFrom self cursor
+            this.TrimFrom (self, cursor)
 
     /// <summary>
     /// Drops every edge. Disposal, not re-collection.
     /// </summary>
-    member _.Clear(self: IComputation) =
-        trimFrom self 0
+    member this.Clear(self: IComputation) =
+        this.TrimFrom (self, 0)
         cursor <- 0
 
 #if RANVIER_TRACE
@@ -525,6 +542,11 @@ type internal SourceList() =
         member _.TraceId
             with get () = traceId
             and set id = traceId <- id
+
+    interface ITracedEdges with
+        member _.Owner = traceId
+        member _.IsSources = true
+        member _.Ids = Array.init count (fun i -> (sourceAt i).Id)
 #endif
 
 /// <summary>
@@ -1443,7 +1465,9 @@ type Graph(options: GraphOptions) =
             invalidOp
                 $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
 
-    member internal _.Schedule(item: IScheduled) =
+    member internal this.Schedule(item: IScheduled) =
+        Tracer.Schedule (this, item, queueCount - queueHead)
+
         if queueCount < queue.Count then
             queue[queueCount] <- item
         else
@@ -1464,6 +1488,7 @@ type Graph(options: GraphOptions) =
 #if RANVIER_COUNTERS
             Counters.Flushed ()
 #endif
+            Tracer.FlushStart this
             flushing <- true
             flushOwed <- false
             let previousAmbient = this.EnterAmbient ()
@@ -1487,6 +1512,7 @@ type Graph(options: GraphOptions) =
             finally
                 flushing <- false
                 this.LeaveAmbient previousAmbient
+                Tracer.FlushEnd this
 
     /// <summary>
     /// Runs the queued effects. Inside a batch they run when the batch ends.
@@ -1562,12 +1588,14 @@ type Graph(options: GraphOptions) =
     /// </summary>
     member this.Batch(body: unit -> 'T) =
         batchDepth <- batchDepth + 1
+        Tracer.BatchEnter (this, batchDepth)
 
         let result =
             try
                 body ()
             finally
                 batchDepth <- batchDepth - 1
+                Tracer.BatchExit (this, batchDepth)
 
         this.RequestFlush ()
         result
@@ -1890,10 +1918,14 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 
             if not (equal.Equals (value, v)) then
                 value <- v
+                Tracer.Write (observers, true)
 
                 observers.NotifyDirty ()
+                Tracer.Notified observers
 
                 graph.RequestFlush ()
+            else
+                Tracer.Write (observers, false)
 
     /// <summary>
     /// Writes <c>v</c> as the setter does, leaving <c>running</c> unmarked. For a computation that reads the new value
@@ -1904,8 +1936,12 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 
         if not (equal.Equals (value, v)) then
             value <- v
+            Tracer.Write (observers, true)
             observers.NotifyDirtyExcept running
+            Tracer.Notified observers
             graph.RequestFlush ()
+        else
+            Tracer.Write (observers, false)
 
     /// <summary>Marks every reader for a check, leaving the value unchanged.</summary>
     member internal _.NotifyCheck() = observers.NotifyCheck ()
@@ -1976,8 +2012,10 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             value <- v
             status <- Status.None
+            Tracer.Write (observers, true)
 
             observers.NotifyDirty ()
+            Tracer.Notified observers
 
             graph.RequestFlush ())
 
@@ -1992,8 +2030,10 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             error <- reason
             status <- Status.Error
+            Tracer.Write (observers, true)
 
             observers.NotifyDirty ()
+            Tracer.Notified observers
 
             graph.RequestFlush ())
 
@@ -2183,6 +2223,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
 #if RANVIER_COUNTERS
         Counters.MemoRecomputed ()
 #endif
+        Tracer.RunStart (graph, id, runs)
 
         try
             try
@@ -2222,7 +2263,11 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             || not (obj.ReferenceEquals (error, previousError))
             || not (equal.Equals (previous, value))
         then
+            Tracer.Moved (graph, id)
             observers.NotifyDirtyExcept graph.CurrentComputation
+            Tracer.Notified graph
+
+        Tracer.RunEnd (graph, id, status)
 
     /// <summary>
     /// Resolves <c>Check</c> into <c>Clean</c> or <c>Dirty</c> by asking each source, in read
@@ -2658,6 +2703,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
 #if RANVIER_COUNTERS
         Counters.EffectRan ()
 #endif
+        Tracer.RunStart (graph, id, runs)
 
         try
             try
@@ -2682,6 +2728,8 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
             // it is recorded and readable.
             error <- ex
             status <- Status.Error
+
+        Tracer.RunEnd (graph, id, status)
 
     /// <summary>
     /// Detaches from every source and discharges the run scope. Idempotent.
@@ -3144,6 +3192,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
 
         let token = cts.Token
         runs <- runs + 1
+        Tracer.RunStart (graph, id, runs)
         error <- null
         status <- Status.Pending ||| (status &&& Status.Uninitialized)
 
@@ -3218,6 +3267,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 | KeepLatest -> Platform.whenSettled flight settle |> ignore
             finally
                 launching <- false
+
+        Tracer.RunEnd (graph, id, status)
 
     member private this.EnsureCurrent() =
         // One comparison on the cached path, as on `Memo`.
@@ -3526,6 +3577,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
         caught <- null
         waiting <- false
         runs <- runs + 1
+        Tracer.RunStart (graph, id, runs)
 
         let last = if shown then ValueSome previous else ValueNone
 
@@ -3626,7 +3678,11 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             || not (obj.ReferenceEquals (caught, previousCaught))
             || not (equal.Equals (previous, value))
         then
+            Tracer.Moved (graph, id)
             observers.NotifyDirtyExcept graph.CurrentComputation
+            Tracer.Notified graph
+
+        Tracer.RunEnd (graph, id, status)
 
     member private this.EnsureCurrent() =
         // One comparison on the path a cached read takes. Testing `disposed`

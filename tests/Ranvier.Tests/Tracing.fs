@@ -238,5 +238,352 @@ let tests =
                 let created = (Trace.events g)[origin.Seq - 1]
                 Expect.equal created.Kind TraceEventKind.NodeNew "Seq must point at the NodeNew"
             }
+
+            test "folded edges equal live sources after a diamond, a dynamic dependency switch and a dispose" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 1
+                let flag = createSignal true
+                let b = createMemo (fun () -> a.Value + 1)
+                let c = createMemo (fun () -> a.Value * 2)
+                let d = createMemo (fun () -> b.Value + c.Value)
+                let e = createMemo (fun () -> if flag.Value then b.Value else c.Value)
+                d.Value + e.Value |> ignore
+                a.Value <- 2
+                d.Value + e.Value |> ignore
+                Expect.isEmpty (Trace.reconcile g) "the diamond's edges must fold to the live lists"
+                flag.Value <- false
+                e.Value |> ignore
+                Expect.isEmpty (Trace.reconcile g) "the switched branch's edges must fold to the live lists"
+                d.Dispose ()
+                Expect.isEmpty (Trace.reconcile g) "the disposed memo's edges must fold away"
+                Expect.isNonEmpty (ofKind TraceEventKind.EdgeRemove g) "the switch and the dispose must remove edges"
+            }
+
+            test "a RowWatch subscription records ObserverAdd" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1 ]
+                let flight = createAsyncSource<int> ()
+                let proj = createProjection id (fun _ -> flight.Value) (fun () -> items.Value)
+
+                createEffect (fun () ->
+                    for key in proj.Keys do
+                        try proj.Get key |> ignore with :? NotReadyException -> ())
+
+                let watches =
+                    ofKind TraceEventKind.NodeNew g
+                    |> Array.filter (fun e -> e.Arg = int TraceNodeKind.RowWatch)
+                    |> Array.map (fun e -> e.Node)
+                    |> Set.ofArray
+
+                Expect.isTrue
+                    (ofKind TraceEventKind.ObserverAdd g |> Array.exists (fun e -> watches.Contains e.Other))
+                    "the pending row must record the row watch as an observer"
+            }
+
+            test "a write marks each reader with the Write as Cause" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 0
+                let m1 = createMemo (fun () -> s.Value + 1)
+                let m2 = createMemo (fun () -> s.Value + 2)
+                m1.Value + m2.Value |> ignore
+                s.Value <- 5
+                let write = (ofKind TraceEventKind.Write g)[0]
+                let marks = ofKind TraceEventKind.Mark g
+
+                Expect.equal
+                    (marks |> Array.map (fun e -> e.Node, e.Arg, e.Cause) |> Set.ofArray)
+                    (set [ (m1 :> INode).Id, 2, write.Seq; (m2 :> INode).Id, 2, write.Seq ])
+                    "each reader must be marked dirty with the Write as Cause"
+            }
+
+            test "a reader writing its own source records MarkSkip" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let t = createSignal 0
+                let s = createSignal 0
+                let m = createMemo (fun () -> s.Value * 2)
+                let mutable reader = 0
+
+                createEffect (fun () ->
+                    s.Value <- t.Value
+                    m.Value |> ignore)
+
+                reader <- (ofKind TraceEventKind.NodeNew g |> Array.last).Node
+                t.Value <- 1
+
+                Expect.exists
+                    (ofKind TraceEventKind.MarkSkip g)
+                    (fun e -> e.Node = reader && e.Other = (m :> INode).Id)
+                    "the memo's notification must skip the running effect"
+            }
+
+            test "a write inside batch schedules with no RunStart until BatchExit" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 0
+                createEffect (fun () -> s.Value |> ignore)
+                let effect = (ofKind TraceEventKind.NodeNew g |> Array.last).Node
+                let before = (Trace.events g).Length
+                batch (fun () -> s.Value <- 1)
+                let window = (Trace.events g)[before..]
+                let at kind = window |> Array.findIndex (fun e -> e.Kind = kind && (e.Node = effect || e.Node = 0))
+                let schedule = at TraceEventKind.Schedule
+                let exit = at TraceEventKind.BatchExit
+                let start = at TraceEventKind.RunStart
+                Expect.isTrue (schedule < exit && exit < start) "Schedule, then BatchExit, then RunStart"
+            }
+
+            test "a write inside a memo records the memo as Other" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 0
+                let m = createMemo (fun () -> s.Value <- 1; 0)
+                m.Value |> ignore
+                let write = (ofKind TraceEventKind.Write g)[0]
+                let start = (ofKind TraceEventKind.RunStart g)[0]
+                Expect.equal (write.Other, write.Cause) ((m :> INode).Id, start.Seq) "the writer and its RunStart"
+            }
+
+            test "a node created in a run records that RunStart as Cause" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                createEffect (fun () -> createSignal 0 |> ignore)
+                let start = (ofKind TraceEventKind.RunStart g)[0]
+                let created = ofKind TraceEventKind.NodeNew g |> Array.last
+                Expect.equal created.Cause start.Seq "the signal's NodeNew must name the effect's RunStart"
+            }
+
+            test "a cutoff run ends with Flag 0" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun () -> s.Value % 2)
+                m.Value |> ignore
+                s.Value <- 3
+                m.Value |> ignore
+                let ends = ofKind TraceEventKind.RunEnd g
+                Expect.equal (ends |> Array.map (fun e -> e.Arg, e.Flag)) [| 0, 1; 0, 0 |] "moved, then cut off"
+            }
+
+            test "a throwing body ends Error" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                createEffect (fun () -> raise Boom)
+                let ended = (ofKind TraceEventKind.RunEnd g)[0]
+                Expect.equal (enum<RunStatus> ended.Arg) RunStatus.Error "the run must end Error"
+            }
+
+            test "a pending body ends Pending" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let source = createAsyncSource<int> ()
+                let m = createMemo (fun () -> source.Value)
+                m.TryValue |> ignore
+                let ended = (ofKind TraceEventKind.RunEnd g)[0]
+                Expect.equal (enum<RunStatus> ended.Arg) RunStatus.Pending "the run must end Pending"
+            }
+
+            test "an async memo and a projection record their runs" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createAsync (fun _ -> Task.FromResult 1)
+                let p = createProjection id id (fun () -> [ 1 ])
+                a.TryValue |> ignore
+                p.Keys |> ignore
+
+                for node in [ a :> INode; p :> INode ] do
+                    let run = ofKind TraceEventKind.RunStart g |> Array.find (fun e -> e.Node = node.Id)
+
+                    Expect.exists
+                        (ofKind TraceEventKind.RunEnd g)
+                        (fun e -> e.Node = node.Id && e.Cause = run.Seq)
+                        "each RunStart must be closed by its RunEnd"
+            }
+
+            test "RunStart Cause is the first dirty mark" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 0
+                let b = createSignal 0
+                let m = createMemo (fun () -> a.Value + b.Value)
+                m.Value |> ignore
+                a.Value <- 1
+                b.Value <- 1
+                m.Value |> ignore
+                let first = (ofKind TraceEventKind.Mark g)[0]
+                let run = (ofKind TraceEventKind.RunStart g)[1]
+                Expect.equal run.Cause first.Seq "the second run's cause must be the first mark"
+            }
+
+            test "a re-run after a discharge write is two RunStarts in one flush" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let u = createSignal 0
+                let s = createSignal 0
+                createEffect (fun () -> u.Value + s.Value |> ignore)
+                createEffect (fun () ->
+                    let v = u.Value
+                    onCleanup (fun () -> s.Value <- v + 100))
+                let before = (Trace.events g).Length
+                u.Value <- 1
+                u.Value <- 2
+                let window = (Trace.events g)[before..]
+                let flush = window |> Array.findIndex (fun e -> e.Kind = TraceEventKind.FlushStart)
+                let flushEnd = window |> Array.findIndexBack (fun e -> e.Kind = TraceEventKind.FlushEnd)
+                let first = (ofKind TraceEventKind.NodeNew g).[2].Node
+
+                let starts =
+                    window[flush..flushEnd]
+                    |> Array.filter (fun e -> e.Kind = TraceEventKind.RunStart && e.Node = first)
+
+                Expect.isGreaterThanOrEqual starts.Length 2 "the reader must run twice within the flushes"
+            }
+
+            test "why ends at UserWrite" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 1
+                let b = createMemo (fun () -> a.Value + 1)
+                let d = createMemo (fun () -> b.Value * 2)
+                d.Value |> ignore
+                a.Value <- 2
+                d.Value |> ignore
+                let write = (ofKind TraceEventKind.Write g)[0]
+                let why = Trace.why g d
+                Expect.equal why.Root (Some (UserWrite write.Seq)) "the chain must end at the user's write"
+
+                Expect.equal
+                    (why.Steps |> List.map (fun s -> s.Kind))
+                    [
+                        TraceEventKind.RunStart
+                        TraceEventKind.Mark
+                        TraceEventKind.Moved
+                        TraceEventKind.RunStart
+                        TraceEventKind.Mark
+                        TraceEventKind.Write
+                    ]
+                    "RunStart, Mark, Moved through the memo, back to the Write"
+
+                Expect.equal (Trace.whyDepth g 2 d).Root None "whyDepth stops before the root"
+            }
+
+            test "why ends at Created for a first run" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let m = createMemo (fun () -> 1)
+                m.Value |> ignore
+                let created = (ofKind TraceEventKind.NodeNew g)[0]
+                Expect.equal (Trace.whyAt g m 1).Root (Some (Created created.Seq)) "run 1 roots at NodeNew"
+            }
+
+            test "why ends at Pulled for a run with no dirty mark" {
+                let events =
+                    [|
+                        { Seq = 1; Kind = TraceEventKind.NodeNew; Node = 2; Other = 0; Arg = 3; Flag = 0; Cause = 0; Payload = null }
+                        { Seq = 2; Kind = TraceEventKind.RunStart; Node = 2; Other = 5; Arg = 2; Flag = 0; Cause = 0; Payload = null }
+                    |]
+
+                Expect.equal (TraceModel.why events null 2 0).Root (Some (Pulled 5)) "the puller is the root"
+            }
+
+            test "why ends at BeforeCheckpoint for a cause older than the events" {
+                let events =
+                    [|
+                        { Seq = 40; Kind = TraceEventKind.Mark; Node = 2; Other = 1; Arg = 2; Flag = 0; Cause = 12; Payload = null }
+                        { Seq = 41; Kind = TraceEventKind.RunStart; Node = 2; Other = 0; Arg = 4; Flag = 0; Cause = 40; Payload = null }
+                    |]
+
+                Expect.equal
+                    (TraceModel.why events "cp-1.jsonl" 2 0).Root
+                    (Some (BeforeCheckpoint "cp-1.jsonl"))
+                    "the write at seq 12 lies in the checkpoint"
+            }
+
+            test "whyNot reports Disposed" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let m = createMemo (fun () -> 1)
+                m.Value |> ignore
+                m.Dispose ()
+                let disposed = (ofKind TraceEventKind.Dispose g)[0]
+                Expect.equal (Trace.whyNot g m) (Some (Disposed disposed.Seq)) "the dispose is the reason"
+            }
+
+            test "whyNot reports Queued inside a batch" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 0
+                createEffect (fun () -> s.Value |> ignore)
+                let effect = (ofKind TraceEventKind.NodeNew g |> Array.last).Node
+
+                batch (fun () ->
+                    s.Value <- 1
+                    let schedule = ofKind TraceEventKind.Schedule g |> Array.last
+
+                    Expect.equal
+                        (TraceModel.whyNot (Trace.events g) effect)
+                        (Some (Queued schedule.Seq))
+                        "the effect waits for the batch")
+            }
+
+            test "whyNot reports Unobserved" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 0
+                let m = createMemo (fun () -> s.Value)
+                m.Value |> ignore
+                s.Value <- 1
+                let mark = (ofKind TraceEventKind.Mark g)[0]
+                Expect.equal (Trace.whyNot g m) (Some (Unobserved mark.Seq)) "nothing reads the marked memo"
+            }
+
+            test "whyNot reports CheckedClean" {
+                let events =
+                    [|
+                        { Seq = 1; Kind = TraceEventKind.EdgeAdd; Node = 3; Other = 1; Arg = 0; Flag = 0; Cause = 0; Payload = null }
+                        { Seq = 2; Kind = TraceEventKind.ObserverAdd; Node = 3; Other = 9; Arg = 0; Flag = 0; Cause = 0; Payload = null }
+                        { Seq = 3; Kind = TraceEventKind.RunEnd; Node = 3; Other = 0; Arg = 0; Flag = 1; Cause = 0; Payload = null }
+                        { Seq = 4; Kind = TraceEventKind.CheckStart; Node = 3; Other = 0; Arg = 0; Flag = 0; Cause = 0; Payload = null }
+                        { Seq = 5; Kind = TraceEventKind.CheckResolved; Node = 3; Other = 0; Arg = 0; Flag = 0; Cause = 4; Payload = null }
+                    |]
+
+                Expect.equal (TraceModel.whyNot events 3) (Some (CheckedClean (5, [ 1 ]))) "the walk found it clean"
+            }
+
+            test "whyNot reports SkippedAsRunningReader" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let t = createSignal 0
+                let s = createSignal 0
+                let m = createMemo (fun () -> s.Value * 2)
+
+                createEffect (fun () ->
+                    s.Value <- t.Value
+                    m.Value |> ignore)
+
+                let reader = (ofKind TraceEventKind.NodeNew g |> Array.last).Node
+                t.Value <- 1
+                let skip = (ofKind TraceEventKind.MarkSkip g)[0]
+
+                Expect.equal
+                    (TraceModel.whyNot (Trace.events g) reader)
+                    (Some (SkippedAsRunningReader skip.Seq))
+                    "the memo skipped its running reader"
+            }
+
+            test "whyNot reports NotReached at an equal write" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun () -> s.Value)
+                createEffect (fun () -> m.Value |> ignore)
+                s.Value <- 1
+                let write = ofKind TraceEventKind.Write g |> Array.last
+                Expect.equal write.Flag 0 "the write left the value"
+                Expect.equal (Trace.whyNot g m) (Some (NotReached write.Seq)) "propagation stopped at the write"
+            }
 #endif
         ]

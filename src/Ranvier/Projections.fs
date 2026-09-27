@@ -538,6 +538,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private this.Run() =
         sources.BeginRun ()
         runs <- runs + 1
+        Tracer.RunStart (graph, id, runs)
         freshness <- Freshness.Clean
 
         passKeys.Clear ()
@@ -573,6 +574,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 // resolves, whether or not any row moved.
                 if previousStatus <> Status.None then
                     beacon.NotifyFailure this.Running
+
+            Tracer.RunEnd (graph, id, status)
         with
         | NotReadyException _ ->
             // Membership is unknown until the awaited source settles. The
@@ -586,6 +589,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             if not (previousStatus.HasFlag Status.Pending) then
                 beacon.NotifyFailure this.Running
 
+            Tracer.RunEnd (graph, id, status)
             reraise ()
         | ex ->
             // The beacon wakes other readers on the transition into Error,
@@ -603,6 +607,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             then
                 beacon.NotifyFailure this.Running
 
+            Tracer.RunEnd (graph, id, status)
             reraise ()
 
     /// <summary>
@@ -1414,12 +1419,16 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
             pending <- false
             error <- null
             value <- v
+            Tracer.Moved (graph, id)
             observers.NotifyDirty ()
+            Tracer.Notified graph
 
     member _.Fail(ex: exn) =
         pending <- false
         error <- ex
+        Tracer.Moved (graph, id)
         observers.NotifyDirty ()
+        Tracer.Notified graph
 
     /// <summary>
     /// Marks the cell as waiting on its source. Readers are notified on the
@@ -1429,7 +1438,9 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
         if not pending then
             pending <- true
             error <- null
+            Tracer.Moved (graph, id)
             observers.NotifyDirty ()
+            Tracer.Notified graph
 
     member _.ObserverCount = observers.Count
 
@@ -1561,6 +1572,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let mutable failure: exn = null
 
         let mutable suspended = false
+        Tracer.RunStart (graph, (cell :> INode).Id, 0)
 
         try
             v <- this.RunPure (ScopeMessages.lookup, (fun () -> this.Source.Compute key))
@@ -1577,6 +1589,8 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         else
             failed.Add key |> ignore
             cell.Fail failure
+
+        Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
 
     /// <summary>
     /// Recomputes the live cells among <c>affectedKeys</c>, and every failed cell.
