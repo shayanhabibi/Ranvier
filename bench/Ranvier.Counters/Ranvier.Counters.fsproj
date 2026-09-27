@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <!-- Matches the library: a `tail.` call changes what the JIT compiles. -->
+        <Tailcalls>false</Tailcalls>
+        <ServerGarbageCollection>false</ServerGarbageCollection>
+        <!-- Measurements are the product here; the docs would be noise. -->
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- The same global property that compiles the counters into the library
+         lets this tool read them. -->
+    <PropertyGroup Condition="'$(RanvierCounters)' == 'true'">
+        <DefineConstants>$(DefineConstants);RANVIER_COUNTERS</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Model.fs" />
+        <Compile Include="Markers.fs" />
+        <Compile Include="Workloads.fs" />
+        <Compile Include="Scenarios.fs" />
+        <Compile Include="Worker.fs" />
+        <Compile Include="Pmc.fs" />
+        <Compile Include="NodeRuns.fs" />
+        <Compile Include="Report.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FSharp.Data.Adaptive" Version="1.2.27" />
+        <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.21" />
+        <PackageReference Include="R3" Version="1.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
+    </ItemGroup>
+
+</Project>

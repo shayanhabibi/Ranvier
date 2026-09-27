@@ -18,6 +18,10 @@
   <Folder Name="/tests/">
     <Project Path="tests/Ranvier.Tests/Ranvier.Tests.fsproj" />
   </Folder>
+  <Folder Name="/bench/">
+    <Project Path="bench/Ranvier.Benchmarks/Ranvier.Benchmarks.fsproj" />
+    <Project Path="bench/Ranvier.Counters/Ranvier.Counters.fsproj" />
+  </Folder>
   <Folder Name="/docs/">
     <Project Path="docs/docs.fsproj" />
   </Folder>

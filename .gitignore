@@ -17,3 +17,9 @@ riderModule.iml
 node_modules/
 /.screenshots/
 !/docs/feed/*.nupkg
+
+# benchmark tooling
+/docs/.ai/benchmarks/*.log
+/BenchmarkDotNet.Artifacts/
+/fable/**/output/
+/fable/**/fable_modules/

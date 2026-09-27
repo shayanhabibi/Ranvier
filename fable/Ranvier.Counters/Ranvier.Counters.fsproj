@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>FableCounters</RootNamespace>
+        <!-- Measurements are the product here; the docs would be noise. -->
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- The same property that compiles the counters into the library lets this
+         project read them. Fable cracks the project with MSBuild, which reads
+         `RanvierCounters` from the environment as well as from `-p:`. -->
+    <PropertyGroup Condition="'$(RanvierCounters)' == 'true'">
+        <DefineConstants>$(DefineConstants);RANVIER_COUNTERS</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Node.fs" />
+        <Compile Include="..\..\bench\Ranvier.Counters\Workloads.fs" Link="Workloads.fs" />
+        <Compile Include="Scenarios.fs" />
+        <Compile Include="Main.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
+        <PackageReference Include="Fable.Core" Version="5.3.0" />
+        <PackageReference Include="Fable.Ripple" Version="1.0.0-beta.5" />
+    </ItemGroup>
+
+</Project>
