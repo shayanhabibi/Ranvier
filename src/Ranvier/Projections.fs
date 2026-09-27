@@ -488,9 +488,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 if not (isNull entry) then
                     refreshing.Add entry)
 
+            Tracer.Walk (graph, id)
+
             for entry in refreshing do
                 (entry.Row :> ISource).UpdateIfNecessary ()
 
+            Tracer.Walked (graph, id)
             refreshing.Clear ()
 
     /// <summary>Writes <c>anyPending</c> if it moved, leaving <c>running</c> unmarked.</summary>
@@ -673,11 +676,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             (this :> IComputation).MarkDirty ()
 
     member private this.ResolveCheck() =
+        Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
             sources.SourceAt(i).UpdateIfNecessary ()
             i <- i + 1
+
+        Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
         if freshness = Freshness.Check then
             freshness <- Freshness.Clean
@@ -687,11 +693,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// moved marks the projection dirty before the retry.
     /// </summary>
     member private _.ResolveFailedCheck() =
+        Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while not invalidated && i < sources.Count do
             sources.SourceAt(i).UpdateIfNecessary ()
             i <- i + 1
+
+        Tracer.CheckResolved (graph, id, invalidated)
 
     member internal this.EnsureCurrent() =
         if freshness <> Freshness.Clean && not disposed then
@@ -757,12 +766,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                             | :? ProjectionBeacon as source -> upstreamBeacons.Add source
                             | _ -> ()
 
+                    Tracer.Walk (graph, id)
                     let mutable i = 0
 
                     while freshness = Freshness.Clean && i < upstreamBeacons.Count do
                         upstreamBeacons[i].UpdateIfNecessary ()
                         i <- i + 1
 
+                    Tracer.Walked (graph, id)
                     this.EnsureCurrent ()
                 with _ ->
                     ()
@@ -1084,6 +1095,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         graph.Untrack (fun () ->
             let copy = RowSnapshot<'K, 'V> (entries.Count)
+            Tracer.Walk (graph, id)
 
             for key in keys.Peek do
                 let entry = entries.Find key
@@ -1094,6 +1106,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                     if entry.Settled then
                         copy.Add (key, entry.Row.Peek)
 
+            Tracer.Walked (graph, id)
             copy :> IReadOnlyDictionary<'K, 'V>)
 
 #if !FABLE_COMPILER

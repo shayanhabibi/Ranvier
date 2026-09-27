@@ -292,5 +292,22 @@ module TraceModel =
                 && (e.Kind = TraceEventKind.Write || e.Kind = TraceEventKind.RunEnd))
             |> Option.map (fun e -> NotReached e.Seq)
 
-        [ disposed; queued; unobserved; checkedClean; skipped; notReached ]
+        // A clean check with no moving write since a skip is the skip's consequence.
+        let skippedThenClean () =
+            match skipped (), checkedClean () with
+            | Some (SkippedAsRunningReader skip as reason), Some (CheckedClean (resolved, _)) when
+                skip < resolved
+                && not (
+                    events
+                    |> Array.exists (fun e ->
+                        e.Seq > skip
+                        && e.Seq < resolved
+                        && e.Kind = TraceEventKind.Write
+                        && e.Flag = 1)
+                )
+                ->
+                Some reason
+            | _ -> None
+
+        [ disposed; queued; unobserved; skippedThenClean; checkedClean; skipped; notReached ]
         |> List.tryPick (fun reason -> reason ())

@@ -20,6 +20,21 @@ let private ofKind (kind: TraceEventKind) (g: Graph) =
 let private labels (g: Graph) =
     ofKind TraceEventKind.Label g
     |> Array.map (fun e -> e.Node, string e.Payload)
+
+/// The puller named by the last RunStart of node `id`.
+let private pullerOf (g: Graph) (id: int) =
+    let run = ofKind TraceEventKind.RunStart g |> Array.findBack (fun e -> e.Node = id)
+    run.Other
+
+/// The ids of the nodes of `kind`, in creation order.
+let private idsOf (kind: TraceNodeKind) (g: Graph) =
+    ofKind TraceEventKind.NodeNew g
+    |> Array.filter (fun e -> e.Arg = int kind)
+    |> Array.map (fun e -> e.Node)
+
+let private siteOf (g: Graph) (node: INode) = string (Trace.origin g node).Site
+
+let private here (line: string) = System.IO.Path.GetFileName __SOURCE_FILE__ + ":" + line
 #endif
 
 [<Tests>]
@@ -584,6 +599,210 @@ let tests =
                 let write = ofKind TraceEventKind.Write g |> Array.last
                 Expect.equal write.Flag 0 "the write left the value"
                 Expect.equal (Trace.whyNot g m) (Some (NotReached write.Seq)) "propagation stopped at the write"
+            }
+            test "RunStart.Other names the walking reader: memo" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let b = createMemo (fun () -> a.Value + 1)
+                b.Value |> ignore
+                s.Value <- 2
+                b.Value |> ignore
+                Expect.equal (pullerOf g (a :> INode).Id) (b :> INode).Id "the memo resolving Check pulled the source"
+
+                let resolved = ofKind TraceEventKind.CheckResolved g |> Array.last
+                let start = ofKind TraceEventKind.CheckStart g |> Array.last
+                Expect.equal resolved.Node (b :> INode).Id "the walk resolved on the reader"
+                Expect.equal resolved.Cause start.Seq "CheckResolved closes its CheckStart"
+                Expect.equal resolved.Flag 1 "the source moved, so the walk answered dirty"
+                Expect.equal resolved.Other (a :> INode).Id "the dirty answer names the source that moved"
+            }
+
+            test "RunStart.Other names the walking reader: effect" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                createEffect (fun () -> a.Value |> ignore)
+                let effect = idsOf TraceNodeKind.Effect g |> Array.exactlyOne
+                s.Value <- 2
+                Expect.equal (pullerOf g (a :> INode).Id) effect "the effect resolving Check pulled the source"
+            }
+
+            test "RunStart.Other names the walking reader: async memo" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let am = createAsync (fun _ -> Task.FromResult a.Value)
+                am.TryValue |> ignore
+                s.Value <- 2
+                am.TryValue |> ignore
+                Expect.equal (pullerOf g (a :> INode).Id) (am :> INode).Id "the async memo resolving Check pulled the source"
+            }
+
+            test "RunStart.Other names the walking reader: boundary" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let b = createSuspense (fun _ -> 0) (fun () -> a.Value)
+                b.Value |> ignore
+                s.Value <- 2
+                b.Value |> ignore
+                Expect.equal (pullerOf g (a :> INode).Id) (b :> INode).Id "the boundary resolving Check pulled the source"
+            }
+
+            test "RunStart.Other names the walking reader: projection resolve" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let p = createProjection id id (fun () -> [ a.Value ])
+                p.Keys |> ignore
+                s.Value <- 2
+                p.Keys |> ignore
+                Expect.equal (pullerOf g (a :> INode).Id) (p :> INode).Id "the projection resolving Check pulled the source"
+            }
+
+            test "RunStart.Other names the walking reader: projection row refresh" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let p = createProjection id (fun k -> k * a.Value) (fun () -> [ 1; 2 ])
+                p.Snapshot |> ignore
+                let rows = idsOf TraceNodeKind.Memo g |> Array.skip 1
+                s.Value <- 2
+                p.Snapshot |> ignore
+
+                for row in rows do
+                    Expect.equal (pullerOf g row) (p :> INode).Id "the projection refreshing its rows pulled each row"
+            }
+
+            test "RunStart.Other names the walking reader: beacon" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let source = createSignal [ 1; 2; 3; 4 ]
+                let rows = createProjection id id (fun () -> source.Value)
+                let filtered = rows |> Projection.filter (fun n -> n % 2 = 0)
+                let view = filtered |> Projection.map (fun n -> n * 3)
+                createEffect (fun () ->
+                    for k in view.Keys do
+                        view.Get k |> ignore)
+
+                source.Value <- [ 1; 3; 4 ]
+                Expect.equal (pullerOf g (filtered :> INode).Id) (view :> INode).Id "the view's beacon walk pulled the upstream pass"
+            }
+
+            test "RunStart.Other names the walking reader: lookup" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let a = createMemo (fun () -> s.Value * 2)
+                let l = createSelector (fun () -> a.Value)
+                createEffect (fun () -> l.Get 2 |> ignore)
+                // The lookup's source memo and refresh effect, created ahead of the reader.
+                let state = idsOf TraceNodeKind.Memo g |> Array.last
+                let refresh = idsOf TraceNodeKind.Effect g |> Array.head
+                s.Value <- 2
+                Expect.equal (pullerOf g state) refresh "the lookup's refresh walk pulled its source"
+            }
+
+            test "the b820ad6 check-walk case names the reader" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let source = createSignal [ 1; 2; 3; 4 ]
+                let rows = createProjection id id (fun () -> source.Value)
+                let view = rows |> Projection.filter (fun n -> n % 2 = 0) |> Projection.map (fun n -> n * 3)
+                let mutable runs = 0
+
+                createEffect (fun () ->
+                    runs <- runs + 1
+
+                    for k in view.Keys do
+                        view.Get k |> ignore)
+
+                let effect = idsOf TraceNodeKind.Effect g |> Array.exactlyOne
+                let before = (Trace.events g |> Array.last).Seq
+                source.Value <- [ 1; 3; 4 ]
+                Expect.equal runs 2 "the reader runs once for the removing write"
+                Expect.equal (pullerOf g (view :> INode).Id) effect "the view's pass names the effect walking it"
+
+                let pulled =
+                    ofKind TraceEventKind.RunStart g
+                    |> Array.filter (fun e -> e.Seq > before && e.Node <> (rows :> INode).Id && e.Node <> effect)
+
+                Expect.isNonEmpty pulled "the downstream passes ran in the walk"
+                Expect.all pulled (fun e -> e.Other <> 0) "every pass pulled in the walk names its reader"
+            }
+
+            test "an affinity violation inside a walk leaves an empty walker stack after the flush" {
+                let mutable foreign = Unchecked.defaultof<Signal<int>>
+                let thread = System.Threading.Thread (fun () -> foreign <- Signal (new Graph (), 0))
+                thread.Start ()
+                thread.Join ()
+                let armed = ref false
+
+                // A comparer that writes to a graph owned by another thread, once armed.
+                let policy =
+                    { new IEqualityPolicy with
+                        member _.Comparer<'T>() =
+                            { new System.Collections.Generic.IEqualityComparer<'T> with
+                                member _.Equals(x, y) =
+                                    if armed.Value then
+                                        armed.Value <- false
+                                        foreign.Value <- 1
+
+                                    System.Collections.Generic.EqualityComparer<'T>.Default.Equals (x, y)
+
+                                member _.GetHashCode x =
+                                    System.Collections.Generic.EqualityComparer<'T>.Default.GetHashCode x
+                            }
+                    }
+
+                use g = new Graph ({ GraphOptions.Default with Equality = policy })
+                use _ = g.Activate ()
+                let s = createSignal 1
+
+                let a =
+                    createMemo (fun () ->
+                        let v = s.Value * 2
+
+                        if v = 4 then
+                            armed.Value <- true
+
+                        v)
+
+                createEffect (fun () -> a.Value |> ignore)
+                let effect = idsOf TraceNodeKind.Effect g |> Array.exactlyOne
+                Expect.throwsT<System.InvalidOperationException> (fun () -> s.Value <- 2) "the foreign write raises"
+
+                let kinds = Trace.events g |> Array.map (fun e -> e.Kind, e.Node)
+                let abandoned = Array.findIndexBack (fun k -> k = (TraceEventKind.WalkAbandoned, effect)) kinds
+                let flushEnd = Array.findIndexBack (fun (k, _) -> k = TraceEventKind.FlushEnd) kinds
+                Expect.isLessThan abandoned flushEnd "the flush unwound the effect's walker frame"
+
+                s.Value <- 3
+                Expect.equal (pullerOf g (a :> INode).Id) effect "the next walk starts from an empty stack"
+            }
+
+            test "a node reports the test's file:line" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1 in let line = string __LINE__
+                Expect.equal (siteOf g s) (here line) "the site is the creating line"
+            }
+
+            test "a node created through a combinator reports the user's line" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let rows = createProjection id id (fun () -> [ 1 ])
+                let view = rows |> Projection.map (fun n -> n + 1) in let line = string __LINE__
+                let m = createMemo (fun () -> 1) in let memoLine = string __LINE__
+                Expect.equal (siteOf g view) (here line) "the view's site is the user's line"
+                Expect.equal (siteOf g m) (here memoLine) "createMemo reports the user's line"
             }
 #endif
         ]

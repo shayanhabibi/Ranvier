@@ -2282,11 +2282,14 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// memo is clean without having run.
     /// </remarks>
     member private this.ResolveCheck() =
+        Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
             sources.SourceAt(i).UpdateIfNecessary()
             i <- i + 1
+
+        Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
         if freshness = Freshness.Check then
             freshness <- Freshness.Clean
@@ -2650,11 +2653,14 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
                 queued <- false
             else
                 if freshness = Freshness.Check then
+                    Tracer.CheckStart (graph, id)
                     let mutable i = 0
 
                     while freshness = Freshness.Check && i < sources.Count do
                         sources.SourceAt(i).UpdateIfNecessary()
                         i <- i + 1
+
+                    Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
                     if freshness = Freshness.Check then
                         freshness <- Freshness.Clean
@@ -3285,11 +3291,14 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // Resolving `Check` matters more here than anywhere: the work it
             // may avoid is a network round trip, not a multiplication.
             if freshness = Freshness.Check then
+                Tracer.CheckStart (graph, id)
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
                     sources.SourceAt(i).UpdateIfNecessary()
                     i <- i + 1
+
+                Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
                 if freshness = Freshness.Check then
                     freshness <- Freshness.Clean
@@ -3700,11 +3709,14 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
 
         try
             if freshness = Freshness.Check then
+                Tracer.CheckStart (graph, id)
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
                     sources.SourceAt(i).UpdateIfNecessary()
                     i <- i + 1
+
+                Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
                 if freshness = Freshness.Check then
                     freshness <- Freshness.Clean

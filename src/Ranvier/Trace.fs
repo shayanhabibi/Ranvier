@@ -48,6 +48,9 @@ type internal TraceLog(locked: bool) =
     /// Node ids of the walker frames, innermost last.
     let walkers = ResizeArray<int>()
 
+    /// The `CheckStart` seq of each walker frame, parallel to `walkers`.
+    let walkStarts = ResizeArray<int>()
+
     /// `Write` and `Moved` seqs whose notification is in progress, innermost last.
     let causes = ResizeArray<int>()
 
@@ -231,23 +234,48 @@ type internal TraceLog(locked: bool) =
                 label
             | _ -> null)
 
-    /// <summary>Pushes a walker frame for <c>node</c>.</summary>
-    member _.Push(node: int) = sync (fun () -> walkers.Add node)
+    /// <summary>Pushes a walker frame for <c>node</c>, opened by the <c>CheckStart</c> at <c>seq</c>.</summary>
+    member _.Push(node: int, seq: int) =
+        sync (fun () ->
+            walkers.Add node
+            walkStarts.Add seq)
 
     /// <summary>
-    /// Pops the innermost frame for <c>node</c> and records <c>WalkAbandoned</c> for each frame above it. The stack
-    /// stays as it is when <c>node</c> has no frame.
+    /// Pops the innermost frame for <c>node</c>, records <c>WalkAbandoned</c> for each frame above it, and returns the
+    /// frame's <c>CheckStart</c> seq. Returns 0, leaving the stack as it is, when <c>node</c> has no frame.
     /// </summary>
     member _.Pop(node: int) =
         sync (fun () ->
             let i = walkers.LastIndexOf node
 
-            if i >= 0 then
+            if i < 0 then
+                0
+            else
                 for j in walkers.Count - 1 .. -1 .. i + 1 do
                     append TraceEventKind.WalkAbandoned walkers[j] 0 0 0 0 null
                     |> ignore
 
-                walkers.RemoveRange (i, walkers.Count - i))
+                let start = walkStarts[i]
+                walkers.RemoveRange (i, walkers.Count - i)
+                walkStarts.RemoveRange (i, walkStarts.Count - i)
+                start)
+
+    /// <summary>Records <c>WalkAbandoned</c> for every walker frame, innermost first, and empties the stack.</summary>
+    member _.AbandonWalks() =
+        sync (fun () ->
+            for j in walkers.Count - 1 .. -1 .. 0 do
+                append TraceEventKind.WalkAbandoned walkers[j] 0 0 0 0 null
+                |> ignore
+
+            walkers.Clear ()
+            walkStarts.Clear ())
+
+    /// <summary>The number of walker frames.</summary>
+    member _.WalkDepth = sync (fun () -> walkers.Count)
+
+    /// <summary>The <c>Other</c> of the event at <c>seq</c>, or 0 when no event has that seq.</summary>
+    member _.OtherAt(seq: int) =
+        sync (fun () -> if seq >= 1 && seq <= events.Count then events[seq - 1].Other else 0)
 
     /// <summary>The node id of the innermost walker frame, or 0.</summary>
     member _.Walker = sync (fun () -> if walkers.Count = 0 then 0 else walkers[walkers.Count - 1])
@@ -267,9 +295,6 @@ type internal TraceLog(locked: bool) =
                     | true, set -> yield set
                     | _ -> ()
             |])
-
-    /// <summary>Empties the walker stack without recording.</summary>
-    member _.ClearWalkers() = sync (fun () -> walkers.Clear ())
 
     /// <summary>A copy of the recorded events, oldest first.</summary>
     member _.Events = sync (fun () -> events.ToArray ())
@@ -335,7 +360,7 @@ type internal Tracer =
         if ownerId <> 0 then
             log.SetOwner (id, ownerId)
 
-        log.Append (TraceEventKind.NodeNew, id, ownerId, int kind, 0, log.CreatingRun, null)
+        log.Append (TraceEventKind.NodeNew, id, ownerId, int kind, 0, log.CreatingRun, TraceSite.capture ())
         |> ignore
 
         match log.TakeReserved id with
@@ -353,7 +378,7 @@ type internal Tracer =
         if host <> 0 then
             log.SetHost (id, host)
 
-        log.Append (TraceEventKind.OwnerNew, id, parent, host, root, log.CreatingRun, null)
+        log.Append (TraceEventKind.OwnerNew, id, parent, host, root, log.CreatingRun, TraceSite.capture ())
         |> ignore
 
         Tracer.Consume (log, id)
@@ -795,8 +820,56 @@ type internal Tracer =
         for id in left do
             Tracer.Close (log, id, RunStatus.Abandoned)
 
+        log.AbandonWalks ()
+
         log.Append (TraceEventKind.FlushEnd, 0, 0, number, 0, 0, null)
         |> ignore
+#else
+        ()
+#endif
+
+    /// <summary>Records <c>CheckStart</c> for node <c>id</c> and pushes its walker frame.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member CheckStart(graph: obj, id: int) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let seq = log.Append (TraceEventKind.CheckStart, id, 0, 0, 0, 0, null)
+        log.Push (id, seq)
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Pops node <c>id</c>'s walker frame and records <c>CheckResolved</c>, dirty when <c>dirty</c> is true. A dirty
+    /// answer names the source of the node's first dirty mark.
+    /// </summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member CheckResolved(graph: obj, id: int, dirty: bool) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let start = log.Pop id
+        let source = if dirty then log.OtherAt (log.FirstDirty id) else 0
+
+        log.Append (TraceEventKind.CheckResolved, id, source, 0, (if dirty then 1 else 0), start, null)
+        |> ignore
+#else
+        ()
+#endif
+
+    /// <summary>Pushes a walker frame for node <c>id</c>, a reader bringing rows or upstream projections current.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member Walk(graph: obj, id: int) =
+#if RANVIER_TRACE
+        (Tracer.LogOf graph).Push (id, 0)
+#else
+        ()
+#endif
+
+    /// <summary>Pops node <c>id</c>'s walker frame, recording <c>WalkAbandoned</c> for each frame above it.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member Walked(graph: obj, id: int) =
+#if RANVIER_TRACE
+        (Tracer.LogOf graph).Pop id |> ignore
 #else
         ()
 #endif
