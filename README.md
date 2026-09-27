@@ -1,4 +1,9 @@
-<h1 align="center">ranvier</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/wordmark/ranvier-wordmark-dark.svg">
+    <img alt="ranvier" src="brand/wordmark/ranvier-wordmark-light.svg" width="240">
+  </picture>
+</p>
 
 <p align="center">Fine-grained reactive computation for .NET.</p>
 
@@ -9,6 +14,10 @@
   &middot;
   <a href="LICENSE">MIT License</a>
 </p>
+
+> The nodes of Ranvier are the short gaps in the myelin sheath along a nerve fibre, named after the
+> French anatomist Louis-Antoine Ranvier. A signal jumps from node to node and is regenerated at each
+> one, instead of flowing along every point of the fibre.
 
 > **Preview.** Ranvier is pre-release. Its APIs follow [Partas.Signals](https://github.com/shayanhabibi/Partas.Signals) and may change before the first release. No package has been published yet.
 
@@ -32,7 +41,7 @@ Read the full documentation at **https://shayanhabibi.github.io/Ranvier/**.
 
 ## Provenance
 
-Ranvier began as a one-time copy of Partas.Signals at commit `915f139` on 2026-09-27. Code samples use the `Ranvier` namespace; every API identifier is unchanged. See [Provenance](https://shayanhabibi.github.io/Ranvier/about/provenance.html) in the docs.
+Ranvier began as a one-time copy of Partas.Signals at commit `915f139` on 2026-09-27. Code samples use the `Ranvier` namespace; every API identifier is unchanged. See [Provenance](https://shayanhabibi.github.io/Ranvier/about/provenance/) in the docs.
 
 ## Build CLI
 
