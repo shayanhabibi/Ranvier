@@ -22,7 +22,7 @@ The engine Ranvier is derived from (Partas.Signals, at commit `915f139`) already
 - keyed projections, selectors and index projections;
 - `AsyncSource`, and `AsyncMemo` through `createAsync` and `createAsyncWith`, under all three flight policies.
 
-That check has not yet been carried over to the Ranvier repository, no Fable package is published, and the Fable build is not part of Ranvier's release process yet.
+Ranvier's engine compiles under Fable in this repository: the instruction-count bench (`fable/Ranvier.Counters`) runs it under Node.js. The smoke check has not been carried over, no Fable package is published, and the Fable build is not part of Ranvier's release process yet.
 
 ## Known differences from .NET
 

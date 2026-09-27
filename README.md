@@ -41,7 +41,7 @@ Read the full documentation at **https://shayanhabibi.github.io/Ranvier/**.
 
 ## Provenance
 
-Ranvier began as a one-time copy of Partas.Signals at commit `915f139` on 2026-09-27. Code samples use the `Ranvier` namespace; every API identifier is unchanged. See [Provenance](https://shayanhabibi.github.io/Ranvier/about/provenance/) in the docs.
+Ranvier began as a one-time copy of Partas.Signals: the docs at commit `915f139` on 2026-09-27, then the engine, tests and benchmarks on 2026-09-28. The code uses the `Ranvier` namespace; every API identifier is unchanged. See [Provenance](https://shayanhabibi.github.io/Ranvier/about/provenance/) in the docs.
 
 ## Build CLI
 

@@ -96,9 +96,9 @@ titles.Get 2
 ```
 
 Pinned by `editing one row wakes that row and no other`, `reordering the collection wakes Keys and no row`
-([Projections.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/Projections.fs))
+([Projections.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Projections.fs))
 and `an unchanged survivor is skipped`
-([MapSemantics.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/MapSemantics.fs)).
+([MapSemantics.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/MapSemantics.fs)).
 
 ## Identity
 
@@ -323,7 +323,7 @@ selected.Value <- 3
 
 Pinned by `createSelector reports membership and wakes only the two ends` and
 `only the affected keys are recomputed`
-([Lookups.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/Lookups.fs)).
+([Lookups.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Lookups.fs)).
 
 ## Deep updates
 
@@ -451,7 +451,7 @@ policy compares it by reference, so the theme write above wakes the readers of `
 
 Pinned by `a record-path write re-runs only the readers on the path`, `a keyed write wakes only the written
 projection row` and `createOptionMemo: an unrelated root write wakes no dependent and calls no Equals`
-([Lenses.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/Lenses.fs)).
+([Lenses.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Lenses.fs)).
 
 ## Combinator views
 
@@ -502,7 +502,7 @@ membership; a never-settled key is only in PendingKeys`, `an effect reading Keys
 removal`, `NaN sort keys sort after every other key, across updates`, `None sorts before Some, across updates`, `a pass whose sort keys and upstream order are unchanged does not re-sort` and
 `a pending sort key keeps its last settled sort key; a never-settled key is only in PendingKeys`, and the
 `chained pending` tests
-([Combinators.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/Combinators.fs)).
+([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
 
 `Projection.mapWith` is the factory form of `map`: its mapping runs once per key with the key and a tracked read of the
 upstream value, and returns the key's reader. Nodes the mapping creates belong to the key and are disposed with it.
@@ -538,7 +538,7 @@ An inner view is disposed once its group is empty: a reader holding it sees empt
 Pinned by the `Projection.mapWith` and `Projection.groupBy` tests, including `a never-settled key is in UngroupedKeys,
 in upstream order, until it settles and joins its group` and `filter then groupBy lists the keys the filter holds out
 in UngroupedKeys`
-([Combinators.fs](https://github.com/shayanhabibi/Partas.Signals/blob/915f1399cb58cc8fa7827315198174676a01c7dd/tests/Partas.Signals.Tests/Combinators.fs)).
+([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
 
 ## Planned and out of scope
 

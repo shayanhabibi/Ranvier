@@ -19,7 +19,7 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 
 ## Provenance
 
-The benchmark sources and results were copied from Partas.Signals at commit `915f139`. Every result on these pages was recorded on **2026-09-27**; each table also states its own date and the benchmark class it came from. The engine has not yet been re-measured under the Ranvier name.
+The benchmark suite now lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages still come from its source, Partas.Signals at commit `915f139`, and were recorded on **2026-09-27**; each table states its own date and the benchmark class it came from. They will be replaced by a run of the Ranvier suite.
 
 The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 
@@ -50,25 +50,24 @@ The `DEBUG` marker on the `[Host]` line refers to BenchmarkDotNet's host process
 
 ## Reproducing
 
-The benchmark project has not been ported to Ranvier yet. Run these commands from the root of the
-[Partas.Signals](https://github.com/shayanhabibi/Partas.Signals) repository at commit `915f139`, the
-source revision these results describe, in Release configuration. A full run takes minutes.
+Run these commands from the repository root, in Release configuration. A full run takes minutes.
 
 ```shell
 # Everything
-dotnet run --project bench/Partas.Signals.Benchmarks -c Release -- --filter "*"
+dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*"
 
 # One area
-dotnet run --project bench/Partas.Signals.Benchmarks -c Release -- --filter "*Memo*"
+dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*Memo*"
 
 # By category: Signal, Memo, Effect, Lifetime, Projection, Suspension
-dotnet run --project bench/Partas.Signals.Benchmarks -c Release -- --anyCategories Memo
+dotnet run --project bench/Ranvier.Benchmarks -c Release -- --anyCategories Memo
 
 # Smoke run: short job, not for publishing
-dotnet run --project bench/Partas.Signals.Benchmarks -c Release -- --short --filter "*"
+dotnet run --project bench/Ranvier.Benchmarks -c Release -- --short --filter "*"
 ```
 
-The project path above is the one in the source repository at `915f139`; it will change when the benchmark project moves under the Ranvier name. BenchmarkDotNet writes one Markdown and one JSON report per benchmark class and overwrites them on the next run.
+The instruction-count bench runs through `counters.ps1` at the repository root, from an elevated
+shell. BenchmarkDotNet writes one Markdown and one JSON report per benchmark class and overwrites them on the next run.
 
 ## Reading the results
 

@@ -38,34 +38,23 @@ Until the first release, build from source and reference the library project dir
 .NET 10 SDK.
 
 ```bash
-git clone https://github.com/shayanhabibi/Partas.Signals
-cd Partas.Signals
-git checkout 915f139
-dotnet build -c Release
+git clone https://github.com/shayanhabibi/Ranvier
+cd Ranvier
+dotnet build src/Ranvier -c Release
 ```
-
-Commit `915f139` is the source revision these docs describe. Later commits on Partas.Signals are not
-tracked by Ranvier and may change the API. These steps will switch to the Ranvier repository once it
-contains the library source.
 
 Reference the library from your project:
 
 ```xml
-<ProjectReference Include="path/to/Partas.Signals/src/Partas.Signals/Partas.Signals.fsproj" />
+<ProjectReference Include="path/to/Ranvier/src/Ranvier/Ranvier.fsproj" />
 ```
 
 Or pack it into a local feed and reference it as a package:
 
 ```bash
-dotnet pack src/Partas.Signals -c Release -o ./local-feed
+dotnet pack src/Ranvier -c Release -o ./local-feed
 dotnet nuget add source ./local-feed --name local
 ```
-
-:::warning
-A build from the Partas.Signals source uses the `Partas.Signals` namespace. Write
-`open Partas.Signals` where this guide writes `open Ranvier`. Every other identifier in the guide is
-the same.
-:::
 
 ## Next
 
