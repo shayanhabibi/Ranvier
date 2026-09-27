@@ -25,8 +25,9 @@ A development mode in which a person or agent, in tests, samples or a SageFs ses
 ## 2. Hard rules
 
 1. **Release pays nothing.** No existing Release code path gains a branch, allocation or call. Untraced-build residue
-   is exactly: the stub `Tracer` type (§3.2) and the inline `Trace.named` (§5.1). The deterministic preset (§6.3) is
-   library behaviour, not residue.
+   is exactly: the stub `Tracer` type (§3.2), the `Trace` module (compiled name `TraceModule`) with the inline
+   `Trace.named` (§5.1), and the `Trace` class with the `Conditional` `Trace.label` (§5.1). The deterministic preset
+   (§6.3) is library behaviour, not residue.
 2. **The traced build runs Release's paths.** Tracing may cost any time and memory. The traced build reads, schedules,
    runs, caches and disposes exactly as Release, calls user code only where Release does, and holds no reference to a
    node, owner or graph in its log (§4.1).
@@ -43,8 +44,9 @@ A development mode in which a person or agent, in tests, samples or a SageFs ses
 | Hook sites | `Core.fs`, `Projections.fs`, `Combinators.fs` | One-line `Tracer.*` statements (§3.3). | Removed with their arguments |
 | Traced state | same files | `#if RANVIER_TRACE` declaration blocks: fields and `interface ITraced` implementations on `Graph`, `Owner`, `ObserverSet`, `SourceList` (§3.3). | Not compiled |
 | `TraceModel` | `src/Ranvier/TraceModel.fs` | Pure analyser over `TraceEvent[]`: fold to snapshot, cause walks, identity paths, diff, lint, render, JSONL text. Fable-safe: no IO, no `System.Text.Json`. | Not compiled |
-| `Trace` API | `src/Ranvier/TraceApi.fs`, after `Combinators.fs`, public | Queries over a live graph, a dump or a checkpoint (§5). File IO sits behind `#if !FABLE_COMPILER`. | Only the inline `Trace.named` |
+| `Trace` API | `src/Ranvier/TraceApi.fs`, after `Combinators.fs`, public | Queries over a live graph, a dump or a checkpoint (§5). File IO sits behind `#if !FABLE_COMPILER`. | The `Trace` module with the inline `Trace.named`; the `Trace` class with the `Conditional` `Trace.label` |
 | CLI | `tools/trace.fsx` | `dotnet fsi` front end over JSONL; `#load`s `TraceEvents.fs` and `TraceModel.fs`. | Not part of the library |
+| Creation site | `src/Ranvier/TraceSite.fs`, before `Trace.fs` | `TraceSite.capture`: the user's `file:line` from the stack (§4.4). | Not compiled |
 | Gates | `tools/verify-trace.fsx` | Runs the gates of §7. | Not part of the library |
 | Deterministic preset | `Types.fs`, `Api.fs` | §6.3. | Present |
 
@@ -66,14 +68,15 @@ requires `unit`-returning methods; the walker stack is a push hook and a pop hoo
 - A hook is a single `Tracer.X(...)` statement. `Tracer` is never bound, piped, passed as a value or wrapped.
 - No hook site gains `try`, `finally`, `#if` or a rebinding of an engine expression. Hooks that close a run or a walk
   sit where control flow already converges (§4.2); the `Tracer` recovers from exits it does not see.
-- `#if RANVIER_TRACE` blocks in engine files hold declarations only: traced-only fields, `interface ITraced with`
-  implementations, and the `Graph` constructor line that creates its `TraceLog` ahead of the root owner. Every such block
-  is listed in Appendix A and matched by the lint.
+- `#if RANVIER_TRACE` blocks in engine files hold declarations only: traced-only fields and `interface ITraced with`
+  implementations. Every such block is listed in Appendix A and matched by the lint. The graph's log is created by the
+  `Tracer.GraphNew(root, guarded)` hook in the `Graph` constructor and stored on the root owner.
 - `ITraced` exposes `TraceLog` (get/set) and `TraceId` (get/set). `Graph`, `Owner`, `ObserverSet` and `SourceList`
   implement it. A node's `ObserverSet` and `SourceList` are bound to the graph's log and the node's id by a
   `Tracer.Bind(set, graph, id)` hook in the node constructor.
-- An owner with a sink inherits the sink's log at construction and emits `OwnerNew` then. A sinkless owner (`new Owner()`,
-  `RootScope`) adopts the log in `Owner.Append`/`SetParent` and emits `OwnerNew` at adoption.
+- A computation's run scope receives the log from `Tracer.ScopeNew(scope, graph, host)` when the scope is created, and
+  emits `OwnerNew` then. Any other owner (`new Owner()`, `RootScope`, a key scope) adopts its parent's log through
+  `Tracer.OwnerAdopt` in `Owner.SetParent`, `Owner.Attach` or the scope's constructor, and emits `OwnerNew` at adoption.
 - A catch binding introduced only for a hook is named `_ex`.
 
 ### 3.4 Build switch
@@ -151,7 +154,7 @@ Sites are an attribute of `NodeNew`/`OwnerNew` (§4.4), not an event.
 | `CheckResolved` | node | source that answered dirty, or 0 | 0 | 1 dirty, 0 clean | `CheckStart` seq | null |
 | `EdgeAdd` / `EdgeRemove` | computation | source | slot | 0 | 0 | null |
 | `ObserverAdd` / `ObserverRemove` | source | observer | 0 | 0 | 0 | null |
-| `RunStart` | node | puller (walker top, else `CurrentComputation`, else 0) | run number (1-based) | 0 | first dirty `Mark` since the previous `RunStart`, or 0 | null |
+| `RunStart` | node | puller (walker top, else the innermost open run in the log, else 0) | run number (1-based) | 0 | first dirty `Mark` since the previous `RunStart`, or 0 | null |
 | `Moved` | node | 0 | run number | 0 | `RunStart` seq | null |
 | `RunEnd` | node | 0 | `RunStatus` (`Ok`, `Pending`, `Error`, `Abandoned`) | 1 when a `Moved` was recorded in this run | `RunStart` seq | null |
 | `WalkAbandoned` | node whose frame was unwound | 0 | 0 | 0 | 0 | null |
@@ -173,9 +176,10 @@ subscriptions (`Projections.fs:377`). `Moved` is a hook in the existing cutoff b
   and pops it after. Sites at `915f139`: `Memo.ResolveCheck` (`Core.fs:1706`), `Effect.Execute` (2031),
   `AsyncMemo.EnsureCurrent` (2430), `Boundary.EnsureCurrent` (2803), Projection row refresh (`Projections.fs:411`, 967),
   `Projection.ResolveCheck` (583, 597), beacon `Refresh` (656, after its `try/with`), Lookup `Refresh` (1576).
-- Recovery: `Pop(node)` unwinds the stack down to `node`, recording `WalkAbandoned` for each frame above it. A
-  `RunStart` for a node with an open run, and `FlushEnd`, close unmatched runs with `RunEnd` status `Abandoned`;
-  `FlushEnd` empties the walker stack.
+- Recovery: `Pop(node)` unwinds the stack down to `node`, recording `WalkAbandoned` for each frame above it. Runs left
+  open close with `RunEnd` status `Abandoned` at: a `RunStart` of the same node (its open run and every run above it), a
+  `RunEnd` of an enclosing run (every run above it), `FlushEnd` (every open run), and a dump or checkpoint taken outside
+  every run, flush and discharge. `FlushEnd` empties the walker stack.
 
 ### 4.3 Identity path
 
@@ -201,7 +205,9 @@ subscriptions (`Projections.fs:377`). `Moved` is a hook in the existing cutoff b
 - A combinator records its site at construction; its rows and internal nodes inherit it.
 - A site under JIT inlining can name the caller; `Trace.named` is the stable alternative. .NET traced gates run with
   `DOTNET_TieredCompilation=0`.
-- In FSI (SageFs), the site is the script `file:line`, or `stdin:line`. An FSI assembly name never appears in a path.
+- `TraceSite.capture` implements the rules above. In FSI (SageFs) the innermost frame of an `FSI-ASSEMBLY` assembly is
+  the site: the script `file:line`, or `stdin:line` for a prompt submission. A submission without line info reports
+  `stdin:0`. An FSI assembly name never appears in a path.
 - Fable: the traced build sets `Error.stackTraceLimit = Infinity` once. The site is the innermost `new Error().stack`
   frame whose script path lies outside the Ranvier output directory, recorded as JS `file:line:column`.
   `TraceModel` and `trace.fsx` map it to `.fs:line` through Fable `--sourceMaps` output when the map is available and keep
@@ -226,9 +232,10 @@ graph (`why`, `whyNot`, `origin`, `snapshot`) run at any time on the graph threa
 
 ## 5. Query API
 
-`Trace` is a static class. Node-taking members overload on `INode` and `string` (a path); a live node resolves its graph
-through its internal graph reference. Effects are addressed by path, usually a label path. All queries return F# records
-or DUs; `Trace.render` turns any of them into text.
+`Trace` is a module of functions over a live graph, and each node-taking function takes the graph first
+(`Trace.why graph node`). `Trace.resolve graph path` maps an identity path to a node id; path-taking overloads of the
+queries are deferred to phase 4. All queries return F# records or DUs; `Trace.render graph value` turns any of them into
+text.
 
 ### 5.1 `Trace.named`
 
@@ -254,11 +261,11 @@ let inline named (_: string) ([<InlineIfLambda>] f: unit -> 'T) : 'T = f ()
 | Member | Returns |
 | --- | --- |
 | `Trace.events graph` | Copy of the in-memory events. |
-| `Trace.why node` / `whyAt node run` / `whyDepth depth node` | Cause chain of the last (or given) run. Walk: `RunStart` → its `Cause` `Mark` → that `Mark`'s `Cause` (`Write`, `Moved`, `Publish`); `Moved`/`RunEnd` → its `RunStart`; a `Write` with `Other ≠ 0` → the writer's `RunStart`. Ends at a `WhyRoot`: `UserWrite` (`Write`, `Other = 0`), `Created` (run 1, `Cause = 0`, rooted at `NodeNew`), `Pulled reader` (`Cause = 0`, `Other ≠ 0`), `Settle` (phase 2), `BeforeCheckpoint file`. Each step: seq, kind, path, site; value from phase 2. `render` folds repeated marks ("× 12 memos marked via Cart.fs:30"). |
-| `Trace.whyNot node` | For the window since the node's last `RunEnd` (or `NodeNew`), the first matching `WhyNotReason`: `Disposed seq`; `Queued` (`Schedule` with no later `RunStart`: batch open or flush not reached); `Unobserved` (marked, no observer edge, no pull since); `CheckedClean (resolvedAt, upstream)`; `SkippedAsRunningReader seq`; `NotReached stopAt` (nearest upstream `Write` with `Flag = 0` or `RunEnd` with `Flag = 0`); `Suspended` (phase 2). Values are added in phase 2. |
-| `Trace.origin node` | Path, site, label, owner chain, creating run. |
-| `Trace.history node` | Every run with value, status, moved and cause (phase 2). |
-| `Trace.waitingOn node` | Suspension target, in-flight flight, superseded and dropped flights (phase 2). |
+| `Trace.why graph node` / `whyAt graph node run` / `whyDepth graph depth node` | Cause chain of the last (or given) run. Walk: `RunStart` → its `Cause` `Mark` → that `Mark`'s `Cause` (`Write`, `Moved`, `Publish`); `Moved`/`RunEnd` → its `RunStart`; a `Write` with `Other ≠ 0` → the writer's `RunStart`. Ends at a `WhyRoot`: `UserWrite` (`Write`, `Other = 0`), `Created` (run 1, `Cause = 0`, rooted at `NodeNew`), `Pulled reader` (`Cause = 0`, `Other ≠ 0`), `Unrecorded seq` (a cause missing from the log), `Settle` (phase 2), `BeforeCheckpoint file`. Each step: seq, kind, path, site; value from phase 2. `render` folds repeated marks ("× 12 memos marked via Cart.fs:30"). |
+| `Trace.whyNot graph node` | For the window since the node's last `RunEnd` (or `NodeNew`), the first matching `WhyNotReason`: `Disposed seq`; `Queued` (the last `Schedule` has no later `RunStart` of the node, clean `CheckResolved` of the node or `FlushEnd`: batch open or flush not reached); `Unobserved` (marked, no observer edge, and no `RunStart`, `Schedule`, `CheckStart` or `CheckResolved` of the node in the window); `CheckedClean (resolvedAt, upstream)`; `SkippedAsRunningReader seq`; `NotReached stopAt` (nearest upstream `Write` with `Flag = 0` or `RunEnd` with `Flag = 0`); `Suspended` (phase 2). Values are added in phase 2. |
+| `Trace.origin graph node` | Path, site, label, owner chain (innermost first), creating run. |
+| `Trace.history graph node` | Every run with value, status, moved and cause (phase 2). |
+| `Trace.waitingOn graph node` | Suspension target, in-flight flight, superseded and dropped flights (phase 2). |
 | `Trace.snapshot graph` / `snapshotAt graph seq` | Nodes, edges, owners, paths, statuses; latest values from phase 2. |
 | `Trace.dump graph path` / `Trace.dumpText graph` | JSONL file (.NET) / JSONL string (both targets). |
 | `Trace.checkpoint graph path` | §4.6; returns the file. |
@@ -287,9 +294,9 @@ Rules: a run after the first with `RunStart.Cause = 0` and `Other = 0`; a node m
 `tools/trace.fsx` commands: `why | whynot | origin | history | waiting | tree [--up|--down] | snapshot [--at seq] |
 lint | diff a b`, printing `render` text, or JSON with `--json`.
 
-REPL flow (SageFs): evaluate, `Trace.checkpoint g "step-3"`, `Trace.why "/total" |> Trace.render`, edit, re-evaluate,
-`Trace.diff "step-3.jsonl" "step-4.jsonl"`. The session loads the traced Debug build; memory grows until
-`Trace.checkpoint`. Script code uses the `Trace` API directly; FSI does not define `RANVIER_TRACE`.
+REPL flow (SageFs): evaluate, `Trace.checkpoint g "step-3"`, `Trace.resolve g "/total"` and `Trace.render g (Trace.why g
+total)`, edit, re-evaluate, `Trace.diff "step-3.jsonl" "step-4.jsonl"`. The session loads the traced Debug build; memory
+grows until `Trace.checkpoint`. Script code uses the `Trace` API directly; FSI does not define `RANVIER_TRACE`.
 
 ## 6. Memory and async determinism
 
@@ -322,9 +329,9 @@ Run tiers: per commit, the lint plus the .NET suite traced and untraced; per pha
 
 | Gate | Check |
 | --- | --- |
-| 1. Zero Release cost | **Primary, deterministic.** Scan the untraced Release `Ranvier.dll` IL (System.Reflection.Metadata): fail on any `call`, `callvirt`, `ldftn` or `newobj` targeting a `Tracer` member, and on any `TraceEvent`/`TraceLog`/`TraceModel` type. Scan Fable Release JS: fail if any module other than `Trace.js` imports `Trace.js`. Positive control: the same scans over the `RanvierTrace=true` build must report hooks, otherwise the gate fails. A sample using `Trace.named "x" (fun () -> createMemo ...)` has Release IL and Fable JS equal to the same sample without `named`. The packed `.nupkg` DLL has no `AssemblyMetadata("RanvierTrace", ...)`, and its public surface equals the committed baseline plus `Trace.named` and the §6.3 preset. **Secondary.** Build the merge-base and HEAD untraced and run `counters.ps1` on both in one elevated session: exact equality on bytes/op, objects/op and every library counter; `InstructionRetired` median delta within max(0.5%, the scenario's calibration spread); both report headers show `RanvierTrace=false`. |
+| 1. Zero Release cost | **Primary, deterministic.** Scan the untraced Release `Ranvier.dll` IL (System.Reflection.Metadata): fail on any `call`, `callvirt`, `ldftn` or `newobj` targeting a `Tracer` member, and on any `TraceEvent`/`TraceLog`/`TraceModel` type. Scan Fable Release JS: fail if any module other than `Trace.js` imports `Trace.js`. Positive control: the same scans over the `RanvierTrace=true` build must report hooks, otherwise the gate fails. A sample using `Trace.named "x" (fun () -> createMemo ...)` has Release IL and Fable JS equal to the same sample without `named`. The packed `.nupkg` DLL has no `AssemblyMetadata("RanvierTrace", ...)`, and its public surface equals the committed baseline plus `Trace.named`, `Trace.label` and the §6.3 preset. A sample using `Trace.label` (`samples/label-zero-cost.fsx`) has Release IL and Fable JS equal to the same sample without the call. The untraced Release IL equals the merge-base Release IL method by method (closure line numbers ignored). **Secondary.** Build the merge-base and HEAD untraced and run `counters.ps1` on both in one elevated session: exact equality on bytes/op, objects/op and every library counter; `InstructionRetired` median delta within max(0.5%, the scenario's calibration spread); both report headers show `RanvierTrace=false`. |
 | 2. Same behaviour | The .NET Expecto suite passes under Release (`-p:RanvierTrace=false`) and under Release with `-p:RanvierTrace=true`. `fable/Ranvier.Fable` (`Smoke.fs`) passes under Fable untraced and traced. Allocation assertions are the permitted difference: an `untracedOnly` helper marks them skipped with reason "traced build", and the gate fails if the untraced run skips any test. Retention and weak-reference tests (`Retention.fs`, `DischargeReentry.fs:314`) run in both builds. `samples/trace-sample.fsx` runs 5 times per target with byte-identical canonical dumps. The Fable canonical dump equals the .NET one after site mapping, with payload text reduced to canonical form for `int`, `string`, `bool`, `float` (round-trip) and to the type name otherwise. |
-| 3. Complete trace | In a build with `RanvierCounters=true` and `RanvierTrace=true`, run each scenario of `bench/Ranvier.Counters/Scenarios.fs` (and `fable/Ranvier.Counters/Scenarios.fs`) sequentially, one graph per scenario: `Counters.Reset()`, run, then compare `Counters.Snapshot()` with the graph's log. `RunStart` where `NodeNew.Arg = Memo` = `MemoRecomputes`; `RunStart` for `Effect` = `EffectRuns`; `EdgeAdd` = `EdgesAdded`; `EdgeRemove` = `EdgesRemoved`; `ObserverAdd`/`ObserverRemove` = observer inserts/removes; `FlushStart` = `Flushes`; `NodeNew` per kind = `SignalsCreated`/`MemosCreated`/`EffectsCreated`; `OwnerNew` = `OwnersCreated`. Edge reconciliation: a traced-only internal accessor reached through `TraceApi` walks every live `SourceList` and `ObserverSet` and compares them with the edges and observers folded from the log. |
+| 3. Complete trace | In a build with `RanvierCounters=true` and `RanvierTrace=true`, run each scenario of `bench/Ranvier.Counters/Scenarios.fs` (and `fable/Ranvier.Counters/Scenarios.fs`) sequentially, one graph per scenario: `Counters.Reset()`, run, then compare `Counters.Snapshot()` with the graph's log. `RunStart` where `NodeNew.Arg = Memo` = `MemoRecomputes`; `RunStart` for `Effect` = `EffectRuns`; `EdgeAdd` = `EdgesAdded`; `EdgeRemove` = `EdgesRemoved`; `ObserverAdd`/`ObserverRemove` = observer inserts/removes; `FlushStart` = `Flushes`; `NodeNew` per kind = `SignalsCreated`/`MemosCreated`/`EffectsCreated`; `GraphNew` + `OwnerNew` = `OwnersCreated`. Edge reconciliation: a traced-only internal accessor reached through `TraceApi` walks every live `SourceList` and `ObserverSet` and compares them with the edges and observers folded from the log. |
 | Lint | Hooks are single `Tracer.X(...)` statements; `Tracer` is never bound, piped or passed. No `.Value`, `TryValue`, `EnsureCurrent`, `UpdateIfNecessary`, `Track`, `NextId`, `ToString`, `Equals`, `%A`, `sprintf`, `StackTrace`, `Error`, owner or node construction in hook arguments or `Trace.fs` bodies. Every `#if RANVIER_TRACE` block in `Core.fs`, `Projections.fs` and `Combinators.fs` matches Appendix A and holds declarations only. No `Dictionary`/`HashSet` keyed by node or owner objects in `Trace.fs`. Formatting appears only in `TraceModel`, `TraceApi` dump functions and `Trace.render`. |
 
 Performance and allocation measurements are never taken in a SageFs session or a Debug build.
@@ -387,14 +394,14 @@ Conventions for every step:
 
 | Step | Work | Files | Tests | Loop |
 | --- | --- | --- | --- | --- |
-| 1.1 | Every phase-1 kind, `TraceNodeKind`, `RunStatus`. `TraceLog` gains the owner counter, walker stack, per-node open run and first pending dirty mark, the label-stack link, and a lock for `Unchecked` graphs; `Pop` recovery (§4.2.2). | `TraceEvents.fs`, `Trace.fs` | `Tracing.fs`: "an Unchecked graph written from two threads records every write" (count only). | SageFs |
+| 1.1 | Every phase-1 kind, `TraceNodeKind`, `RunStatus`. `TraceLog` gains the owner counter, walker stack, per-node open run and first pending dirty mark, and a lock for `Unchecked` graphs; `Pop` recovery (§4.2.2). | `TraceEvents.fs`, `Trace.fs` | `Tracing.fs`: "an Unchecked graph creating nodes from two threads records every NodeNew" (count only). | SageFs |
 | 1.2 | Owners: traced `TraceLog`/`TraceId` on `Owner` (Appendix A row 2); inherited at construction, adopted in `Append`/`SetParent`; `OwnerNew`, `OwnerDispose`, `DischargeStart`/`DischargeEnd`. | `Core.fs` | "createRoot records OwnerNew with Flag 1 under the graph root"; "new Owner() records OwnerNew when appended"; "a run scope's OwnerNew names its host node"; `Retention.fs` and `DischargeReentry.fs:314` pass traced. | SageFs |
 | 1.3 | Nodes: `NodeNew`/`Dispose` for every node kind beside the existing create counters; `Tracer.Bind` for `ObserverSet`/`SourceList` (Appendix A rows 3 and 4); label assignment from `Trace.named`. | `Core.fs`, `Projections.fs` | "each node kind records NodeNew with its TraceNodeKind"; "named labels the first node only"; "nested named labels each first node"; "a node created in a run records that RunStart as Cause"; "a thunk creating no node records an unused Label". | SageFs |
 | 1.4 | Edges and observers: `EdgeAdd`/`EdgeRemove` beside `Counters.EdgeAdded`/`EdgeRemoved`; `ObserverAdd`/`ObserverRemove` beside `Counters.ObserverInserted`/`ObserverRemoved`; the traced-only reconciliation accessor. | `Core.fs`, `Trace.fs`, `TraceApi.fs` | "folded edges equal live sources after a diamond, a dynamic dependency switch and a dispose"; "a RowWatch subscription records ObserverAdd". | SageFs |
 | 1.5 | Propagation and scheduling: `Write`, `Mark`, `MarkSkip`, `Schedule`, `BatchEnter`/`BatchExit`, `FlushStart`/`FlushEnd`. | `Core.fs` | "a write marks each reader with the Write as Cause"; "a reader writing its own source records MarkSkip"; "a write inside batch schedules with no RunStart until BatchExit"; "a write inside a memo records the memo as Other". | SageFs |
 | 1.6 | Runs: `RunStart`/`Moved`/`RunEnd` for Memo, Effect, AsyncMemo, Boundary, Projection and Lookup at the converge points; `Abandoned` closing. | `Core.fs`, `Projections.fs` | "a cutoff run ends with Flag 0"; "a throwing body ends Error"; "a pending body ends Pending"; "RunStart Cause is the first dirty mark"; "a re-run after a discharge write is two RunStarts in one flush". | SageFs |
 | 1.7 | Check walks: push/pop at every walker site (§4.2.2), `CheckStart`/`CheckResolved`; Appendix A line numbers. | `Core.fs`, `Projections.fs`, this spec's Appendix A | One test per site kind (memo, effect, async memo, boundary, projection resolve, projection row refresh, beacon, lookup): "RunStart.Other names the walking reader". Also "the b820ad6 check-walk case names the reader" and "an affinity violation inside a walk leaves an empty walker stack after the flush". | SageFs |
-| 1.8 | .NET sites (§4.4), captured in `Tracer` bodies. | `Trace.fs` | "a node reports the test's file:line"; "a node created through an inline combinator reports the user's line". Manual SageFs check: a node created at the prompt reports `stdin:line` or the script line, and no FSI assembly name. | SageFs (the manual check can only run there) |
+| 1.8 | .NET sites (§4.4), captured by `TraceSite.capture` from `Tracer` bodies. | `TraceSite.fs`, `Trace.fs` | "a node reports the test's file:line"; "a node created through an inline combinator reports the user's line". Manual SageFs check: a node created at the prompt reports `stdin:line` or the script line, and no FSI assembly name. | SageFs (the manual check can only run there) |
 | 1.9 | `TraceModel` fold and identity paths (§4.3). | `TraceModel.fs` | `TraceModelTests.fs`, one per rule: an ownerless node under the root; `root#n`; a run-scope host adds one segment; `#n` resets on owner re-run; `@k` incarnations and bare-path resolution; escaping of `/ # [ ] @ \`. | SageFs |
 | 1.10 | Queries: `why`/`whyAt`/`whyDepth`, `whyNot`, `origin`, `snapshot`/`snapshotAt`, `render` with mark folding. | `TraceModel.fs`, `TraceApi.fs` | One test per `WhyRoot` (`UserWrite`, `Created`, `Pulled`, and `BeforeCheckpoint` from an event array with a snapshot line) and per phase-1 `WhyNotReason`; "render folds 12 marks into one line". | SageFs |
 | 1.11 | `dump`/`dumpText`; JSONL schema 1 with header, snapshot line and canonical sort; §4.6 gating. | `TraceModel.fs`, `TraceApi.fs` | "dumpText twice gives the same text"; "dumpText inside an effect run raises"; "dump off the graph thread raises"; "dumpText inside batch succeeds"; "a dump parses back to the same snapshot". | SageFs |
@@ -423,6 +430,12 @@ Conventions for every step:
 | 6 | Gates on both builds | The Fable leg of Gate 2 is `Smoke.fs`, not the Expecto suite, which does not compile under Fable; porting it is a Later row. | Port the suite before phase 1b. |
 | 7 | Identity paths | Row key text in paths is canonical for primitive keys and the type name otherwise (§4.3); equal-text keys of other types fall to `#n` ordinals. | Formatted key text at dump time, which differs across targets. |
 
+### 11.1 Open items
+
+- `Lookup.Recompute` runs a cell that received no `Mark` (the `Lookup` receives it), so the cell's `RunStart.Cause` is 0
+  and a `why` walk through a `Lookup` cell ends at the cell, short of the upstream write. Planned for phase 3 with the
+  other projection hooks.
+
 ## Appendix A. `#if RANVIER_TRACE` blocks in engine files
 
 Declaration blocks only; the lint matches this list. Line numbers are the `#if RANVIER_TRACE` lines at commit time.
@@ -431,5 +444,5 @@ Declaration blocks only; the lint matches this list. Line numbers are the `#if R
 | --- | --- | --- | --- |
 | `Core.fs` | `Graph` | `interface ITraced`, reading and writing the root owner's `TraceLog`. | 1049 |
 | `Core.fs` | `Owner` | `TraceLog` and `TraceId` fields; `interface ITraced`. | 547, 753 |
-| `Core.fs` | `ObserverSet` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 126, 298 |
-| `Core.fs` | `SourceList` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 368, 465 |
+| `Core.fs` | `ObserverSet` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 126, 296 |
+| `Core.fs` | `SourceList` | `TraceLog` and owner-id fields; `interface ITraced` and `ITracedEdges`. | 366, 465 |
