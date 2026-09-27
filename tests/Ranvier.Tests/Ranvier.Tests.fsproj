@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Support.fs" />
         <Compile Include="Readings.fs" />
         <Compile Include="Tests.fs" />
         <Compile Include="Effects.fs" />
@@ -23,6 +24,7 @@
         <Compile Include="Invalidation.fs" />
         <Compile Include="Lifetime.fs" />
         <Compile Include="Retention.fs" />
+        <Compile Include="Tracing.fs" />
         <Compile Include="Observers.fs" />
         <Compile Include="Api.fs" />
         <Compile Include="FanOut.fs" />
