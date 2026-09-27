@@ -1,4 +1,4 @@
-// Gate 1 (zero Release cost) and the source lint of the graph provenance spec,
+// Gate 1 (zero Release cost), the Gate 2 sample dumps and the source lint of the graph provenance spec,
 // docs/.ai/superpowers/specs/2026-09-27-graph-provenance-design.md section 7.
 //
 //   dotnet fsi tools/verify-trace.fsx              every check
@@ -840,6 +840,36 @@ let fableGate () =
     | [] -> fail "gate 1: positive control, traced Fable JS imports Trace.fs.js" [ "no traced module imports Trace.fs.js" ]
     | modules -> pass "gate 1: positive control, traced Fable JS imports Trace.fs.js" $" (%s{String.Join (',', modules)})"
 
+/// <summary>
+/// Runs <c>samples/trace-sample.fsx</c> 5 times in <c>jsonl</c> mode against the traced Release build, and passes when
+/// every dump is byte-identical to the first.
+/// </summary>
+let sampleGate () =
+    let name = "gate 2: trace-sample.fsx dumps are byte-identical over 5 runs"
+    let traced = buildLibrary true
+    let dir = Path.Combine (work, "sample")
+    Directory.CreateDirectory dir |> ignore
+    let copy = Path.Combine (dir, "trace-sample.fsx")
+    let source = File.ReadAllText (Path.Combine (root, "samples", "trace-sample.fsx"))
+    let reference = "#r \"../src/Ranvier/bin/Release/net10.0/Ranvier.dll\""
+
+    if not (source.Contains reference) then
+        failwith $"samples/trace-sample.fsx no longer holds the line %s{reference}"
+
+    File.WriteAllText (copy, source.Replace (reference, $"#r @\"%s{traced}\""))
+    let dumps = [ for _ in 1..5 -> runChecked dir [] "dotnet" [ "fsi"; copy; "jsonl" ] ]
+
+    check
+        name
+        [
+            for i, d in List.indexed dumps do
+                if d <> dumps.Head then
+                    yield $"run %d{i + 1} differs from run 1"
+            if not (dumps.Head.StartsWith "{\"schema\":1") then
+                yield "the dump does not start with a schema 1 header"
+        ]
+        $" (%d{dumps.Head.Split('\n').Length - 1} lines)"
+
 let countersGate () =
     if not (isElevated ()) then
         fail "gate 1: counters, merge-base vs HEAD" [ "processor counters need an elevated shell; run again as administrator or pass --no-counters" ]
@@ -905,6 +935,7 @@ if not lintOnly then
     step "gate 1: IL scan" ilGate
     step "gate 1: pack" packGate
     step "gate 1: Trace.named sample" namedGate
+    step "gate 2: trace-sample.fsx" sampleGate
 
     if runFable then
         step "gate 1: Fable scan" fableGate
