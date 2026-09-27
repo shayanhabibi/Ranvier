@@ -53,6 +53,37 @@ type internal MapView<'K, 'V, 'U when 'K: equality>
         heldOut.Publish upstream
 
 /// <summary>
+/// The keys of <c>upstream</c> from position <c>offset ()</c>, at most <c>count ()</c> of them, in upstream order, each with
+/// a row reading the upstream value.
+/// </summary>
+/// <remarks>
+/// A null <c>offset</c> starts at position 0, and a null <c>count</c> runs to the last key. A negative offset is 0. An
+/// offset past the last key or a negative count gives an empty window, and a count past the last key ends it at the last key.
+/// </remarks>
+type internal SliceView<'K, 'V when 'K: equality>
+    (graph: Graph, upstream: Projection<'K, 'V>, offset: unit -> int, count: unit -> int) =
+    inherit RowsOf<'K, 'K, 'V>(graph, (fun key -> upstream.Get key), Unchecked.defaultof<_>)
+
+    let heldOut = HeldOut<'K> graph
+
+    /// <summary>The keys <c>upstream</c> held out of its <c>Keys</c> at the last pass. A tracked read.</summary>
+    member _.HeldOut = heldOut.Keys
+
+    override this.Enumerate() =
+        heldOut.Begin ()
+        let offset = if isNull (box offset) then 0 else max 0 (offset ())
+        let count = if isNull (box count) then System.Int32.MaxValue else count ()
+        let keys = upstream.Keys
+        let start = min offset keys.Length
+        let stop = if count <= 0 then start elif count >= keys.Length - start then keys.Length else start + count
+
+        for i in start .. stop - 1 do
+            let key = keys[i]
+            this.Visit (key, key)
+
+        heldOut.Publish upstream
+
+/// <summary>
 /// The keys of <c>inclusion</c> whose predicate row holds <c>true</c>, each with the value of <c>read</c> at the key.
 /// </summary>
 /// <remarks>
@@ -362,7 +393,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
 
 /// <summary>Views over a <c>Projection</c> that re-run the user function only for keys whose upstream row changed.</summary>
 /// <remarks>
-/// A view is a <c>Projection</c> owned by the scope that creates it. A membership or order change costs O(N) per view.
+/// A view is a <c>Projection</c> owned by the scope that creates it. A membership or order change costs O(N) per view, and O(window) for <c>take</c>, <c>skip</c> and <c>sub</c>.
 /// A pending key a view holds out of <c>Keys</c> is in the <c>PendingKeys</c> of every view built on that view. A key excluded on failure
 /// is absent from those views, and only <c>Get</c> and <c>TryGet</c> of the excluding view raise its error.
 /// </remarks>
@@ -555,6 +586,69 @@ module Projection =
 
         view.PendingExtra <- fun () -> view.HeldOut
         view :> Projection<'K, 'V>
+
+    let private slice (offset: unit -> int) (count: unit -> int) (upstream: Projection<'K, 'V>) : Projection<'K, 'V> =
+        let view = new SliceView<'K, 'V> (upstream.Graph, upstream, offset, count)
+
+        if not (isNull (box upstream.PendingExtra)) then
+            view.PendingExtra <- fun () -> view.HeldOut
+
+        view :> Projection<'K, 'V>
+
+    /// <summary>The first <c>count ()</c> keys of <c>upstream</c>, in upstream order, with their values.</summary>
+    /// <remarks>
+    /// <c>count</c> is a tracked read: the window follows a signal it reads, as well as membership and order changes
+    /// upstream. A count past the last key selects every key, and a negative count gives an empty window,
+    /// as <c>List.truncate</c> does. A key that stays in the window keeps its row. A pass costs O(window), and a throwing
+    /// <c>count</c> fails the pass. <c>PendingKeys</c> includes the pending keys <c>upstream</c> holds outside its
+    /// <c>Keys</c>.
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let pageSize = createSignal 20
+    /// let rows = createProjection (fun t -> t.Id) id (fun () -> todos.Value)
+    /// let firstPage = rows |> Projection.sortBy (fun t -> t.Due) |> Projection.take (fun () -> pageSize.Value)
+    /// </code>
+    /// </example>
+    let take (count: unit -> int) (upstream: Projection<'K, 'V>) : Projection<'K, 'V> =
+        slice Unchecked.defaultof<_> count upstream
+
+    /// <summary>The keys of <c>upstream</c> after the first <c>count ()</c>, in upstream order, with their values.</summary>
+    /// <remarks>
+    /// <c>count</c> is a tracked read, as in <c>take</c>. A count past the last key gives an empty window, and a
+    /// negative count selects every key. A key that stays in the window keeps its row. A pass costs O(window), and a throwing
+    /// <c>count</c> fails the pass. <c>PendingKeys</c> includes the pending keys <c>upstream</c> holds outside its
+    /// <c>Keys</c>.
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let rows = createProjection (fun t -> t.Id) id (fun () -> todos.Value)
+    /// let rest = rows |> Projection.skip (fun () -> 1)
+    /// </code>
+    /// </example>
+    let skip (count: unit -> int) (upstream: Projection<'K, 'V>) : Projection<'K, 'V> =
+        slice count Unchecked.defaultof<_> upstream
+
+    /// <summary>
+    /// The keys of <c>upstream</c> from position <c>offset ()</c>, at most <c>count ()</c> of them, in upstream order, with
+    /// their values.
+    /// </summary>
+    /// <remarks>
+    /// <c>offset</c> and <c>count</c> are tracked reads, as in <c>take</c>. <c>offset</c> clamps as the count of
+    /// <c>skip</c> does, and <c>count</c> as the count of <c>take</c>. A key that stays in the window keeps its row, so
+    /// shifting the window by d positions creates and disposes at most d rows. A pass costs O(window), and a throwing
+    /// <c>offset</c> or <c>count</c> fails the pass. <c>PendingKeys</c> includes the pending keys <c>upstream</c> holds
+    /// outside its <c>Keys</c>.
+    /// </remarks>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let page = createSignal 0
+    /// let rows = createProjection (fun t -> t.Id) id (fun () -> todos.Value)
+    /// let visible = rows |> Projection.sub (fun () -> page.Value * 20) (fun () -> 20)
+    /// </code>
+    /// </example>
+    let sub (offset: unit -> int) (count: unit -> int) (upstream: Projection<'K, 'V>) : Projection<'K, 'V> =
+        slice offset count upstream
 
     /// <summary>
     /// The groups of <c>upstream</c> by <c>projection</c> of each value, ordered by the upstream position of each group's

@@ -547,6 +547,23 @@ in upstream order, until it settles and joins its group` and `filter then groupB
 in UngroupedKeys`
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
 
+`Projection.take`, `Projection.skip` and `Projection.sub` select keys by upstream position. Their counts are functions
+read tracked in the pass, so a window driven by a signal follows it. A negative offset is 0, a negative `take` count or
+an offset past the last key gives an empty window, and a count past the last key ends the window at the last key.
+
+```fsharp
+let page = createSignal 0
+let pageOfTitles = orderedTitles |> Projection.sub (fun () -> page.Value * 2) (fun () -> 2)
+pageOfTitles.Keys (*** include-it ***)
+```
+
+A slice pass costs O(window). A key that stays in the window keeps its row, so shifting the window by d positions
+creates and disposes at most d rows, and a write to a row outside the window wakes no reader of the slice.
+
+Pinned by `take, skip and sub select positions and clamp counts as List.truncate and a clamped skip do`, `a key that
+stays in a shifted window keeps its row` and `a write outside the window wakes no reader`
+([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
+
 ## Planned and out of scope
 
 Reusable lens

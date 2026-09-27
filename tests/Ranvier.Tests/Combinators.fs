@@ -984,6 +984,244 @@ let sortByTests =
     ]
 
 [<Tests>]
+let sliceTests =
+    testList "Projection.take, skip and sub" [
+        test "take, skip and sub select positions and clamp counts as List.truncate and a clamped skip do" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..5 -> i, 10 * i ])
+            let up = rows source
+            let keysOf (view: Projection<int, int>) = List.ofArray view.Keys
+
+            Expect.equal (keysOf (up |> Projection.take (fun () -> 2))) [ 1; 2 ] "take 2"
+            Expect.equal (keysOf (up |> Projection.take (fun () -> 9))) [ 1; 2; 3; 4; 5 ] "take past the end"
+            Expect.equal (keysOf (up |> Projection.take (fun () -> -1))) [] "take a negative count"
+            Expect.equal (keysOf (up |> Projection.skip (fun () -> 3))) [ 4; 5 ] "skip 3"
+            Expect.equal (keysOf (up |> Projection.skip (fun () -> 9))) [] "skip past the end"
+            Expect.equal (keysOf (up |> Projection.skip (fun () -> -2))) [ 1; 2; 3; 4; 5 ] "skip a negative count"
+            Expect.equal (keysOf (up |> Projection.sub (fun () -> 1) (fun () -> 3))) [ 2; 3; 4 ] "sub 1 3"
+            Expect.equal (keysOf (up |> Projection.sub (fun () -> 4) (fun () -> 3))) [ 5 ] "sub past the end"
+            Expect.equal (keysOf (up |> Projection.sub (fun () -> -1) (fun () -> 2))) [ 1; 2 ] "sub at a negative offset"
+            Expect.equal (keysOf (up |> Projection.sub (fun () -> 2) (fun () -> -1))) [] "sub of a negative count"
+
+            Expect.equal
+                (keysOf (up |> Projection.sub (fun () -> 1) (fun () -> Int32.MaxValue)))
+                [ 2; 3; 4; 5 ]
+                "sub of Int32.MaxValue"
+
+            Expect.equal ((up |> Projection.sub (fun () -> 1) (fun () -> 3)).Get 3) 30 "a row reads the upstream value"
+
+            Expect.throwsT<Collections.Generic.KeyNotFoundException>
+                (fun () -> (up |> Projection.take (fun () -> 2)).Get 3 |> ignore)
+                "Get outside the window"
+        }
+
+        test "the window follows signals read by offset and count, and a reader runs once per change" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..6 -> i, i ])
+            let offset = createSignal 0
+            let size = createSignal 2
+            let view = rows source |> Projection.sub (fun () -> offset.Value) (fun () -> size.Value)
+            let runs = keysAndRows view
+
+            size.Value <- 3
+            Expect.equal runs.Value 2 "a larger count"
+            Expect.sequenceEqual view.Keys [ 1; 2; 3 ] "three keys"
+
+            offset.Value <- 2
+            Expect.equal runs.Value 3 "a shifted offset"
+            Expect.sequenceEqual view.Keys [ 3; 4; 5 ] "the shifted window"
+
+            size.Value <- 3
+            Expect.equal runs.Value 3 "an unchanged count"
+        }
+
+        test "a key that stays in a shifted window keeps its row" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..6 -> i, i ])
+            let offset = createSignal 0
+            let view = rows source |> Projection.sub (fun () -> offset.Value) (fun () -> 3)
+            let wakes = Array.zeroCreate<int> 7
+
+            for key in 1..3 do
+                createEffect (fun () ->
+                    wakes[key] <- wakes[key] + 1
+
+                    try
+                        view.Get key |> ignore
+                    with _ ->
+                        ())
+
+            offset.Value <- 1
+            Expect.sequenceEqual view.Keys [ 2; 3; 4 ] "the shifted window"
+            Expect.equal wakes[1] 2 "the reader of the key that left wakes"
+            Expect.equal wakes[2] 1 "the reader of a surviving key stays asleep"
+            Expect.equal wakes[3] 1 "the reader of a surviving key stays asleep"
+        }
+
+        test "membership and order changes upstream move keys through the window" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..5 -> i, i ])
+            let view = rows source |> Projection.take (fun () -> 3)
+            let keysRuns = ref 0
+
+            createEffect (fun () ->
+                view.Keys |> ignore
+                keysRuns.Value <- keysRuns.Value + 1)
+
+            source.Value <- setN 2 20 source.Value
+            Expect.equal keysRuns.Value 1 "a value edit leaves a Keys reader asleep"
+            Expect.equal (view.Get 2) 20 "and reaches the row"
+
+            source.Value <- source.Value |> List.filter (fun x -> x.Id <> 2)
+            Expect.sequenceEqual view.Keys [ 1; 3; 4 ] "the next key slides in"
+
+            source.Value <- items [ 0, 0 ] @ source.Value
+            Expect.sequenceEqual view.Keys [ 0; 1; 3 ] "a key added in front pushes the last out"
+
+            source.Value <- List.rev source.Value
+            Expect.sequenceEqual view.Keys [ 5; 4; 3 ] "upstream order"
+
+            source.Value <- source.Value |> List.filter (fun x -> x.Id = 5)
+            Expect.sequenceEqual view.Keys [ 5 ] "fewer keys than the count"
+            Expect.equal keysRuns.Value 5 "one Keys run per membership change"
+        }
+
+        test "a pending row keeps its key, and a key held out upstream is in PendingKeys" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let flights = dict [ for k in 1..3 -> k, createAsyncSource<int> () ]
+            flights[1].Settle 1
+            let up = createProjection id (fun k -> flights[k].Value) (fun () -> [ 1; 2; 3 ])
+            let view = up |> Projection.take (fun () -> 2)
+            keysAndRows view |> ignore
+
+            Expect.sequenceEqual view.Keys [ 1; 2 ] "a pending row keeps its position"
+            Expect.isTrue view.AnyPending "key 2's row is pending"
+            Expect.sequenceEqual view.PendingKeys [ 2 ] "key 3 is outside the window"
+
+            flights[2].Settle 2
+            Expect.isFalse view.AnyPending "settled"
+            Expect.equal (view.Get 2) 2 "the settled value"
+
+            let flight = createAsyncSource<bool> ()
+
+            let filtered =
+                createProjection id id (fun () -> [ 1; 2; 3 ])
+                |> Projection.filter (fun n -> n <> 2 || flight.Value)
+
+            let sliced = filtered |> Projection.take (fun () -> 5)
+
+            Expect.sequenceEqual sliced.Keys [ 1; 3 ] "key 2 is held out upstream"
+            Expect.sequenceEqual sliced.PendingKeys [ 2 ] "and pending in the slice"
+            Expect.isFalse sliced.AnyPending "AnyPending counts rows of keys in Keys"
+
+            flight.Settle true
+            Expect.sequenceEqual sliced.Keys [ 1; 2; 3 ] "key 2 joins once settled"
+            Expect.isEmpty sliced.PendingKeys "and leaves PendingKeys"
+        }
+
+        test "a throwing count fails the pass, and a failed upstream row stays in the window" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2; 3, 3 ])
+            let size = createSignal 2
+            let up = rows source |> Projection.map (fun n -> if n = 13 then invalidOp "boom 13" else n)
+
+            let view =
+                up
+                |> Projection.take (fun () -> if size.Value < 0 then invalidOp "bad count" else size.Value)
+
+            keysAndRows view |> ignore
+            size.Value <- -1
+            Expect.equal view.Status Status.Error "the pass failed"
+
+            Expect.throwsC
+                (fun () -> view.Keys |> ignore)
+                (fun ex -> Expect.equal ex.Message "bad count" "Keys raises the count's error")
+
+            size.Value <- 2
+            Expect.sequenceEqual view.Keys [ 1; 2 ] "the recovered window"
+            Expect.equal view.Status Status.None "the pass recovered"
+
+            source.Value <- setN 2 13 source.Value
+            Expect.sequenceEqual view.Keys [ 1; 2 ] "the failed row keeps its key"
+
+            Expect.throwsC
+                (fun () -> view.Get 2 |> ignore)
+                (fun ex -> Expect.equal ex.Message "boom 13" "Get raises the upstream error")
+        }
+
+        test "disposing the view detaches it from the upstream and its count" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ 1, 1; 2, 2; 3, 3 ])
+            let size = createSignal 2
+            let calls = ref 0
+
+            let view =
+                rows source
+                |> Projection.take (fun () ->
+                    calls.Value <- calls.Value + 1
+                    size.Value)
+
+            keysAndRows view |> ignore
+            view.Dispose ()
+            calls.Value <- 0
+            size.Value <- 3
+            source.Value <- List.rev source.Value
+
+            Expect.equal calls.Value 0 "count never runs after disposal"
+            Expect.isEmpty view.Keys "a disposed view is empty"
+        }
+
+        test "a write outside the window wakes no reader" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..6 -> i, i ])
+            let view = rows source |> Projection.sub (fun () -> 1) (fun () -> 2)
+            let runs = keysAndRows view
+
+            source.Value <- setN 5 50 source.Value
+            source.Value <- source.Value @ items [ 7, 7 ]
+            Expect.equal runs.Value 1 "an edit and an append past the window"
+            Expect.sequenceEqual view.Keys [ 2; 3 ] "the window is unchanged"
+
+            source.Value <- setN 3 30 source.Value
+            Expect.equal runs.Value 2 "an edit inside the window"
+            Expect.equal (view.Get 3) 30 "the edited value"
+        }
+
+        test "take composes with filter and sortBy" {
+            use g = new Graph ()
+            use _ = g.Activate ()
+            let source = createSignal (items [ for i in 1..8 -> i, (i * 5) % 8 ])
+            let size = createSignal 3
+
+            let view =
+                rows source
+                |> Projection.filter (fun n -> n % 2 = 1)
+                |> Projection.sortBy id
+                |> Projection.take (fun () -> size.Value)
+
+            Expect.sequenceEqual [ for k in view.Keys -> view.Get k ] [ 1; 3; 5 ] "the three smallest odd values"
+
+            size.Value <- 1
+            Expect.sequenceEqual [ for k in view.Keys -> view.Get k ] [ 1 ] "the smallest odd value"
+
+            let over =
+                rows source
+                |> Projection.take (fun () -> 4)
+                |> Projection.filter (fun n -> n % 2 = 0)
+
+            Expect.sequenceEqual [ for k in over.Keys -> over.Get k ] [ 2; 4 ] "even values among the first four keys"
+        }
+    ]
+
+[<Tests>]
 let chainTests =
     let chains: (string * (Projection<int, int> -> Projection<int, int>)) list = [
         "filter then map", Projection.filter (fun n -> n % 2 = 0) >> Projection.map (fun n -> n * 3)
@@ -996,6 +1234,8 @@ let chainTests =
         "filter then mapWith", Projection.filter (fun n -> n % 2 = 0) >> Projection.mapWith (fun _ v -> fun () -> v () + 1)
         "choose then sortBy",
         Projection.choose (fun n -> if n % 2 = 0 then Some (n + 1) else None) >> Projection.sortBy (fun n -> n / 4)
+        "sortBy then take", Projection.sortBy (fun n -> n / 4) >> Projection.take (fun () -> 10)
+        "sub then map", Projection.sub (fun () -> 0) (fun () -> 10) >> Projection.map (fun n -> n * 3)
     ]
 
     testList "chained views" [
@@ -1408,6 +1648,8 @@ let chainPendingTests =
         "filter then mapWith", Projection.filter (fun n -> n > 0), Projection.mapWith (fun _ v -> fun () -> v () * 10)
         "choose then map", Projection.choose (fun n -> if n > 0 then Some n else None), Projection.map (fun n -> n * 10)
         "filter then choose", Projection.filter (fun n -> n > 0), Projection.choose (fun n -> Some (n * 10))
+        "filter then take", Projection.filter (fun n -> n > 0), Projection.take (fun () -> 5)
+        "filter, skip, then map", Projection.filter (fun n -> n > 0), Projection.skip (fun () -> 0) >> Projection.map (fun n -> n * 10)
     ]
 
     testList "chained pending" [
