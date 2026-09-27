@@ -153,6 +153,11 @@ type internal ObserverSet() =
     /// </summary>
     let mutable index: Platform.RefIndex<IComputation> = null
 
+#if RANVIER_TRACE
+    let mutable traceLog: TraceLog = null
+    let mutable traceId = 0
+#endif
+
     let positionOf (c: IComputation) =
         if isNull index then
             let mutable found = -1
@@ -322,6 +327,17 @@ type internal ObserverSet() =
                 (Platform.itemAt i items).Observer.MarkCheck()
                 i <- i - 1
 
+#if RANVIER_TRACE
+    interface ITraced with
+        member _.TraceLog
+            with get () = traceLog
+            and set log = traceLog <- log
+
+        member _.TraceId
+            with get () = traceId
+            and set id = traceId <- id
+#endif
+
 /// <summary>
 /// One slot in a computation's dependency list. A struct for the reason given
 /// on <c>ObserverSlot</c>: an array of an interface type type-checks every store.
@@ -392,6 +408,11 @@ type internal SourceList() =
     /// a run, which is why nothing reads it there.
     /// </summary>
     let mutable cursor = 0
+
+#if RANVIER_TRACE
+    let mutable traceLog: TraceLog = null
+    let mutable traceId = 0
+#endif
 
     let sourceAt (i: int) =
         if i = 0 then
@@ -495,6 +516,17 @@ type internal SourceList() =
         trimFrom self 0
         cursor <- 0
 
+#if RANVIER_TRACE
+    interface ITraced with
+        member _.TraceLog
+            with get () = traceLog
+            and set log = traceLog <- log
+
+        member _.TraceId
+            with get () = traceId
+            and set id = traceId <- id
+#endif
+
 /// <summary>
 /// A child disposed with its owner's scope.
 /// </summary>
@@ -520,6 +552,7 @@ type internal IOwned =
 [<AllowNullLiteral>]
 type internal OwnerLink(child: IOwned, owner: Owner) =
     member _.Child = child
+    member _.Owner = owner
 
     member this.Detach() =
         owner.Unlink this
@@ -598,8 +631,9 @@ and Owner internal (sink: Owner) =
 
     member _.IsDisposed = disposed
 
-    member internal _.SetParent(link: OwnerLink) =
+    member internal this.SetParent(link: OwnerLink) =
         parentLink <- link
+        Tracer.OwnerAdopt (link.Owner, this, (this :? RootScope))
 
     /// <summary>
     /// Exceptions recorded by this scope: from its cleanups, and on <c>Graph.Root</c> from the inbox.
@@ -621,6 +655,8 @@ and Owner internal (sink: Owner) =
     /// <c>OnCleanup</c> describes.
     /// </summary>
     member this.Attach(child: IDisposable) =
+        Tracer.OwnerAdopt (this, child, false)
+
         this.AttachLinked
             { new IOwned with
                 member _.Release() =
@@ -789,6 +825,7 @@ and Owner internal (sink: Owner) =
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.OwnerDispose this
 
             match box this with
             | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached (this, this.DisposeScope)
@@ -1067,7 +1104,7 @@ type Graph(options: GraphOptions) =
     /// test assertion rather than a console message.
     /// </summary>
     let root = new Owner ()
-    do Tracer.GraphNew root
+    do Tracer.GraphNew (root, guarded)
 
     /// <summary>
     /// The owner a node created now attaches to. Null while a scope host's
@@ -1544,7 +1581,9 @@ type Graph(options: GraphOptions) =
     /// The cleanups run untracked, and a node they create belongs to <c>owner</c>.
     /// </remarks>
     member internal this.Discharge(owner: Owner) =
+        Tracer.DischargeStart owner
         this.Detached (owner, owner.DisposeScope)
+        Tracer.DischargeEnd owner
 
         if batchDepth = 0 && not flushing && queueHead < queueCount then
             flushOwed <- true
@@ -1805,6 +1844,7 @@ type Graph(options: GraphOptions) =
 type Signal<'T>(graph: Graph, initial: 'T) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
     let mutable value = initial
 
     // Resolved once, here, rather than per write: the policy's generic member
@@ -1815,6 +1855,8 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 #if RANVIER_COUNTERS
     do Counters.SignalCreated ()
 #endif
+
+    do Tracer.SignalNew (graph, id)
 
     interface INode with
         member _.Id = id
@@ -1897,10 +1939,13 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 type AsyncSource<'T>(graph: Graph) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
     let mutable value = Unchecked.defaultof<'T>
     let mutable error: exn = null
 
     let mutable status = Status.Pending ||| Status.Uninitialized
+
+    do Tracer.AsyncSourceNew (graph, id)
 
     interface INode with
         member _.Id = id
@@ -1999,7 +2044,9 @@ type AsyncSource<'T>(graph: Graph) =
 type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
 
     /// <summary>
     /// The source of the last run's last pending read.
@@ -2072,6 +2119,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
 
     member private this.Attach() =
         link <- graph.CurrentOwner.AttachLinked this
+        Tracer.MemoNew (graph, id, link.Owner)
 
     /// <summary>
     /// Dependencies are re-collected on every run, so the old edges have to go.
@@ -2245,6 +2293,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -2277,6 +2326,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             if isNull (box scope) then
                 if mode = ScopeMode.Owning then
                     scope <- new Owner (graph.Root)
+                    Tracer.ScopeNew (scope, graph, id)
 
                     if disposed then
                         scope.Dispose ()
@@ -2418,6 +2468,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
 #endif
     let id = graph.NextId ()
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
     let mutable pendingSources: HashSet<INode> = null
 
     /// <summary>
@@ -2499,6 +2550,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         // the caller tears down one owner, not a list of effects it had to
         // remember to collect.
         link <- graph.CurrentOwner.AttachLinked this
+        Tracer.EffectNew (graph, id, link.Owner)
         (this :> IComputation).MarkDirty()
         graph.RequestFlush ()
 
@@ -2641,6 +2693,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -2659,6 +2712,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         member _.Scope =
             if isNull (box scope) then
                 scope <- new Owner (graph.Root)
+                Tracer.ScopeNew (scope, graph, id)
 
                 if disposed then
                     scope.Dispose ()
@@ -2902,7 +2956,9 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>, mode: ScopeMode) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
     let mutable pendingSources: HashSet<INode> = null
 
     let mutable freshness = Freshness.Dirty
@@ -3035,6 +3091,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
 
     member private this.Attach() =
         link <- graph.CurrentOwner.AttachLinked this
+        Tracer.AsyncMemoNew (graph, id, link.Owner)
 
     member private this.DetachSources() =
         sources.Clear (this :> IComputation)
@@ -3201,6 +3258,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             if isNull (box scope) then
                 if mode = ScopeMode.Owning then
                     scope <- new Owner (graph.Root)
+                    Tracer.ScopeNew (scope, graph, id)
 
                     if disposed then
                         scope.Dispose ()
@@ -3258,6 +3316,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -3372,7 +3431,9 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
 type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
     let mutable pendingSources: HashSet<INode> = null
 
     /// <summary>
@@ -3412,6 +3473,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     // Owned through `IOwned`, for the reason given on Memo.
     member private this.Attach() =
         link <- graph.CurrentOwner.AttachLinked this
+        Tracer.BoundaryNew (graph, id, link.Owner)
 
     member private this.DetachSources() =
         sources.Clear (this :> IComputation)
@@ -3604,6 +3666,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -3645,6 +3708,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
         member _.Scope =
             if isNull (box scope) then
                 scope <- new Owner (graph.Root)
+                Tracer.ScopeNew (scope, graph, id)
 
                 if disposed then
                     scope.Dispose ()

@@ -28,6 +28,7 @@ module internal Awaited =
 [<Sealed>]
 type internal RowWatch(graph: Graph, refresh: unit -> unit, touched: unit -> unit) =
     let id = graph.NextId ()
+    do Tracer.RowWatchNew (graph, id)
     let mutable queued = false
     let mutable running = false
 
@@ -80,6 +81,8 @@ type internal IBeaconHost =
 type internal ProjectionBeacon(graph: Graph, host: IBeaconHost) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
+    do Tracer.BeaconNew (graph, id)
 
     interface INode with
         member _.Id = id
@@ -260,7 +263,9 @@ type internal IProjectionPass =
 [<AbstractClass>]
 type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let id = graph.NextId ()
+    do Tracer.Reserve (graph, id)
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
 
     /// <summary>
     /// The beacons among <c>sources</c>: the sources that can be stale without marking the projection. Collected from
@@ -374,6 +379,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let watch = RowWatch (graph, (fun () -> this.RefreshSummary ()), touchSummary)
 
     do link <- graph.CurrentOwner.AttachLinked this
+    do Tracer.ProjectionNew (graph, id, link.Owner)
+    do Tracer.ScopeNew (scope, graph, id)
 
     /// <summary>
     /// Links the source a suspended pass awaits into the running reader.
@@ -722,6 +729,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         member _.Scope =
             if isNull (box passScope) then
                 passScope <- new Owner (graph.Root)
+                Tracer.ScopeNew (passScope, graph, id)
 
                 if disposed then
                     passScope.Dispose ()
@@ -1160,6 +1168,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member _.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -1361,6 +1370,8 @@ type internal ILookupSource<'K, 'V> =
 type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphaned: unit -> unit) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
+    do Tracer.LookupCellNew (graph, id)
     let mutable value = Unchecked.defaultof<'V>
     let mutable error: exn = null
     let mutable pending = false
@@ -1477,6 +1488,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let mutable rule = ScopeMessages.lookup
 
     do link <- graph.CurrentOwner.AttachLinked this
+    do Tracer.OwnerAdopt (link.Owner, scope, false)
 
     member private this.Source = box this :?> ILookupSource<'K, 'V>
 

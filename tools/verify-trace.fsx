@@ -477,6 +477,7 @@ let lintTraceFiles () : string list =
 
     let formatting = Regex @"\bsprintf\b|\$""|String\.Format|%A|\.ToString\s*\("
     let forbidden = forbiddenInArgs |> List.filter (fun r -> string r <> @"\bnew\s")
+    let runStatus = Regex @"\bRunStatus\.Error\b|^\s*\|\s*Error\s*=\s*\d+\s*$"
 
     [
         for file in [ "Trace.fs"; "TraceEvents.fs" ] do
@@ -497,8 +498,11 @@ let lintTraceFiles () : string list =
                 if formatting.IsMatch code then
                     yield $"%s{file}:%d{n + 1}: formatting outside TraceModel and TraceApi: %s{trimmed}"
 
+                // A `RunStatus` case names a run status, not a node's `Error` member.
+                let body = runStatus.Replace (code, "")
+
                 for r in forbidden do
-                    if r.IsMatch code then
+                    if r.IsMatch body then
                         yield $"%s{file}:%d{n + 1}: forbidden in a Tracer body (%O{r}): %s{trimmed}"
 
                 if file = "Trace.fs" then
