@@ -1,5 +1,5 @@
-// Gate 1 (zero Release cost), the Gate 2 sample dumps and the source lint of the graph provenance spec,
-// docs/.ai/superpowers/specs/2026-09-27-graph-provenance-design.md section 7.
+// Gate 1 (zero Release cost), the Gate 2 sample dumps, the Gate 3 reconciliation and the source lint of the graph
+// provenance spec, docs/.ai/superpowers/specs/2026-09-27-graph-provenance-design.md section 7.
 //
 //   dotnet fsi tools/verify-trace.fsx              every check
 //   dotnet fsi tools/verify-trace.fsx --lint       the source lint only
@@ -870,6 +870,30 @@ let sampleGate () =
         ]
         $" (%d{dumps.Head.Split('\n').Length - 1} lines)"
 
+/// <summary>
+/// Builds <c>bench/Ranvier.Counters</c> with <c>RanvierCounters</c> and <c>RanvierTrace</c>, and passes when
+/// its <c>--reconcile</c> mode reports every case reconciled.
+/// </summary>
+let reconcileGate () =
+    let name = "gate 3: counters and live edges reconcile with the log"
+    let out = Path.Combine (work, "reconcile")
+
+    runChecked
+        root
+        []
+        "dotnet"
+        [ "build"; "bench/Ranvier.Counters"; "-c"; "Release"; "-p:RanvierCounters=true"; "-p:RanvierTrace=true"; "-o"; out ]
+    |> ignore
+
+    let code, output = run root [] "dotnet" [ Path.Combine (out, "Ranvier.Counters.dll"); "--reconcile" ]
+    let lines = output.Split ('\n', StringSplitOptions.RemoveEmptyEntries) |> Array.map (fun l -> l.TrimEnd ())
+    let cases = lines |> Array.filter (fun l -> l.StartsWith "PASS") |> Array.length
+
+    if code = 0 then
+        pass name $" (%d{cases} cases)"
+    else
+        fail name lines
+
 let countersGate () =
     if not (isElevated ()) then
         fail "gate 1: counters, merge-base vs HEAD" [ "processor counters need an elevated shell; run again as administrator or pass --no-counters" ]
@@ -936,6 +960,7 @@ if not lintOnly then
     step "gate 1: pack" packGate
     step "gate 1: Trace.named sample" namedGate
     step "gate 2: trace-sample.fsx" sampleGate
+    step "gate 3: reconcile" reconcileGate
 
     if runFable then
         step "gate 1: Fable scan" fableGate

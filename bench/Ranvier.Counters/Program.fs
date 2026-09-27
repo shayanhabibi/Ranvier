@@ -28,6 +28,10 @@ Usage: Ranvier.Counters [options]
   --node <path>     The node executable (default node).
   --pmc-dry-run     Drive the Fable harness's region handshake without ETW
                     sessions. Implies --no-pmc; runs without elevation.
+  --reconcile       Run each Ranvier case once on its own graph and
+                    compare the library counters and live edges with the
+                    trace log. Needs -p:RanvierCounters=true -p:RanvierTrace=true;
+                    exits 1 when any case fails.
   --help            Print this text.
 
 Processor counters need an elevated process. Build with -p:RanvierCounters=true,
@@ -61,6 +65,7 @@ type private Options =
         Fable: string option
         Node: string
         PmcDryRun: bool
+        Reconcile: bool
         Help: bool
     }
 
@@ -83,6 +88,7 @@ let rec private parse (options: Options) (args: string list) =
     | "--fable" :: dir :: rest -> parse { options with Fable = Some dir } rest
     | "--node" :: path :: rest -> parse { options with Node = path } rest
     | "--pmc-dry-run" :: rest -> parse { options with Pmc = false; PmcDryRun = true } rest
+    | "--reconcile" :: rest -> parse { options with Reconcile = true } rest
     | ("--help" | "-h") :: rest -> parse { options with Help = true } rest
     | unknown :: _ -> failwith $"Unknown argument '%s{unknown}'. See --help."
 
@@ -354,6 +360,7 @@ let main argv =
                 Fable = None
                 Node = "node"
                 PmcDryRun = false
+                Reconcile = false
                 Help = false
             }
             (List.ofArray argv)
@@ -365,6 +372,7 @@ let main argv =
     | None when options.Help ->
         printfn "%s" usage
         0
+    | None when options.Reconcile -> if Reconcile.run options.Scale = 0 then 0 else 1
     | None when options.ListSources ->
         for name, id in Pmc.availableSources () do
             printfn "%3d  %s" id name
