@@ -34,9 +34,9 @@ let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    "Add tea", fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ]
-    "Settle quote", fun () -> desk.Settle 5m
-    "Fail quote", fun () -> desk.Fail "quote down"
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5m)
+    button "Fail quote" (fun () -> desk.Fail "quote down")
 ]
 ```
 
@@ -80,15 +80,31 @@ let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
 controls [
-    "Two quick writes", fun () ->
+    button "Two quick writes" (fun () ->
         qty.Value <- qty.Value + 1
-        qty.Value <- qty.Value + 1
-    "Settle quote", fun () -> desk.Settle 5m
+        qty.Value <- qty.Value + 1)
+    button "Settle quote" (fun () -> desk.Settle 5m)
 ]
 ```
 
-With `replay`, the page runs the scenario and presses every button once, in order. The map opens with
-the graph as the scenario built it; press **Play** or drag the bar to watch the presses.
+Inputs write as you change them: the slider on every movement, the toggle on each flip.
+
+```fsharp map timeline
+let qty = createSignal 1
+let gift = createSignal false
+let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
+let total = createMemo (fun _ -> subtotal.Value + (if gift.Value then 2m else 0m))
+createEffect (fun () -> printfn $"total {total.Value}")
+
+controls [
+    slider "Qty" (1, 10) 1 [ 3 ] (fun v -> qty.Value <- v)
+    toggle "Gift wrap" false [ true ] (fun on -> gift.Value <- on)
+]
+```
+
+With `replay`, the page runs the scenario, then every control in order: a button once, an input once per
+replay value. The map opens with the graph as the scenario built it; press **Play** or drag the bar to watch
+them run.
 
 ```fsharp map replay
 let desk = Desk<decimal>()
@@ -103,8 +119,27 @@ let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    "Add tea", fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ]
-    "Settle quote", fun () -> desk.Settle 5m
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5m)
+]
+```
+
+Under `policy=queue`, flights apply in the order they started. Setup and the two writes start three quotes. The
+newest is answered first, and waits; answering the older two applies all three, in order.
+
+```fsharp map replay policy=queue
+let desk = Desk<decimal>(queued = true)
+let qty = createSignal 1
+let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
+createEffect (fun () -> printfn $"shipping {shipping.Value}")
+
+controls [
+    slider "Qty" (1, 10) 1 [ 2; 3 ] (fun v -> qty.Value <- v)
+    button "Answer the newest" (fun () -> desk.SettleNewest 12m)
+    button "Answer the older two" (fun () ->
+        desk.Settle 4m
+        desk.Settle 8m)
 ]
 ```
 
@@ -117,15 +152,23 @@ against a fresh traced graph.
 | Flag | Effect |
 | --- | --- |
 | `timeline` | Adds the play, step and scrub bar. |
-| `replay` | Presses every button once, in order, for the timeline to play back; implies `timeline`. |
+| `replay` | Runs every control in order, for the timeline to play back; implies `timeline`. |
+| `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest` or `queue`. |
 | `id=`, `show=` | As on `solid` fences. |
 
 The helpers in scope:
 
-- `controls [ label, action; … ]` lists the map's buttons, in order. Each action runs with the
-  graph active, so `batch` and the other `Api` functions work inside it.
-- `Desk<'T>()` stands in for a remote service. `desk.Quote x` returns a request that stays pending;
-  a newer request cancels it. `desk.Settle value` and `desk.Fail message` answer the pending request.
+- `controls [ … ]` lists the map's controls, in order. Each action runs with the graph active, so `batch` and the
+  other `Api` functions work inside it. A replay runs every control in this order.
+- `button label action` runs `action` when pressed, and once in a replay.
+- `slider label (min, max) start replay set` writes each integer it moves to. `number label start replay set` and
+  `text label start replay set` write when the value is committed, with Enter or by leaving the field.
+  `toggle label start replay set` writes on each flip. `start` sets the widget only: keep it equal to the signal's
+  initial value. A replay writes each value in `replay`, in order, and logs `set <label> = <value>` before it.
+- `Desk<'T>()` stands in for a remote service. `desk.Quote x` returns a request that stays pending; a newer request
+  cancels it. `desk.Settle value` and `desk.Fail message` answer the pending request.
+- `Desk<'T>(queued = true)` keeps every request, in order. `Settle` and `Fail` answer the oldest; `SettleNewest`
+  and `FailNewest` the newest. `desk.Pending` counts the requests waiting.
 
 A fence compiles with Fable, so its code must compile to JavaScript. A fence that does not end with
 `controls` is reported at its last line.
@@ -133,7 +176,8 @@ A fence compiles with Fable, so its code must compile to JavaScript. A fence tha
 ## A bespoke map
 
 `SignalMap` is an ordinary component. A `solid` fence can call it with any scenario: here the names
-come from `Trace.named` rather than from the `map` fence's labels.
+come from `Trace.named` rather than from the `map` fence's labels. `SignalMap` takes the scenario, the graph's flight
+policy, the code bindings and whether to show the timeline.
 
 ```fsharp solid render=Thermo.Thermometer
 module Thermo =
@@ -148,11 +192,11 @@ module Thermo =
         createEffect (fun () -> printfn $"{fahrenheit.Value}°F, warm: {warm.Value}")
 
         controls [
-            "Warmer", fun () -> celsius.Value <- celsius.Value + 5.0
-            "Cooler", fun () -> celsius.Value <- celsius.Value - 5.0
+            button "Warmer" (fun () -> celsius.Value <- celsius.Value + 5.0)
+            button "Cooler" (fun () -> celsius.Value <- celsius.Value - 5.0)
         ]
 
-    let Thermometer () = SignalMap (Live scenario) [||] false
+    let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false
 ```
 
 ## Limits
@@ -164,8 +208,6 @@ module Thermo =
 - **Boundaries and projections share the memo mark.** A boundary's fallback or recovered state shows
   as its value. Projection internals such as row watches are hidden.
 - **The dependency graph, not the owner tree.** A disposed node leaves the map.
-- **Buttons are the only input.** A replay presses each button once, in order; a `Desk` holds one
-  pending request.
 - **Values are text.** A value longer than 16 characters is cut short; the hover label has it whole.
   An error shows its message without its exception type.
 - **Last run only.** A click explains the most recent run; `Trace.history` and `Trace.whyNot` are

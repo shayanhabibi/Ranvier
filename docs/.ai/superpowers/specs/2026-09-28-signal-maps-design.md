@@ -98,6 +98,8 @@ controls [
 | `replay` | Plays a build-time recording (§7); implies `timeline` |
 | `id=`, `show=` | As for solid fences |
 
+**Amended:** controls are built with `button` and the inputs of [the map inputs design](2026-09-28-map-inputs-design.md), which also adds `policy=` and queued desks.
+
 A bespoke demo calls `SignalMap` directly in a plain `solid` fence.
 
 ## 6. Engine

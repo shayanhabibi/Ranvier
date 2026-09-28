@@ -268,9 +268,9 @@ let profile = createAsync (fun _ _ -> desk.Quote userId.Value)
 createEffect (fun () -> printfn $"profile {profile.Value}")
 
 controls [
-    "Next user", fun () -> userId.Value <- userId.Value + 1
-    "Answer", fun () -> desk.Settle $"user {userId.Value}"
-    "Fail", fun () -> desk.Fail "no connection"
+    button "Next user" (fun () -> userId.Value <- userId.Value + 1)
+    button "Answer" (fun () -> desk.Settle $"user {userId.Value}")
+    button "Fail" (fun () -> desk.Fail "no connection")
 ]
 ```
 
@@ -456,8 +456,8 @@ let view = createSuspense (fun _ -> "loading") (fun () -> "loaded " + data.Value
 createEffect (fun () -> printfn "%s" view.Value)
 
 controls [
-    "Settle", fun () -> data.Settle "report"
-    "Fail", fun () -> data.Fail (exn "offline")
+    button "Settle" (fun () -> data.Settle "report")
+    button "Fail" (fun () -> data.Fail (exn "offline"))
 ]
 ```
 
