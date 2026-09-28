@@ -96,8 +96,8 @@ These are directions the design is aimed at. None of them ships an integration y
 ## Current gaps
 
 - No UI framework adapters yet. The only .NET UI binding is `Projection.AsObservableCollection`.
-- No C# API. The planned wrapper would take `Func`/`Action` delegates, expose `IDisposable` lifetimes, and
-  keep FSharp.Core types off its surface.
+- The C# package, [Ranvier.CSharp](../guide/csharp.md), has no tracing, and a few of its types, such as
+  `Previous<T>.Settled`, still carry `ValueOption`.
 - `net10.0` only. That rules out Unity (`netstandard2.1`) and hosts that are still on .NET 8.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
 - The Fable target is planned and not yet published; see [Fable (JavaScript) target](../fable/index.md).

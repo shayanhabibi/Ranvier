@@ -188,7 +188,7 @@ module Api =
     /// An async value created and read in <c>body</c> never settles: create it outside and read it in <c>body</c>.
     /// </remarks>
     let createSuspense (fallback: 'T voption -> 'T) (body: unit -> 'T) =
-        Boundary.Suspense (Graph.Current, body, fallback)
+        Boundary<'T>.Create(Graph.Current, body, ValueSome fallback, ValueNone)
 
     /// <summary>Substitutes <c>recover ex last</c> when <c>body</c> throws.</summary>
     /// <remarks>
@@ -197,7 +197,7 @@ module Api =
     /// outside and read it in <c>body</c>.
     /// </remarks>
     let createErrorBoundary (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
-        Boundary.Errors (Graph.Current, body, recover)
+        Boundary<'T>.Create(Graph.Current, body, ValueNone, ValueSome recover)
 
     /// <summary>Substitutes <c>fallback last</c> while <c>body</c> is suspended and <c>recover ex last</c> when it throws.</summary>
     /// <remarks>
@@ -206,20 +206,20 @@ module Api =
     /// outside and read it in <c>body</c>.
     /// </remarks>
     let createBoundary (fallback: 'T voption -> 'T) (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
-        Boundary.Catching (Graph.Current, body, fallback, recover)
+        Boundary<'T>.Create(Graph.Current, body, ValueSome fallback, ValueSome recover)
 
     /// <summary>
     /// Runs <c>body</c> without recording anything it reads.
     /// </summary>
     let untrack (body: unit -> 'T) =
-        Graph.Current.Untrack body
+        Graph.Current.RunUntracked body
 
     /// <summary>
     /// Runs <c>body</c> with effects deferred, so a group of writes produces one run
     /// of each effect rather than one per write.
     /// </summary>
     let batch (body: unit -> 'T) =
-        Graph.Current.Batch body
+        Graph.Current.RunBatch body
 
     /// <summary>
     /// Registers a cleanup with the innermost enclosing scope. Inside the body
@@ -234,7 +234,7 @@ module Api =
     /// <c>affected</c>.
     /// </remarks>
     let onCleanup (f: unit -> unit) =
-        Graph.Current.OnCleanup f
+        Graph.Current.AddCleanup f
 
     /// <summary>
     /// The innermost enclosing scope: the scope <c>onCleanup</c> registers with and
@@ -267,7 +267,7 @@ module Api =
     /// the whole subtree can be disposed at once.
     /// </summary>
     let createRoot (body: Owner -> 'T) =
-        Graph.Current.CreateRoot body
+        Graph.Current.RunRoot body
 
     /// <summary>
     /// Runs the effects already queued on the current graph, including inside a batch.
