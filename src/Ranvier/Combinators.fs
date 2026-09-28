@@ -348,7 +348,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality> internal (graph: Gr
             let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>>(groupKey, source)
             this.Entries.Set (groupKey, entry)
             entry.Reader <- fun () -> source.Value
-            entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun () -> this.RunRow entry), ScopeMode.ValueRow)
+            entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun _ -> this.RunRow entry), ScopeMode.ValueRow)
 
     member private this.Enumerate() =
         heldOut.Begin ()
@@ -764,7 +764,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         failure.Error
 
     /// <summary>The memo's body: tracks the upstream keys and this node, then returns the current state.</summary>
-    member this.Compute() : 'S =
+    member this.Compute(_: 'S voption) : 'S =
         if disposed then
             state
         else
@@ -1197,10 +1197,10 @@ module Projection =
     /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>false</c>.</remarks>
     let exists (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
         let count = countBy predicate upstream
-        Memo<bool>.Create(upstream.Graph, (fun () -> count.Value > 0), ScopeMode.Pure)
+        Memo<bool>.Create(upstream.Graph, (fun _ -> count.Value > 0), ScopeMode.Pure)
 
     /// <summary>A memo of whether every value of <c>upstream</c> satisfies <c>predicate</c>: a <c>countBy</c> of misses at zero.</summary>
     /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>true</c>.</remarks>
     let forall (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
         let misses = countBy (predicate >> not) upstream
-        Memo<bool>.Create(upstream.Graph, (fun () -> misses.Value = 0), ScopeMode.Pure)
+        Memo<bool>.Create(upstream.Graph, (fun _ -> misses.Value = 0), ScopeMode.Pure)

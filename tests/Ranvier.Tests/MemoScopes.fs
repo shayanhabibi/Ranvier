@@ -22,7 +22,7 @@ let tests =
                 let cleaned = ResizeArray<int>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> cleaned.Add n)
                         n)
@@ -46,7 +46,7 @@ let tests =
                 let runs = ResizeArray<int>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
 
                         createEffect (fun () ->
@@ -71,7 +71,7 @@ let tests =
                 let k = createSignal 10
 
                 let outer =
-                    createMemoWith (fun () -> let n = s.Value in createMemo (fun () -> n * k.Value))
+                    createMemoWith (fun _ -> let n = s.Value in createMemo (fun _ -> n * k.Value))
 
                 let first = outer.Value
                 Expect.equal first.Value 10 "the first inner memo computes"
@@ -93,8 +93,8 @@ let tests =
                 let mutable cleaned = 0
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         inner.Value)
 
@@ -119,7 +119,7 @@ let tests =
                 let runs = ref 0
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         createEffect (fun () ->
                             s.Value |> ignore
                             runs.Value <- runs.Value + 1)
@@ -141,7 +141,7 @@ let tests =
                 let cleaned = ResizeArray<int>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
 
                         createRoot (fun _ ->
@@ -158,7 +158,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value * 2)
+                let m = createMemo (fun _ -> s.Value * 2)
 
                 Expect.equal m.Value 2 "first run"
                 s.Value <- 3
@@ -174,7 +174,7 @@ let tests =
                 let effectSeen = ResizeArray<int * int>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> log.Value <- log.Value + 1)
                         n)
@@ -273,7 +273,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let owner = createRoot id
-                let m = createMemo (fun () -> runWithOwner owner (fun () -> 1))
+                let m = createMemo (fun _ -> runWithOwner owner (fun () -> 1))
                 Expect.throwsT<InvalidOperationException> (fun () -> m.Value |> ignore) "a pure body cannot own nodes"
             }
 
@@ -311,7 +311,7 @@ let tests =
                 let mutable bodyRuns = 0
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
                         onCleanup (fun () -> log.Add $"A{n}")
@@ -337,7 +337,7 @@ let tests =
                 let mutable a: Memo<int> = Unchecked.defaultof<_>
 
                 a <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         createEffect (fun () -> onCleanup (fun () -> seen.Add a.Value))
                         n)
@@ -360,12 +360,12 @@ let tests =
                 let mutable d: Memo<int> = Unchecked.defaultof<_>
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> seen.Add d.Value)
                         n)
 
-                d <- createMemo (fun () -> m.Value + 100)
+                d <- createMemo (fun _ -> m.Value + 100)
                 Expect.equal d.Value 101 "first run"
                 s.Value <- 2
                 Expect.equal d.Value 102 "the derived memo follows"
@@ -386,7 +386,7 @@ let tests =
                 let mutable bodyRuns = 0
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
 
@@ -422,7 +422,7 @@ let tests =
                 let mutable m: Memo<int> = Unchecked.defaultof<_>
 
                 m <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
 
@@ -452,7 +452,7 @@ let tests =
                 let s = createSignal 1
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> failwith "boom")
                         n)
@@ -513,7 +513,7 @@ let tests =
                 let log = ResizeArray<int * int>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> w.Value <- w.Value + 1)
                         n)
@@ -523,7 +523,7 @@ let tests =
                 let mutable seenInRead = -1
 
                 let reader =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         let v = m.Value
                         seenInRead <- log.Count
                         v * 10)

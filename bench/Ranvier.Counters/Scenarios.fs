@@ -127,11 +127,11 @@ module private Ranvier =
     let chain (n: int) =
         let graph = Workloads.newGraph ()
         let source = Signal (graph, 0)
-        let mutable tail = Memo (graph, (fun () -> source.Value + 1))
+        let mutable tail = Memo (graph, (fun _ -> source.Value + 1))
 
         for _ in 2..ChainDepth do
             let previous = tail
-            tail <- Memo (graph, (fun () -> previous.Value + 1))
+            tail <- Memo (graph, (fun _ -> previous.Value + 1))
 
         let tail = tail
         sink <- tail.Value

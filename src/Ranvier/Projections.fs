@@ -1310,8 +1310,8 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
         this.Entries.Set (key, entry)
         entry
 
-    member private this.Compute(entry: RowEntry<'K, 'V>) : unit -> 'V =
-        fun () -> this.RunRow entry
+    member private this.Compute(entry: RowEntry<'K, 'V>) : 'V voption -> 'V =
+        fun _ -> this.RunRow entry
 
     member private this.CreateMapped() =
         for struct (key, item) in adds do
@@ -1830,7 +1830,7 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
     let stateEqual = graph.Options.Equality.Comparer<'S>()
 
     let state =
-        graph.RunOwned (this.Scope, (fun () -> Memo<'S>.Create(graph, source, ScopeMode.Owning)))
+        graph.RunOwned (this.Scope, (fun () -> Memo<'S>.Create(graph, (fun _ -> source ()), ScopeMode.Owning)))
 
     /// <summary>
     /// The state the live cells were computed against. Meaningful once

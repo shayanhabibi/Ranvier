@@ -35,7 +35,7 @@ let tests =
                 let mutable effectRuns = 0
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
 
@@ -74,7 +74,7 @@ let tests =
                 let mutable bodyRuns = 0
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
 
@@ -99,7 +99,7 @@ let tests =
                 let mutable self: Memo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
 
                         onCleanup (fun () ->
@@ -227,7 +227,7 @@ let tests =
                 let mutable runs = 0
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         runs <- runs + 1
 
                         if trigger.Value = 1 then
@@ -255,7 +255,7 @@ let tests =
                     createEffect (fun () -> onCleanup (fun () -> onCleanup ignore)))
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         if trigger.Value = 1 then
                             root.Dispose ()
 
@@ -280,7 +280,7 @@ let tests =
                 let mutable runs = 0
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         runs <- runs + 1
 
                         if trigger.Value = 1 then
@@ -308,7 +308,7 @@ let tests =
                         o)
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         if trigger.Value = 1 then
                             root.Dispose ()
 
@@ -326,7 +326,7 @@ let tests =
                 let weak = ResizeArray<WeakReference>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let v = s.Value
 
                         onCleanup (fun () ->
@@ -369,7 +369,7 @@ let tests =
                 use _ = g.Activate ()
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         (try
                             createEffect ignore
                          with _ ->
@@ -388,7 +388,7 @@ let tests =
                 lookup.Dispose ()
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         (try
                             onCleanup ignore
                          with _ ->
@@ -678,7 +678,7 @@ let tests =
                 let mutable self: Memo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         if u.Value = 1 then
                             self.Dispose ()
 

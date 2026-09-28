@@ -37,7 +37,7 @@ type FanInProbe() =
         memo <-
             Memo (
                 graph,
-                fun () ->
+                fun _ ->
                     let mutable total = 0
 
                     for s in signals do

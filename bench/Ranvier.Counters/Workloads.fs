@@ -118,7 +118,7 @@ let detail (n: int) =
                 let row = rows[selected.Value]
 
                 for j in 1..DetailNodes do
-                    let field = createMemo (fun () -> row.Value + j)
+                    let field = createMemo (fun _ -> row.Value + j)
                     createEffect (fun () -> sink <- field.Value))
 
             owner, selected)
@@ -144,10 +144,10 @@ let wideDiamond (n: int) =
             let source = createSignal 0
 
             let branches =
-                Array.init DiamondWidth (fun j -> createMemo (fun () -> source.Value + j))
+                Array.init DiamondWidth (fun j -> createMemo (fun _ -> source.Value + j))
 
             let sum =
-                createMemo (fun () ->
+                createMemo (fun _ ->
                     let mutable total = 0
 
                     for branch in branches do

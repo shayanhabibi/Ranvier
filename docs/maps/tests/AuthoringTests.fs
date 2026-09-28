@@ -13,12 +13,12 @@ let private cart =
             "let lines = createSignal [ 4m ]"
             ""
             "let subtotal ="
-            "    createMemo (fun () ->"
+            "    createMemo (fun _ ->"
             "        lines.Value |> List.sum)"
             ""
             "// the quote waits on the desk"
             "let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)"
-            "let total = createMemo (fun () -> subtotal.Value + shipping.Value)"
+            "let total = createMemo (fun _ -> subtotal.Value + shipping.Value)"
             "createEffect (fun () -> total.TryValue |> ignore)"
             ""
             "controls ["
@@ -90,7 +90,7 @@ let tests =
             }
 
             test "a fence without trailing controls is rejected at its last line" {
-                let code = "let a = createSignal 1\nlet b = createMemo (fun () -> a.Value)\n\n"
+                let code = "let a = createSignal 1\nlet b = createMemo (fun _ -> a.Value)\n\n"
 
                 Expect.equal
                     (MapFence.scenario "x" code |> Result.mapError (List.map fst))

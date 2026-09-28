@@ -113,7 +113,7 @@ let tests =
                         (fun item ->
                             created <- created + 1
                             onCleanup (fun () -> cleaned <- cleaned + 1)
-                            let upper = createMemo (fun () -> (item ()).Name.ToUpper())
+                            let upper = createMemo (fun _ -> (item ()).Name.ToUpper())
                             fun () -> upper.Value)
                         (fun () -> source.Value)
 
@@ -302,7 +302,7 @@ let tests =
                 let source = createSignal users
 
                 let proj =
-                    createProjection _.Id (fun u -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
+                    createProjection _.Id (fun u -> (createMemo (fun _ -> u.Name)).Value) (fun () -> source.Value)
 
                 let ex = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
 
@@ -365,7 +365,7 @@ let tests =
                         _.Id
                         (fun (u: User) ->
                             try
-                                (createMemo (fun () -> u.Name)).Value
+                                (createMemo (fun _ -> u.Name)).Value
                             with _ ->
                                 u.Name)
                         (fun () -> source.Value)
@@ -381,7 +381,7 @@ let tests =
                 let catching (u: User) =
                     if u.Id = 1 then
                         try
-                            (createMemo (fun () -> u.Name)).Value
+                            (createMemo (fun _ -> u.Name)).Value
                         with _ ->
                             u.Name
                     else
@@ -416,7 +416,7 @@ let tests =
                         (fun (u: User) ->
                             if u.Name = "x" then
                                 try
-                                    (createMemo (fun () -> u.Name)).Value
+                                    (createMemo (fun _ -> u.Name)).Value
                                 with _ ->
                                     u.Name
                             else
@@ -458,7 +458,7 @@ let tests =
                 let source = createSignal users
 
                 let proj =
-                    createProjectionWith _.Id (fun item -> fun () -> (createMemo (fun () -> (item ()).Name)).Value) (fun () -> source.Value)
+                    createProjectionWith _.Id (fun item -> fun () -> (createMemo (fun _ -> (item ()).Name)).Value) (fun () -> source.Value)
 
                 let ex = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
 
@@ -473,8 +473,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         inner.Value)
 
                 let proj =
@@ -497,8 +497,8 @@ let tests =
                         _.Id
                         (fun item ->
                             let m =
-                                createMemoWith (fun () ->
-                                    let inner = createMemo (fun () -> (item ()).Name)
+                                createMemoWith (fun _ ->
+                                    let inner = createMemo (fun _ -> (item ()).Name)
                                     inner.Value)
 
                             fun () -> m.Value)
@@ -520,7 +520,7 @@ let tests =
                 let mutable cleaned = 0
 
                 let ext =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         1)
 
@@ -542,8 +542,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         inner.Value)
 
                 let proj =
@@ -567,8 +567,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         inner.Value)
 
                 let proj =
@@ -599,7 +599,7 @@ let tests =
                         _.Id
                         (fun item ->
                             let m =
-                                createMemoWith (fun () ->
+                                createMemoWith (fun _ ->
                                     let id = (item ()).Id
                                     onCleanup (fun () -> cleaned.Add id)
                                     id)
@@ -621,7 +621,7 @@ let tests =
                 let source = createSignal users
 
                 let proj =
-                    createProjection _.Id (fun (u: User) -> (untrack (fun () -> createMemo (fun () -> u.Name))).Value) (fun () -> source.Value)
+                    createProjection _.Id (fun (u: User) -> (untrack (fun () -> createMemo (fun _ -> u.Name))).Value) (fun () -> source.Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> proj.Get 1 |> ignore) "untrack does not hide a creation"
             }
@@ -850,8 +850,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = untrack (fun () -> createMemo (fun () -> s.Value * 2))
+                    createMemoWith (fun _ ->
+                        let inner = untrack (fun () -> createMemo (fun _ -> s.Value * 2))
                         inner.Value)
 
                 let proj =
@@ -881,7 +881,7 @@ let tests =
                 let mutable cleaned = 0
 
                 let ext =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         untrack (fun () -> onCleanup (fun () -> cleaned <- cleaned + 1))
                         s.Value)
 
@@ -915,8 +915,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         inner.Value)
 
                 let proj =
@@ -937,8 +937,8 @@ let tests =
                 let mutable cleaned = 0
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         inner.Value)
 
@@ -965,8 +965,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = createMemo (fun () -> s.Value * 2)
+                    createMemoWith (fun _ ->
+                        let inner = createMemo (fun _ -> s.Value * 2)
                         inner.Value)
 
                 let proj =
@@ -990,7 +990,7 @@ let tests =
                 let source = createSignal users
 
                 let proj =
-                    createProjection _.Id (fun (u: User) -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
+                    createProjection _.Id (fun (u: User) -> (createMemo (fun _ -> u.Name)).Value) (fun () -> source.Value)
 
                 let first = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
                 Expect.isTrue (first :? InvalidOperationException) "an InvalidOperationException"
@@ -1011,8 +1011,8 @@ let tests =
                 let s = createSignal 10
 
                 let ext =
-                    createMemoWith (fun () ->
-                        let inner = untrack (fun () -> createMemo (fun () -> s.Value * 2))
+                    createMemoWith (fun _ ->
+                        let inner = untrack (fun () -> createMemo (fun _ -> s.Value * 2))
                         inner.Value)
 
                 let proj =
@@ -1038,7 +1038,7 @@ let tests =
                         (fun item ->
                             let id = (untrack item).Id
                             onCleanup (fun () -> bump cleaned id)
-                            let m = createMemo (fun () -> $"%s{(item ()).Name}%d{s.Value}")
+                            let m = createMemo (fun _ -> $"%s{(item ()).Name}%d{s.Value}")
 
                             createEffect (fun () ->
                                 s.Value |> ignore

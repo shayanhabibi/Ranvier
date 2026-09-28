@@ -2135,8 +2135,13 @@ type AsyncSource<'T>(graph: Graph) =
 /// memo's body owns what it creates: the nodes and cleanups are disposed
 /// before each re-run and with the memo.
 /// </para>
+/// <para>
+/// The body's argument is the value last published, <c>ValueNone</c> before the
+/// first. After a run that suspends or fails, the next run receives the same
+/// argument. A body that returns its argument keeps its dependents clean.
+/// </para>
 /// </remarks>
-type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
+type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -2161,6 +2166,12 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     let mutable error: exn = null
     let mutable runs = 0
     let mutable disposed = false
+
+    /// <summary>
+    /// Set by the first successful run. <c>value</c> is the argument to the next run while set.
+    /// </summary>
+    let mutable published = false
+
     let mutable link: OwnerLink = null
 
     /// <summary>
@@ -2185,7 +2196,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// <summary>
     /// A pure memo over <c>compute</c>.
     /// </summary>
-    new(graph: Graph, compute: unit -> 'T) as this =
+    new(graph: Graph, compute: 'T voption -> 'T) as this =
         Memo<'T>(graph, compute, ScopeMode.Pure)
         then this.Attach ()
 
@@ -2193,7 +2204,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// An owning memo over <c>compute</c> when <c>owning</c> is true, a pure one
     /// otherwise.
     /// </summary>
-    new(graph: Graph, compute: unit -> 'T, owning: bool) as this =
+    new(graph: Graph, compute: 'T voption -> 'T, owning: bool) as this =
         Memo<'T>(graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
         then this.Attach ()
 #endif
@@ -2201,7 +2212,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// <summary>
     /// A memo over <c>compute</c>, owned by the current owner.
     /// </summary>
-    static member internal Create(graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
+    static member internal Create(graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode) =
         let memo = Memo<'T>(graph, compute, mode)
         memo.Attach ()
         memo
@@ -2284,12 +2295,14 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
 
         try
             try
-                let result = graph.RunHosted (this :> IComputation, compute)
+                let prev = if published then ValueSome previous else ValueNone
+                let result = graph.RunHosted (this :> IComputation, compute, prev)
 
                 if violated then
                     raise (InvalidOperationException (ScopeMessages.forMode mode))
 
                 value <- result
+                published <- true
             finally
                 if disposed then
                     sources.Clear (this :> IComputation)

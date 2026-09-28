@@ -128,11 +128,11 @@ module private Ranvier =
         let source, tail =
             graph.Run (fun () ->
                 let source = createSignal 0
-                let mutable tail = createMemo (fun () -> source.Value + 1)
+                let mutable tail = createMemo (fun _ -> source.Value + 1)
 
                 for _ in 2..ChainDepth do
                     let previous = tail
-                    tail <- createMemo (fun () -> previous.Value + 1)
+                    tail <- createMemo (fun _ -> previous.Value + 1)
 
                 source, tail)
 

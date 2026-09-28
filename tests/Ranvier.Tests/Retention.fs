@@ -52,7 +52,7 @@ let tests =
                 let refs = ResizeArray<WeakReference>()
 
                 for _ in 1..200 do
-                    let m = Memo (g, (fun () -> s.Value * 2))
+                    let m = Memo (g, (fun _ -> s.Value * 2))
                     m.TryValue |> ignore
                     m.Dispose ()
                     refs.Add (WeakReference m)
@@ -80,7 +80,7 @@ let tests =
                 for _ in 1..200 do
                     let owner =
                         g.CreateRoot (fun owner ->
-                            let m = Memo (g, (fun () -> s.Value * 2))
+                            let m = Memo (g, (fun _ -> s.Value * 2))
                             m.TryValue |> ignore
                             refs.Add (WeakReference m)
                             owner)

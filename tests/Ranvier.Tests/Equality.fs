@@ -18,7 +18,7 @@ let tests =
             test "the default policy compares primitives by value" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun () -> s.Value + 1))
+                let c = Memo (g, (fun _ -> s.Value + 1))
 
                 Expect.equal c.TryValue (Ready 2) "precondition: c is clean"
                 s.Value <- 1
@@ -33,7 +33,7 @@ let tests =
                 // Built at runtime so the two strings cannot be interned to one
                 // reference — reference equality would wrongly let this through.
                 let s = Signal (g, String ('a', 3))
-                let c = Memo (g, (fun () -> s.Value.Length))
+                let c = Memo (g, (fun _ -> s.Value.Length))
 
                 Expect.equal c.TryValue (Ready 3) "precondition: c is clean"
                 s.Value <- String ('a', 3)
@@ -44,7 +44,7 @@ let tests =
             test "the default policy compares records by reference" {
                 let g = new Graph ()
                 let s = Signal (g, { X = 1; Y = 2 })
-                let c = Memo (g, (fun () -> s.Value.X))
+                let c = Memo (g, (fun _ -> s.Value.X))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- { X = 1; Y = 2 }
@@ -59,7 +59,7 @@ let tests =
                 let first () =
                     let struct (x, _) = s.Value in x
 
-                let c = Memo (g, first)
+                let c = Memo (g, (fun _ -> first ()))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- struct (1, 2)
@@ -76,7 +76,7 @@ let tests =
                     )
 
                 let s = Signal (g, { X = 1; Y = 2 })
-                let c = Memo (g, (fun () -> s.Value.X))
+                let c = Memo (g, (fun _ -> s.Value.X))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- { X = 1; Y = 2 }
@@ -88,7 +88,7 @@ let tests =
                 let g = new Graph ()
                 let a = Opaque "a"
                 let s = Signal (g, a)
-                let c = Memo (g, (fun () -> s.Value.Tag))
+                let c = Memo (g, (fun _ -> s.Value.Tag))
 
                 Expect.equal c.TryValue (Ready "a") "precondition: c is clean"
                 s.Value <- a
@@ -132,9 +132,9 @@ let tests =
                 // Seq.toArray allocated an array per write; ObserverSet reuses one.
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = Memo (g, (fun () -> s.Value + 1))
-                let b = Memo (g, (fun () -> s.Value + 2))
-                let c = Memo (g, (fun () -> s.Value + 3))
+                let a = Memo (g, (fun _ -> s.Value + 1))
+                let b = Memo (g, (fun _ -> s.Value + 2))
+                let c = Memo (g, (fun _ -> s.Value + 3))
 
                 // Reading is what links the edges; with no observers there would
                 // be nothing to notify and the test would be vacuous.

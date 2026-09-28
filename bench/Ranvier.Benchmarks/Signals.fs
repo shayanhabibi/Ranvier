@@ -25,7 +25,7 @@ type SignalBenchmarks() =
 
     [<GlobalSetup>]
     member this.Setup() =
-        this.Observing <- Array.init this.Observers (fun _ -> Memo (graph, (fun () -> signal.Value * 2)))
+        this.Observing <- Array.init this.Observers (fun _ -> Memo (graph, (fun _ -> signal.Value * 2)))
 
         for memo in this.Observing do
             memo.TryValue |> ignore

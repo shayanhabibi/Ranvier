@@ -187,8 +187,8 @@ let tests =
             test "a boundary over a memo chain catches the propagated channel" {
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
-                let doubled = Memo (g, (fun () -> a.Value * 2))
-                let plus = Memo (g, (fun () -> doubled.Value + 1))
+                let doubled = Memo (g, (fun _ -> a.Value * 2))
+                let plus = Memo (g, (fun _ -> doubled.Value + 1))
 
                 let b = Boundary<int>.Suspense(g, (fun () -> plus.Value), (fun _ -> 0))
 
@@ -243,7 +243,7 @@ let tests =
 
                 let b = Boundary<int>.Suspense(g, (fun () -> failwithf "e%d" s.Value), (fun _ -> 0))
 
-                let m = Memo (g, (fun () -> b.Value))
+                let m = Memo (g, (fun _ -> b.Value))
 
                 Expect.equal (reason m.TryValue) "e1" "first failure"
                 s.Value <- 2
@@ -258,7 +258,7 @@ let tests =
                 let b =
                     Boundary<int>.Errors(g, (fun () -> failwithf "e%d" s.Value), (fun ex _ -> failwithf "r:%s" ex.Message))
 
-                let m = Memo (g, (fun () -> b.Value))
+                let m = Memo (g, (fun _ -> b.Value))
 
                 Expect.equal (reason m.TryValue) "r:e1" "first failure"
                 s.Value <- 2
@@ -272,7 +272,7 @@ let tests =
                 let b =
                     Boundary<int>.Errors(g, (fun () -> failwithf "e%d" s.Value), (fun _ _ -> -1))
 
-                let m = Memo (g, (fun () -> sprintf "%d %s" b.Value b.Caught.Message))
+                let m = Memo (g, (fun _ -> sprintf "%d %s" b.Value b.Caught.Message))
 
                 Expect.equal m.TryValue (Ready "-1 e1") "first recovery"
                 s.Value <- 2
@@ -286,7 +286,7 @@ let tests =
                 let b =
                     Boundary<int>.Errors(g, (fun () -> if s.Value = 1 then failwith "e1" else -1), (fun _ _ -> -1))
 
-                let m = Memo (g, (fun () -> b.Value, isNull b.Caught))
+                let m = Memo (g, (fun _ -> b.Value, isNull b.Caught))
 
                 Expect.equal m.TryValue (Ready (-1, false)) "recovered"
                 s.Value <- 2
@@ -326,7 +326,7 @@ let tests =
 
                 Expect.equal (b.Caught |> Option.ofObj |> Option.map _.Message) (Some "boom") "the body would fail"
 
-                let m = Memo (g, (fun () -> isNull b.Caught))
+                let m = Memo (g, (fun _ -> isNull b.Caught))
                 Expect.equal m.TryValue (Ready false) "the reader sees the recovery"
                 s.Value <- 2
                 Expect.equal m.TryValue (Ready true) "the reader wakes when the body succeeds"
@@ -388,7 +388,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let m =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let a =
                             createAsync (fun _ ->
                                 let flight = TaskCompletionSource<int>()

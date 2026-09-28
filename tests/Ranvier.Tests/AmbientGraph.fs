@@ -45,7 +45,7 @@ let tests =
                             g,
                             fun () ->
                                 let v = a.Value
-                                let doubled = createMemo (fun () -> v * 2)
+                                let doubled = createMemo (fun _ -> v * 2)
                                 seen.Add doubled.Value
                         ))
 
@@ -60,7 +60,7 @@ let tests =
                 let s = Signal (g, 1)
 
                 let m =
-                    g.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> s.Value + 1)).Value))
+                    g.Run (fun () -> createMemoWith (fun _ -> (createMemo (fun _ -> s.Value + 1)).Value))
 
                 s.Value <- 5
 
@@ -104,7 +104,7 @@ let tests =
                 let sb = Signal (b, 1)
 
                 let m =
-                    b.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> sb.Value * 10)).Value))
+                    b.Run (fun () -> createMemoWith (fun _ -> (createMemo (fun _ -> sb.Value * 10)).Value))
 
                 let seen = ResizeArray ()
 

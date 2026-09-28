@@ -77,7 +77,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
                 let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult (s.Value * 10)))
-                let m = Memo (g, (fun () -> a.Value + 1))
+                let m = Memo (g, (fun _ -> a.Value + 1))
 
                 Expect.equal m.Value 1 "first read"
                 let before = m.Runs
@@ -526,7 +526,7 @@ let tests =
                         a <- new AsyncMemo<int> (g, (fun _ -> flight.Task))
                         o)
 
-                let m = Memo (g, (fun () -> a.Value + 1))
+                let m = Memo (g, (fun _ -> a.Value + 1))
                 let seen = ResizeArray<string>()
 
                 use _reader =
@@ -622,7 +622,7 @@ let tests =
                 let a = AsyncSource<int> g
                 a.Settle 5
 
-                let m = Memo (g, (fun () -> a.Value))
+                let m = Memo (g, (fun _ -> a.Value))
                 Expect.equal m.Value 5 "the reader arrived after the fact and saw a plain value"
                 Expect.equal m.Runs 1 "with no suspended attempt before it"
             }

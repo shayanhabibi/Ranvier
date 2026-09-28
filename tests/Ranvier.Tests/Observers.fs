@@ -49,7 +49,7 @@ let tests =
                     // observer entry and adds two. Reading once per run is
                     // self-correcting and hides the bug entirely.
                     for _ in 1..width do
-                        memos.Add (Memo (g, (fun () -> s.Value + s.Value)))
+                        memos.Add (Memo (g, (fun _ -> s.Value + s.Value)))
 
                     for v in 1..50 do
                         s.Value <- v
@@ -146,7 +146,7 @@ let tests =
                     let memos = ResizeArray<Memo<int>>()
 
                     for _ in 1..width do
-                        memos.Add (Memo (g, (fun () -> if useLeft.Value then left.Value else 0)))
+                        memos.Add (Memo (g, (fun _ -> if useLeft.Value then left.Value else 0)))
 
                     for m in memos do
                         m.TryValue |> ignore
@@ -180,7 +180,7 @@ let sourceTests =
                 let g = new Graph ()
                 let useLeft = Signal (g, true)
                 let left = Signal (g, 1)
-                let m = Memo (g, (fun () -> if useLeft.Value then left.Value else 0))
+                let m = Memo (g, (fun _ -> if useLeft.Value then left.Value else 0))
 
                 m.Value |> ignore
                 useLeft.Value <- false
@@ -203,7 +203,7 @@ let sourceTests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             let mutable total = 0
 
                             for _ in 1..20 do
@@ -232,7 +232,7 @@ let sourceTests =
                 let m =
                     Memo (
                         g,
-                        (fun () ->
+                        (fun _ ->
                             if flip.Value then
                                 b.Value * 100 + a.Value
                             else
@@ -262,7 +262,7 @@ let sourceTests =
                 let m =
                     Memo (
                         g,
-                        (fun () ->
+                        (fun _ ->
                             if second.Value then
                                 a.Value + c.Value
                             else

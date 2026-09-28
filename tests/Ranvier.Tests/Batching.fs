@@ -38,7 +38,7 @@ let tests =
             test "a memo read inside a batch is recomputed there and then" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let m = Memo (g, (fun () -> s.Value * 10))
+                let m = Memo (g, (fun _ -> s.Value * 10))
 
                 Expect.equal m.Value 10 "precondition"
 
@@ -58,7 +58,7 @@ let tests =
             test "an effect is deferred to the end of the batch even when its memo was read inside" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let m = Memo (g, (fun () -> s.Value * 10))
+                let m = Memo (g, (fun _ -> s.Value * 10))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add m.Value))
@@ -188,7 +188,7 @@ let tests =
                 let tracked = Signal (g, 1)
                 let hidden = Signal (g, 10)
 
-                let m = Memo (g, (fun () -> tracked.Value + g.Untrack (fun () -> hidden.Value)))
+                let m = Memo (g, (fun _ -> tracked.Value + g.Untrack (fun () -> hidden.Value)))
 
                 Expect.equal m.Value 11 "precondition"
 

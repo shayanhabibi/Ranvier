@@ -29,11 +29,11 @@ type SuspensionBenchmarks() =
     member val Depth = 1 with get, set
 
     member private _.BuildChain(read: unit -> int, depth) =
-        let mutable previous = Memo (graph, (fun () -> trigger.Value + read ()))
+        let mutable previous = Memo (graph, (fun _ -> trigger.Value + read ()))
 
         for _ in 2..depth do
             let inner = previous
-            previous <- Memo (graph, (fun () -> inner.Value + 1))
+            previous <- Memo (graph, (fun _ -> inner.Value + 1))
 
         previous
 

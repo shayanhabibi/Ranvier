@@ -23,7 +23,7 @@ let tests =
             test "Peek on a never-read memo does not run the body" {
                 let g = new Graph ()
                 let source = Signal (g, 5)
-                let m = Memo (g, (fun () -> source.Value * 2))
+                let m = Memo (g, (fun _ -> source.Value * 2))
 
                 // The honest answer for a memo that has never computed is the
                 // default, because there is nothing else to give without
@@ -39,7 +39,7 @@ let tests =
             test "Peek does not recompute a stale memo" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let m = Memo (g, (fun () -> source.Value * 10))
+                let m = Memo (g, (fun _ -> source.Value * 10))
 
                 Expect.equal m.Value 10 "precondition"
 
@@ -73,7 +73,7 @@ let tests =
             test "a memo read only through Peek still counts as unread" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let m = Memo (g, (fun () -> source.Value * 2))
+                let m = Memo (g, (fun _ -> source.Value * 2))
 
                 m.Peek |> ignore
                 Expect.equal source.ObserverCount 0 "peeking a memo does not make it read its own sources"
@@ -88,7 +88,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             let a = tracked.Value
 
                             let b =
@@ -128,7 +128,7 @@ let tests =
             test "an untracked read of a stale memo still recomputes it" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let m = Memo (g, (fun () -> source.Value * 10))
+                let m = Memo (g, (fun _ -> source.Value * 10))
 
                 Expect.equal m.Value 10 "precondition"
                 source.Value <- 2
@@ -172,7 +172,7 @@ let tests =
             test "a fresh memo is Uninitialized until something reads it" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let m = Memo (g, (fun () -> source.Value))
+                let m = Memo (g, (fun _ -> source.Value))
 
                 Expect.isTrue (m.Status.HasFlag Status.Uninitialized) "nothing has computed yet"
 
@@ -183,8 +183,8 @@ let tests =
             test "reading a memo twice in one body is one edge and one computation" {
                 let g = new Graph ()
                 let source = Signal (g, 2)
-                let m = Memo (g, (fun () -> source.Value * 2))
-                let outer = Memo (g, (fun () -> m.Value + m.Value))
+                let m = Memo (g, (fun _ -> source.Value * 2))
+                let outer = Memo (g, (fun _ -> m.Value + m.Value))
 
                 Expect.equal outer.Value 8 "precondition"
                 Expect.equal m.Runs 1 "the second read hit the cache"

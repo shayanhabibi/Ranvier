@@ -291,7 +291,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             if not gateB.Task.IsCompleted then
                                 gateB.SetResult ()
 
@@ -597,7 +597,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
                 let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
-                let doubled = Memo (g, (fun () -> a.Value * 2))
+                let doubled = Memo (g, (fun _ -> a.Value * 2))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add doubled.Value))

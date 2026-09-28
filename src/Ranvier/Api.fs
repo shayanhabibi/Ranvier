@@ -72,13 +72,24 @@ module Api =
     /// A derived value, recomputed on read once something it read has changed.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// <c>compute</c> is a pure derivation. Creating an owned node in it (a memo,
     /// effect, async value, boundary, root, projection, lookup or <c>onCleanup</c>),
     /// <c>untrack</c> blocks included, raises <c>InvalidOperationException</c>, and the
     /// run fails even when <c>compute</c> catches the exception. A memo that creates
     /// nodes is <c>createMemoWith</c>.
+    /// </para>
+    /// <para>
+    /// <c>compute</c> receives the value last published, <c>ValueNone</c> before the first. After a run that suspends or
+    /// fails, the next run receives the same value. Returning that value unchanged keeps dependents clean.
+    /// </para>
     /// </remarks>
-    let createMemo (compute: unit -> 'T) =
+    /// <example>
+    /// <code lang="fsharp">
+    /// let total = createMemo (fun prev -> ValueOption.defaultValue 0 prev + amount.Value)
+    /// </code>
+    /// </example>
+    let createMemo (compute: 'T voption -> 'T) =
         Memo.Create (Graph.Current, compute, ScopeMode.Pure)
 
     /// <summary>
@@ -86,11 +97,17 @@ module Api =
     /// before the next run and with the memo; the cleanups run untracked, and <c>compute</c> runs once per discharge.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// A read of the memo from one of its cleanups returns the previous value, unless the cleanup first wrote a source of
     /// the memo: that read re-runs <c>compute</c> and its result replaces the pending run. An async value created and read
     /// in <c>compute</c> restarts its flight on every settle and never settles: create it outside and read it in <c>compute</c>.
+    /// </para>
+    /// <para>
+    /// <c>compute</c> receives the value last published, <c>ValueNone</c> before the first. Nodes created by the previous
+    /// run are disposed before <c>compute</c> runs, including any held in that value.
+    /// </para>
     /// </remarks>
-    let createMemoWith (compute: unit -> 'T) =
+    let createMemoWith (compute: 'T voption -> 'T) =
         Memo.Create (Graph.Current, compute, ScopeMode.Owning)
 
     /// <summary>
@@ -360,20 +377,17 @@ module Api =
     let createOptionMemo (select: unit -> 'A option) : Memo<'A option> =
         let graph = Graph.Current
         let equal = graph.Options.Equality.Comparer<'A>()
-        let last = ref None
 
-        let compute () =
+        let compute (last: 'A option voption) =
             let next = select ()
 
-            match last.Value, next with
-            | Some previous, Some current when
+            match last, next with
+            | ValueSome (Some previous as kept), Some current when
                 Identity.same previous current
                 || equal.Equals (previous, current)
                 ->
-                last.Value
-            | _ ->
-                last.Value <- next
-                next
+                kept
+            | _ -> next
 
         Memo.Create (graph, compute, ScopeMode.Pure)
 

@@ -387,7 +387,7 @@ let tests =
                 let state = createSignal model
 
                 let wrapped =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         state.Value.Todos
                         |> List.tryFind (fun t -> t.Id = 2))
 
@@ -404,7 +404,7 @@ let tests =
                 let state = createSignal model
 
                 let outer =
-                    createMemo (fun () -> (createOptionMemo (fun () -> state.Value.Todos |> List.tryHead)).Value)
+                    createMemo (fun _ -> (createOptionMemo (fun () -> state.Value.Todos |> List.tryHead)).Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> outer.Value |> ignore) "the owned-node rule applies"
             }
@@ -427,12 +427,12 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let state = createSignal model
-                let user = createMemo (fun () -> state.Value.User)
-                let addr = createMemo (fun () -> user.Value.Addr)
-                let city = createMemo (fun () -> addr.Value.City)
-                let zip = createMemo (fun () -> addr.Value.Zip)
-                let name = createMemo (fun () -> user.Value.Name)
-                let theme = createMemo (fun () -> state.Value.Theme)
+                let user = createMemo (fun _ -> state.Value.User)
+                let addr = createMemo (fun _ -> user.Value.Addr)
+                let city = createMemo (fun _ -> addr.Value.City)
+                let zip = createMemo (fun _ -> addr.Value.Zip)
+                let name = createMemo (fun _ -> user.Value.Name)
+                let theme = createMemo (fun _ -> state.Value.Theme)
                 let cityRuns = countRuns (fun () -> city.Value)
                 let zipRuns = countRuns (fun () -> zip.Value)
                 let nameRuns = countRuns (fun () -> name.Value)
