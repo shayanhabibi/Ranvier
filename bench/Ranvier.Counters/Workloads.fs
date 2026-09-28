@@ -35,6 +35,24 @@ let SourcesPerWidget = 10
 /// <summary>Written by every reaction, so no reaction's result is provably unused.</summary>
 let mutable private sink = 0
 
+#if RANVIER_TRACE
+let private created = ResizeArray<Graph> ()
+
+/// <summary>The graphs created by <c>newGraph</c> since the last call, oldest first.</summary>
+let takeGraphs () : Graph[] =
+    let graphs = created.ToArray ()
+    created.Clear ()
+    graphs
+
+/// <summary>A new graph, recorded for <c>takeGraphs</c>.</summary>
+let newGraph () =
+    let graph = new Graph ()
+    created.Add graph
+    graph
+#else
+let inline newGraph () = new Graph ()
+#endif
+
 let private teardown (owner: Owner) (graph: Graph) () =
     owner.Dispose ()
     (graph :> IDisposable).Dispose ()
@@ -45,7 +63,7 @@ let private teardown (owner: Owner) (graph: Graph) () =
 /// change and a direction change.
 /// </summary>
 let table (n: int) =
-    let graph = new Graph ()
+    let graph = newGraph ()
 
     let owner, query, descending =
         graph.CreateRoot (fun owner ->
@@ -83,7 +101,7 @@ let table (n: int) =
 /// builds <c>DetailNodes</c> memo and effect pairs over the selected row. An operation moves the selection.
 /// </summary>
 let detail (n: int) =
-    let graph = new Graph ()
+    let graph = newGraph ()
 
     let owner, selected =
         graph.CreateRoot (fun owner ->
@@ -117,7 +135,7 @@ let detail (n: int) =
 /// source.
 /// </summary>
 let wideDiamond (n: int) =
-    let graph = new Graph ()
+    let graph = newGraph ()
 
     let owner, source =
         graph.CreateRoot (fun owner ->
@@ -150,7 +168,7 @@ let wideDiamond (n: int) =
 /// operation alternates between flipping the condition and writing every active source.
 /// </summary>
 let dynamicBranches (n: int) =
-    let graph = new Graph ()
+    let graph = newGraph ()
 
     let owner, condition, a, b =
         graph.CreateRoot (fun owner ->
@@ -183,7 +201,7 @@ let dynamicBranches (n: int) =
 /// effect. <c>boundary</c> wraps a body in <c>createSuspense</c> or <c>createBoundary</c>.
 /// </summary>
 let private widgets (boundary: (unit -> int) -> Boundary<int>) =
-    let graph = new Graph ()
+    let graph = newGraph ()
 
     let owner, slots =
         graph.CreateRoot (fun owner ->

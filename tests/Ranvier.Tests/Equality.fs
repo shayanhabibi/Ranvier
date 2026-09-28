@@ -3,6 +3,7 @@ module Ranvier.Tests.Equality
 open System
 open Expecto
 open Ranvier
+open Ranvier.Tests.Support
 
 type Point = { X: int; Y: int }
 
@@ -98,7 +99,8 @@ let tests =
                 Expect.equal c.Runs 2 "a different object must not"
             }
 
-            test "a cutoff test on a value type allocates nothing" {
+            untracedOnly
+            <| test "a cutoff test on a value type allocates nothing" {
                 // The reason the comparer is typed at all. An IEqualityComparer<obj>
                 // boxes both operands on every comparison; at 24 bytes a box that
                 // is ~480 KB of garbage for the loop below, against 0 here.
@@ -123,7 +125,8 @@ let tests =
                 Expect.isLessThan allocated 8_192L $"10,000 cutoff tests allocated %d{allocated} bytes; a boxing comparer allocates ~480,000"
             }
 
-            test "notifying observers allocates nothing" {
+            untracedOnly
+            <| test "notifying observers allocates nothing" {
                 // Notification has to walk a copy, because marking a dependent
                 // dirty can drop the edge being walked. Taking that copy with
                 // Seq.toArray allocated an array per write; ObserverSet reuses one.

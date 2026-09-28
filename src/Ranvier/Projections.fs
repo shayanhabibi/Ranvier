@@ -28,6 +28,7 @@ module internal Awaited =
 [<Sealed>]
 type internal RowWatch(graph: Graph, refresh: unit -> unit, touched: unit -> unit) =
     let id = graph.NextId ()
+    do Tracer.RowWatchNew (graph, id)
     let mutable queued = false
     let mutable running = false
 
@@ -80,6 +81,8 @@ type internal IBeaconHost =
 type internal ProjectionBeacon(graph: Graph, host: IBeaconHost) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
+    do Tracer.BeaconNew (graph, id)
 
     interface INode with
         member _.Id = id
@@ -260,7 +263,9 @@ type internal IProjectionPass =
 [<AbstractClass>]
 type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let id = graph.NextId ()
+    do Tracer.Reserve (graph, id)
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
 
     /// <summary>
     /// The beacons among <c>sources</c>: the sources that can be stale without marking the projection. Collected from
@@ -368,12 +373,16 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     /// <summary>Marks the readers of the summary for a check, which brings the pending rows current.</summary>
     let touchSummary () =
+        Tracer.Unattributed graph
         anyPending.NotifyCheck ()
         inFlightVersion.NotifyCheck ()
+        Tracer.Notified graph
 
     let watch = RowWatch (graph, (fun () -> this.RefreshSummary ()), touchSummary)
 
     do link <- graph.CurrentOwner.AttachLinked this
+    do Tracer.ProjectionNew (graph, id, link.Owner)
+    do Tracer.ScopeNew (scope, graph, id)
 
     /// <summary>
     /// Links the source a suspended pass awaits into the running reader.
@@ -401,7 +410,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             i <- i + 1
 
         if not same then
+            Tracer.Moved (graph, id)
             keys.WriteExcept (passKeys.ToArray (), puller)
+            Tracer.Notified graph
 
     /// <summary>
     /// Whether anything other than the projection's <c>RowWatch</c> reads the row.
@@ -481,9 +492,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 if not (isNull entry) then
                     refreshing.Add entry)
 
+            Tracer.Walk (graph, id)
+
             for entry in refreshing do
                 (entry.Row :> ISource).UpdateIfNecessary ()
 
+            Tracer.Walked (graph, id)
             refreshing.Clear ()
 
     /// <summary>Writes <c>anyPending</c> if it moved, leaving <c>running</c> unmarked.</summary>
@@ -531,6 +545,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private this.Run() =
         sources.BeginRun ()
         runs <- runs + 1
+        Tracer.RunStart (graph, id, runs)
         freshness <- Freshness.Clean
 
         passKeys.Clear ()
@@ -565,7 +580,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
                 if previousStatus <> Status.None then
+                    Tracer.Moved (graph, id)
                     beacon.NotifyFailure this.Running
+                    Tracer.Notified graph
+                    Tracer.RunEnd (graph, id, status)
+                else
+                    Tracer.RunEnd (graph, id, status)
+            else
+                Tracer.RunEnd (graph, id, status)
         with
         | NotReadyException _ ->
             // Membership is unknown until the awaited source settles. The
@@ -577,8 +599,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             status <- Status.Pending
 
             if not (previousStatus.HasFlag Status.Pending) then
+                Tracer.Moved (graph, id)
                 beacon.NotifyFailure this.Running
+                Tracer.Notified graph
 
+            Tracer.RunEnd (graph, id, status)
             reraise ()
         | ex ->
             // The beacon wakes other readers on the transition into Error,
@@ -594,8 +619,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 not (previousStatus.HasFlag Status.Error)
                 || (not retry && not (obj.ReferenceEquals (ex, previousError)))
             then
+                Tracer.Moved (graph, id)
                 beacon.NotifyFailure this.Running
+                Tracer.Notified graph
 
+            Tracer.RunEnd (graph, id, status)
             reraise ()
 
     /// <summary>
@@ -661,11 +689,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             (this :> IComputation).MarkDirty ()
 
     member private this.ResolveCheck() =
+        Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
             sources.SourceAt(i).UpdateIfNecessary ()
             i <- i + 1
+
+        Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
         if freshness = Freshness.Check then
             freshness <- Freshness.Clean
@@ -675,11 +706,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// moved marks the projection dirty before the retry.
     /// </summary>
     member private _.ResolveFailedCheck() =
+        Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while not invalidated && i < sources.Count do
             sources.SourceAt(i).UpdateIfNecessary ()
             i <- i + 1
+
+        Tracer.CheckResolved (graph, id, invalidated)
 
     member internal this.EnsureCurrent() =
         if freshness <> Freshness.Clean && not disposed then
@@ -722,6 +756,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         member _.Scope =
             if isNull (box passScope) then
                 passScope <- new Owner (graph.Root)
+                Tracer.ScopeNew (passScope, graph, id)
 
                 if disposed then
                     passScope.Dispose ()
@@ -744,12 +779,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                             | :? ProjectionBeacon as source -> upstreamBeacons.Add source
                             | _ -> ()
 
+                    Tracer.Walk (graph, id)
                     let mutable i = 0
 
                     while freshness = Freshness.Clean && i < upstreamBeacons.Count do
                         upstreamBeacons[i].UpdateIfNecessary ()
                         i <- i + 1
 
+                    Tracer.Walked (graph, id)
                     this.EnsureCurrent ()
                 with _ ->
                     ()
@@ -1071,6 +1108,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         graph.Untrack (fun () ->
             let copy = RowSnapshot<'K, 'V> (entries.Count)
+            Tracer.Walk (graph, id)
 
             for key in keys.Peek do
                 let entry = entries.Find key
@@ -1081,6 +1119,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                     if entry.Settled then
                         copy.Add (key, entry.Row.Peek)
 
+            Tracer.Walked (graph, id)
             copy :> IReadOnlyDictionary<'K, 'V>)
 
 #if !FABLE_COMPILER
@@ -1160,6 +1199,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member _.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -1361,6 +1401,8 @@ type internal ILookupSource<'K, 'V> =
 type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphaned: unit -> unit) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
+    do Tracer.Bind (observers, graph, id)
+    do Tracer.LookupCellNew (graph, id)
     let mutable value = Unchecked.defaultof<'V>
     let mutable error: exn = null
     let mutable pending = false
@@ -1403,12 +1445,16 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
             pending <- false
             error <- null
             value <- v
+            Tracer.Moved (graph, id)
             observers.NotifyDirty ()
+            Tracer.Notified graph
 
     member _.Fail(ex: exn) =
         pending <- false
         error <- ex
+        Tracer.Moved (graph, id)
         observers.NotifyDirty ()
+        Tracer.Notified graph
 
     /// <summary>
     /// Marks the cell as waiting on its source. Readers are notified on the
@@ -1418,7 +1464,9 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
         if not pending then
             pending <- true
             error <- null
+            Tracer.Moved (graph, id)
             observers.NotifyDirty ()
+            Tracer.Notified graph
 
     member _.ObserverCount = observers.Count
 
@@ -1477,6 +1525,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let mutable rule = ScopeMessages.lookup
 
     do link <- graph.CurrentOwner.AttachLinked this
+    do Tracer.OwnerAdopt (link.Owner, scope, false)
 
     member private this.Source = box this :?> ILookupSource<'K, 'V>
 
@@ -1549,6 +1598,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let mutable failure: exn = null
 
         let mutable suspended = false
+        Tracer.RunStart (graph, (cell :> INode).Id, 0)
 
         try
             v <- this.RunPure (ScopeMessages.lookup, (fun () -> this.Source.Compute key))
@@ -1559,12 +1609,15 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         if suspended then
             failed.Add key |> ignore
             cell.Suspend ()
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         elif isNull failure then
             failed.Remove key
             cell.Write v
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         else
             failed.Add key |> ignore
             cell.Fail failure
+            Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
 
     /// <summary>
     /// Recomputes the live cells among <c>affectedKeys</c>, and every failed cell.

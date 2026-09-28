@@ -3,4 +3,18 @@
         <BuildDependsOn>BeforeBuild;AfterBuild</BuildDependsOn>
         <CompileDependsOn />
     </PropertyGroup>
+
+    <!--
+    `RanvierTrace=true` compiles in the per-graph event log (`RANVIER_TRACE`).
+    Debug defaults to traced; any other configuration defaults to untraced. An
+    explicit value, global or set in a project file, wins over the default. The
+    define is repo-wide, so tests and samples see the same build as the library.
+    -->
+    <PropertyGroup>
+        <RanvierTrace Condition="'$(RanvierTrace)' == '' and '$(Configuration)' == 'Debug'">true</RanvierTrace>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(RanvierTrace)' == 'true'">
+        <DefineConstants>$(DefineConstants);RANVIER_TRACE</DefineConstants>
+    </PropertyGroup>
 </Project>

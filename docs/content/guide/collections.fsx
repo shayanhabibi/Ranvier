@@ -40,10 +40,12 @@ The source is a function returning a sequence, usually a signal's value.
 #load "../../../src/Ranvier/Types.fs"
 #load "../../../src/Ranvier/PlatformDispatcher.fs"
 #load "../../../src/Ranvier/Platform.fs"
+#load "../../../src/Ranvier/Trace.fs"
 #load "../../../src/Ranvier/Core.fs"
 #load "../../../src/Ranvier/Projections.fs"
 #load "../../../src/Ranvier/Api.fs"
 #load "../../../src/Ranvier/Combinators.fs"
+#load "../../../src/Ranvier/TraceApi.fs"
 
 let graph = new Ranvier.Graph ()
 let active = graph.Activate ()

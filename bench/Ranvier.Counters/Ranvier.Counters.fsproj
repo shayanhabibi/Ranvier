@@ -23,6 +23,7 @@
         <Compile Include="Markers.fs" />
         <Compile Include="Workloads.fs" />
         <Compile Include="Scenarios.fs" />
+        <Compile Include="Reconcile.fs" />
         <Compile Include="Worker.fs" />
         <Compile Include="Pmc.fs" />
         <Compile Include="NodeRuns.fs" />
