@@ -7,7 +7,7 @@ open System.Text.RegularExpressions
 type MapFlags =
     {
         Timeline: bool
-        /// <summary>Plays a build-time recording; implies <c>Timeline</c>.</summary>
+        /// <summary>Presses every control once, in order, and plays the result; implies <c>Timeline</c>.</summary>
         Replay: bool
     }
 
@@ -198,53 +198,18 @@ module MapFence =
         let timeline = if timeline then "true" else "false"
         $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) [| %s{bindings} |] %s{timeline}"
 
-    /// <summary>The F# for a <c>map</c> fence: a live scenario, or the recording when <c>flags.Replay</c>.</summary>
+    /// <summary>The F# for a <c>map</c> fence: its scenario, live or replayed when <c>flags.Replay</c>.</summary>
     /// <param name="cellId">The cell's id, which names the generated module.</param>
     /// <param name="flags">The fence's flags.</param>
-    /// <param name="recorded">The <c>Replay.literal</c> of the scenario's events; read only when replaying.</param>
     /// <param name="code">The fence's code.</param>
-    let generate (cellId: string) (flags: MapFlags) (recorded: string option) (code: string) : Result<MapFenceOutput, (int * string) list> =
-        match scenario cellId code with
-        | Error problems -> Error problems
-        | Ok(live, spans, bindings) ->
-            let name = moduleName cellId
+    let generate (cellId: string) (flags: MapFlags) (code: string) : Result<MapFenceOutput, (int * string) list> =
+        scenario cellId code
+        |> Result.map (fun (live, spans, bindings) ->
+            let source = if flags.Replay then "Replayed" else "Live"
 
-            match flags.Replay, recorded with
-            | false, _ ->
-                Ok
-                    {
-                        Code = live
-                        Render = render $"Ranvier.Docs.Maps.Live %s{name}.scenario" bindings flags.Timeline
-                        Spans = spans
-                        Bindings = bindings
-                    }
-            | true, None -> Error [ 1, "A replayed map fence needs its recording." ]
-            | true, Some literal ->
-                let body =
-                    literal.Split '\n'
-                    |> Array.map (fun line -> "        " + line.TrimEnd('\r'))
-
-                let lines =
-                    [|
-                        $"module %s{name} ="
-                        "    open Ranvier.Docs.Maps"
-                        ""
-                        "    let events: Ranvier.TraceEvent[] ="
-                        yield! body
-                    |]
-
-                Ok
-                    {
-                        Code = String.concat "\n" lines
-                        Render = render $"Ranvier.Docs.Maps.Recorded %s{name}.events" bindings true
-                        Spans =
-                            [
-                                {
-                                    Generated = 1
-                                    Length = lines.Length
-                                    Body = 1
-                                    Indent = Int32.MaxValue
-                                }
-                            ]
-                        Bindings = bindings
-                    }
+            {
+                Code = live
+                Render = render $"Ranvier.Docs.Maps.%s{source} %s{moduleName cellId}.scenario" bindings flags.Timeline
+                Spans = spans
+                Bindings = bindings
+            })

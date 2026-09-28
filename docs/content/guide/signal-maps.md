@@ -67,7 +67,8 @@ last run, as `Trace.why` renders it. The log beneath the buttons lists the lates
 ## Timelines and replays
 
 With `timeline`, the map records every event and adds play, step and a scrub bar; each tick on the
-bar is an animated event. Two writes in quick succession start two flights here. The first is
+bar is an animated event. The bar starts where the scenario's setup ends; the log keeps the setup's
+events. Two writes in quick succession start two flights here. The first is
 superseded: its ring fades and the log reads `drop shipping (superseded)`. Only the newest flight can
 settle.
 
@@ -86,8 +87,8 @@ controls [
 ]
 ```
 
-With `replay`, the site build runs the scenario under .NET, presses every button once in order, and
-embeds the recording. The map opens at the start of the recording: press **Play** or drag the bar.
+With `replay`, the page runs the scenario and presses every button once, in order. The map opens with
+the graph as the scenario built it; press **Play** or drag the bar to watch the presses.
 
 ```fsharp map replay
 let desk = Desk<decimal>()
@@ -116,7 +117,7 @@ against a fresh traced graph.
 | Flag | Effect |
 | --- | --- |
 | `timeline` | Adds the play, step and scrub bar. |
-| `replay` | Plays a recording made when the site builds; implies `timeline`. |
+| `replay` | Presses every button once, in order, and plays the result; implies `timeline`. |
 | `id=`, `show=` | As on `solid` fences. |
 
 The helpers in scope:
@@ -126,9 +127,8 @@ The helpers in scope:
 - `Desk<'T>()` stands in for a remote service. `desk.Quote x` returns a request that stays pending;
   a newer request cancels it. `desk.Settle value` and `desk.Fail message` answer the pending request.
 
-A live fence compiles with Fable, so its code must compile to JavaScript. A replayed fence runs
-outside the page and declares no page-level types. A fence that does not end with `controls` is
-reported at its last line.
+A fence compiles with Fable, so its code must compile to JavaScript. A fence that does not end with
+`controls` is reported at its last line.
 
 ## A bespoke map
 
@@ -167,7 +167,7 @@ module Thermo =
 - **Buttons are the only input.** A replay presses each button once, in order; a `Desk` holds one
   pending request.
 - **Values are text.** A value longer than 16 characters is cut short; the hover label has it whole.
-  A replayed error names its exception type, a live one does not.
+  An error shows its message without its exception type.
 - **Last run only.** A click explains the most recent run; `Trace.history` and `Trace.whyNot` are
   not in the map.
 

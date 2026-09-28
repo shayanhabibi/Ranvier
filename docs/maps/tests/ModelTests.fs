@@ -279,6 +279,20 @@ let tests =
                 Expect.equal (MapModel.stateAt MapModel.start (MapModel.frames MapModel.start events) -1) MapModel.start "before the first frame"
             }
 
+            test "the timeline spans the frames after setup" {
+                Expect.equal (MapModel.tickAt 2 6 1) None "a setup frame has no tick"
+                Expect.equal (MapModel.tickAt 2 6 2) (Some 0.25) "the first frame after setup"
+                Expect.equal (MapModel.tickAt 2 6 5) (Some 1.0) "the last frame ends the track"
+                Expect.equal (MapModel.tickAt 0 4 0) (Some 0.25) "no setup: every frame counts"
+            }
+
+            test "the cursor stays between the baseline and the last frame" {
+                Expect.equal (MapModel.clampCursor 3 10 -1) 2 "before the baseline: the baseline"
+                Expect.equal (MapModel.clampCursor 3 10 5) 5 "inside: unchanged"
+                Expect.equal (MapModel.clampCursor 3 10 42) 9 "past the end: the last frame"
+                Expect.equal (MapModel.clampCursor 0 0 4) -1 "no frames: before the first"
+            }
+
             test "edges join visible sources to their observers" {
                 let c = cart ()
 
@@ -303,42 +317,6 @@ let tests =
                 Expect.equal placed[4] (1, 0) "the observer of the first source comes first"
                 Expect.equal placed[3] (1, 1) "then the observer of the second"
                 Expect.equal (Layout.place [ 4; 3; 2; 1 ] sources) placed "the order of the input does not matter"
-            }
-
-            test "normalise folds to the same snapshot" {
-                let c = cart ()
-                c.Lines.Value <- [ { Sku = "tea"; Price = 4m; Qty = 2 } ]
-                c.Desk.Fail "quote down"
-                let events = Trace.events c.Graph
-                let normal = Replay.normalise events
-
-                Expect.equal (TraceModel.snapshot normal).Nodes (TraceModel.snapshot events).Nodes "the same nodes"
-
-                Expect.all normal (fun e -> isNull e.Payload || e.Payload :? string) "every payload is text"
-            }
-
-            test "literal escapes strings" {
-                let e =
-                    {
-                        Seq = 1
-                        Kind = TraceEventKind.Label
-                        Node = 2
-                        Other = 0
-                        Arg = 1
-                        Flag = 0
-                        Cause = 0
-                        Payload = box "a\"b\\c\nd"
-                    }
-
-                let quiet = { e with Seq = 2; Payload = null }
-
-                Expect.equal
-                    (Replay.literal [| e; quiet |])
-                    "[|\n    Replay.event 1 6 2 0 1 0 0 \"a\\\"b\\\\c\\nd\"\n    Replay.event 2 6 2 0 1 0 0 null\n|]"
-                    "one event per line, strings escaped"
-
-                let rebuilt = Replay.event 1 6 2 0 1 0 0 "x"
-                Expect.equal (rebuilt.Kind, rebuilt.Payload) (TraceEventKind.Label, box "x") "event rebuilds the record"
             }
         ]
 #else

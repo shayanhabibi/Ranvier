@@ -239,7 +239,7 @@ Trace.snapshot graph |> Trace.render graph |> printfn "%s"
   /banner Effect ok runs 2 <- /total
 ```
 
-A `map replay` fence draws a log like this one. The site build runs the example under .NET with tracing on, presses each button once, and embeds the recording; Play, Step and the scrubber move through its events.
+A `map replay` fence draws a log like this one. The page runs the example, presses each button once, and plays the result; Play, Step and the scrubber move through its events.
 
 ```fsharp map replay
 let lines = createSignal [ 4m; 6m ]

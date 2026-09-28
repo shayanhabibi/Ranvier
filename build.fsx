@@ -238,7 +238,7 @@ module Stage =
             // RanvierTrace compiles the trace log into the Release build.
             stage "compile traced tests" {
                 quiet
-                envVars [ "RanvierTrace", "true" ]
+                envVars [ ("RanvierTrace", "true") ]
                 run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests-traced -c Release"
             }
             stage "run and report" {

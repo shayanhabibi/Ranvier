@@ -1,7 +1,6 @@
 module Ranvier.Docs.Maps.Tests.AuthoringTests
 
 open System
-open System.IO
 open Expecto
 open Ranvier.Docs.Maps.Authoring
 
@@ -37,37 +36,6 @@ let private locate (spans: MapSpan list) (line: int) =
     spans
     |> List.tryFind (fun s -> line >= s.Generated && line < s.Generated + s.Length)
     |> Option.map (fun s -> if s.Indent = Int32.MaxValue then 0 else s.Body + line - s.Generated)
-
-/// The directory holding Ranvier.slnx, from RANVIER_ROOT or above the test assembly.
-let private root () =
-    match Environment.GetEnvironmentVariable "RANVIER_ROOT" with
-    | null
-    | "" ->
-        let rec up (dir: DirectoryInfo) =
-            if File.Exists(Path.Combine(dir.FullName, "Ranvier.slnx")) then
-                dir.FullName
-            else
-                up dir.Parent
-
-        up (DirectoryInfo AppContext.BaseDirectory)
-    | path -> path
-
-let private replaySettings () : ReplaySettings =
-    let dir = root ()
-
-    match ReplayRunner.buildTraced dir with
-    | Ok ranvier ->
-        {
-            Ranvier = ranvier
-            Sources =
-                [ "Helpers.fs"; "Replay.fs" ]
-                |> List.map (fun f -> Path.Combine(dir, "docs", "maps", "model", f))
-            Cache = Path.Combine(Path.GetTempPath(), "ranvier-maps-replay-tests", string (Guid.NewGuid()))
-        }
-    | Error output -> failtestf "the traced build failed:\n%s" output
-
-/// Replay settings over a traced build of Ranvier, built once for every test that records.
-let private replay = lazy (replaySettings ())
 
 [<Tests>]
 let tests =
@@ -115,22 +83,20 @@ let tests =
                     "the problem sits at the last line of code"
             }
 
-            test "replay renders the recording" {
+            test "replay renders the scenario, replayed" {
                 let flags = MapFlags.parse [ "replay" ]
                 Expect.isTrue flags.Timeline "replay implies the timeline"
 
-                match MapFence.generate "cart" flags (Some "[|\n    Replay.event 1 1 1 0 1 0 0 null\n|]") cart with
+                match MapFence.generate "cart" flags cart with
                 | Ok output ->
-                    Expect.stringContains output.Render "Ranvier.Docs.Maps.Recorded Map_cart.events" "a recorded source"
-                    Expect.stringContains output.Render "|] true" "with the timeline"
-                    Expect.stringContains output.Code "        Replay.event 1 1 1 0 1 0 0 null" "the literal sits in the module"
+                    Expect.stringContains output.Code "let scenario (graph': Graph) : Control list =" "the scenario module"
+                    Expect.stringContains output.Render "Ranvier.Docs.Maps.Replayed Map_cart.scenario" "a replayed source"
+                    Expect.stringEnds output.Render "|] true" "with the timeline"
                 | Error problems -> failtestf "rejected: %A" problems
-
-                Expect.isError (MapFence.generate "cart" flags None cart) "a replay needs its recording"
             }
 
             test "live renders the scenario" {
-                match MapFence.generate "cart-live" (MapFlags.parse []) None cart with
+                match MapFence.generate "cart-live" (MapFlags.parse []) cart with
                 | Ok output ->
                     Expect.stringContains output.Code "module Map_cart_live =" "a module per cell"
 
@@ -141,30 +107,5 @@ let tests =
 
                     Expect.stringEnds output.Render "|] false" "no timeline"
                 | Error problems -> failtestf "rejected: %A" problems
-            }
-
-            test "record runs the scenario and prints its events" {
-                let code, _, _ = scenario cart
-                let settings = replay.Force()
-
-                match ReplayRunner.record settings code (MapFence.moduleName "cart") with
-                | Ok literal ->
-                    Expect.stringStarts literal "[|" "an array literal"
-                    Expect.stringContains literal "Replay.event" "of events"
-                    Expect.stringContains literal "\"5M\"" "the settled quote"
-                    Expect.equal (ReplayRunner.record settings code (MapFence.moduleName "cart")) (Ok literal) "the second run reads the cache"
-                | Error output -> failtestf "fsi failed:\n%s" output
-            }
-
-            test "record runs each control with the graph active" {
-                let batched =
-                    "let a = createSignal 0\ncreateEffect (fun () -> printfn \"a %d\" a.Value)\n\ncontrols [\n    \"Batch\", fun () -> batch (fun () -> a.Value <- 7)\n]"
-
-                let code, _, _ = scenario batched
-                let settings = replay.Force()
-
-                match ReplayRunner.record settings code (MapFence.moduleName "cart") with
-                | Ok literal -> Expect.stringContains literal "\"7\"" "the batched write"
-                | Error output -> failtestf "fsi failed:\n%s" output
             }
         ]

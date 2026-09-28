@@ -54,8 +54,8 @@ type Desk<'T>() =
 type MapSource =
     /// <summary>A scenario run against a live traced graph; it returns the map's controls.</summary>
     | Live of scenario: (Graph -> Control list)
-    /// <summary>A recording, played back from graph creation.</summary>
-    | Recorded of events: TraceEvent[]
+    /// <summary>A scenario whose controls each run once, in order, before the map plays it back.</summary>
+    | Replayed of scenario: (Graph -> Control list)
 
 [<AutoOpen>]
 module Helpers =

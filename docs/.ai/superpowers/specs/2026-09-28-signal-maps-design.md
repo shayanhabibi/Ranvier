@@ -167,6 +167,14 @@ scrubbing without replaying animations.
 - Recordings are cached under `docs/.nacara/maps-replay`, keyed by a hash of the script, `Helpers.fs`, `Replay.fs`
   and the DLL.
 
+**Amended:** replay now runs in the browser. A `replay` fence compiles like a live one and renders
+`Replayed scenario`: the map runs the scenario, presses each control once, in order, one task apart, and plays the
+frames. `ReplayRunner`, `Replay.fs` and the recording cache are gone.
+
+**Setup baseline:** in every map, the frames recorded while the scenario builds the graph are setup. The first
+paint draws the scene after setup in its final layout, the log lists the setup events, and the scrubber, ticks, Play,
+Step and Reset cover only the frames after it. Setup frames stay in the history.
+
 ## 8. Errors
 
 - Compile errors in a `map` fence point to the author's lines through the transform's line spans.

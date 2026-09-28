@@ -127,7 +127,7 @@ module SignalMapComponent =
         let timeline =
             timeline
             || (match source with
-                | Recorded _ -> true
+                | Replayed _ -> true
                 | Live _ -> false)
 
         let root = Dom.el "div" "rv-map"
@@ -162,6 +162,7 @@ module SignalMapComponent =
         let history = ResizeArray<Frame>()
         let lit = Dictionary<int, Element list>()
         let mutable cursor = -1
+        let mutable setup = 0
         let mutable playing = not timeline
         let mutable scheduled = false
         let mutable timer = 0.0
@@ -538,9 +539,16 @@ module SignalMapComponent =
 
         let refresh () =
             if timeline then
+                scrub.min <- string setup
                 scrub.max <- string history.Count
                 scrub.value <- string (cursor + 1)
                 playButton.textContent <- (if playing then "Pause" else "Play")
+
+        let note (frame: Frame) =
+            match frame.Cue with
+            | Quiet -> ()
+            | Failed _ -> say frame.Log "is-error"
+            | _ -> say frame.Log ""
 
         let show (frame: Frame) =
             sync frame.After
@@ -553,10 +561,7 @@ module SignalMapComponent =
             if not reduced then
                 play frame.Cue
 
-            match frame.Cue with
-            | Quiet -> ()
-            | Failed _ -> say frame.Log "is-error"
-            | _ -> say frame.Log ""
+            note frame
 
         let rec tick () =
             scheduled <- false
@@ -595,10 +600,12 @@ module SignalMapComponent =
                 ticks.innerHTML <- ""
 
                 for i in 0 .. history.Count - 1 do
-                    if history[i].Cue <> Quiet then
+                    match MapModel.tickAt setup history.Count i with
+                    | Some at when history[i].Cue <> Quiet ->
                         let t = Dom.el "span" "rv-map__tick"
-                        t.setAttribute ("style", $"left: {float (i + 1) / float history.Count * 100.0}%%")
+                        t.setAttribute ("style", $"left: {at * 100.0}%%")
                         ticks.appendChild t |> ignore
+                    | _ -> ()
 
         let append (frames: Frame[]) =
             if frames.Length > 0 then
@@ -613,7 +620,7 @@ module SignalMapComponent =
         let jump (index: int) =
             playing <- false
             unlightAll ()
-            cursor <- max -1 (min index (history.Count - 1))
+            cursor <- MapModel.clampCursor setup history.Count index
             sync (MapModel.stateAt MapModel.start (history.ToArray ()) cursor)
             refresh ()
 
@@ -622,6 +629,7 @@ module SignalMapComponent =
             scheduled <- false
             history.Clear ()
             cursor <- -1
+            setup <- 0
             tail <- MapModel.start
             read <- 0
             layoutKey <- ""
@@ -642,40 +650,79 @@ module SignalMapComponent =
             root.classList.remove "rv-map--failed"
             sync MapModel.start
 
+        /// <summary>Takes the frames recorded so far as setup: drawn at once, logged, and left off the timeline.</summary>
+        let baseline (g: Graph) =
+            let events = Trace.events g
+            read <- events.Length
+            let frames = MapModel.frames MapModel.start events
+            history.AddRange frames
+            setup <- frames.Length
+            cursor <- setup - 1
+            tail <- MapModel.stateAt MapModel.start frames cursor
+            sync tail
+
+            for frame in frames do
+                note frame
+
+            redrawTicks ()
+            refresh ()
+
         let rec start () =
             clear ()
+            controlRow.innerHTML <- ""
 
-            match source with
-            | Recorded events ->
-                controlRow.innerHTML <- ""
-                append (MapModel.frames MapModel.start events)
-            | Live scenario ->
-                graph
-                |> Option.iter (fun g -> (g :> IDisposable).Dispose())
+            graph
+            |> Option.iter (fun g -> (g :> IDisposable).Dispose())
 
-                let g = new Graph ()
-                graph <- Some g
-                playing <- true
-                controlRow.innerHTML <- ""
+            let g = new Graph ()
+            graph <- Some g
 
+            let press (control: Control) =
                 try
-                    for control in scenario g do
+                    use _ = g.Activate ()
+                    control.Run ()
+                with ex ->
+                    say $"{control.Label} threw: {ex.Message}" "is-error"
+
+            try
+                match source with
+                | Replayed scenario ->
+                    let controls = scenario g
+                    baseline g
+                    playing <- false
+
+                    // One control per task, in order.
+                    let rec pressFrom (rest: Control list) =
+                        match rest with
+                        | control :: rest when
+                            not disposed
+                            && graph
+                               |> Option.exists (fun current -> obj.ReferenceEquals (current, g))
+                            ->
+                            press control
+
+                            window.setTimeout ((fun () -> pressFrom rest), 0)
+                            |> ignore
+                        | _ -> ()
+
+                    pressFrom controls
+                | Live scenario ->
+                    let controls = scenario g
+                    baseline g
+                    playing <- true
+
+                    for control in controls do
                         controlRow.appendChild (
                             Dom.button control.Label "rv-map__button" (fun () ->
                                 playing <- true
-
-                                try
-                                    use _ = g.Activate ()
-                                    control.Run ()
-                                with ex ->
-                                    say $"{control.Label} threw: {ex.Message}" "is-error")
+                                press control)
                         )
                         |> ignore
 
                     controlRow.appendChild (Dom.button "Reset" "rv-map__button rv-map__button--reset" start)
                     |> ignore
-                with ex ->
-                    fail ("The example threw: " + ex.Message)
+            with ex ->
+                fail ("The example threw: " + ex.Message)
 
         let rec poll () =
             if not disposed then
@@ -739,7 +786,7 @@ module SignalMapComponent =
             bar.appendChild row |> ignore
 
             match source with
-            | Recorded _ ->
+            | Replayed _ ->
                 bar.appendChild (Dom.button "Reset" "rv-map__button rv-map__button--reset" (fun () -> jump -1))
                 |> ignore
             | Live _ -> ()

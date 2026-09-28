@@ -9,7 +9,6 @@
 
     <ItemGroup>
         <Compile Include="MapFence.fs" />
-        <Compile Include="ReplayRunner.fs" />
     </ItemGroup>
 
 </Project>
