@@ -29,7 +29,7 @@ let run () : Sample =
     let count, items, log, sum =
         createRoot (fun _ ->
             let count = Trace.named "count" (fun () -> createSignal 1)
-            let doubled = Trace.named "doubled" (fun () -> createMemo (fun () -> count.Value * 2))
+            let doubled = Trace.named "doubled" (fun () -> createMemo (fun _ -> count.Value * 2))
             let log = Trace.named "log" (fun () -> new Effect (graph, (fun () -> ignore doubled.Value)) :> INode)
             let items = Trace.named "items" (fun () -> createSignal [ "a", 1; "b", 2; "c", 3 ])
 

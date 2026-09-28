@@ -21,7 +21,7 @@ layout: splash
 <span class="k">use</span> _ = graph.Activate ()
 <span></span>
 <span class="k">let</span> price = createAsyncSource&lt;<span class="t">decimal</span>&gt; ()
-<span class="k">let</span> total = createMemo (<span class="k">fun</span> () -&gt; price.Value * <span class="n">3m</span>)
+<span class="k">let</span> total = createMemo (<span class="k">fun</span> _ -&gt; price.Value * <span class="n">3m</span>)
 <span class="k">let</span> view =
     createBoundary
         (<span class="k">fun</span> _ -&gt; <span class="s">"Loading…"</span>)
@@ -152,7 +152,7 @@ A traced build records every write, mark, run and flight, with the source line t
 
 ```fsharp map timeline
 let price = createAsyncSource<decimal> ()
-let total = createMemo (fun () -> price.Value * 3m)
+let total = createMemo (fun _ -> price.Value * 3m)
 
 let view =
     createBoundary

@@ -11,7 +11,7 @@ open Ranvier
 let build (graph: Graph) (i: int) =
     use _ = graph.Activate ()
     let count = createSignal i
-    let total = createMemo (fun () -> count.Value * 2)
+    let total = createMemo (fun _ -> count.Value * 2)
 
 #if LABEL
     Trace.label (graph, total, $"total {i} of {count.Value}")

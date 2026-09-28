@@ -40,7 +40,7 @@ let graph = new Graph ()
 let doubled =
     graph.Run (fun () ->
         let count = createSignal 1
-        let doubled = createMemo (fun () -> count.Value * 2)
+        let doubled = createMemo (fun _ -> count.Value * 2)
         createEffect (fun () -> printfn "doubled = %d" doubled.Value)
         count.Value <- 5
         doubled)
@@ -55,7 +55,7 @@ The same graph, live. A write flashes `count`, a mark travels to `doubled`, and 
 
 ```fsharp map
 let count = createSignal 1
-let doubled = createMemo (fun () -> count.Value * 2)
+let doubled = createMemo (fun _ -> count.Value * 2)
 createEffect (fun () -> printfn "doubled = %d" doubled.Value)
 
 controls [
@@ -174,7 +174,7 @@ let lazyRuns, statusBefore, firstRead, runsAfterRead =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let count = createSignal 1
-    let doubled = createMemo (fun () -> count.Value * 2)
+    let doubled = createMemo (fun _ -> count.Value * 2)
 
     count.Value <- 2
     count.Value <- 3
@@ -199,7 +199,7 @@ let peekStale, readFresh =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let count = createSignal 1
-    let doubled = createMemo (fun () -> count.Value * 2)
+    let doubled = createMemo (fun _ -> count.Value * 2)
 
     doubled.Value |> ignore
     count.Value <- 5
@@ -222,12 +222,12 @@ let diamondSeen, sharedRuns =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let a = createSignal 1
-    let plusOne = createMemo (fun () -> a.Value + 1)
-    let timesTen = createMemo (fun () -> a.Value * 10)
+    let plusOne = createMemo (fun _ -> a.Value + 1)
+    let timesTen = createMemo (fun _ -> a.Value * 10)
     let seen = ResizeArray ()
     createEffect (fun () -> seen.Add (plusOne.Value, timesTen.Value))
 
-    let shared = createMemo (fun () -> a.Value * 100)
+    let shared = createMemo (fun _ -> a.Value * 100)
     createEffect (fun () -> shared.Value |> ignore)
     createEffect (fun () -> shared.Value |> ignore)
 
@@ -260,7 +260,7 @@ let pureFailure =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let count = createSignal 1
-    let creating = createMemo (fun () -> (createMemo (fun () -> count.Value * 2)).Value)
+    let creating = createMemo (fun _ -> (createMemo (fun _ -> count.Value * 2)).Value)
 
     try
         creating.Value |> ignore
@@ -283,7 +283,7 @@ let owningLog =
     let log = ResizeArray ()
 
     let greeting =
-        createMemoWith (fun () ->
+        createMemoWith (fun _ ->
             let name = user.Value
             onCleanup (fun () -> log.Add $"release {name}")
             $"hello {name}")
@@ -391,8 +391,8 @@ let cutoffRuns, parityRuns =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let count = createSignal 2
-    let isEven = createMemo (fun () -> count.Value % 2 = 0)
-    let label = createMemo (fun () -> if isEven.Value then "even" else "odd")
+    let isEven = createMemo (fun _ -> count.Value % 2 = 0)
+    let label = createMemo (fun _ -> if isEven.Value then "even" else "odd")
     let mutable effectRuns = 0
     createEffect (fun () -> label.Value |> ignore; effectRuns <- effectRuns + 1)
 
@@ -411,8 +411,8 @@ In the map, an equal write stops at `count`. A write that keeps the parity re-ru
 
 ```fsharp map
 let count = createSignal 2
-let isEven = createMemo (fun () -> count.Value % 2 = 0)
-let label = createMemo (fun () -> if isEven.Value then "even" else "odd")
+let isEven = createMemo (fun _ -> count.Value % 2 = 0)
+let label = createMemo (fun _ -> if isEven.Value then "even" else "odd")
 createEffect (fun () -> printfn "%s" label.Value)
 
 controls [
@@ -540,7 +540,7 @@ let untrackRuns, untrackedMemoValue =
     tracked.Value <- 1 // re-run
 
     let source = createSignal 1
-    let doubled = createMemo (fun () -> source.Value * 2)
+    let doubled = createMemo (fun _ -> source.Value * 2)
     doubled.Value |> ignore
     source.Value <- 21
     runs, untrack (fun () -> doubled.Value)
@@ -565,7 +565,7 @@ let batchLog =
     use _ = graph.Activate ()
     let first = createSignal "Ada"
     let last = createSignal "Lovelace"
-    let full = createMemo (fun () -> $"{first.Value} {last.Value}")
+    let full = createMemo (fun _ -> $"{first.Value} {last.Value}")
     let log = ResizeArray ()
     createEffect (fun () -> log.Add $"effect: {full.Value}")
 
@@ -594,7 +594,7 @@ In the map, two separate writes run the effect twice. The same two writes in a b
 ```fsharp map
 let a = createSignal 0
 let b = createSignal 0
-let sum = createMemo (fun () -> a.Value + b.Value)
+let sum = createMemo (fun _ -> a.Value + b.Value)
 createEffect (fun () -> printfn $"effect: {sum.Value}")
 
 controls [
@@ -689,7 +689,7 @@ let disposedValue, disposedRuns =
     use graph = new Graph ()
     use _ = graph.Activate ()
     let source = createSignal 1
-    let tenfold = createMemo (fun () -> source.Value * 10)
+    let tenfold = createMemo (fun _ -> source.Value * 10)
     tenfold.Value |> ignore
     source.Value <- 2
     tenfold.Dispose ()

@@ -14,9 +14,9 @@ let build (graph: Graph) =
 
     let total =
 #if NAMED
-        Trace.named "total" (fun () -> createMemo (fun () -> count.Value * 2))
+        Trace.named "total" (fun () -> createMemo (fun _ -> count.Value * 2))
 #else
-        createMemo (fun () -> count.Value * 2)
+        createMemo (fun _ -> count.Value * 2)
 #endif
 
     count.Value <- 3

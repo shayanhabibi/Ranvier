@@ -24,7 +24,7 @@ let graph = new Graph ()
 let doubled =
     graph.Run (fun () ->
         let count = createSignal 1
-        let doubled = createMemo (fun () -> count.Value * 2)
+        let doubled = createMemo (fun _ -> count.Value * 2)
         createEffect (fun () -> printfn "doubled = %d" doubled.Value)
         count.Value <- 5
         doubled)

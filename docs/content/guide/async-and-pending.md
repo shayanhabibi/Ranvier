@@ -64,7 +64,7 @@ let graph = newGraph ()
 let user, greeting =
     graph.Run (fun () ->
         let user = createAsyncSource<string> ()
-        let greeting = createMemo (fun () -> "Hello, " + user.Value)
+        let greeting = createMemo (fun _ -> "Hello, " + user.Value)
         user, greeting)
 
 greeting.TryValue
@@ -123,7 +123,7 @@ by hand. `Settle value` publishes a value, and `Fail exn` publishes a failure.
 
 ```fsharp
 let price = graph.Run (fun () -> createAsyncSource<int> ())
-let shown = graph.Run (fun () -> createMemo (fun () -> price.Value))
+let shown = graph.Run (fun () -> createMemo (fun _ -> price.Value))
 
 price.Settle 10
 shown.Value |> ignore

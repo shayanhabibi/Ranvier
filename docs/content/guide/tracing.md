@@ -62,8 +62,8 @@ let lines = Trace.named "lines" (fun () -> createSignal [ { Sku = "tea"; Price =
 let discount = Trace.named "discount" (fun () -> createSignal 0m)
 let subtotal =
     Trace.named "subtotal" (fun () ->
-        createMemo (fun () -> lines.Value |> List.sumBy (fun l -> l.Price * decimal l.Qty)))
-let total = Trace.named "total" (fun () -> createMemo (fun () -> subtotal.Value - discount.Value))
+        createMemo (fun _ -> lines.Value |> List.sumBy (fun l -> l.Price * decimal l.Qty)))
+let total = Trace.named "total" (fun () -> createMemo (fun _ -> subtotal.Value - discount.Value))
 let banner = Trace.named "banner" (fun () -> new Effect (graph, fun () -> printfn "total %M" total.Value))
 ```
 
@@ -149,7 +149,7 @@ quote, and `total` reads both:
 
 ```fsharp
 let shipping = Trace.named "shipping" (fun () -> createAsync (fun _ -> quote subtotal.Value))
-let total = Trace.named "total" (fun () -> createMemo (fun () -> subtotal.Value + shipping.Value))
+let total = Trace.named "total" (fun () -> createMemo (fun _ -> subtotal.Value + shipping.Value))
 ```
 
 `Trace.history` lists every run of a node, oldest first:
@@ -244,8 +244,8 @@ A `map replay` fence draws a log like this one. The site build runs the example 
 ```fsharp map replay
 let lines = createSignal [ 4m; 6m ]
 let discount = createSignal 0m
-let subtotal = createMemo (fun () -> List.sum lines.Value)
-let total = createMemo (fun () -> subtotal.Value - discount.Value)
+let subtotal = createMemo (fun _ -> List.sum lines.Value)
+let total = createMemo (fun _ -> subtotal.Value - discount.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
