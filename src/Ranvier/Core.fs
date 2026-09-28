@@ -1511,8 +1511,8 @@ type Graph(options: GraphOptions) =
                 queueCount <- 0
             finally
                 flushing <- false
-                this.LeaveAmbient previousAmbient
                 Tracer.FlushEnd this
+                this.LeaveAmbient previousAmbient
 
     /// <summary>
     /// Runs the queued effects. Inside a batch they run when the batch ends.
@@ -2811,6 +2811,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
 type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -> unit) =
     let id = graph.NextId ()
     let sources = SourceList ()
+    do Tracer.Bind (sources, graph, id)
     let equal = graph.Options.Equality.Comparer<'T> ()
 
     /// <summary>
@@ -2848,6 +2849,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 
     member private this.Start() =
         link <- graph.CurrentOwner.AttachLinked this
+        Tracer.EffectNew (graph, id, link.Owner)
         (this :> IComputation).MarkDirty ()
         graph.RequestFlush ()
 
@@ -2859,6 +2861,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 #if RANVIER_COUNTERS
         Counters.EffectRan ()
 #endif
+        Tracer.RunStart (graph, id, 0)
         let mutable v = Unchecked.defaultof<'T>
         let mutable settled = false
 
@@ -2885,8 +2888,12 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
             error <- ex
             status <- Status.Error
 
+        // RunEnd in both branches keeps the untraced IL equal to the unhooked method (tools/verify-trace.fsx, gate 1).
         if settled && not disposed && not (hasActed && equal.Equals (last, v)) then
             this.Act v
+            Tracer.RunEnd (graph, id, status)
+        else
+            Tracer.RunEnd (graph, id, status)
 
     /// <summary>
     /// Discharges the previous action's scope, then runs <c>act</c> with <c>v</c>. An exception from <c>act</c> is recorded
@@ -2917,6 +2924,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     member this.Dispose() =
         if not disposed then
             disposed <- true
+            Tracer.NodeDispose (graph, id)
 
             if not (isNull link) then
                 link.Detach ()
@@ -2969,11 +2977,14 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
                 queued <- false
             else
                 if freshness = Freshness.Check then
+                    Tracer.CheckStart (graph, id)
                     let mutable i = 0
 
                     while freshness = Freshness.Check && i < sources.Count do
                         sources.SourceAt(i).UpdateIfNecessary ()
                         i <- i + 1
+
+                    Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
 
                     if freshness = Freshness.Check then
                         freshness <- Freshness.Clean
@@ -2990,6 +3001,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
             if acting then
                 if isNull (box actionOwner) then
                     actionOwner <- new Owner (graph.Root)
+                    Tracer.ScopeNew (actionOwner, graph, id)
 
                     if disposed then
                         actionOwner.Dispose ()
