@@ -20,18 +20,18 @@ layout: splash
 <pre><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
 <span class="k">use</span> _ = graph.Activate ()
 <span></span>
-<span class="k">let</span> price = createAsyncSource&lt;<span class="t">decimal</span>&gt; ()
-<span class="k">let</span> total = createMemo (<span class="k">fun</span> _ -&gt; price.Value * <span class="n">3m</span>)
+<span class="k">let</span> price = createAsyncSource&lt;<span class="t">int</span>&gt; ()
+<span class="k">let</span> total = createMemo (<span class="k">fun</span> _ -&gt; price.Value * <span class="n">3</span>)
 <span class="k">let</span> view =
     createBoundary
         (<span class="k">fun</span> _ -&gt; <span class="s">"Loading…"</span>)
         (<span class="k">fun</span> ex _ -&gt; <span class="s">"Unavailable: "</span> + ex.Message)
-        (<span class="k">fun</span> () -&gt; sprintf <span class="s">"Total %M"</span> total.Value)
+        (<span class="k">fun</span> () -&gt; sprintf <span class="s">"Total %d"</span> total.Value)
 <span></span>
 <span class="rv-demo__step" data-step="0"><span class="c">// view: Fallback</span></span>
-<span class="rv-demo__step" data-step="1">price.Settle <span class="n">4m</span></span>
+<span class="rv-demo__step" data-step="1">price.Settle <span class="n">4</span></span>
 <span class="rv-demo__step" data-step="2">price.Fail (exn <span class="s">"feed offline"</span>)</span>
-<span class="rv-demo__step" data-step="3">price.Settle <span class="n">5m</span></span></code></pre>
+<span class="rv-demo__step" data-step="3">price.Settle <span class="n">5</span></span></code></pre>
 </div>
 <div class="rv-demo__out" aria-live="polite">
 <div class="rv-demo__label">view.TryValue</div>
@@ -151,21 +151,23 @@ StateDial ()
 A traced build records every write, mark, run and flight, with the source line that caused it. This is the example from the top of the page, running on the real engine compiled to JavaScript with tracing on. Press a button and follow the event along the edges; hover a node for its state, click it for why it last ran. [How to read a map](guide/signal-maps.md#reading-a-map).
 
 ```fsharp map timeline
-let price = createAsyncSource<decimal> ()
-let total = createMemo (fun _ -> price.Value * 3m)
+let price = createAsyncSource<int> ()
+let total = createMemo (fun _ -> price.Value * 3)
 
 let view =
     createBoundary
         (fun _ -> "Loading…")
         (fun ex _ -> "Unavailable: " + ex.Message)
-        (fun () -> sprintf "Total %M" total.Value)
+        (fun () -> sprintf "Total %d" total.Value)
 
 createEffect (fun () -> printfn "%s" view.Value)
 
+let offline = exn "feed offline"
+
 controls [
-    button "Settle 4" (fun () -> price.Settle 4m)
-    button "Fail" (fun () -> price.Fail (exn "feed offline"))
-    button "Settle 5" (fun () -> price.Settle 5m)
+    button "Settle 4" (fun () -> price.Settle 4)
+    button "Fail" (fun () -> price.Fail offline)
+    button "Settle 5" (fun () -> price.Settle 5)
 ]
 ```
 

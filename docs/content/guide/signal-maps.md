@@ -22,20 +22,20 @@ Press **Add tea**, then **Settle quote**. A cart's subtotal feeds a shipping quo
 answer by hand.
 
 ```fsharp map
-let desk = Desk<decimal>()
-let lines = createSignal [ "tea", 4m, 1 ]
+let desk = Desk<int>()
+let lines = createSignal [ "tea", 4, 1 ]
 
 let subtotal =
     createMemo (fun _ ->
-        lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
+        lines.Value |> List.sumBy (fun (_, price, qty) -> price * qty))
 
 let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
-    button "Settle quote" (fun () -> desk.Settle 5m)
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5)
     button "Fail quote" (fun () -> desk.Fail "quote down")
 ]
 ```
@@ -73,9 +73,9 @@ superseded: its ring fades and the log reads `drop shipping (superseded)`. Only 
 settle.
 
 ```fsharp map timeline
-let desk = Desk<decimal>()
+let desk = Desk<int>()
 let qty = createSignal 1
-let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
+let subtotal = createMemo (fun _ -> 4 * qty.Value)
 let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
@@ -83,7 +83,7 @@ controls [
     button "Two quick writes" (fun () ->
         qty.Value <- qty.Value + 1
         qty.Value <- qty.Value + 1)
-    button "Settle quote" (fun () -> desk.Settle 5m)
+    button "Settle quote" (fun () -> desk.Settle 5)
 ]
 ```
 
@@ -92,8 +92,8 @@ Inputs write as you change them: the slider on every movement, the toggle on eac
 ```fsharp map timeline
 let qty = createSignal 1
 let gift = createSignal false
-let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
-let total = createMemo (fun _ -> subtotal.Value + (if gift.Value then 2m else 0m))
+let subtotal = createMemo (fun _ -> 4 * qty.Value)
+let total = createMemo (fun _ -> subtotal.Value + (if gift.Value then 2 else 0))
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
@@ -107,20 +107,20 @@ replay value. The map opens with the graph as the scenario built it; press **Pla
 them run.
 
 ```fsharp map replay
-let desk = Desk<decimal>()
-let lines = createSignal [ "tea", 4m, 1 ]
+let desk = Desk<int>()
+let lines = createSignal [ "tea", 4, 1 ]
 
 let subtotal =
     createMemo (fun _ ->
-        lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
+        lines.Value |> List.sumBy (fun (_, price, qty) -> price * qty))
 
 let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
-    button "Settle quote" (fun () -> desk.Settle 5m)
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5)
 ]
 ```
 
@@ -128,18 +128,18 @@ Under `policy=queue`, flights apply in the order they started. Setup and the two
 newest is answered first, and waits; answering the older two applies all three, in order.
 
 ```fsharp map replay policy=queue
-let desk = Desk<decimal>(queued = true)
+let desk = Desk<int>(queued = true)
 let qty = createSignal 1
-let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
+let subtotal = createMemo (fun _ -> 4 * qty.Value)
 let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
 controls [
     slider "Qty" (1, 10) 1 [ 2; 3 ] (fun v -> qty.Value <- v)
-    button "Answer the newest" (fun () -> desk.SettleNewest 12m)
+    button "Answer the newest" (fun () -> desk.SettleNewest 12)
     button "Answer the older two" (fun () ->
-        desk.Settle 4m
-        desk.Settle 8m)
+        desk.Settle 4
+        desk.Settle 8)
 ]
 ```
 
@@ -212,22 +212,24 @@ open Ranvier.Docs.Maps.SignalMapComponent
 
 let scenario (graph: Graph) =
     use _ = graph.Activate ()
-    let price = Trace.named "price" (fun () -> createAsyncSource<decimal> ())
-    let total = Trace.named "total" (fun () -> createMemo (fun _ -> price.Value * 3m))
+    let price = Trace.named "price" (fun () -> createAsyncSource<int> ())
+    let total = Trace.named "total" (fun () -> createMemo (fun _ -> price.Value * 3))
 
     let view =
         Trace.named "view" (fun () ->
             createBoundary
                 (fun _ -> "Loading…")
                 (fun ex _ -> "Unavailable: " + ex.Message)
-                (fun () -> sprintf "Total %M" total.Value))
+                (fun () -> sprintf "Total %d" total.Value))
 
     createEffect (fun () -> printfn "%s" view.Value)
 
+    let offline = exn "feed offline"
+
     controls [
-        button "Settle 4" (fun () -> price.Settle 4m)
-        button "Fail" (fun () -> price.Fail (exn "feed offline"))
-        button "Settle 5" (fun () -> price.Settle 5m)
+        button "Settle 4" (fun () -> price.Settle 4)
+        button "Fail" (fun () -> price.Fail offline)
+        button "Settle 5" (fun () -> price.Settle 5)
     ]
 
 let map = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] true
@@ -246,6 +248,9 @@ which takes a few seconds.
   created. A signal shows its value from its first write.
 - **Boundaries and projections share the memo mark.** A boundary's fallback or recovered state shows
   as its value. Projection internals such as row watches are hidden.
+- **JavaScript equality.** Maps run under Fable, where `decimal`, `DateTime` and structs compare by
+  reference. A memo returning one moves on every run, so its readers always run again. See
+  [Fable](../fable/index.md).
 - **The dependency graph, not the owner tree.** A disposed node leaves the map.
 - **Values are text.** A value longer than 16 characters is cut short; the hover label has it whole.
   An error shows its message without its exception type.

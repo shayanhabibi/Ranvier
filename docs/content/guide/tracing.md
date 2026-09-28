@@ -242,15 +242,15 @@ Trace.snapshot graph |> Trace.render graph |> printfn "%s"
 A `map replay` fence draws a log like this one. The page runs the example and presses each button once; Play, Step and the scrubber move through its events.
 
 ```fsharp map replay
-let lines = createSignal [ 4m; 6m ]
-let discount = createSignal 0m
+let lines = createSignal [ 4; 6 ]
+let discount = createSignal 0
 let subtotal = createMemo (fun _ -> List.sum lines.Value)
 let total = createMemo (fun _ -> subtotal.Value - discount.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    button "Add a line" (fun () -> lines.Value <- lines.Value @ [ 5m ])
-    button "Discount 2" (fun () -> discount.Value <- 2m)
+    button "Add a line" (fun () -> lines.Value <- lines.Value @ [ 5 ])
+    button "Discount 2" (fun () -> discount.Value <- 2)
 ]
 ```
 

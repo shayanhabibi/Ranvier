@@ -454,10 +454,11 @@ In the map, the effect reads `view` and runs with the fallback while `data` is p
 let data = createAsyncSource<string> ()
 let view = createSuspense (fun _ -> "loading") (fun () -> "loaded " + data.Value)
 createEffect (fun () -> printfn "%s" view.Value)
+let offline = exn "offline"
 
 controls [
     button "Settle" (fun () -> data.Settle "report")
-    button "Fail" (fun () -> data.Fail (exn "offline"))
+    button "Fail" (fun () -> data.Fail offline)
 ]
 ```
 

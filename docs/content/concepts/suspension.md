@@ -264,9 +264,10 @@ In the map, **Fail** marks `price`, `shown` and the effect failed. **Settle 12**
 let price = createAsyncSource<int> ()
 let shown = createMemo (fun _ -> price.Value)
 createEffect (fun () -> printfn "shown %d" shown.Value)
+let offline = exn "offline"
 
 controls [
-    button "Fail" (fun () -> price.Fail (exn "offline"))
+    button "Fail" (fun () -> price.Fail offline)
     button "Settle 12" (fun () -> price.Settle 12)
 ]
 ```
