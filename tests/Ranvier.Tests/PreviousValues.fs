@@ -299,6 +299,61 @@ let asyncTests =
                         }
                 ]
 
+            test "a read of Settled off the graph thread never caches a value older than the one published" {
+                let g = withPolicy KeepLatest
+                let trigger = Signal (g, 0)
+                let flights = Collections.Generic.List<TaskCompletionSource<int>>()
+                let handles = Collections.Generic.List<Previous<int>>()
+
+                let a =
+                    new AsyncMemo<int> (
+                        g,
+                        fun prev _ ->
+                            trigger.Value |> ignore
+                            handles.Add prev
+                            let flight = TaskCompletionSource<int>()
+                            flights.Add flight
+                            flight.Task
+                    )
+
+                a.TryValue |> ignore
+                flights[0].SetResult 0
+                a.TryValue |> ignore
+
+                let read = ref handles[0]
+                let running = ref true
+
+                let reader =
+                    Thread (fun () ->
+                        while running.Value do
+                            read.Value.Settled |> ignore)
+
+                reader.Start ()
+                let mutable stale = 0
+
+                try
+                    for k in 1..20000 do
+                        trigger.Value <- k
+                        a.TryValue |> ignore
+                        read.Value <- handles[handles.Count - 1]
+                        flights[flights.Count - 1].SetResult k
+                        trigger.Value <- -k
+                        a.TryValue |> ignore
+
+                        if
+                            handles[handles.Count - 1].Settled.Result
+                            <> ValueSome k
+                        then
+                            stale <- stale + 1
+
+                        flights[flights.Count - 1].SetResult k
+                finally
+                    running.Value <- false
+                    reader.Join ()
+
+                Expect.equal stale 0 "every flight sees the value published before it"
+            }
+
             test "Queue chains three or more overlapping flights in start order" {
                 let g = withPolicy FlightPolicy.Queue
                 let trigger = Signal (g, 0)

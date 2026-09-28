@@ -3218,10 +3218,12 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     let lastSettled () =
         if published then ValueSome value else ValueNone
 
+    // Under the lock `Settled` takes, so a read off the graph thread never caches a value this write replaces.
     let write (v: 'T) =
-        value <- v
-        published <- true
-        settledTask <- null
+        lock observers (fun () ->
+            value <- v
+            published <- true
+            settledTask <- null)
 
     /// <summary>
     /// The value last published, as a completed task shared by every read until the next publish. Called under the
