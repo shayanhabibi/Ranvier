@@ -9,7 +9,7 @@ Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
 
 How to create a graph, read and write signals, derive values and run effects, and control their
 lifetime. For in-flight values and the pending flag, see [Async and pending](async-and-pending.md);
-for keyed collections, see [Collections](collections.md).
+for keyed collections, see [Collections](collections.fsx).
 
 The sections follow the order in which the concepts build on each other. Every example on this page
 was evaluated in F# Interactive against the Partas.Signals source (commit `915f139`) that Ranvier is

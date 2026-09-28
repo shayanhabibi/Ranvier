@@ -134,7 +134,7 @@ let theme =
                 "Core concepts"
                 [
                     Menu.page "guide/async-and-pending.md"
-                    Menu.page "guide/collections.md"
+                    Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
             Menu.section "Reference" [ Menu.page "guide/troubleshooting.md" ]

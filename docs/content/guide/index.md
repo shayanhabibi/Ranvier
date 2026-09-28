@@ -61,7 +61,7 @@ doubled = 10
 - [Installation](installation.md): how to get Ranvier before its first NuGet release.
 - [Getting started](getting-started.md): graphs, signals, memos, effects, batching and scopes.
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
-- [Collections](collections.md): keyed and index projections, lookups and selectors.
+- [Collections](collections.fsx): keyed and index projections, lookups and selectors.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
 
 ## Status
@@ -72,7 +72,7 @@ doubled = 10
 | Async and boundaries | Implemented. A pending `.Value` read throws `NotReadyException`; `TryValue` reads without throwing. |
 | Projections, lookups and selectors | Implemented, with factory map semantics. A node created inside a memo pulled by a projection row belongs to that memo. |
 | Fable/JavaScript | Planned; see [Fable (JavaScript) target](../fable/index.md). |
-| Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.md#combinator-views). |
+| Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
 
 ## Provenance

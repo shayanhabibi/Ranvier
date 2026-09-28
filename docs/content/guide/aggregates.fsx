@@ -3,12 +3,13 @@
 title: Aggregates
 order: 6
 ---
-
+*)
+(**
 :::info
 Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
 :::
 
-How to keep a total, a count or any other fold over a [projection](collections.md) current as its rows change. An
+How to keep a total, a count or any other fold over a [projection](collections.fsx) current as its rows change. An
 aggregate is a `Memo<'S>`: read it, track it and dispose it as any memo.
 *)
 (*** hide ***)

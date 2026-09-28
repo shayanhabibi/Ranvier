@@ -9,7 +9,7 @@ Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
 
 How values that are not ready yet flow through the graph, how to wait for them with boundaries, and
 which thread may write. For the synchronous core, see [Getting started](getting-started.md); for
-pending rows in collections, see [Collections](collections.md).
+pending rows in collections, see [Collections](collections.fsx).
 
 Every example on this page builds its graph with an explicit `ManualDispatcher`, so the output does not
 depend on the host the page runs in. [Threading and dispatch](#threading-and-dispatch) describes what

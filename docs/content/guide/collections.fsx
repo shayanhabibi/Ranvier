@@ -1,8 +1,10 @@
+(**
 ---
 title: Collections
 order: 5
 ---
-
+*)
+(**
 :::info
 Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
 :::
@@ -30,8 +32,22 @@ of those is observed separately. A lookup has no key set: it holds a cell for ea
 ## Reading a projection
 
 The source is a function returning a sequence, usually a signal's value.
+*)
+(*** hide ***)
+// #load-ed: the page type-checks against the current sources, and the built assembly stays unlocked. Keep this list
+// in the order of the <Compile> items in Ranvier.fsproj.
+#r "nuget: Fable.Core, 5.3.0"
+#load "../../../src/Ranvier/Types.fs"
+#load "../../../src/Ranvier/PlatformDispatcher.fs"
+#load "../../../src/Ranvier/Platform.fs"
+#load "../../../src/Ranvier/Core.fs"
+#load "../../../src/Ranvier/Projections.fs"
+#load "../../../src/Ranvier/Api.fs"
+#load "../../../src/Ranvier/Combinators.fs"
 
-```fsharp
+let graph = new Ranvier.Graph ()
+let active = graph.Activate ()
+
 open Ranvier
 
 type Todo = { Id: int; Title: string }
@@ -46,25 +62,28 @@ let todos =
 let titles = createProjection _.Id _.Title (fun () -> todos.Value)
 
 titles.Keys
-```
+
+(**
 
 ```text
 [|1; 2; 3|]
 ```
+*)
 
-```fsharp
 titles.Get 2
-```
+
+(**
 
 ```text
 "Review it"
 ```
 
 `Snapshot` returns the settled rows in key order, read untracked.
+*)
 
-```fsharp
 titles.Snapshot |> Seq.map (fun row -> row.Key, row.Value) |> List.ofSeq
-```
+
+(**
 
 ```text
 [(1, "Write the guide"); (2, "Review it"); (3, "Publish")]
@@ -82,14 +101,15 @@ value changes. A survivor whose item is unchanged under the graph's equality pol
 `map` or reader keeps its last result, and its readers stay asleep. The default policy compares records by
 reference, so a record rebuilt with equal contents counts as a changed item and re-runs `map`; the
 row's readers wake only if the new value differs.
+*)
 
-```fsharp
 todos.Value <-
     todos.Value
     |> List.map (fun t -> if t.Id = 2 then { t with Title = "Review it twice" } else t)
 
 titles.Get 2
-```
+
+(**
 
 ```text
 "Review it twice"
@@ -112,11 +132,12 @@ equality policy applies to items and row values only. A key built fresh on every
 tuple or an array, matches the previous pass's key when the contents are equal.
 
 A pass that produces the same key twice fails. Every read of the projection raises the failure:
+*)
 
-```fsharp
 let duplicated =
     createProjection _.Id _.Title (fun () -> [ { Id = 1; Title = "a" }; { Id = 1; Title = "b" } ])
-```
+
+(**
 
 The read raises `InvalidOperationException` with the message
 `The projection produced the key 1 twice in one pass. Keys must be unique; check the keyOf function.`
@@ -131,8 +152,8 @@ when the key's item changes or a value it read changes.
 
 The factory runs inside a scope that lives until the key is removed. Nodes created in the factory
 body belong to that scope, and cleanups registered there run when the key is removed.
+*)
 
-```fsharp
 let removed = ResizeArray<int> ()
 
 let rows =
@@ -146,20 +167,24 @@ let rows =
         (fun () -> todos.Value)
 
 rows.Get 1
-```
+
+(**
 
 ```text
 "WRITE THE GUIDE"
 ```
+*)
 
-```fsharp
 todos.Value <- todos.Value |> List.filter (fun t -> t.Id <> 3)
-List.ofSeq removed
-```
+rows.Keys, List.ofSeq removed
+
+(**
 
 ```text
-[3]
+([|1; 2|], [3])
 ```
+
+An unobserved projection runs its pass at the next read, so the removal and its cleanup follow the read of `rows.Keys`.
 
 A cleanup registered in the factory may write the projection's own source; the removal completes and
 the graph settles (`a removed item's cleanup may write the source without hanging`).
@@ -176,11 +201,12 @@ creates an owned node (a memo, effect, async value, boundary, root, projection, 
 form's message begins `A projection's map created an owned node`; the factory form's begins
 `A projection row's reader created an owned node`.
 </div>
+*)
 
-```fsharp
 let misplaced =
     createProjection _.Id (fun t -> (createMemo (fun () -> t.Title)).Value) (fun () -> todos.Value)
-```
+
+(**
 
 `misplaced.Get 1` raises the error above. Moving the memo into `createProjectionWith`'s factory, as
 `rows` does, creates it once per key.
@@ -201,16 +227,19 @@ memo keeps it until the memo's next run or disposal, whichever key or projection
 
 An index projection keys rows by position. The row at a slot survives its item changing, and
 shortening the source drops the trailing slots.
+*)
 
-```fsharp
 let letters = createSignal [ "a"; "b"; "c" ]
 let slots = createIndexProjection (fun (s: string) -> s.ToUpper ()) (fun () -> letters.Value)
-```
 
-```fsharp
+(**
+
+*)
+
 letters.Value <- [ "z" ]
 slots.Keys, slots.Get 0
-```
+
+(**
 
 ```text
 ([|0|], "Z")
@@ -245,15 +274,18 @@ the pass eagerly.
 
 `AsObservableCollection ()` returns an `ObservableCollection` holding the row values in key order, kept
 current by an effect owned by the calling scope.
+*)
 
-```fsharp
 let view = titles.AsObservableCollection ()
-```
 
-```fsharp
+(**
+
+*)
+
 todos.Value <- todos.Value @ [ { Id = 4; Title = "Celebrate" } ]
 List.ofSeq view
-```
+
+(**
 
 ```text
 ["Write the guide"; "Review it twice"; "Celebrate"]
@@ -272,8 +304,8 @@ The updates stop when the calling scope is disposed or re-runs, or when the proj
 `createLookup f affected source` derives a value for any key, computed as `f state key`. A cell exists
 for each key read through `Get`, and a cell with no observers is evicted at the lookup's next
 transition or read of another key. A source change recomputes only the live cells among the keys `affected prev next` returns.
+*)
 
-```fsharp
 let stock = createSignal (Map [ "apples", 3; "pears", 0 ])
 
 let changedKeys (prev: Map<string, int>) (next: Map<string, int>) =
@@ -286,7 +318,8 @@ let onHand =
         stock.Value)
 
 onHand.Get "apples", onHand.Get "plums"
-```
+
+(**
 
 ```text
 (3, 0)
@@ -306,16 +339,19 @@ it succeeds. A pending source suspends every live cell until it settles.
 `createSelector source` is `createLookup` with `affected = fun prev next -> [ prev; next ]`: `Get key` is
 `true` for the selected key and `false` for every other. A selection change wakes only the readers of
 the previous and the next key.
+*)
 
-```fsharp
 let selected = createSignal 1
 let isSelected = createSelector (fun () -> selected.Value)
-```
 
-```fsharp
+(**
+
+*)
+
 selected.Value <- 3
 [ for k in 1..4 -> k, isSelected.Get k ]
-```
+
+(**
 
 ```text
 [(1, false); (2, false); (3, true); (4, false)]
@@ -336,8 +372,8 @@ F# 8's nested `with` writes a field deep inside a record. It rebuilds one record
 record off the path keeps its reference. A path segment that also names a record type in scope resolves as the
 type, so a field `User` of type `User` fails to compile as `{ m with User.Name = ... }`. Qualify the path with the
 outer type (`{ m with Model.User.Name = ... }`) or rename the field.
+*)
 
-```fsharp
 type Address = { City: string; Zip: string }
 type Person = { Name: string; Home: Address }
 
@@ -359,25 +395,29 @@ let store =
             Theme = "dark"
             Items = [ { Id = 1; Title = "Write the guide" }; { Id = 2; Title = "Review it" }; { Id = 3; Title = "Publish" } ]
         }
-```
+
+(**
 
 ### Focused reads
 
 A `createMemo` over a path is the fine-grained read. Under the default policy each memo compares records by
 reference, so a reader of an unchanged branch stays asleep.
+*)
 
-```fsharp
 let owner = createMemo (fun () -> store.Value.Owner)
 let home = createMemo (fun () -> owner.Value.Home)
 let city = createMemo (fun () -> home.Value.City)
 let zip = createMemo (fun () -> home.Value.Zip)
 let theme = createMemo (fun () -> store.Value.Theme)
-```
 
-```fsharp
+(**
+
+*)
+
 Signal.update store (fun s -> { s with Owner.Home.City = "Oslo" })
 city.Value, zip.Value
-```
+
+(**
 
 ```text
 ("Oslo", "5003")
@@ -393,20 +433,23 @@ reads the root (`theme`). Only readers whose value changed wake: here the reader
 under `HashIdentity.Structural`, the comparer of projection row identity. The result is `xs` itself when no key
 matches or `f` returns its argument, so a reference test decides whether the parent needs rebuilding.
 `Array.updateBy` is the same over arrays.
+*)
 
-```fsharp
 let rename id title =
     Signal.update store (fun s ->
         let items = s.Items |> List.updateBy _.Id id (fun t -> { t with Title = title })
         if obj.ReferenceEquals (items, s.Items) then s else { s with Items = items })
 
 let storeTitles = createProjection _.Id _.Title (fun () -> store.Value.Items)
-```
 
-```fsharp
+(**
+
+*)
+
 rename 2 "Review it twice"
 storeTitles.Get 2
-```
+
+(**
 
 ```text
 "Review it twice"
@@ -420,16 +463,25 @@ match only, and a projection over a list with a duplicate key raises.
 
 `createOptionMemo select` holds `select ()`. While the inner value stays equal under the graph's equality policy,
 it keeps its previous `Some` instance and its readers stay asleep.
+*)
 
-```fsharp
 let second = createOptionMemo (fun () -> store.Value.Items |> List.tryFind (fun t -> t.Id = 2))
 let wrapped = createMemo (fun () -> store.Value.Items |> List.tryFind (fun t -> t.Id = 2))
-```
 
-```fsharp
+(*** hide ***)
+let secondRuns = ref 0
+let wrappedRuns = ref 0
+createEffect (fun () -> second.Value |> ignore; secondRuns.Value <- secondRuns.Value + 1)
+createEffect (fun () -> wrapped.Value |> ignore; wrappedRuns.Value <- wrappedRuns.Value + 1)
+
+(**
+
+*)
+
 Signal.update store (fun s -> { s with Theme = "light" })
 secondRuns.Value, wrappedRuns.Value
-```
+
+(**
 
 ```text
 (1, 2)
@@ -458,14 +510,27 @@ projection row` and `createOptionMemo: an unrelated root write wakes no dependen
 `Projection.filter`, `Projection.choose`, `Projection.map`, `Projection.mapWith`, `Projection.sortBy` and `Projection.groupBy` derive a projection from another. Each view keeps a row per key, and its
 function re-runs for a key only when the upstream row for that key changes. A reader of the view wakes as a reader of
 any projection does: `Keys` on a membership or order change, `Get key` on a changed value.
+*)
 
-```fsharp
 let catalogue = createSignal [ { Id = 1; Title = "a" }; { Id = 2; Title = "bb" }; { Id = 3; Title = "ccc" } ]
 let upstreamTitles = createProjection _.Id _.Title (fun () -> catalogue.Value)
 let longTitles = upstreamTitles |> Projection.filter (fun title -> title.Length > 1)
 let lengths = upstreamTitles |> Projection.map String.length
-longTitles.Keys (*** include-it ***)
-lengths.Get 3 (*** include-it ***)
+longTitles.Keys
+
+(**
+
+```text
+[|2; 3|]
+```
+*)
+
+lengths.Get 3
+
+(**
+
+```text
+3
 ```
 
 A view's pass still walks the upstream `Keys`, so a membership or order change costs O(N) per view, as it does for
@@ -475,12 +540,17 @@ the source projection. The combinators remove the per-key user calls for unchang
 upstream order, including after the upstream reorders. A `float` or `float32` NaN sort key comes after every other key
 and `None` comes before `Some`, on .NET and under Fable; a NaN nested in a tuple, record or option orders as `compare`
 orders it.
+*)
 
-```fsharp
 let catalogueOrder = createSignal [ { Id = 1; Title = "bb" }; { Id = 2; Title = "a" }; { Id = 3; Title = "cc" } ]
 let orderedTitles = createProjection _.Id _.Title (fun () -> catalogueOrder.Value)
 let byLength = orderedTitles |> Projection.sortBy String.length
-byLength.Keys (*** include-it ***)
+byLength.Keys
+
+(**
+
+```text
+[|2; 1; 3|]
 ```
 
 When every sort key, membership and the upstream order are unchanged, a `sortBy` pass costs O(N) and publishes no new
@@ -513,15 +583,20 @@ raise its error`, and the
 
 `Projection.mapWith` is the factory form of `map`: its mapping runs once per key with the key and a tracked read of the
 upstream value, and returns the key's reader. Nodes the mapping creates belong to the key and are disposed with it.
+*)
 
-```fsharp
 let labels =
     orderedTitles
     |> Projection.mapWith (fun id title ->
         let length = createMemo (fun () -> String.length (title ()))
         fun () -> $"{id}:{length.Value}")
 
-labels.Get 3 (*** include-it ***)
+labels.Get 3
+
+(**
+
+```text
+"3:2"
 ```
 
 `Projection.groupBy` groups the keys by a group key. The groups follow the upstream position of each group's first
@@ -533,10 +608,15 @@ A pending group key keeps the key's last settled group. A key whose group key ra
 group: `UngroupedKeys` lists it, in upstream order, followed by the pending keys the upstream view holds out.
 `GroupOf` returns a key's group, re-raises its group key's exception, or raises `NotReadyException` while its group
 key has never settled.
+*)
 
-```fsharp
 let byLengthGroup = orderedTitles |> Projection.groupBy String.length
-[ for length in byLengthGroup.Keys -> length, (byLengthGroup.Get length).Keys ] (*** include-it ***)
+[ for length in byLengthGroup.Keys -> length, (byLengthGroup.Get length).Keys ]
+
+(**
+
+```text
+[(2, [|1; 3|]); (1, [|2|])]
 ```
 
 An inner view is disposed once its group is empty: a reader holding it sees empty `Keys`, and `Get` raises
@@ -550,11 +630,16 @@ in UngroupedKeys`
 `Projection.take`, `Projection.skip` and `Projection.sub` select keys by upstream position. Their counts are functions
 read tracked in the pass, so a window driven by a signal follows it. A negative offset is 0, a negative `take` count or
 an offset past the last key gives an empty window, and a count past the last key ends the window at the last key.
+*)
 
-```fsharp
 let page = createSignal 0
 let pageOfTitles = orderedTitles |> Projection.sub (fun () -> page.Value * 2) (fun () -> 2)
-pageOfTitles.Keys (*** include-it ***)
+pageOfTitles.Keys
+
+(**
+
+```text
+[|1; 2|]
 ```
 
 A slice pass costs O(window). A key that stays in the window keeps its row, so shifting the window by d positions
@@ -581,3 +666,8 @@ remain out of scope.
 - `Signal`, `List`
   and `Array`: `Signal.update`, `List.updateBy` and
   `Array.updateBy`, the deep and keyed writes.
+*)
+
+(*** hide ***)
+active.Dispose ()
+graph.Dispose ()

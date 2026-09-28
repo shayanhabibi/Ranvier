@@ -211,7 +211,7 @@ The check covers the constructors as well as the `Api` creators: a reader that b
 A node created inside a memo that a row's reader pulls belongs to that memo. An owning memo keeps
 it until the memo's next run or disposal; a pure memo fails with the `createMemo` message above.
 
-See [Collections](collections.md#the-factory-form).
+See [Collections](collections.fsx#the-factory-form).
 
 ### The projection produced the key &lt;k&gt; twice in one pass. Keys must be unique; check the keyOf function.
 
@@ -240,7 +240,7 @@ todoTexts.Keys
 [|1; 2|]
 ```
 
-See [Collections](collections.md#identity).
+See [Collections](collections.fsx#identity).
 
 ### The projection's factory for key &lt;k&gt; read a pending source.
 
@@ -276,7 +276,7 @@ priced.Get 2
 20
 ```
 
-See [Collections](collections.md#the-factory-form).
+See [Collections](collections.fsx#the-factory-form).
 
 ### The projection has no key &lt;k&gt;.
 
@@ -298,7 +298,7 @@ squares.TryGet 3, squares.TryGet 9
 (Some 9, None)
 ```
 
-See [Collections](collections.md#reading-a-projection).
+See [Collections](collections.fsx#reading-a-projection).
 
 ### Cannot access a disposed object. Object name: 'LookupOf`3'.
 
@@ -312,7 +312,7 @@ the read.
 **Fix.** Read it only while its owner is alive: create it in the scope that reads it, or dispose that
 scope after the last read.
 
-See [Collections](collections.md#lookups).
+See [Collections](collections.fsx#lookups).
 
 ## Symptoms
 
@@ -413,7 +413,7 @@ List.ofSeq seen
 [1; 7]
 ```
 
-See [Collections](collections.md#lookups).
+See [Collections](collections.fsx#lookups).
 
 ### An async memo does not re-run when a value read after await changes
 
