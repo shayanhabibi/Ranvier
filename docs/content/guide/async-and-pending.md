@@ -265,6 +265,40 @@ before its first `await` fails in its turn, after the flights started before it.
 run waits on a pending source, an earlier flight's value becomes the `Peek` value and the memo stays
 pending.
 
+### Bodies written with cancellableTask
+
+On .NET, the `cancellableTask` builder from [IcedTasks](https://github.com/TheAngryByrd/IcedTasks)
+builds a `CancellationToken -> Task<'T>`, the type `createAsync` takes. Its `let!` and `do!` pass
+the flight's token to any `CancellationToken -> Task` they bind, and each bind throws once the
+token is cancelled. Under `CancelPrevious`, a superseded flight stops at its next bind and settles
+as cancelled, so it publishes nothing.
+
+```fsharp
+open IcedTasks
+
+let http = new Net.Http.HttpClient (BaseAddress = Uri "https://example.com")
+
+let fetchProfile (id: int) (token: CancellationToken) : Task<string> =
+    http.GetStringAsync ($"/users/%d{id}", token)
+
+let profile =
+    createAsync (fun token ->
+        (cancellableTask {
+            let id = userId.Value // tracked: read before the first bind that suspends
+            let! body = fetchProfile id
+            return $"user %d{id}: %s{body}"
+        }) token)
+```
+
+Build the `cancellableTask` inside the function, once per flight. When the compiler cannot turn
+the builder into a static state machine, as in Debug builds, the invocations of a single
+`cancellableTask` value share their resumption state: a flight started while an earlier one is
+suspended resumes at the earlier flight's `await` and blocks on it. `createAsync (cancellableTask
+{ ... })` can pass every test in Release and hang in Debug.
+
+The tracking and purity rules of the body are unchanged: the builder runs synchronously up to its
+first bind that suspends. IcedTasks targets .NET only; a body shared with Fable stays a `task`.
+
 ## Failures
 
 A failure is a settled outcome, not a slow success. A memo whose source fails settles as `Failed`,

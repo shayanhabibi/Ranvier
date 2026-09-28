@@ -4,6 +4,7 @@ open System
 open System.Threading
 open System.Threading.Tasks
 open Expecto
+open IcedTasks
 open Ranvier
 
 /// <summary>
@@ -406,6 +407,60 @@ let tests =
                 Expect.equal tokens.Count 2 "two flights"
                 Expect.isTrue tokens[0].IsCancellationRequested "the superseded flight was cancelled"
                 Expect.isFalse tokens[1].IsCancellationRequested "the current one was not"
+            }
+
+            test "a cancellableTask body stops a superseded flight at its next bind" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let first = Flight<int>()
+                let second = Flight<int>()
+                let tokens = ResizeArray<CancellationToken>()
+                let flights = ResizeArray<Task<int>>()
+                let finished = ResizeArray<int>()
+
+                // One builder value per flight: under IcedTasks' dynamic fallback (Debug builds among them),
+                // invocations of a single `cancellableTask` value share resumption state, and an overlapping
+                // second flight resumes at the first flight's await.
+                let body () =
+                    cancellableTask {
+                        let id = s.Value
+
+                        let! v =
+                            fun (token: CancellationToken) ->
+                                tokens.Add token
+                                if id = 1 then first.Task else second.Task
+
+                        do! Task.CompletedTask
+                        finished.Add id
+                        return v
+                    }
+
+                let a =
+                    new AsyncMemo<int> (
+                        g,
+                        fun token ->
+                            let flight = body () token
+                            flights.Add flight
+                            flight
+                    )
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.TryValue |> ignore
+
+                Expect.equal tokens.Count 2 "the read before the first bind is tracked"
+                Expect.isTrue tokens[0].IsCancellationRequested "the bind received the superseded flight's token"
+
+                first.Settle 10
+
+                Expect.throws (fun () -> flights[0].Wait (TimeSpan.FromSeconds 5.) |> ignore) "the superseded flight ends"
+                Expect.isTrue flights[0].IsCanceled "at its next bind, as cancelled"
+                Expect.equal a.TryValue Pending "the superseded flight publishes nothing"
+
+                second.Settle 20
+                Expect.isTrue (flights[1].Wait (TimeSpan.FromSeconds 5.)) "the current flight completes"
+                Expect.equal (List.ofSeq finished) [ 2 ] "only the current flight runs to its end"
+                Expect.equal a.TryValue (Ready 20) "the current flight publishes"
             }
 
             test "KeepLatest leaves the superseded flight running" {
