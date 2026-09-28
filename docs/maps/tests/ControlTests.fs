@@ -7,10 +7,14 @@ open System.Threading.Tasks
 open Ranvier.Docs.Maps
 
 let private outcome (t: Task<'T>) =
-    if t.IsCanceled then "cancelled"
-    elif t.IsFaulted then "failed: " + t.Exception.InnerException.Message
-    elif t.IsCompleted then $"settled: %A{t.Result}"
-    else "pending"
+    if t.IsCanceled then
+        "cancelled"
+    elif t.IsFaulted then
+        "failed: " + t.Exception.InnerException.Message
+    elif t.IsCompleted then
+        $"settled: %A{t.Result}"
+    else
+        "pending"
 
 [<Tests>]
 let tests =
@@ -46,6 +50,7 @@ let tests =
 
             test "number, text and toggle steps pass their values" {
                 let seen = ResizeArray<string>()
+
                 let steps =
                     (number "Price" 4.0 [ 6.5 ] (fun v -> seen.Add (string v))).Steps
                     @ (text "Name" "Ada" [ "Grace" ] seen.Add).Steps

@@ -17,7 +17,11 @@ type Widget =
     | Toggle of start: bool * set: (bool -> unit)
 
 /// <summary>One action of a replay, with the log line shown before it.</summary>
-type Step = { Log: string option; Run: unit -> unit }
+type Step =
+    {
+        Log: string option
+        Run: unit -> unit
+    }
 
 /// <summary>A control beneath a map: its widget on a live map, its steps on a replay.</summary>
 type Control =
@@ -145,7 +149,8 @@ module Helpers =
 
     /// <summary>A checkbox starting at <c>start</c>; a replay writes each of <c>replay</c>.</summary>
     let toggle (label: string) (start: bool) (replay: bool list) (set: bool -> unit) : Control =
-        let show (b: bool) = if b then "true" else "false"
+        let show (b: bool) =
+            if b then "true" else "false"
 
         {
             Label = label

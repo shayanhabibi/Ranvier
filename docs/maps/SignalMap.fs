@@ -743,7 +743,13 @@ module SignalMapComponent =
             graph
             |> Option.iter (fun g -> (g :> IDisposable).Dispose())
 
-            let g = new Graph ({ GraphOptions.Default with FlightPolicy = policy })
+            let g =
+                new Graph (
+                    { GraphOptions.Default with
+                        FlightPolicy = policy
+                    }
+                )
+
             graph <- Some g
 
             let attempt (label: string) (run: unit -> unit) =
@@ -789,7 +795,8 @@ module SignalMapComponent =
                     playing <- true
 
                     for control in controls do
-                        controlRow.appendChild (widget attempt control) |> ignore
+                        controlRow.appendChild (widget attempt control)
+                        |> ignore
 
                     controlRow.appendChild (Dom.button "Reset" "rv-map__button rv-map__button--reset" start)
                     |> ignore
