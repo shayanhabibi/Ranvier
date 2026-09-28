@@ -16,14 +16,14 @@ not scenarios with each other.
 
 ## .NET
 
-.NET 10.0.12, with tiered compilation, PGO and ReadyToRun off. Ranvier at `03d66a7`,
+.NET 10.0.12, with tiered compilation, PGO and ReadyToRun off. Ranvier at `d87920f`,
 FSharp.Data.Adaptive 1.2.27, R3 1.3.1.
 
 ![Instructions per operation under .NET](/Ranvier/benchmarks/counters-dotnet.svg)
 
 ## Fable under Node.js
 
-Node.js v26.7.0 (`--expose-gc --single-threaded`), fable-library-js 5.18.0. Ranvier at `03d66a7`,
+Node.js v26.7.0 (`--expose-gc --single-threaded`), fable-library-js 5.18.0. Ranvier at `d87920f`,
 Fable.Ripple 1.0.0-beta.5. Bars are main-thread figures.
 
 ![Instructions per operation under Node.js](/Ranvier/benchmarks/counters-node.svg)
@@ -38,9 +38,6 @@ do less work per operation than Node's run-to-run noise and show no bar.
   only.
 - **.NET and Node figures do not compare.** The .NET worker runs with PGO off; V8 optimises
   adaptively.
-- **The chart labels read `d706611`**, the commit's hash before its message was rewritten; the
-  code is that of `03d66a7`.
-
 The full report, with cycles, branch misses, allocations and library counters per scenario, is
-[`docs/.ai/benchmarks/counters/d706611.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/d706611.md)
+[`docs/.ai/benchmarks/counters/d87920f.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/d87920f.md)
 in the repository.

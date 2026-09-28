@@ -15,13 +15,13 @@ Memos are pull-based: a read runs them, nothing else does. Two costs therefore m
 | `CachedTrackedRead` | The same read, tracked. Nothing is listening, so this adds only the tracking check. |
 | `Recompute` | Invalidate, then read: one body run plus re-collection of the memo's dependencies. Tagged `Sentinel`. |
 
-Recorded 2026-09-27. Source: `Partas.Signals.Benchmarks.Memos.MemoBenchmarks` at commit `915f139`.
+Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Memos.MemoBenchmarks` at commit `d87920f`.
 
-| Method            | Categories    | Mean       | Error     | StdDev    | Median     | Op/s            | Ratio         | RatioSD | Allocated | Alloc Ratio |
-|------------------ |-------------- |-----------:|----------:|----------:|-----------:|----------------:|--------------:|--------:|----------:|------------:|
-| CachedRead        | Memo          |  0.3191 ns | 0.0779 ns | 0.2298 ns |  0.1839 ns | 3,134,023,334.9 |      baseline |         |         - |          NA |
-| CachedTrackedRead | Memo          |  0.8832 ns | 0.0971 ns | 0.2864 ns |  0.8930 ns | 1,132,267,919.4 |  4.45x slower |   3.12x |         - |          NA |
-| Recompute         | Sentinel,Memo | 15.5268 ns | 0.3181 ns | 0.8380 ns | 15.3624 ns |    64,404,836.9 | 78.23x slower |  46.60x |         - |          NA |
+| Method            | Categories    | Mean       | Error     | StdDev    | Op/s            | Ratio         | RatioSD | Allocated | Alloc Ratio |
+|------------------ |-------------- |-----------:|----------:|----------:|----------------:|--------------:|--------:|----------:|------------:|
+| CachedRead        | Memo          |  0.2169 ns | 0.0152 ns | 0.0142 ns | 4,611,057,105.0 |      baseline |         |         - |          NA |
+| CachedTrackedRead | Memo          |  0.4765 ns | 0.0180 ns | 0.0168 ns | 2,098,796,549.2 |  2.21x slower |   0.15x |         - |          NA |
+| Recompute         | Sentinel,Memo | 15.5039 ns | 0.2091 ns | 0.1854 ns |    64,499,876.3 | 71.76x slower |   4.44x |         - |          NA |
 
 `CachedRead` is at the resolution limit (see [Reading the results](index.md#reading-the-results)), which is why the ratios in this table carry a large `RatioSD`.
 
@@ -34,18 +34,18 @@ A signal followed by a chain of `Depth` memos (1, 4, 16 or 64). This shows how p
 | `WriteThenReadTail` | One write at the head and one read at the tail. Every memo in the chain is invalidated and recomputed exactly once. Tagged `Sentinel`. |
 | `ReadTailClean` | The same chain read without an intervening write. Every memo is clean, so only the tail is touched. |
 
-Recorded 2026-09-27. Source: `Partas.Signals.Benchmarks.Memos.ChainBenchmarks` at commit `915f139`.
+Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Memos.ChainBenchmarks` at commit `d87920f`.
 
-| Method            | Categories    | Depth | Mean        | Error     | StdDev    | Op/s            | Allocated |
-|------------------ |-------------- |------ |------------:|----------:|----------:|----------------:|----------:|
-| **ReadTailClean**     | **Memo**          | **1**     |   **0.4579 ns** | **0.0126 ns** | **0.0118 ns** | **2,184,046,686.2** |         **-** |
-| **ReadTailClean**     | **Memo**          | **4**     |   **0.4567 ns** | **0.0275 ns** | **0.0258 ns** | **2,189,440,152.4** |         **-** |
-| **ReadTailClean**     | **Memo**          | **16**    |   **0.4257 ns** | **0.0080 ns** | **0.0075 ns** | **2,349,219,111.8** |         **-** |
-| **ReadTailClean**     | **Memo**          | **64**    |   **0.4318 ns** | **0.0055 ns** | **0.0052 ns** | **2,315,634,863.0** |         **-** |
-| **WriteThenReadTail** | **Sentinel,Memo** | **1**     |  **13.8481 ns** | **0.0794 ns** | **0.0743 ns** |    **72,211,955.8** |         **-** |
-| **WriteThenReadTail** | **Sentinel,Memo** | **4**     |  **55.4999 ns** | **0.3941 ns** | **0.3687 ns** |    **18,018,042.1** |         **-** |
-| **WriteThenReadTail** | **Sentinel,Memo** | **16**    | **220.3286 ns** | **1.0517 ns** | **0.9837 ns** |     **4,538,674.7** |         **-** |
-| **WriteThenReadTail** | **Sentinel,Memo** | **64**    | **933.3284 ns** | **5.0128 ns** | **4.6890 ns** |     **1,071,434.3** |         **-** |
+| Method            | Categories    | Depth | Mean        | Error      | StdDev     | Op/s            | Allocated |
+|------------------ |-------------- |------ |------------:|-----------:|-----------:|----------------:|----------:|
+| **ReadTailClean**     | **Memo**          | **1**     |   **0.5058 ns** |  **0.0283 ns** |  **0.0278 ns** | **1,977,109,044.1** |         **-** |
+| **ReadTailClean**     | **Memo**          | **4**     |   **0.5149 ns** |  **0.0291 ns** |  **0.0272 ns** | **1,942,057,188.8** |         **-** |
+| **ReadTailClean**     | **Memo**          | **16**    |   **0.5114 ns** |  **0.0285 ns** |  **0.0317 ns** | **1,955,597,348.4** |         **-** |
+| **ReadTailClean**     | **Memo**          | **64**    |   **0.5106 ns** |  **0.0283 ns** |  **0.0303 ns** | **1,958,494,380.5** |         **-** |
+| **WriteThenReadTail** | **Sentinel,Memo** | **1**     |  **16.2286 ns** |  **0.3274 ns** |  **0.4021 ns** |    **61,619,470.0** |         **-** |
+| **WriteThenReadTail** | **Sentinel,Memo** | **4**     |  **64.5471 ns** |  **1.3097 ns** |  **2.2591 ns** |    **15,492,567.6** |         **-** |
+| **WriteThenReadTail** | **Sentinel,Memo** | **16**    | **253.4166 ns** |  **3.1584 ns** |  **2.9544 ns** |     **3,946,072.1** |         **-** |
+| **WriteThenReadTail** | **Sentinel,Memo** | **64**    | **998.7070 ns** | **17.5727 ns** | **16.4375 ns** |     **1,001,294.6** |         **-** |
 
 ## DiamondBenchmarks
 
@@ -55,10 +55,10 @@ Two paths from one source reconverging on one reader. The shape exists to catch 
 | --- | --- |
 | `WriteThenRead` | One write to the source followed by one read of the joining node. |
 
-Recorded 2026-09-27. Source: `Partas.Signals.Benchmarks.Memos.DiamondBenchmarks` at commit `915f139`.
+Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Memos.DiamondBenchmarks` at commit `d87920f`.
 
 | Method        | Mean     | Error    | StdDev   | Op/s         | Allocated |
 |-------------- |---------:|---------:|---------:|-------------:|----------:|
-| WriteThenRead | 47.02 ns | 0.930 ns | 1.209 ns | 21,268,150.4 |         - |
+| WriteThenRead | 45.98 ns | 0.930 ns | 1.142 ns | 21,747,537.4 |         - |
 
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

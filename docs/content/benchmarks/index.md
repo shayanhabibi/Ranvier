@@ -19,7 +19,7 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 
 ## Provenance
 
-The benchmark suite now lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages still come from its source, Partas.Signals at commit `915f139`, and were recorded on **2026-09-27**; each table states its own date and the benchmark class it came from. They will be replaced by a run of the Ranvier suite.
+The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`, ported from Partas.Signals at commit `915f139`. The results on these pages come from a full run of the Ranvier suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from. The Partas.Signals runs are kept in `docs/.ai/benchmarks/results/historical/`.
 
 The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 

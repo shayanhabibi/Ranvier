@@ -17,19 +17,19 @@ A projection over `Items` rows (8, 64 or 512), observed by one effect so that th
 | `EditOneItem` | A write that changes the value of the first row, re-running that row's effect. |
 | `Reorder` | A write of the same keys and values in reverse order: the key order changes and every row keeps its value. |
 
-Recorded 2026-09-27. Source: `Partas.Signals.Benchmarks.Projections.ProjectionBenchmarks` at commit `915f139`.
+Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Projections.ProjectionBenchmarks` at commit `d87920f`.
 
-| Method      | Items | Mean         | Error       | StdDev      | Op/s          | Gen0   | Gen1   | Allocated |
-|------------ |------ |-------------:|------------:|------------:|--------------:|-------:|-------:|----------:|
-| **ReadRow**     | **8**     |     **5.833 ns** |   **0.0843 ns** |   **0.0788 ns** | **171,439,099.5** |      **-** |      **-** |         **-** |
-| EditOneItem | 8     |   216.145 ns |   4.3265 ns |   4.8089 ns |   4,626,527.6 | 0.0057 |      - |      96 B |
-| Reorder     | 8     |   193.706 ns |   3.7413 ns |   4.0031 ns |   5,162,452.2 | 0.0210 |      - |     352 B |
-| **ReadRow**     | **64**    |     **5.901 ns** |   **0.0867 ns** |   **0.0768 ns** | **169,460,750.1** |      **-** |      **-** |         **-** |
-| EditOneItem | 64    |   959.434 ns |  17.1787 ns |  16.0690 ns |   1,042,281.2 | 0.0057 |      - |      96 B |
-| Reorder     | 64    | 1,216.021 ns |  24.1097 ns |  37.5359 ns |     822,354.3 | 0.1411 |      - |    2368 B |
-| **ReadRow**     | **512**   |     **5.803 ns** |   **0.1103 ns** |   **0.1031 ns** | **172,328,449.5** |      **-** |      **-** |         **-** |
-| EditOneItem | 512   | 7,152.490 ns | 141.4320 ns | 145.2403 ns |     139,811.4 |      - |      - |      96 B |
-| Reorder     | 512   | 8,983.265 ns | 174.9247 ns | 227.4516 ns |     111,318.1 | 1.0986 | 0.0916 |   18496 B |
+| Method      | Items | Mean         | Error       | StdDev     | Op/s          | Gen0   | Gen1   | Allocated |
+|------------ |------ |-------------:|------------:|-----------:|--------------:|-------:|-------:|----------:|
+| **ReadRow**     | **8**     |     **6.184 ns** |   **0.0715 ns** |  **0.0669 ns** | **161,707,225.4** |      **-** |      **-** |         **-** |
+| EditOneItem | 8     |   214.629 ns |   2.3013 ns |  2.1527 ns |   4,659,197.7 | 0.0057 |      - |      96 B |
+| Reorder     | 8     |   183.185 ns |   2.5630 ns |  2.1403 ns |   5,458,957.0 | 0.0210 |      - |     352 B |
+| **ReadRow**     | **64**    |     **6.013 ns** |   **0.0744 ns** |  **0.0696 ns** | **166,315,149.2** |      **-** |      **-** |         **-** |
+| EditOneItem | 64    |   925.895 ns |  11.0672 ns | 10.3522 ns |   1,080,035.8 | 0.0057 |      - |      96 B |
+| Reorder     | 64    | 1,140.921 ns |  10.3918 ns |  9.2121 ns |     876,485.0 | 0.1411 |      - |    2368 B |
+| **ReadRow**     | **512**   |     **6.005 ns** |   **0.0735 ns** |  **0.0688 ns** | **166,522,611.8** |      **-** |      **-** |         **-** |
+| EditOneItem | 512   | 6,653.607 ns |  45.0946 ns | 35.2069 ns |     150,294.4 |      - |      - |      96 B |
+| Reorder     | 512   | 8,307.363 ns | 104.3172 ns | 92.4745 ns |     120,375.1 | 1.0986 | 0.0916 |   18496 B |
 
 ## LookupBenchmarks
 
@@ -41,10 +41,10 @@ A selector created with `createSelector`, whose key 7 loses its last observer an
 | `ReadAheadOfGet` | Re-running a reader that inserts or drops a read ahead of its `Get`. |
 | `UntrackedGet` | An untracked read of an unobserved key. |
 
-Recorded 2026-09-27. Source: `Partas.Signals.Benchmarks.Projections.LookupBenchmarks` at commit `915f139`.
+Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Projections.LookupBenchmarks` at commit `d87920f`.
 
 | Method         | Mean      | Error    | StdDev   | Op/s         | Gen0   | Allocated |
 |--------------- |----------:|---------:|---------:|-------------:|-------:|----------:|
-| RemountKey     | 101.36 ns | 1.476 ns | 1.380 ns |  9,865,396.3 | 0.0257 |     432 B |
-| ReadAheadOfGet |  55.62 ns | 0.795 ns | 0.743 ns | 17,979,513.9 | 0.0014 |      24 B |
-| UntrackedGet   |  21.23 ns | 0.358 ns | 0.335 ns | 47,107,140.7 | 0.0014 |      24 B |
+| RemountKey     | 101.88 ns | 1.721 ns | 1.525 ns |  9,815,568.7 | 0.0257 |     432 B |
+| ReadAheadOfGet |  54.37 ns | 0.434 ns | 0.406 ns | 18,392,960.7 | 0.0014 |      24 B |
+| UntrackedGet   |  21.15 ns | 0.170 ns | 0.159 ns | 47,272,722.8 | 0.0014 |      24 B |
