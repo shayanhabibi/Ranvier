@@ -21,8 +21,8 @@ let private cart =
             "createEffect (fun () -> total.TryValue |> ignore)"
             ""
             "controls ["
-            "    \"Add tea\", fun () -> lines.Value <- [ 4m; 4m ]"
-            "    \"Settle quote\", fun () -> desk.Settle 5m"
+            "    button \"Add tea\" (fun () -> lines.Value <- [ 4m; 4m ])"
+            "    button \"Settle quote\" (fun () -> desk.Settle 5m)"
             "]"
         ]
 
@@ -83,11 +83,22 @@ let tests =
                     "the problem sits at the last line of code"
             }
 
-            test "replay renders the scenario, replayed" {
-                let flags = MapFlags.parse [ "replay" ]
-                Expect.isTrue flags.Timeline "replay implies the timeline"
+            test "live renders the scenario" {
+                match MapFence.compile "cart-live" [] cart with
+                | Ok output ->
+                    Expect.stringContains output.Code "module Map_cart_live =" "a module per cell"
 
-                match MapFence.generate "cart" flags cart with
+                    Expect.stringContains
+                        output.Render
+                        "SignalMap (Ranvier.Docs.Maps.Live Map_cart_live.scenario) Ranvier.FlightPolicy.CancelPrevious [| (\"lines\", 2, 2); (\"subtotal\", 4, 6);"
+                        "the scenario and its bindings"
+
+                    Expect.stringEnds output.Render "|] false" "no timeline"
+                | Error problems -> failtestf "rejected: %A" problems
+            }
+        
+            test "replay renders the scenario, replayed" {
+                match MapFence.compile "cart" [ "replay" ] cart with
                 | Ok output ->
                     Expect.stringContains output.Code "let scenario (graph': Graph) : Control list =" "the scenario module"
                     Expect.stringContains output.Render "Ranvier.Docs.Maps.Replayed Map_cart.scenario" "a replayed source"
@@ -95,17 +106,44 @@ let tests =
                 | Error problems -> failtestf "rejected: %A" problems
             }
 
-            test "live renders the scenario" {
-                match MapFence.generate "cart-live" (MapFlags.parse []) cart with
+            test "the policy defaults to cancel-previous" {
+                match MapFence.compile "cart" [] cart with
+                | Ok output -> Expect.stringContains output.Render ") Ranvier.FlightPolicy.CancelPrevious [|" "the default"
+                | Error problems -> failtestf "rejected: %A" problems
+            }
+
+            test "policy=queue and policy=keep-latest render their policies" {
+                for flag, policy in [ "policy=queue", "Queue"; "policy=keep-latest", "KeepLatest" ] do
+                    match MapFence.compile "cart" [ flag ] cart with
+                    | Ok output -> Expect.stringContains output.Render $"Ranvier.FlightPolicy.%s{policy} [|" flag
+                    | Error problems -> failtestf "rejected: %A" problems
+            }
+
+            test "an unknown or empty policy is rejected at the opening line" {
+                for flag in [ "policy=fifo"; "policy=" ] do
+                    match MapFence.compile "cart" [ flag ] cart with
+                    | Error [ 0, message ] -> Expect.stringContains message "cancel-previous, keep-latest or queue" flag
+                    | other -> failtestf "%s: %A" flag other
+            }
+
+            test "a fence of buttons and inputs generates" {
+                let code =
+                    String.concat
+                        "\n"
+                        [
+                            "let qty = createSignal 1"
+                            "let total = createMemo (fun _ -> 4 * qty.Value)"
+                            ""
+                            "controls ["
+                            "    slider \"Qty\" (1, 10) 1 [ 3 ] (fun v -> qty.Value <- v)"
+                            "    button \"Reset qty\" (fun () -> qty.Value <- 1)"
+                            "]"
+                        ]
+
+                match MapFence.compile "inputs" [ "timeline" ] code with
                 | Ok output ->
-                    Expect.stringContains output.Code "module Map_cart_live =" "a module per cell"
-
-                    Expect.stringContains
-                        output.Render
-                        "SignalMap (Ranvier.Docs.Maps.Live Map_cart_live.scenario) [| (\"lines\", 2, 2); (\"subtotal\", 4, 6);"
-                        "the scenario and its bindings"
-
-                    Expect.stringEnds output.Render "|] false" "no timeline"
+                    Expect.stringContains output.Code "        slider \"Qty\" (1, 10) 1 [ 3 ] (fun v -> qty.Value <- v)" "the controls as written"
+                    Expect.stringContains output.Render "[| (\"qty\", 1, 1); (\"total\", 2, 2) |] true" "bindings and timeline"
                 | Error problems -> failtestf "rejected: %A" problems
             }
         ]

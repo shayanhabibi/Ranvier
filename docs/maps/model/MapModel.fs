@@ -20,6 +20,8 @@ type Cue =
     | Settled of int
     | Failed of int
     | Waits of node: int * source: int
+    /// <summary>A replayed input's write, logged before the events it causes.</summary>
+    | Said
 
 /// <summary>The map's state between frames.</summary>
 type Scene =
@@ -288,4 +290,13 @@ module MapModel =
     /// </summary>
     let clampCursor (setup: int) (count: int) (index: int) : int =
         max (setup - 1) (min index (count - 1))
+
+    /// <summary>A frame that logs <c>text</c> and leaves <c>scene</c> as it is.</summary>
+    let said (scene: Scene) (text: string) : Frame =
+        {
+            Event = Unchecked.defaultof<TraceEvent>
+            Cue = Said
+            Log = text
+            After = scene
+        }
 #endif

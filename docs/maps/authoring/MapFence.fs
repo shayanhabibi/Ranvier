@@ -9,15 +9,29 @@ type MapFlags =
         Timeline: bool
         /// <summary>Presses every control once, in order, for the timeline to play back; implies <c>Timeline</c>.</summary>
         Replay: bool
+        /// <summary>The case name of the map graph's <c>FlightPolicy</c>.</summary>
+        Policy: string
     }
 
-    static member parse(flags: string list) =
+    /// <summary>The flags of a fence, or the problem with its <c>policy=</c>.</summary>
+    static member parse(flags: string list) : Result<MapFlags, string> =
         let replay = List.contains "replay" flags
 
-        {
-            Timeline = replay || List.contains "timeline" flags
-            Replay = replay
-        }
+        let policy =
+            match flags |> List.tryFind (fun f -> f.StartsWith "policy=") with
+            | None
+            | Some "policy=cancel-previous" -> Ok "CancelPrevious"
+            | Some "policy=keep-latest" -> Ok "KeepLatest"
+            | Some "policy=queue" -> Ok "Queue"
+            | Some flag -> Error $"%s{flag}: the policy is cancel-previous, keep-latest or queue."
+
+        policy
+        |> Result.map (fun policy ->
+            {
+                Timeline = replay || List.contains "timeline" flags
+                Replay = replay
+                Policy = policy
+            })
 
 /// <summary>A run of generated lines and the fence line it came from.</summary>
 /// <remarks>
@@ -189,14 +203,14 @@ module MapFence =
             copy copied (lines.Length - 1)
             Ok(String.concat "\n" output, List.ofSeq spans, List.ofSeq bindings)
 
-    let private render (source: string) (bindings: (string * int * int) list) (timeline: bool) =
+    let private render (source: string) (policy: string) (bindings: (string * int * int) list) (timeline: bool) =
         let bindings =
             bindings
             |> List.map (fun (name, first, last) -> $"(\"%s{name}\", %d{first}, %d{last})")
             |> String.concat "; "
 
         let timeline = if timeline then "true" else "false"
-        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) [| %s{bindings} |] %s{timeline}"
+        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) Ranvier.FlightPolicy.%s{policy} [| %s{bindings} |] %s{timeline}"
 
     /// <summary>The F# for a <c>map</c> fence: its scenario, live or replayed when <c>flags.Replay</c>.</summary>
     /// <param name="cellId">The cell's id, which names the generated module.</param>
@@ -209,7 +223,13 @@ module MapFence =
 
             {
                 Code = live
-                Render = render $"Ranvier.Docs.Maps.%s{source} %s{moduleName cellId}.scenario" bindings flags.Timeline
+                Render = render $"Ranvier.Docs.Maps.%s{source} %s{moduleName cellId}.scenario" flags.Policy bindings flags.Timeline
                 Spans = spans
                 Bindings = bindings
             })
+
+    /// <summary>The F# for a <c>map</c> fence from its raw flags; a flag problem is reported at the opening line, 0.</summary>
+    let compile (cellId: string) (flags: string list) (code: string) : Result<MapFenceOutput, (int * string) list> =
+        match MapFlags.parse flags with
+        | Ok flags -> generate cellId flags code
+        | Error problem -> Error [ 0, problem ]

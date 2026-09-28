@@ -16,7 +16,7 @@ let private spans (spans: MapSpan list) : SolidLineSpan list =
 
 /// <summary>Compiles a <c>map</c> fence into a <c>SignalMap</c> of its scenario.</summary>
 let transform (input: SolidTransformInput) : SolidTransformOutput =
-    match MapFence.generate input.CellId (MapFlags.parse input.Flags) input.Code with
+    match MapFence.compile input.CellId input.Flags input.Code with
     | Ok output ->
         SolidTransformOutput.Compiled
             {

@@ -109,6 +109,15 @@ let tests =
     testList
         "MapModel"
         [
+            test "a said frame logs its text and keeps the scene" {
+                let c = cart ()
+                let scene = sceneOf c.Graph
+                let frame = MapModel.said scene "set Qty = 3"
+                Expect.equal frame.Cue Said "its cue"
+                Expect.equal frame.Log "set Qty = 3" "its line"
+                Expect.isTrue (obj.ReferenceEquals (frame.After, scene)) "the scene it leaves"
+            }
+
             test "a write pulses the subtotal before the total runs" {
                 let c = cart ()
 
