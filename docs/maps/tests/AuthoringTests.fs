@@ -147,4 +147,26 @@ let tests =
                     Expect.equal (ReplayRunner.record settings code (MapFence.moduleName "cart")) (Ok literal) "the second run reads the cache"
                 | Error output -> failtestf "fsi failed:\n%s" output
             }
+
+            test "record runs each control with the graph active" {
+                let dir = root ()
+
+                let batched =
+                    "let a = createSignal 0\ncreateEffect (fun () -> printfn \"a %d\" a.Value)\n\ncontrols [\n    \"Batch\", fun () -> batch (fun () -> a.Value <- 7)\n]"
+
+                let code, _, _ = scenario batched
+
+                let settings =
+                    {
+                        Ranvier = typeof<Ranvier.Graph>.Assembly.Location
+                        Sources =
+                            [ "Helpers.fs"; "Replay.fs" ]
+                            |> List.map (fun f -> Path.Combine(dir, "docs", "maps", "model", f))
+                        Cache = Path.Combine(Path.GetTempPath(), "ranvier-maps-replay-tests", string (Guid.NewGuid()))
+                    }
+
+                match ReplayRunner.record settings code (MapFence.moduleName "cart") with
+                | Ok literal -> Expect.stringContains literal "\"7\"" "the batched write"
+                | Error output -> failtestf "fsi failed:\n%s" output
+            }
         ]

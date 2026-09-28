@@ -34,9 +34,13 @@ module ReplayRunner =
 %s{scenarioModule}
 
 let graph = new Ranvier.Graph ()
+let controls = %s{moduleName}.scenario graph
 
-for control in %s{moduleName}.scenario graph do
-    control.Run ()
+do
+    use _ = graph.Activate ()
+
+    for control in controls do
+        control.Run ()
 
 printfn "%%s" "%s{marker}"
 printfn "%%s" (Ranvier.Docs.Maps.Replay.literal (Ranvier.Trace.events graph))

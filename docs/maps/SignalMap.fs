@@ -609,6 +609,7 @@ module SignalMapComponent =
                                     playing <- true
 
                                     try
+                                        use _ = g.Activate ()
                                         control.Run ()
                                     with ex ->
                                         say $"{control.Label} threw: {ex.Message}" "is-error")
