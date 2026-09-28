@@ -73,6 +73,29 @@ printfn "%%s" (Ranvier.Docs.Maps.Replay.literal (Ranvier.Trace.events graph))
     /// <param name="scenarioModule">The module from <c>MapFence.scenario</c>.</param>
     /// <param name="moduleName">The module's name.</param>
     /// <returns>The literal, or the <c>fsi</c> output of a failed run.</returns>
+    /// <summary>
+    /// Builds <c>src/Ranvier</c> under <c>repo</c> in Debug with tracing on, and returns the path of its
+    /// <c>Ranvier.dll</c>, or the build output when the build fails.
+    /// </summary>
+    let buildTraced (repo: string) : Result<string, string> =
+        let project = Path.Combine(repo, "src", "Ranvier", "Ranvier.fsproj")
+
+        let info =
+            ProcessStartInfo("dotnet", $"build \"%s{project}\" -c Debug -p:RanvierTrace=true --nologo -v q")
+
+        info.RedirectStandardOutput <- true
+        info.RedirectStandardError <- true
+        info.UseShellExecute <- false
+        use proc = Process.Start info
+        let error = proc.StandardError.ReadToEndAsync()
+        let output = proc.StandardOutput.ReadToEnd()
+        proc.WaitForExit()
+
+        if proc.ExitCode = 0 then
+            Ok(Path.Combine(repo, "src", "Ranvier", "bin", "Debug", "net10.0", "Ranvier.dll"))
+        else
+            Error(output + error.Result)
+
     let record (settings: ReplaySettings) (scenarioModule: string) (moduleName: string) : Result<string, string> =
         let script = script settings scenarioModule moduleName
         let key = hash script settings
