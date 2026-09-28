@@ -148,7 +148,7 @@ StateDial ()
 
 ## Watch the graph think
 
-A traced build records every write, mark, run and flight, with the source line that caused it. This is the example from the top of the page, running on the real engine compiled to JavaScript with tracing on. Press a button and follow the event along the edges; hover a node for its state, click it for why it last ran.
+A traced build records every write, mark, run and flight, with the source line that caused it. This is the example from the top of the page, running on the real engine compiled to JavaScript with tracing on. Press a button and follow the event along the edges; hover a node for its state, click it for why it last ran. [How to read a map](guide/signal-maps.md#reading-a-map).
 
 ```fsharp map timeline
 let price = createAsyncSource<decimal> ()

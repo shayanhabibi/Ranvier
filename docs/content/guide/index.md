@@ -63,6 +63,7 @@ doubled = 10
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
 - [Collections](collections.fsx): keyed and index projections, lookups and selectors.
 - [Tracing](tracing.md): why a node ran or did not run, where it was created, and the graph as it stands.
+- [Signal maps](signal-maps.md): how to read the live graph maps beneath the examples, and how to write one.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
 
 ## Status
