@@ -233,7 +233,7 @@ let tests =
                 let s = Signal (g, 0)
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             try

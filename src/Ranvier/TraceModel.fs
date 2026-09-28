@@ -356,7 +356,7 @@ module TraceModel =
                 && (run = 0 || e.Arg = run))
 
         match start with
-        | None -> invalidArg (nameof run) $"The trace log holds no RunStart for node {node} run {run}."
+        | None -> raise (ArgumentException ($"The trace log holds no RunStart for node {node} run {run}.", nameof run))
         | Some start ->
             let steps = ResizeArray<WhyStep>()
 

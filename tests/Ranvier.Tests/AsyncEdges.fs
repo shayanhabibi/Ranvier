@@ -24,11 +24,14 @@ type private Flight<'T>() =
     member _.Cancel() =
         source.SetCanceled ()
 
+#if !FABLE_COMPILER
+// .NET only: JavaScript has one thread.
 /// <summary>Runs <c>work</c> to completion on a new thread, never on the caller's.</summary>
 let private onAnotherThread (work: unit -> unit) =
     let thread = Thread work
     thread.Start ()
     thread.Join ()
+#endif
 
 /// <summary>
 /// <c>Async.fs</c> covers the happy shapes of each <c>FlightPolicy</c>. This is what
@@ -50,7 +53,7 @@ let tests =
             test "a flight that is already complete never makes the reader pending" {
                 let g = new Graph ()
 
-                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult 42))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed 42))
 
                 // The continuation runs inline on an already-completed task, so
                 // the value is there before the first read returns. A reader
@@ -62,7 +65,7 @@ let tests =
             test "an effect over an already-complete flight runs once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult (s.Value * 10)))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed (s.Value * 10)))
                 let seen = ResizeArray<int>()
 
                 use _reader = new Effect (g, (fun () -> seen.Add a.Value))
@@ -76,8 +79,8 @@ let tests =
             test "a memo over an already-complete flight recomputes once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult (s.Value * 10)))
-                let m = Memo (g, (fun _ -> a.Value + 1))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed (s.Value * 10)))
+                let m = Make.Memo (g, (fun _ -> a.Value + 1))
 
                 Expect.equal m.Value 1 "first read"
                 let before = m.Runs
@@ -91,7 +94,7 @@ let tests =
                 let g = new Graph ()
 
                 let a =
-                    new AsyncMemo<int> (g, (fun _ _ -> Task.FromException<int>(InvalidOperationException "nope")))
+                    Make.AsyncMemo<int> (g, (fun _ _ -> faulted<int> (InvalidOperationException "nope")))
 
                 match a.TryValue with
                 | Failed ex -> Expect.stringContains ex.Message "nope" "the reason survived"
@@ -104,7 +107,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -138,7 +141,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ token ->
                             let t = trigger.Value
@@ -182,7 +185,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ token ->
                             trigger.Value |> ignore
@@ -212,7 +215,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "in flight"
 
@@ -230,7 +233,7 @@ let tests =
                 let gate = TaskCompletionSource<unit>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             task {
@@ -252,7 +255,7 @@ let tests =
                 let trigger = Signal (g, 0)
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ token ->
                             if trigger.Value = 0 then
@@ -286,7 +289,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -328,7 +331,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
@@ -363,11 +366,11 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
-                                Task.FromResult upstream.Value
+                                completed upstream.Value
                             else
                                 let f = Flight<int>()
                                 flights.Add f
@@ -387,6 +390,8 @@ let tests =
                 Expect.equal a.TryValue (Ready 4) "and settles with it"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "the Queue policy applies a synchronous failure after a flight settled off the graph thread" {
                 let g =
                     new Graph (
@@ -399,7 +404,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
@@ -423,7 +428,10 @@ let tests =
                 | Failed ex -> Expect.equal ex.Message "sync-fail" "the newer run's failure is the last result"
                 | other -> failtestf "expected Failed, got %A" other
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "the Queue policy applies flights in start order when the older settles off the graph thread" {
                 let g =
                     new Graph (
@@ -436,7 +444,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -455,6 +463,7 @@ let tests =
 
                 Expect.equal a.TryValue (Ready 11) "the newer flight's value is the last applied"
             }
+#endif
 
             test "a re-run after a failure clears the Error flag" {
                 let g = new Graph ()
@@ -462,7 +471,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -486,13 +495,13 @@ let tests =
                 let fail = Signal (g, true)
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             if fail.Value then
-                                Task.FromException<int>(InvalidOperationException "x")
+                                faulted<int> (InvalidOperationException "x")
                             else
-                                Task.FromResult upstream.Value
+                                completed upstream.Value
                     )
 
                 a.TryValue |> ignore
@@ -507,13 +516,13 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 a.Dispose ()
 
                 flight.Settle 99
-                Expect.equal a.Peek 0 "the disposed node did not take the value"
+                Expect.equal a.Peek unset "the disposed node did not take the value"
             }
 
             test "disposing an async memo mid-flight fails its readers" {
@@ -523,10 +532,10 @@ let tests =
 
                 let owner =
                     g.CreateRoot (fun o ->
-                        a <- new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                        a <- Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
                         o)
 
-                let m = Memo (g, (fun _ -> a.Value + 1))
+                let m = Make.Memo (g, (fun _ -> a.Value + 1))
                 let seen = ResizeArray<string>()
 
                 use _reader =
@@ -534,7 +543,8 @@ let tests =
                         g,
                         fun () ->
                             match m.TryValue with
-                            | Failed ex -> seen.Add (ex.GetType().Name)
+                            | Failed ex when isDisposedError ex -> seen.Add "ObjectDisposedException"
+                            | Failed ex -> seen.Add ex.Message
                             | other -> seen.Add $"%A{other}"
                     )
 
@@ -544,7 +554,7 @@ let tests =
 
                 let isDisposedFailure reading =
                     match reading with
-                    | Failed (:? ObjectDisposedException) -> true
+                    | Failed ex -> isDisposedError ex
                     | _ -> false
 
                 Expect.isTrue (isDisposedFailure a.TryValue) "the memo reads as disposed"
@@ -557,7 +567,7 @@ let tests =
 
             test "disposing a settled async memo keeps its value" {
                 let g = new Graph ()
-                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult 5))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed 5))
 
                 Expect.equal a.TryValue (Ready 5) "settled"
                 a.Dispose ()
@@ -568,7 +578,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 g.Dispose ()
@@ -577,7 +587,7 @@ let tests =
                 // does not throw out of a continuation, where there is no
                 // caller to catch it and the process goes with it.
                 flight.Settle 99
-                Expect.equal a.Peek 0 "the settle landed nowhere, quietly"
+                Expect.equal a.Peek unset "the settle landed nowhere, quietly"
             }
 
             test "a boundary over a superseded flight shows the fallback throughout" {
@@ -586,7 +596,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -622,7 +632,7 @@ let tests =
                 let a = AsyncSource<int> g
                 a.Settle 5
 
-                let m = Memo (g, (fun _ -> a.Value))
+                let m = Make.Memo (g, (fun _ -> a.Value))
                 Expect.equal m.Value 5 "the reader arrived after the fact and saw a plain value"
                 Expect.equal m.Runs 1 "with no suspended attempt before it"
             }
@@ -634,7 +644,7 @@ let tests =
                 let mutable flights = 0
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             let v = up.Value
@@ -643,7 +653,7 @@ let tests =
                                 failwith "sync"
 
                             flights <- flights + 1
-                            Task.FromResult (v * 2)
+                            completed (v * 2)
                     )
 
                 Expect.equal a.TryValue Pending "the body suspended on the source"
@@ -666,7 +676,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -696,7 +706,7 @@ let tests =
                 let owner =
                     g.CreateRoot (fun owner ->
                         let a =
-                            new AsyncMemo<int> (
+                            Make.AsyncMemo<int> (
                                 g,
                                 fun _ token ->
                                     observed.Value <- token

@@ -30,7 +30,7 @@ let tests =
                 let s = Signal (g, 1)
                 let a = AsyncSource<int>(g)
 
-                let c = Memo (g, (fun _ -> s.Value + a.Value))
+                let c = Make.Memo (g, (fun _ -> s.Value + a.Value))
 
                 Expect.equal c.TryValue Pending "c must suspend while a is in flight"
                 Expect.equal c.Status Status.Pending "the pending channel must reach c"
@@ -46,7 +46,7 @@ let tests =
                 // leaves the consumer stranded — it never learns of the settle.
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
-                let c = Memo (g, (fun _ -> a.Value))
+                let c = Make.Memo (g, (fun _ -> a.Value))
 
                 Expect.equal c.TryValue Pending "precondition: c is suspended"
                 a.Settle 10
@@ -58,7 +58,7 @@ let tests =
                 let s = Signal (g, 1)
                 let a = AsyncSource<int>(g)
 
-                let c = Memo (g, (fun _ -> s.Value + a.Value))
+                let c = Make.Memo (g, (fun _ -> s.Value + a.Value))
 
                 Expect.equal c.TryValue Pending "precondition: c is suspended on a"
 
@@ -74,9 +74,9 @@ let tests =
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
 
-                let mid = Memo (g, (fun _ -> a.Value * 2))
+                let mid = Make.Memo (g, (fun _ -> a.Value * 2))
 
-                let outer = Memo (g, (fun _ -> mid.Value + 1))
+                let outer = Make.Memo (g, (fun _ -> mid.Value + 1))
 
                 Expect.equal outer.TryValue Pending "pending must cross a memo boundary"
 
@@ -87,7 +87,7 @@ let tests =
             test "a failure settles as Failed, not as pending" {
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
-                let c = Memo (g, (fun _ -> a.Value))
+                let c = Make.Memo (g, (fun _ -> a.Value))
 
                 Expect.equal c.TryValue Pending "precondition: c is suspended"
                 a.Fail (exn "boom")
@@ -101,7 +101,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
 
-                let c = Memo (g, (fun _ -> s.Value + 1))
+                let c = Make.Memo (g, (fun _ -> s.Value + 1))
 
                 Expect.equal c.TryValue (Ready 2) "first read computes"
                 Expect.equal c.TryValue (Ready 2) "second read is cached"
@@ -116,7 +116,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
 
-                let c = Memo (g, (fun _ -> s.Value + 1))
+                let c = Make.Memo (g, (fun _ -> s.Value + 1))
 
                 Expect.equal c.TryValue (Ready 2) "precondition: c is clean"
                 s.Value <- 1

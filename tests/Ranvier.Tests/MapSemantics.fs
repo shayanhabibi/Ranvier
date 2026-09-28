@@ -402,7 +402,10 @@ let tests =
                         [ 2, "bob"; 3, "cy" ]
                         "the never-settled row is absent"
 
+#if !FABLE_COMPILER
+                    // .NET only: ObservableCollection is a .NET collection type.
                     Expect.sequenceEqual (proj.AsObservableCollection ()) [ "bob"; "cy" ] "and absent from the collection"
+#endif
             }
 
             test "a settled row that then catches the creation's exception keeps its last value in Snapshot" {

@@ -18,7 +18,7 @@ let tests =
             test "the default policy compares primitives by value" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun _ -> s.Value + 1))
+                let c = Make.Memo (g, (fun _ -> s.Value + 1))
 
                 Expect.equal c.TryValue (Ready 2) "precondition: c is clean"
                 s.Value <- 1
@@ -33,7 +33,7 @@ let tests =
                 // Built at runtime so the two strings cannot be interned to one
                 // reference — reference equality would wrongly let this through.
                 let s = Signal (g, String ('a', 3))
-                let c = Memo (g, (fun _ -> s.Value.Length))
+                let c = Make.Memo (g, (fun _ -> s.Value.Length))
 
                 Expect.equal c.TryValue (Ready 3) "precondition: c is clean"
                 s.Value <- String ('a', 3)
@@ -44,7 +44,7 @@ let tests =
             test "the default policy compares records by reference" {
                 let g = new Graph ()
                 let s = Signal (g, { X = 1; Y = 2 })
-                let c = Memo (g, (fun _ -> s.Value.X))
+                let c = Make.Memo (g, (fun _ -> s.Value.X))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- { X = 1; Y = 2 }
@@ -59,7 +59,7 @@ let tests =
                 let first () =
                     let struct (x, _) = s.Value in x
 
-                let c = Memo (g, (fun _ -> first ()))
+                let c = Make.Memo (g, (fun _ -> first ()))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- struct (1, 2)
@@ -76,7 +76,7 @@ let tests =
                     )
 
                 let s = Signal (g, { X = 1; Y = 2 })
-                let c = Memo (g, (fun _ -> s.Value.X))
+                let c = Make.Memo (g, (fun _ -> s.Value.X))
 
                 Expect.equal c.TryValue (Ready 1) "precondition: c is clean"
                 s.Value <- { X = 1; Y = 2 }
@@ -88,7 +88,7 @@ let tests =
                 let g = new Graph ()
                 let a = Opaque "a"
                 let s = Signal (g, a)
-                let c = Memo (g, (fun _ -> s.Value.Tag))
+                let c = Make.Memo (g, (fun _ -> s.Value.Tag))
 
                 Expect.equal c.TryValue (Ready "a") "precondition: c is clean"
                 s.Value <- a
@@ -99,6 +99,8 @@ let tests =
                 Expect.equal c.Runs 2 "a different object must not"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no allocation counter.
             untracedOnly
             <| test "a cutoff test on a value type allocates nothing" {
                 // The reason the comparer is typed at all. An IEqualityComparer<obj>
@@ -124,7 +126,10 @@ let tests =
 
                 Expect.isLessThan allocated 8_192L $"10,000 cutoff tests allocated %d{allocated} bytes; a boxing comparer allocates ~480,000"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no allocation counter.
             untracedOnly
             <| test "notifying observers allocates nothing" {
                 // Notification has to walk a copy, because marking a dependent
@@ -132,9 +137,9 @@ let tests =
                 // Seq.toArray allocated an array per write; ObserverSet reuses one.
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = Memo (g, (fun _ -> s.Value + 1))
-                let b = Memo (g, (fun _ -> s.Value + 2))
-                let c = Memo (g, (fun _ -> s.Value + 3))
+                let a = Make.Memo (g, (fun _ -> s.Value + 1))
+                let b = Make.Memo (g, (fun _ -> s.Value + 2))
+                let c = Make.Memo (g, (fun _ -> s.Value + 3))
 
                 // Reading is what links the edges; with no observers there would
                 // be nothing to notify and the test would be vacuous.
@@ -156,4 +161,5 @@ let tests =
 
                 Expect.isLessThan allocated 8_192L $"10,000 notifications over 3 observers allocated %d{allocated} bytes"
             }
+#endif
         ]

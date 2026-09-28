@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open Expecto
 open Ranvier
 
+#if !FABLE_COMPILER
+// .NET only: JavaScript has one thread.
 /// <summary>
 /// Runs <c>body</c> on a different thread and waits for it, so a test can say
 /// "from another thread" without the result depending on scheduling.
@@ -55,12 +57,15 @@ type private RecordingContext() =
 
     override this.Post(callback, state) =
         posted.Add (callback, state)
+#endif
 
 [<Tests>]
 let tests =
     testList
         "Threading"
         [
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an off-thread write raises instead of corrupting the graph" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
@@ -79,7 +84,10 @@ let tests =
                     Expect.equal s.Peek 1 "and the write must not have landed"
                 | None -> failtest "an off-thread write must not be allowed to proceed"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an equal off-thread write raises too" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
@@ -96,7 +104,10 @@ let tests =
 
                 Expect.isTrue threw "the guard belongs before the cutoff"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "Unchecked affinity lets the write through" {
                 let g =
                     new Graph (
@@ -109,6 +120,7 @@ let tests =
                 offThread (fun () -> s.Value <- 2)
                 Expect.equal s.Peek 2 "the caller took responsibility for affinity"
             }
+#endif
 
             test "an on-thread settle runs inline and queues nothing" {
                 let g = new Graph ()
@@ -122,6 +134,8 @@ let tests =
                 Expect.equal a.TryValue (Ready 1) "and must be visible immediately"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an off-thread settle waits in the inbox until pumped" {
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
@@ -136,7 +150,10 @@ let tests =
                 Expect.equal a.TryValue (Ready 7) "and now it is visible"
                 Expect.equal g.PendingWork 0 "inbox drained"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "flush leaves an off-thread settle in the inbox" {
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
@@ -150,7 +167,10 @@ let tests =
                 g.Pump () |> ignore
                 Expect.equal a.TryValue (Ready 7) "the pump applies it"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "a pump flushes the effects the drained work invalidated" {
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
@@ -167,7 +187,10 @@ let tests =
                 g.Pump () |> ignore
                 Expect.sequenceEqual seen [ 3 ] "the pump woke the effect"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "the inbox is drained in arrival order" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
@@ -180,7 +203,10 @@ let tests =
                 g.Pump () |> ignore
                 Expect.sequenceEqual log [ 1; 2; 3; 4; 5 ] "FIFO"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "a throwing continuation does not strand the rest of the inbox" {
                 let g = new Graph ()
                 let log = ResizeArray ()
@@ -195,7 +221,10 @@ let tests =
                 Expect.sequenceEqual log [ "ran" ] "the survivor still ran"
                 Expect.equal (Seq.length g.Root.Errors) 1 "and the failure was recorded"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "pumping from the wrong thread raises" {
                 let g = new Graph ()
 
@@ -209,15 +238,23 @@ let tests =
 
                 Expect.isTrue threw "the inbox exists to be drained by its owner"
             }
+#endif
 
             test "a graph with no ambient context defers" {
                 let g = new Graph ()
 
+#if FABLE_COMPILER
+                // Fable's default: a settle already runs on the only thread.
+                Expect.isTrue (g.Dispatcher :? ImmediateDispatcher) "a settle under Fable applies at once"
+#else
                 Expect.isTrue
                     (g.Dispatcher :? ManualDispatcher)
                     "a console or test thread has no loop to post to, and the library must not invent one"
+#endif
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "a graph built under a synchronisation context posts to it" {
                 let previous = SynchronizationContext.Current
                 let context = RecordingContext ()
@@ -240,13 +277,16 @@ let tests =
                 finally
                     SynchronizationContext.SetSynchronizationContext previous
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an AsyncMemo settling on the pool lands after a pump" {
                 let g = new Graph ()
                 let gate = new ManualResetEventSlim (false)
 
                 let query =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun _ _ ->
                             Task.Run (fun () ->
@@ -269,4 +309,5 @@ let tests =
                 Expect.isTrue landed "the continuation reached the inbox"
                 Expect.equal query.TryValue (Ready 11) "and was applied on the owning thread"
             }
+#endif
         ]

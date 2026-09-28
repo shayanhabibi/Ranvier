@@ -4,6 +4,8 @@ open System
 open Expecto
 open Ranvier
 
+#if !FABLE_COMPILER
+// .NET only: JavaScript exposes no forced collection.
 /// <summary>
 /// An owner that only ever grows is a leak of everything the graph has created.
 /// Disposing a child individually — which is the common case, since re-running
@@ -27,12 +29,15 @@ let private aliveOf (refs: ResizeArray<WeakReference>) =
     refs
     |> Seq.filter (fun r -> r.IsAlive)
     |> Seq.length
+#endif
 
 [<Tests>]
 let tests =
     testList
         "Retention"
         [
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
             test "a disposed effect is not retained by its owner" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
@@ -45,21 +50,27 @@ let tests =
 
                 Expect.isLessThan (aliveOf refs) 20 "the graph root must not accumulate dead effects"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
             test "a disposed memo is not retained by its owner" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
                 let refs = ResizeArray<WeakReference>()
 
                 for _ in 1..200 do
-                    let m = Memo (g, (fun _ -> s.Value * 2))
+                    let m = Make.Memo (g, (fun _ -> s.Value * 2))
                     m.TryValue |> ignore
                     m.Dispose ()
                     refs.Add (WeakReference m)
 
                 Expect.isLessThan (aliveOf refs) 20 "nor dead memos"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
             test "a disposed root is not retained by its parent" {
                 let g = new Graph ()
                 let refs = ResizeArray<WeakReference>()
@@ -71,7 +82,10 @@ let tests =
 
                 Expect.isLessThan (aliveOf refs) 20 "a scope per request must not cost a scope per process"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
             test "a torn-down subtree is released even while its signal lives on" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
@@ -80,7 +94,7 @@ let tests =
                 for _ in 1..200 do
                     let owner =
                         g.CreateRoot (fun owner ->
-                            let m = Memo (g, (fun _ -> s.Value * 2))
+                            let m = Make.Memo (g, (fun _ -> s.Value * 2))
                             m.TryValue |> ignore
                             refs.Add (WeakReference m)
                             owner)
@@ -92,6 +106,7 @@ let tests =
                 Expect.isLessThan (aliveOf refs) 20 "a live source must not pin dead readers"
                 s.Value <- 2
             }
+#endif
 
             test "live children are still torn down with their owner" {
                 let g = new Graph ()

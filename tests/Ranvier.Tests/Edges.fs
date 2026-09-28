@@ -20,7 +20,7 @@ let tests =
                 let left = Signal (g, 1)
                 let right = Signal (g, 100)
 
-                let c = Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
+                let c = Make.Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
 
                 Expect.equal c.TryValue (Ready 1) "reading left"
                 useLeft.Value <- false
@@ -40,7 +40,7 @@ let tests =
                 let left = Signal (g, 1)
                 let right = Signal (g, 100)
 
-                let c = Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
+                let c = Make.Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
 
                 Expect.equal c.TryValue (Ready 1) "reading left"
                 useLeft.Value <- false
@@ -60,7 +60,7 @@ let tests =
                 let left = Signal (g, 1)
                 let right = Signal (g, 100)
 
-                let c = Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
+                let c = Make.Memo (g, (fun _ -> if useLeft.Value then left.Value else right.Value))
 
                 let seen = ResizeArray ()
 

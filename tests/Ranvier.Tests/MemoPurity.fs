@@ -141,7 +141,7 @@ let tests =
             test "the direct constructor is pure by default" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let m = Memo (g, (fun _ -> (Memo (g, (fun _ -> 1))).Value))
+                let m = Make.Memo (g, (fun _ -> (Make.Memo (g, (fun _ -> 1))).Value))
 
                 Expect.throwsT<InvalidOperationException> (fun () -> m.Value |> ignore) "the constructor defaults to pure"
             }
@@ -153,7 +153,7 @@ let tests =
                 let cleaned = ResizeArray<int>()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         (fun _ ->
                             let n = s.Value
@@ -175,7 +175,7 @@ let tests =
                 let a =
                     createAsync (fun _ _ ->
                         onCleanup ignore
-                        Task.FromResult 1)
+                        completed 1)
 
                 let ex = invalidOp (fun () -> a.Value |> ignore) "creation fails the flight"
                 Expect.stringContains ex.Message "createAsyncWith" "the message names the owning async value"

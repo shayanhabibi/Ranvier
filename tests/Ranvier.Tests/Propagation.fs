@@ -24,8 +24,8 @@ let tests =
             test "an effect at the bottom of a diamond runs once per write" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let left = Memo (g, (fun _ -> source.Value * 2))
-                let right = Memo (g, (fun _ -> source.Value * 3))
+                let left = Make.Memo (g, (fun _ -> source.Value * 2))
+                let right = Make.Memo (g, (fun _ -> source.Value * 3))
                 let runs = ref 0
 
                 new Effect (
@@ -45,8 +45,8 @@ let tests =
             test "the bottom of a diamond never sees one leg updated and the other not" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let left = Memo (g, (fun _ -> source.Value * 2))
-                let right = Memo (g, (fun _ -> source.Value * 3))
+                let left = Make.Memo (g, (fun _ -> source.Value * 2))
+                let right = Make.Memo (g, (fun _ -> source.Value * 3))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add (left.Value, right.Value)))
@@ -67,7 +67,7 @@ let tests =
             test "a memo shared by two effects is recomputed once, not once per reader" {
                 let g = new Graph ()
                 let source = Signal (g, 1)
-                let shared = Memo (g, (fun _ -> source.Value * 2))
+                let shared = Make.Memo (g, (fun _ -> source.Value * 2))
 
                 new Effect (g, (fun () -> shared.Value |> ignore))
                 |> ignore
@@ -86,14 +86,14 @@ let tests =
                 let g = new Graph ()
                 let source = Signal (g, 0)
 
-                let mutable previous = Memo (g, (fun _ -> source.Value + 1))
+                let mutable previous = Make.Memo (g, (fun _ -> source.Value + 1))
                 let chain = ResizeArray [ previous ]
 
                 for _ in 2..50 do
                     // Bound outside the closure: capturing the mutable itself
                     // would give every link the *last* memo.
                     let inner = previous
-                    previous <- Memo (g, (fun _ -> inner.Value + 1))
+                    previous <- Make.Memo (g, (fun _ -> inner.Value + 1))
                     chain.Add previous
 
                 let last = chain[chain.Count - 1]
@@ -121,8 +121,8 @@ let tests =
 
                 // Collapses everything to a constant, so its own value never
                 // changes however much the source does.
-                let flattened = Memo (g, (fun _ -> source.Value * 0))
-                let below = Memo (g, (fun _ -> flattened.Value + 1))
+                let flattened = Make.Memo (g, (fun _ -> source.Value * 0))
+                let below = Make.Memo (g, (fun _ -> flattened.Value + 1))
                 let runs = ref 0
 
                 new Effect (
@@ -152,8 +152,8 @@ let tests =
                 let source = Signal (g, 1)
 
                 // Constant until the source exceeds 10, then it tracks it.
-                let clamped = Memo (g, (fun _ -> max 0 (source.Value - 10)))
-                let below = Memo (g, (fun _ -> clamped.Value * 2))
+                let clamped = Make.Memo (g, (fun _ -> max 0 (source.Value - 10)))
+                let below = Make.Memo (g, (fun _ -> clamped.Value * 2))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add below.Value))
@@ -175,7 +175,7 @@ let tests =
                 let g = new Graph ()
                 let a = Signal (g, 1)
                 let b = Signal (g, 10)
-                let m = Memo (g, (fun _ -> a.Value + b.Value))
+                let m = Make.Memo (g, (fun _ -> a.Value + b.Value))
 
                 new Effect (g, (fun () -> m.Value |> ignore))
                 |> ignore
@@ -194,7 +194,7 @@ let tests =
                 let g = new Graph ()
                 let a = Signal (g, 1)
                 let b = Signal (g, 10)
-                let m = Memo (g, (fun _ -> a.Value + b.Value))
+                let m = Make.Memo (g, (fun _ -> a.Value + b.Value))
 
                 new Effect (g, (fun () -> m.Value |> ignore))
                 |> ignore
@@ -209,7 +209,7 @@ let tests =
             test "a memo nothing reads is never recomputed, however much its source moves" {
                 let g = new Graph ()
                 let source = Signal (g, 0)
-                let m = Memo (g, (fun _ -> source.Value * 2))
+                let m = Make.Memo (g, (fun _ -> source.Value * 2))
 
                 for i in 1..10 do
                     source.Value <- i
@@ -224,8 +224,8 @@ let tests =
                 let source = Signal (g, 1)
                 let flight = AsyncSource<int> g
 
-                let ready = Memo (g, (fun _ -> source.Value * 2))
-                let waiting = Memo (g, (fun _ -> flight.Value + source.Value))
+                let ready = Make.Memo (g, (fun _ -> source.Value * 2))
+                let waiting = Make.Memo (g, (fun _ -> flight.Value + source.Value))
                 let runs = ref 0
 
                 let b =
@@ -251,11 +251,11 @@ let tests =
                 let source = Signal (g, 0)
                 let runs = ref 0
 
-                let mutable previous = Memo (g, (fun _ -> source.Value + 1))
+                let mutable previous = Make.Memo (g, (fun _ -> source.Value + 1))
 
                 for _ in 2..20 do
                     let inner = previous
-                    previous <- Memo (g, (fun _ -> inner.Value + 1))
+                    previous <- Make.Memo (g, (fun _ -> inner.Value + 1))
 
                 let last = previous
 

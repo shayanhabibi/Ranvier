@@ -279,3 +279,10 @@ type Reading<'T> =
     | Pending
     /// <summary>The node failed. <c>error</c> is a non-null exception on both targets.</summary>
     | Failed of error: exn
+
+#if FABLE_COMPILER
+// Fable drops the public Memo and AsyncMemo constructors; the Fable test run builds them through `Create`.
+module internal FableTestAccess =
+    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Tests.Fable")>]
+    do ()
+#endif

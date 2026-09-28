@@ -1226,7 +1226,7 @@ type Graph(options: GraphOptions) =
         match Graph.Ambient with
         | :? Graph as g -> g
         | _ ->
-            invalidOp "No ambient graph on this thread. Activate one with `use _ = graph.Activate ()`, or construct nodes against an explicit graph."
+            raise (InvalidOperationException "No ambient graph on this thread. Activate one with `use _ = graph.Activate ()`, or construct nodes against an explicit graph.")
 
     /// <summary>
     /// Makes this the ambient graph until the returned handle is disposed,
@@ -1484,8 +1484,10 @@ type Graph(options: GraphOptions) =
     /// </remarks>
     member this.AssertOnGraphThread(operation: string) =
         if guarded && Platform.isOffThread ownerThread then
-            invalidOp
-                $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
+            raise (
+                InvalidOperationException
+                    $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
+            )
 
     member internal this.Schedule(item: IScheduled) =
         Tracer.Schedule (this, item, queueCount - queueHead)
@@ -2080,7 +2082,7 @@ type AsyncSource<'T>(graph: Graph) =
     /// <exception cref="T:System.ArgumentNullException"><c>reason</c> is null.</exception>
     member _.Fail(reason: exn) =
         if isNull reason then
-            nullArg (nameof reason)
+            raise (ArgumentNullException (nameof reason))
 
         graph.Dispatch (fun () ->
             error <- reason

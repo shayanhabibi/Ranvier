@@ -6,6 +6,10 @@ open Ranvier
 
 type private Cell = { Row: int; Column: int }
 
+/// <summary>A class: equal only to itself on both platforms.</summary>
+type private Item(n: int) =
+    member _.N = n
+
 /// <summary>
 /// A projection is N+2 nodes, not one, because it splits a collection into two
 /// halves — the key set and the per-key values — each separately observable.
@@ -706,7 +710,7 @@ let tests =
                 createEffect (fun () ->
                     seen.Add (
                         try
-                            string proj.AnyPending
+                            sprintf "%b" proj.AnyPending
                         with e ->
                             e.Message
                     ))
@@ -714,7 +718,7 @@ let tests =
                 boom.Value <- true
                 boom.Value <- false
 
-                Expect.sequenceEqual seen [ "False"; "boom"; "False" ] "settled, failed, settled over unchanged rows"
+                Expect.sequenceEqual seen [ "false"; "boom"; "false" ] "settled, failed, settled over unchanged rows"
             }
 
             test "a reader of a failed projection sees the exception of a later pass" {
@@ -738,7 +742,7 @@ let tests =
                 createEffect (fun () ->
                     seen.Add (
                         try
-                            string proj.AnyPending
+                            sprintf "%b" proj.AnyPending
                         with e ->
                             e.Message
                     ))
@@ -746,7 +750,7 @@ let tests =
                 boom.Value <- 1
                 boom.Value <- 2
 
-                Expect.sequenceEqual seen [ "False"; "e1"; "e2" ] "each failure is seen"
+                Expect.sequenceEqual seen [ "false"; "e1"; "e2" ] "each failure is seen"
             }
 
             test "a failed projection whose upstream memo resolves unchanged wakes no reader" {
@@ -978,6 +982,8 @@ let tests =
                 Expect.sequenceEqual (snapshot |> Seq.map (fun p -> p.Key, p.Value)) [ Some 2, 2; None, 0; Some 1, 1 ] "pairs in key order"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "AsObservableCollection follows the projection" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -990,7 +996,10 @@ let tests =
                 items.Value <- [ 2; 1; 3 ]
                 Expect.sequenceEqual view [ 20; 10; 30 ] "and it follows, in key order"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "a pending row shows its last settled value, and a row that never settled is left out" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -1027,7 +1036,10 @@ let tests =
                 Expect.equal (pairs ()) [ 1, "b"; 2, "z" ] "row 1 takes its new value"
                 Expect.sequenceEqual view [ "b"; "z" ] "in the view as well"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "Snapshot raises while the pass is suspended, and the view keeps its contents" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -1047,7 +1059,10 @@ let tests =
                 later.Settle [ 3 ]
                 Expect.sequenceEqual view [ 30 ] "and follows once the pass settles"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "the view stops following when the projection is disposed" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -1064,7 +1079,10 @@ let tests =
                 Expect.equal changes.Value 0 "and nothing wrote to it"
                 Expect.throwsT<ObjectDisposedException> (fun () -> proj.AsObservableCollection () |> ignore) "a disposed projection builds no view"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "a view stops following when the scope that created it re-runs" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -1093,6 +1111,7 @@ let tests =
                 Expect.isGreaterThan changes.Value 0 "precondition: the live view changed"
                 Expect.isLessThanOrEqual changes.Value 2 "only the live view changed"
             }
+#endif
 
             test "a Snapshot read under a boundary wakes when the suspended pass settles" {
                 use g = new Graph ()
@@ -1263,12 +1282,12 @@ let tests =
             test "a projection keyed by reference treats equal items as distinct keys" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let a = ResizeArray [ 1 ]
-                let b = ResizeArray [ 1 ]
+                let a = Item 1
+                let b = Item 1
                 let items = createSignal [ a; b ]
 
                 let proj =
-                    createProjection id (fun (x: ResizeArray<int>) -> x.Count) (fun () -> items.Value)
+                    createProjection id (fun (x: Item) -> x.N) (fun () -> items.Value)
 
                 Expect.equal proj.Count 2 "two items, two keys"
                 items.Value <- [ b ]
@@ -1344,7 +1363,7 @@ let tests =
                 createEffect (fun () ->
                     seen.Add (
                         try
-                            sprintf "%A" [ for k in proj.Keys -> k, proj.Get k ]
+                            [ for k in proj.Keys -> $"%d{k}:%d{proj.Get k}" ] |> String.concat " "
                         with _ ->
                             "error"
                     ))
@@ -1360,7 +1379,7 @@ let tests =
 
                 Expect.sequenceEqual
                     seen
-                    [ "[(1, 10)]"; "error"; "[(1, 10); (2, 20); (3, 30); (99, 990)]" ]
+                    [ "1:10"; "error"; "1:10 2:20 3:30 99:990" ]
                     "the reader never saw a partial set of rows"
             }
 
@@ -1752,6 +1771,8 @@ let summaryTests =
                     Expect.equal (runsOnPassSettle read chain) 1 "one run"
                 }
 
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "AsObservableCollection over a pending pass resets once when the pass settles" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -1768,4 +1789,5 @@ let summaryTests =
                 Expect.sequenceEqual view [ 1; 2 ] "the view follows"
                 Expect.equal resets.Value 1 "one reset"
             }
+#endif
         ]

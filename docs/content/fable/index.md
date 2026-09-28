@@ -22,13 +22,15 @@ The engine Ranvier is derived from (Partas.Signals, at commit `915f139`) already
 - keyed projections, selectors and index projections;
 - `AsyncSource`, and `AsyncMemo` through `createAsync` and `createAsyncWith`, under all three flight policies.
 
-Ranvier's engine compiles under Fable in this repository: the instruction-count bench (`fable/Ranvier.Counters`) runs it under Node.js. The smoke check has not been carried over, no Fable package is published, and the Fable build is not part of Ranvier's release process yet.
+Ranvier's engine compiles under Fable in this repository, and the .NET test suite runs against it under Node.js (`dotnet fsi build.fsx test-fable`). Tests that exercise a .NET-only facility, such as threads, garbage collection or `ObservableCollection`, are compiled out. The run writes `docs/.ai/fable-compat.md`: the tests that pass, fail and are excluded, in each file. Every failure listed there is one of the differences below. No Fable package is published, and the Fable build is not part of Ranvier's release process yet.
 
 ## Known differences from .NET
 
 These are the differences that exist today. Some may narrow; others follow from the JavaScript runtime and will remain.
 
 **Async results arrive on a later microtask.** Under Fable an async flight is a promise. A flight that has already completed when its body returns still reads as Pending on the first read and becomes ready once the microtask queue drains. On .NET the continuation runs inline and the first read is ready. Synchronous rendering, such as server-side rendering, sees the Pending state.
+
+**A `Queue` flight applies on a later microtask.** Under `FlightPolicy.Queue` each result waits on a promise chain, so a flight applies on a later microtask even when it and every earlier flight have settled. On .NET a settled queue applies inline.
 
 **Every `await` suspends.** A Fable `task` continues on a later microtask, outside every computation, so a read after an `await` is untracked even when the awaited promise had already resolved. On .NET a read after awaiting a completed task is tracked.
 
@@ -39,6 +41,18 @@ These are the differences that exist today. Some may narrow; others follow from 
 - structs, struct tuples, `DateTime`, `decimal` and `KeyValuePair` become objects, so a write of an equal value that is cut off on .NET propagates under Fable;
 - `Some x` is erased to `x`, so writing `Some 1` over `Some 1` propagates on .NET and is cut off under Fable;
 - `StructuralPolicy` cuts off `nan` over `nan` on .NET and propagates it under Fable.
+
+**Exception types.** The engine raises `InvalidOperationException`, `ArgumentException` and `ArgumentNullException` as those types on both targets, so a type test on them works under Fable. `ObjectDisposedException` and `KeyNotFoundException` compile to a plain `Exception`: a type test on either is always false under Fable.
+
+**A node read before its first value holds `null`.** `Peek` on a memo that has never run, or on an async memo that has never settled, returns `Unchecked.defaultof<'T>`. In generic code under Fable that is `null`, not `0` or `false`.
+
+**Text formatting.** `string true` is `"True"` on .NET and `"true"` under Fable, and `%A` renders lists and tuples differently. Format with `%b`, `%d` and `%s`, or build the text by hand, where the output must match.
+
+**Collections compare by structure.** A `ResizeArray` is a JavaScript array, compared element by element. A projection or lookup keyed by one treats two equal lists as the same key under Fable and as distinct keys on .NET. Key by a class for identity on both targets.
+
+**A null function argument is never null.** Fable wraps a function passed to a multi-argument parameter in a closure. Passing `Unchecked.defaultof<_>` as `subtract` to `Projection.foldGroup` raises `ArgumentNullException` on .NET and is accepted under Fable, failing later when it is called.
+
+**Loop bounds.** Fable re-evaluates the upper bound of `for i in a .. b` on every iteration. A bound that reads a signal, or anything else that can change inside the loop, iterates a different number of times under Fable. Bind the bound first.
 
 ## Not available under Fable
 
@@ -63,4 +77,4 @@ The snippet uses only functions that exist on both targets, which is the style t
 
 ## What comes next
 
-Before the Fable target can be called supported, Ranvier needs the smoke check running in its own build, a published package, and documentation of each difference above next to the API it affects. Until then, treat anything on this page as subject to change.
+Before the Fable target can be called supported, Ranvier needs a published package, the Fable test run in its release process, and documentation of each difference above next to the API it affects. Until then, treat anything on this page as subject to change.

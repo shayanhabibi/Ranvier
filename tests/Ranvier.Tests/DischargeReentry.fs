@@ -198,7 +198,7 @@ let tests =
                                 s.Value <- 3
                                 self.TryValue |> ignore)
 
-                        Task.FromResult n)
+                        completed n)
 
                 self.TryValue |> ignore
                 s.Value <- 2
@@ -319,6 +319,8 @@ let tests =
                 Expect.equal m.Value 1 "the memo's own body created nothing"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
             test "a scope created and disposed by a cleanup is released at once" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -347,6 +349,7 @@ let tests =
                 Expect.equal weak.Count 1 "precondition: one discharge ran the cleanup"
                 Expect.isFalse weak[0].IsAlive "the memo's scope keeps no link to the disposed scope"
             }
+#endif
 
             test "an effect cleanup that registers a cleanup during a re-run gives it to the effect's scope" {
                 use g = new Graph ()
@@ -703,7 +706,7 @@ let tests =
                         if u.Value = 1 then
                             self.Dispose ()
 
-                        Task.FromResult t.Value)
+                        completed t.Value)
 
                 self.TryValue |> ignore
                 u.Value <- 1

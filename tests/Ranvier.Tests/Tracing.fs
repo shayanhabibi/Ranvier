@@ -6,10 +6,18 @@ open Expecto
 open Ranvier
 
 let private traced () =
+#if FABLE_COMPILER
+#if RANVIER_TRACE
+    true
+#else
+    false
+#endif
+#else
     typeof<Graph>.Assembly.GetCustomAttributes(typeof<AssemblyMetadataAttribute>, false)
     |> Array.exists (fun a ->
         let a = a :?> AssemblyMetadataAttribute
         a.Key = "RanvierTrace" && a.Value = "true")
+#endif
 
 exception private Boom
 
@@ -205,7 +213,7 @@ let tests =
                 createAsyncSource<int>() |> ignore
                 let m = createMemo (fun _ -> s.Value)
                 createEffect (fun () -> m.Value |> ignore)
-                createAsync (fun _ _ -> Task.FromResult 1) |> ignore
+                createAsync (fun _ _ -> completed 1) |> ignore
                 let b = createSuspense (fun _ -> 0) (fun () -> s.Value)
                 b.Value |> ignore
                 let p = createProjection id (fun x -> x * 10) (fun () -> [ s.Value ])
@@ -501,7 +509,7 @@ let tests =
             test "an async memo and a projection record their runs" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let a = createAsync (fun _ _ -> Task.FromResult 1)
+                let a = createAsync (fun _ _ -> completed 1)
                 let p = createProjection id id (fun () -> [ 1 ])
                 a.TryValue |> ignore
                 p.Keys |> ignore
@@ -927,7 +935,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let a = createMemo (fun _ -> s.Value * 2)
-                let am = createAsync (fun _ _ -> Task.FromResult a.Value)
+                let am = createAsync (fun _ _ -> completed a.Value)
                 am.TryValue |> ignore
                 s.Value <- 2
                 am.TryValue |> ignore

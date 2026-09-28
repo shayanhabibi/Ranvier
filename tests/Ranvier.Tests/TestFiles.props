@@ -1,0 +1,43 @@
+<Project>
+    <!-- The suite, in compile order. Ranvier.Tests and fable/Ranvier.Tests.Fable both compile it. -->
+    <ItemGroup>
+        <Compile Include="$(MSBuildThisFileDirectory)Support.fs" Link="Support.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Readings.fs" Link="Readings.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Tests.fs" Link="Tests.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Effects.fs" Link="Effects.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)EffectSplit.fs" Link="EffectSplit.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)AmbientGraph.fs" Link="AmbientGraph.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Owners.fs" Link="Owners.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Equality.fs" Link="Equality.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Async.fs" Link="Async.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Boundaries.fs" Link="Boundaries.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Threading.fs" Link="Threading.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Edges.fs" Link="Edges.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Invalidation.fs" Link="Invalidation.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Lifetime.fs" Link="Lifetime.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Retention.fs" Link="Retention.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Tracing.fs" Link="Tracing.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)TraceModelTests.fs" Link="TraceModelTests.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Observers.fs" Link="Observers.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Api.fs" Link="Api.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)FanOut.fs" Link="FanOut.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Reentrancy.fs" Link="Reentrancy.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Cutoff.fs" Link="Cutoff.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)SuspensionEdges.fs" Link="SuspensionEdges.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Scopes.fs" Link="Scopes.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Propagation.fs" Link="Propagation.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Reads.fs" Link="Reads.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Batching.fs" Link="Batching.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)AsyncEdges.fs" Link="AsyncEdges.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Projections.fs" Link="Projections.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Lookups.fs" Link="Lookups.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)MemoScopes.fs" Link="MemoScopes.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)MemoPurity.fs" Link="MemoPurity.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)ScopeContexts.fs" Link="ScopeContexts.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)DischargeReentry.fs" Link="DischargeReentry.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)MapSemantics.fs" Link="MapSemantics.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Lenses.fs" Link="Lenses.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Combinators.fs" Link="Combinators.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)PreviousValues.fs" Link="PreviousValues.fs" />
+    </ItemGroup>
+</Project>

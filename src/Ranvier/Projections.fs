@@ -1294,7 +1294,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
         if not (this.Seen.Add key) then
             // Two items, one key: one of them would silently disappear. The
             // throw fails the pass, and reaches the boundary around the read.
-            invalidOp $"The projection produced the key %A{key} twice in one pass. Keys must be unique; check the keyOf function."
+            raise (InvalidOperationException $"The projection produced the key %A{key} twice in one pass. Keys must be unique; check the keyOf function.")
 
         this.PassKeys.Add key
 
@@ -1337,9 +1337,12 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
                     | NotReadyException _ as ex ->
                         let failure =
 #if FABLE_COMPILER
-                            InvalidOperationException (
-                                $"The projection's factory for key %A{key} read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns."
-                            )
+                            let failure =
+                                InvalidOperationException
+                                    $"The projection's factory for key %A{key} read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns."
+
+                            Platform.setInner failure ex
+                            failure
 #else
                             InvalidOperationException (
                                 $"The projection's factory for key %A{key} read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns.",
@@ -1695,7 +1698,12 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 for key in affectedKeys do
                     union.Add key |> ignore
 
-                union.Iterate this.Revisit
+                // Collected first: Fable miscompiles `Revisit` inlined into an `Iterate` callback.
+                let keys = ResizeArray<'K>(union.Count)
+                union.Iterate (fun key -> keys.Add key)
+
+                for key in keys do
+                    this.Revisit key
 
     /// <summary>
     /// Recomputes the cell of <c>key</c>, or evicts it when unobserved.
