@@ -142,8 +142,13 @@ module Api =
     /// <c>compute</c> is a pure derivation, as <c>createMemo</c>'s is; an async value that creates nodes is
     /// <c>createAsyncWith</c>. The purity check covers <c>compute</c> up to its first <c>await</c> that suspends; an
     /// <c>await</c> on an already-completed task does not suspend.
+    /// <para>
+    /// <c>compute</c> receives the value last published as a <c>Previous</c>. Read every input, then await
+    /// <c>Settled</c>: tracking stops at the first <c>await</c> that suspends, and under <c>FlightPolicy.Queue</c>
+    /// awaiting <c>Settled</c> suspends until the flight started before it is applied.
+    /// </para>
     /// </remarks>
-    let createAsync (compute: CancellationToken -> Task<'T>) =
+    let createAsync (compute: Previous<'T> -> CancellationToken -> Task<'T>) =
         AsyncMemo<'T>.Create(Graph.Current, compute, ScopeMode.PureAsync)
 
     /// <summary>
@@ -154,8 +159,12 @@ module Api =
     /// A node created after that <c>await</c> by a continuation on the graph thread belongs to the graph's root; to keep it in
     /// the flight, create it inside <c>runWithOwner</c> with <c>getOwner ()</c> captured before the <c>await</c>. An async value
     /// created and read in <c>compute</c> before that <c>await</c> restarts its flight on every settle and never settles.
+    /// <para>
+    /// <c>compute</c> receives the value last published as a <c>Previous</c>, as <c>createAsync</c>'s does: read every
+    /// input, then await <c>Settled</c>.
+    /// </para>
     /// </remarks>
-    let createAsyncWith (compute: CancellationToken -> Task<'T>) =
+    let createAsyncWith (compute: Previous<'T> -> CancellationToken -> Task<'T>) =
         AsyncMemo<'T>.Create(Graph.Current, compute, ScopeMode.Owning)
 
     /// <summary>

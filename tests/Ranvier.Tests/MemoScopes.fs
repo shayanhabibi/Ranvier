@@ -215,7 +215,7 @@ let tests =
                 let cleaned = ResizeArray<int>()
 
                 let a =
-                    createAsyncWith (fun _ ->
+                    createAsyncWith (fun _ _ ->
                         let n = s.Value
                         onCleanup (fun () -> cleaned.Add n)
                         Task.FromResult n)
@@ -240,7 +240,7 @@ let tests =
                 let gate = TaskCompletionSource<unit>()
 
                 let a =
-                    createAsyncWith (fun _ ->
+                    createAsyncWith (fun _ _ ->
                         let owner = getOwner ()
                         let n = s.Value
 

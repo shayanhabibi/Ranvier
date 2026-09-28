@@ -18,7 +18,7 @@ open System.Collections.Concurrent
 /// <remarks>
 /// <para>
 /// Most of them are about threads. The rest are the promise-shaped task surface
-/// (<c>completedTask</c>, <c>whenSettled</c>, <c>outcomeOf</c>, <c>apply</c>, <c>after</c>) and differences of cost
+/// (<c>completedTask</c>, <c>whenSettled</c>, <c>outcomeOf</c>, <c>apply</c>, <c>after</c>, <c>deferred</c>) and differences of cost
 /// (<c>releaseSlot</c>, <c>itemAt</c>, <c>entryAt</c>, <c>RefIndex</c>, <c>KeyMap</c>, <c>KeySet</c>), each
 /// documented where it is defined.
 /// The thread ones are not a coincidence: JavaScript
@@ -189,6 +189,50 @@ module internal Platform =
 #else
         tail.ContinueWith(Func<Task, Task>(fun _ -> next ()), TaskContinuationOptions.ExecuteSynchronously).Unwrap()
 #endif
+
+#if FABLE_COMPILER
+    /// <summary>A task completed by hand, once.</summary>
+    type Deferred<'T> = { Task: Task<'T>; Resolve: 'T -> unit }
+
+    [<Emit("new Promise($0)")>]
+    let private promiseOf (executor: ('T -> unit) -> unit) : Task<'T> = jsNative
+
+    /// <summary>A task that completes when <c>resolve</c> is called. Its awaiters resume on a later microtask.</summary>
+    let deferred<'T> () : Deferred<'T> =
+        let resolver = ref Unchecked.defaultof<'T -> unit>
+        let task = promiseOf (fun resolve -> resolver.Value <- resolve)
+
+        {
+            Task = task
+            Resolve = resolver.Value
+        }
+
+    let deferredTask (d: Deferred<'T>) : Task<'T> = d.Task
+
+    /// <summary>Completes <c>d</c> with <c>value</c>. A second call has no effect.</summary>
+    let resolve (d: Deferred<'T>) (value: 'T) =
+        d.Resolve value
+#else
+    /// <summary>A task completed by hand, once.</summary>
+    type Deferred<'T> = TaskCompletionSource<'T>
+
+    /// <summary>
+    /// A task that completes when <c>resolve</c> is called. Its awaiters resume on the thread pool, never inside
+    /// <c>resolve</c>.
+    /// </summary>
+    let deferred<'T> () : Deferred<'T> =
+        TaskCompletionSource<'T> TaskCreationOptions.RunContinuationsAsynchronously
+
+    let deferredTask (d: Deferred<'T>) : Task<'T> = d.Task
+
+    /// <summary>Completes <c>d</c> with <c>value</c>. A second call has no effect.</summary>
+    let resolve (d: Deferred<'T>) (value: 'T) =
+        d.TrySetResult value |> ignore
+#endif
+
+    /// <summary>A task already completed with <c>value</c>.</summary>
+    let completedWith (value: 'T) : Task<'T> =
+        Task.FromResult value
 
 #if !FABLE_COMPILER
     /// <summary>The synchronous part of a flight body: live until the body returns.</summary>

@@ -139,7 +139,7 @@ let tests =
                 let user =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let f = Flight<string>()
                             flights[key.Value] <- f
                             f.Task
@@ -171,7 +171,7 @@ let tests =
                 let user =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let f = Flight<string>()
                             flights[key.Value] <- f
                             f.Task
@@ -197,7 +197,7 @@ let tests =
                 let g = new Graph ()
                 use _ = g.Activate ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
                 let log = ResizeArray ()
 
                 do
@@ -214,7 +214,7 @@ let tests =
                 let g = new Graph ()
                 use _ = g.Activate ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
                 let log = ResizeArray ()
 
                 do (createEffectOn (fun () -> a.Value) (fun v -> log.Add $"saw {v}"))
@@ -233,7 +233,7 @@ let tests =
                 let user =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let f = Flight<string>()
                             flights[key.Value] <- f
                             f.Task
@@ -367,7 +367,7 @@ let tests =
                 let user =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let f = Flight<string>()
                             flights[key.Value] <- f
                             f.Task

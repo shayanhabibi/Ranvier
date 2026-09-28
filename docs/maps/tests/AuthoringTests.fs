@@ -17,7 +17,7 @@ let private cart =
             "        lines.Value |> List.sum)"
             ""
             "// the quote waits on the desk"
-            "let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)"
+            "let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)"
             "let total = createMemo (fun _ -> subtotal.Value + shipping.Value)"
             "createEffect (fun () -> total.TryValue |> ignore)"
             ""

@@ -3084,6 +3084,46 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
                 violated <- true
                 raise (InvalidOperationException ScopeMessages.effectOn)
 
+/// <summary>The async memo a <c>Previous</c> reads.</summary>
+type internal IPreviousSource<'T> =
+    /// <summary>
+    /// The value last published, once <c>position</c> chained results are applied.
+    /// </summary>
+    abstract Settled: position: int -> Task<'T voption>
+
+/// <summary>The completed <c>ValueNone</c> task shared by every node of one value type.</summary>
+[<AbstractClass; Sealed>]
+type internal NothingPublished<'T> private () =
+    static member val Task: Task<'T voption> = Platform.completedWith ValueNone
+
+/// <summary>
+/// The value an async memo published before a flight, handed to the flight's body. <c>ValueNone</c> means the memo has
+/// never published a value.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Under <c>CancelPrevious</c> and <c>KeepLatest</c>, <c>Settled</c> is complete when the body runs. Under <c>Queue</c>,
+/// a flight that starts while an earlier flight's result is unapplied receives the value as it stands once that result is
+/// applied, so a chain of flights folds in start order. A faulted or dropped predecessor leaves the last settled value,
+/// and disposing the memo completes <c>Settled</c> with the value the memo keeps.
+/// </para>
+/// <para>
+/// Tracking stops at the body's first await that suspends. Read every input, then await <c>Settled</c>: under
+/// <c>Queue</c>, a read made after awaiting it is not tracked.
+/// </para>
+/// </remarks>
+[<Struct; NoComparison; NoEquality>]
+type Previous<'T> internal (source: IPreviousSource<'T>, position: int) =
+    /// <summary>
+    /// The value published before the flight, or the value once the flight started before it is applied, under
+    /// <c>Queue</c>. Its awaiters resume outside the graph's apply.
+    /// </summary>
+    member _.Settled: Task<'T voption> =
+        if isNull (box source) then
+            NothingPublished<'T>.Task
+        else
+            source.Settled position
+
 /// <summary>
 /// A derived computation whose value arrives later: the body runs synchronously and returns a <c>Task</c>. This library's
 /// <c>createAsync</c>.
@@ -3092,8 +3132,9 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 /// Reads are tracked up to the body's first await that suspends; a read after it is untracked. On .NET a continuation run
 /// inline inside another computation's body is detached from that body. Under Fable every await suspends and an outcome
 /// lands on a later microtask. Pure or owning, as a <c>Memo</c> is: an owning scope is discharged before each flight starts.
+/// The body receives the value last published as a <c>Previous</c>.
 /// </remarks>
-type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>, mode: ScopeMode) =
+type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, mode: ScopeMode) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -3140,6 +3181,23 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     /// <summary>The number of results chained onto <c>tail</c> and not yet applied, under <c>Queue</c>.</summary>
     let mutable queued = 0
 
+    /// <summary>The number of results ever chained onto <c>tail</c>, under <c>Queue</c>.</summary>
+    let mutable chained = 0
+
+    /// <summary>The number of chained results applied, under <c>Queue</c>.</summary>
+    let mutable applied = 0
+
+    /// <summary>True once a result has written <c>value</c>.</summary>
+    let mutable published = false
+
+    /// <summary>The completed task of the value last published, created on first read.</summary>
+    let mutable settledTask: Task<'T voption> = null
+
+    /// <summary>
+    /// The <c>Previous.Settled</c> tasks still waiting, keyed by the number of applied results that completes each.
+    /// </summary>
+    let mutable waiters: Dictionary<int, Platform.Deferred<'T voption>> = null
+
     /// <summary>
     /// True while <c>Launch</c> attaches the settle continuation. A flight already complete
     /// publishes inline, during the read that launched it.
@@ -3156,6 +3214,42 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
 
         Tracer.Notified graph
         graph.RequestFlush ()
+
+    let lastSettled () =
+        if published then ValueSome value else ValueNone
+
+    let write (v: 'T) =
+        value <- v
+        published <- true
+        settledTask <- null
+
+    /// <summary>
+    /// The value last published, as a completed task shared by every read until the next publish. Called under the
+    /// <c>observers</c> lock.
+    /// </summary>
+    let settledNow () =
+        if isNull settledTask then
+            settledTask <-
+                if published then
+                    Platform.completedWith (ValueSome value)
+                else
+                    NothingPublished<'T>.Task
+
+        settledTask
+
+    /// <summary>
+    /// Counts one more chained result applied and completes the waiter keyed on the new count. Called under the
+    /// <c>observers</c> lock.
+    /// </summary>
+    let releaseNext () =
+        applied <- applied + 1
+
+        if not (isNull waiters) then
+            match waiters.TryGetValue applied with
+            | true, waiter ->
+                waiters.Remove applied |> ignore
+                Platform.resolve waiter (lastSettled ())
+            | _ -> ()
 
     /// <summary>Applies the result of the run numbered <c>gen</c>. Runs on the graph thread.</summary>
     let applyResult (gen: int) (outcome: Platform.FlightOutcome<'T>) =
@@ -3180,7 +3274,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // stays pending.
             | Platform.FlightOutcome.Completed v when suspended ->
                 Tracer.FlightSettled (graph, id, gen, 0, true, box v)
-                value <- v
+                write v
                 status <- Status.Pending
             | Platform.FlightOutcome.Faulted _
             | Platform.FlightOutcome.Canceled _ when suspended ->
@@ -3188,7 +3282,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 Tracer.FlightDrop (graph, id, gen, 3)
             | Platform.FlightOutcome.Completed v ->
                 Tracer.FlightSettled (graph, id, gen, 0, false, box v)
-                value <- v
+                write v
                 error <- null
                 status <- Status.None
                 wake ()
@@ -3201,6 +3295,12 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 wake ()
         else
             Tracer.FlightDrop (graph, id, gen, (if disposed then 2 else 1))
+
+        // Every chained result, dropped or failed included, completes the waiter behind it with the last settled value.
+        match graph.Options.FlightPolicy with
+        | FlightPolicy.Queue -> lock observers releaseNext
+        | CancelPrevious
+        | KeepLatest -> ()
 
     let publish (gen: int) (outcome: Platform.FlightOutcome<'T>) =
         graph.Dispatch (fun () -> applyResult gen outcome)
@@ -3218,7 +3318,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     /// <summary>
     /// A pure async memo over <c>compute</c>.
     /// </summary>
-    new(graph: Graph, compute: CancellationToken -> Task<'T>) as this =
+    new(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>) as this =
         new AsyncMemo<'T> (graph, compute, ScopeMode.PureAsync)
         then this.Attach ()
 
@@ -3226,7 +3326,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     /// An owning async memo over <c>compute</c> when <c>owning</c> is true, a pure one
     /// otherwise.
     /// </summary>
-    new(graph: Graph, compute: CancellationToken -> Task<'T>, owning: bool) as this =
+    new(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, owning: bool) as this =
         new AsyncMemo<'T> (graph, compute, (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
         then this.Attach ()
 #endif
@@ -3234,7 +3334,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     /// <summary>
     /// An async memo over <c>compute</c>, owned by the current owner.
     /// </summary>
-    static member internal Create(graph: Graph, compute: CancellationToken -> Task<'T>, mode: ScopeMode) =
+    static member internal Create(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, mode: ScopeMode) =
         let memo = new AsyncMemo<'T> (graph, compute, mode)
         memo.Attach ()
         memo
@@ -3295,6 +3395,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 cts <- new CancellationTokenSource ()
 
         let token = cts.Token
+        // The flight resumes from the value once every result chained before it is applied.
+        let previous = Previous<'T>(this :> IPreviousSource<'T>, chained)
         runs <- runs + 1
         Tracer.RunStart (graph, id, runs)
         error <- null
@@ -3311,6 +3413,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             match graph.Options.FlightPolicy with
             | FlightPolicy.Queue when queued > 0 ->
                 queued <- queued + 1
+                chained <- chained + 1
                 let outcome = Task.FromResult (Platform.FlightOutcome<'T>.Faulted ex)
                 tail <- Platform.after tail (fun () -> Platform.apply outcome (publishQueued gen))
             | _ ->
@@ -3324,7 +3427,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 // unhandled rejection ends the node process.
                 let run () =
                     let started =
-                        Platform.runFlightBody graph.EnterContinuation graph.LeaveContinuation (fun () -> compute token)
+                        Platform.runFlightBody graph.EnterContinuation graph.LeaveContinuation (fun () -> compute previous token)
 
                     if
                         (violated || graph.RaisedPending)
@@ -3369,6 +3472,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 match graph.Options.FlightPolicy with
                 | FlightPolicy.Queue ->
                     queued <- queued + 1
+                    chained <- chained + 1
                     let outcome = Platform.outcomeOf flight
                     tail <- Platform.after tail (fun () -> Platform.apply outcome (publishQueued gen))
                 | CancelPrevious
@@ -3504,9 +3608,35 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 status <- Status.Error
                 wake ()
 
+            lock observers (fun () ->
+                if not (isNull waiters) then
+                    let settled = lastSettled ()
+
+                    for waiter in waiters.Values do
+                        Platform.resolve waiter settled
+
+                    waiters <- null)
+
     interface IDisposable with
         member this.Dispose() =
             this.Dispose ()
+
+    // The lock covers a body reading `Settled` from a continuation off the graph thread.
+    interface IPreviousSource<'T> with
+        member _.Settled position =
+            lock observers (fun () ->
+                if disposed || applied >= position then
+                    settledNow ()
+                else
+                    if isNull waiters then
+                        waiters <- Dictionary<int, Platform.Deferred<'T voption>>()
+
+                    match waiters.TryGetValue position with
+                    | true, waiter -> Platform.deferredTask waiter
+                    | _ ->
+                        let waiter = Platform.deferred<'T voption>()
+                        waiters[position] <- waiter
+                        Platform.deferredTask waiter)
 
     member _.Status = status
 

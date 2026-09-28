@@ -189,7 +189,7 @@ let tests =
                 let mutable self: AsyncMemo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createAsyncWith (fun _ ->
+                    createAsyncWith (fun _ _ ->
                         let n = s.Value
                         createEffect (fun () -> tick.Value |> ignore)
 
@@ -405,7 +405,7 @@ let tests =
                 use _ = g.Activate ()
 
                 let a =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         (try
                             onCleanup ignore
                          with _ ->
@@ -699,7 +699,7 @@ let tests =
                 let mutable self: AsyncMemo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         if u.Value = 1 then
                             self.Dispose ()
 

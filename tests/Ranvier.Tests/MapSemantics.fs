@@ -67,7 +67,7 @@ let tests =
                         (fun item ->
                             let id = (item ()).Id
                             bump created id
-                            let fetch = createAsync (fun _ -> flights[id].Task)
+                            let fetch = createAsync (fun _ _ -> flights[id].Task)
                             fun () -> fetch.Value)
                         (fun () -> source.Value)
 
@@ -321,7 +321,7 @@ let tests =
                     createProjection
                         _.Id
                         (fun (u: User) ->
-                            (createAsync (fun _ -> flight.Task)).Value
+                            (createAsync (fun _ _ -> flight.Task)).Value
                             + u.Name)
                         (fun () -> source.Value)
 

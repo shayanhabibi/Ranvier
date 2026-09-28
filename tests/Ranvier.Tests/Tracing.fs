@@ -205,7 +205,7 @@ let tests =
                 createAsyncSource<int>() |> ignore
                 let m = createMemo (fun _ -> s.Value)
                 createEffect (fun () -> m.Value |> ignore)
-                createAsync (fun _ -> Task.FromResult 1) |> ignore
+                createAsync (fun _ _ -> Task.FromResult 1) |> ignore
                 let b = createSuspense (fun _ -> 0) (fun () -> s.Value)
                 b.Value |> ignore
                 let p = createProjection id (fun x -> x * 10) (fun () -> [ s.Value ])
@@ -501,7 +501,7 @@ let tests =
             test "an async memo and a projection record their runs" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let a = createAsync (fun _ -> Task.FromResult 1)
+                let a = createAsync (fun _ _ -> Task.FromResult 1)
                 let p = createProjection id id (fun () -> [ 1 ])
                 a.TryValue |> ignore
                 p.Keys |> ignore
@@ -599,7 +599,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let gate = TaskCompletionSource<int>()
-                let a = createAsync (fun _ -> gate.Task)
+                let a = createAsync (fun _ _ -> gate.Task)
                 createEffect (fun () -> a.TryValue |> ignore)
                 gate.SetResult 5
                 let node = (a :> INode).Id
@@ -927,7 +927,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let a = createMemo (fun _ -> s.Value * 2)
-                let am = createAsync (fun _ -> Task.FromResult a.Value)
+                let am = createAsync (fun _ _ -> Task.FromResult a.Value)
                 am.TryValue |> ignore
                 s.Value <- 2
                 am.TryValue |> ignore
@@ -1198,7 +1198,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let flight = TaskCompletionSource<int>()
-                let a = createAsync (fun _ -> flight.Task)
+                let a = createAsync (fun _ _ -> flight.Task)
                 let d = createMemo (fun _ -> a.Value * 2)
                 d.TryValue |> ignore
                 flight.SetResult 5
@@ -1262,7 +1262,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         s.Value |> ignore
                         let flight = TaskCompletionSource<int>()
                         flights.Add flight

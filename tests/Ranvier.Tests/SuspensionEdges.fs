@@ -228,7 +228,7 @@ let tests =
             test "an async memo whose task captures a pending read is pending" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = new AsyncMemo<int> (g, (fun _ -> task { return a.Value * 2 }))
+                let m = new AsyncMemo<int> (g, (fun _ _ -> task { return a.Value * 2 }))
 
                 Expect.equal m.TryValue Pending "a faulted task is not an error when the fault is the channel"
 

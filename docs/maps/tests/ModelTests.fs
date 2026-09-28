@@ -37,7 +37,7 @@ let private cart () =
             |> List.sumBy (fun l -> l.Price * decimal l.Qty))
 
     Trace.label (g, subtotal, "subtotal")
-    let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+    let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
     Trace.label (g, shipping, "shipping")
     let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
     Trace.label (g, total, "total")

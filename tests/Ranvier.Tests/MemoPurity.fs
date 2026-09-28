@@ -173,7 +173,7 @@ let tests =
                 use _ = g.Activate ()
 
                 let a =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         onCleanup ignore
                         Task.FromResult 1)
 

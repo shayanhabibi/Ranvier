@@ -215,7 +215,7 @@ let tests =
             test "a boundary over an AsyncMemo catches the flight" {
                 let g = new Graph ()
                 let source = TaskCompletionSource<int>()
-                let query = new AsyncMemo<int> (g, (fun _ -> source.Task))
+                let query = new AsyncMemo<int> (g, (fun _ _ -> source.Task))
 
                 let b = Boundary<int>.Suspense(g, (fun () -> query.Value), (fun _ -> 0))
 
@@ -338,7 +338,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let fetch () =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         let flight = TaskCompletionSource<int>()
                         flights.Add flight
                         flight.Task)
@@ -369,7 +369,7 @@ let tests =
 
                 createEffect (fun () ->
                     let a =
-                        createAsync (fun _ ->
+                        createAsync (fun _ _ ->
                             let flight = TaskCompletionSource<int>()
                             flights.Add flight
                             flight.Task)
@@ -390,7 +390,7 @@ let tests =
                 let m =
                     createMemoWith (fun _ ->
                         let a =
-                            createAsync (fun _ ->
+                            createAsync (fun _ _ ->
                                 let flight = TaskCompletionSource<int>()
                                 flights.Add flight
                                 flight.Task)

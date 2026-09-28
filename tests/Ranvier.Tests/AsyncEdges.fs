@@ -50,7 +50,7 @@ let tests =
             test "a flight that is already complete never makes the reader pending" {
                 let g = new Graph ()
 
-                let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult 42))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult 42))
 
                 // The continuation runs inline on an already-completed task, so
                 // the value is there before the first read returns. A reader
@@ -62,7 +62,7 @@ let tests =
             test "an effect over an already-complete flight runs once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult (s.Value * 10)))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult (s.Value * 10)))
                 let seen = ResizeArray<int>()
 
                 use _reader = new Effect (g, (fun () -> seen.Add a.Value))
@@ -76,7 +76,7 @@ let tests =
             test "a memo over an already-complete flight recomputes once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult (s.Value * 10)))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult (s.Value * 10)))
                 let m = Memo (g, (fun _ -> a.Value + 1))
 
                 Expect.equal m.Value 1 "first read"
@@ -91,7 +91,7 @@ let tests =
                 let g = new Graph ()
 
                 let a =
-                    new AsyncMemo<int> (g, (fun _ -> Task.FromException<int>(InvalidOperationException "nope")))
+                    new AsyncMemo<int> (g, (fun _ _ -> Task.FromException<int>(InvalidOperationException "nope")))
 
                 match a.TryValue with
                 | Failed ex -> Expect.stringContains ex.Message "nope" "the reason survived"
@@ -106,7 +106,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -140,7 +140,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             let t = trigger.Value
                             let flight = TaskCompletionSource<int>()
 
@@ -184,7 +184,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             trigger.Value |> ignore
                             let flight = TaskCompletionSource<int>()
 
@@ -212,7 +212,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "in flight"
 
@@ -232,7 +232,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gate.Task
                                 return raise (OperationCanceledException "http timeout")
@@ -254,7 +254,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             if trigger.Value = 0 then
                                 let flight = TaskCompletionSource<int>()
 
@@ -288,7 +288,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -330,7 +330,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             if trigger.Value = 1 then
                                 failwith "sync-fail"
 
@@ -365,7 +365,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             if trigger.Value = 1 then
                                 Task.FromResult upstream.Value
                             else
@@ -401,7 +401,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             if trigger.Value = 1 then
                                 failwith "sync-fail"
 
@@ -438,7 +438,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -464,7 +464,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -488,7 +488,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             if fail.Value then
                                 Task.FromException<int>(InvalidOperationException "x")
                             else
@@ -507,7 +507,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 a.Dispose ()
@@ -523,7 +523,7 @@ let tests =
 
                 let owner =
                     g.CreateRoot (fun o ->
-                        a <- new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                        a <- new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
                         o)
 
                 let m = Memo (g, (fun _ -> a.Value + 1))
@@ -557,7 +557,7 @@ let tests =
 
             test "disposing a settled async memo keeps its value" {
                 let g = new Graph ()
-                let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult 5))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult 5))
 
                 Expect.equal a.TryValue (Ready 5) "settled"
                 a.Dispose ()
@@ -568,7 +568,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 g.Dispose ()
@@ -588,7 +588,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -636,7 +636,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let v = up.Value
 
                             if failing.Value then
@@ -668,7 +668,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             trigger.Value |> ignore
                             let f = Flight<int>()
                             flights.Add f
@@ -698,7 +698,7 @@ let tests =
                         let a =
                             new AsyncMemo<int> (
                                 g,
-                                fun token ->
+                                fun _ token ->
                                     observed.Value <- token
                                     flight.Task
                             )
