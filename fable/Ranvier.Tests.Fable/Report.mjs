@@ -1,4 +1,4 @@
-// Runs the compiled suite (dist/tests) under both delivery modes and writes docs/.ai/fable-compat.md.
+// Runs each compiled build of the suite under both delivery modes and writes docs/.ai/fable-compat.md.
 // Exits non-zero when a test fails under inline delivery and has no entry in `differences`.
 //
 //   node fable/Ranvier.Tests.Fable/Report.mjs
@@ -10,6 +10,13 @@ import { join } from "node:path";
 const root = join(import.meta.dirname, "..", "..");
 const suite = join(root, "tests", "Ranvier.Tests");
 const output = join(root, "docs", ".ai", "fable-compat.md");
+
+// The compiled builds: the Release build, and the Debug build, which compiles in the trace log.
+const builds = [
+    { name: "untraced", dir: "dist/tests" },
+    { name: "traced", dir: "dist/tests-traced" },
+];
+const deliveries = ["inline", "promise"];
 
 // Each inline-delivery failure, by test title, with the difference in the Fable guide that explains it.
 const differences = {
@@ -37,15 +44,21 @@ const differences = {
         "the Queue policy applies a synchronous failure after the flight started before it",
         "the Queue policy keeps a run suspended on a source pending when an older flight lands",
     ],
+    "Trace records carry less": [
+        "a node reports the test's file:line",
+        "a node created through a combinator reports the user's line",
+        "why steps, history runs and snapshot nodes carry recorded values",
+        "valueText renders a value as one line",
+    ],
 };
 
 const explained = new Map(Object.entries(differences).flatMap(([why, titles]) => titles.map(t => [t, why])));
 
-function run(mode) {
-    const file = join(mkdtempSync(join(tmpdir(), "ranvier-fable-")), `${mode}.json`);
+function run(build, mode) {
+    const file = join(mkdtempSync(join(tmpdir(), "ranvier-fable-")), `${build.name}-${mode}.json`);
     const mocha = spawnSync(
         process.execPath,
-        [join(root, "node_modules", "mocha", "bin", "mocha.js"), "dist/tests/Main.fs.js", "--timeout", "10000",
+        [join(root, "node_modules", "mocha", "bin", "mocha.js"), `${build.dir}/Main.fs.js`, "--timeout", "10000",
          "--reporter", "fable/Ranvier.Tests.Fable/Reporter.cjs", "--reporter-option", `output=${file}`],
         { cwd: root, env: { ...process.env, RANVIER_FABLE_DELIVERY: mode }, stdio: "inherit" });
     if (mocha.error) throw mocha.error;
@@ -84,73 +97,90 @@ function exclusions(file) {
     return found;
 }
 
-const modes = { inline: run("inline"), promise: run("promise") };
-const tests = [...new Set([...modes.inline.keys(), ...modes.promise.keys()])];
+// results[build][mode]: test key to its record.
+const results = Object.fromEntries(builds.map(b => [b.name, Object.fromEntries(deliveries.map(m => [m, run(b, m)]))]));
+const runs = builds.flatMap(b => deliveries.map(m => results[b.name][m]));
 const byFile = new Map(files.map(f => [f, []]));
-for (const key of tests) {
+for (const key of new Set(runs.flatMap(r => [...r.keys()]))) {
     const file = key.split(" / ")[0];
     if (!byFile.has(file)) byFile.set(file, []);
     byFile.get(file).push(key);
 }
 
 const escape = s => s.replaceAll("|", "\\|");
-const stateOf = (mode, key) => modes[mode].get(key)?.state ?? "not run";
+const stateOf = (build, mode, key) => results[build][mode].get(key)?.state ?? "not run";
+const ran = (build, key) => deliveries.some(m => results[build][m].has(key));
 const nameOf = key => key.split(" / ").slice(2).join(" / ");
 const untriaged = [];
 const summary = [];
 const sections = [];
-const totals = { run: 0, inline: 0, promise: 0, excluded: 0, partial: 0 };
+const totals = Object.fromEntries(builds.map(b => [b.name, { run: 0, inline: 0, promise: 0 }]));
+let excludedTotal = 0, partialTotal = 0;
 
 for (const [file, keys] of byFile) {
     const excluded = files.includes(file) ? exclusions(file) : [];
     const whole = excluded.filter(e => e.kind === "test");
     const parts = excluded.filter(e => e.kind === "part");
     if (keys.length === 0 && excluded.length === 0) continue;
-    const passes = mode => keys.filter(k => stateOf(mode, k) === "passed").length;
-    const failed = keys.filter(k => stateOf("inline", k) !== "passed" || stateOf("promise", k) !== "passed");
-    totals.run += keys.length;
-    totals.inline += passes("inline");
-    totals.promise += passes("promise");
-    totals.excluded += whole.length;
-    totals.partial += parts.length;
-    summary.push(`| ${file} | ${keys.length} | ${passes("inline")} | ${passes("promise")} | ${whole.length} | ${parts.length} |`);
+    excludedTotal += whole.length;
+    partialTotal += parts.length;
 
-    const out = [`## ${file}`, ""];
-    if (failed.length > 0) {
-        out.push("| Failed | Inline | Promise | Difference |", "| --- | --- | --- | --- |");
-        for (const key of failed) {
-            const inline = stateOf("inline", key);
-            const title = key.split(" / ").at(-1);
-            let why = inline === "passed" ? "Async results arrive on a later microtask" : explained.get(title);
+    const cells = [];
+    const failures = [];
+    for (const { name: build } of builds) {
+        const inBuild = keys.filter(k => ran(build, k));
+        const passes = mode => inBuild.filter(k => stateOf(build, mode, k) === "passed").length;
+        totals[build].run += inBuild.length;
+        for (const m of deliveries) totals[build][m] += passes(m);
+        cells.push(inBuild.length, passes("inline"), passes("promise"));
+        for (const key of inBuild) {
+            const inline = stateOf(build, "inline", key), promise = stateOf(build, "promise", key);
+            if (inline === "passed" && promise === "passed") continue;
+            let why = inline === "passed" ? "Async results arrive on a later microtask" : explained.get(key.split(" / ").at(-1));
             if (!why) {
                 why = "**untriaged**";
-                untriaged.push(`${key}: ${modes.inline.get(key)?.message ?? inline}`);
+                untriaged.push(`${build}: ${key}: ${results[build].inline.get(key)?.message ?? inline}`);
             }
-            out.push(`| ${escape(nameOf(key))} | ${inline} | ${stateOf("promise", key)} | ${why} |`);
+            failures.push(`| ${build} | ${escape(nameOf(key))} | ${inline} | ${promise} | ${why} |`);
         }
-        out.push("");
     }
+    summary.push(`| ${file} | ${cells.join(" | ")} | ${whole.length} | ${parts.length} |`);
+
+    const out = [`## ${file}`, ""];
+    if (failures.length > 0) out.push("| Build | Failed | Inline | Promise | Difference |", "| --- | --- | --- | --- | --- |", ...failures, "");
     if (excluded.length > 0) {
         out.push("| Excluded | Reason |", "| --- | --- |");
         for (const e of excluded)
             out.push(`| ${escape(e.kind === "part" ? `part of: ${e.name}` : e.name)} | ${escape(e.reason)} |`);
         out.push("");
     }
-    const passed = keys.filter(k => !failed.includes(k));
+    const passed = keys.filter(k =>
+        builds.every(({ name: b }) => !ran(b, k) || deliveries.every(m => stateOf(b, m, k) === "passed")));
     if (passed.length > 0) {
-        out.push(`<details><summary>${passed.length} passed under both deliveries</summary>`, "");
-        for (const key of passed) out.push(`- ${nameOf(key)}`);
+        out.push(`<details><summary>${passed.length} passed in every build and delivery that runs them</summary>`, "");
+        for (const key of passed) {
+            const only = builds.filter(b => ran(b.name, key));
+            out.push(`- ${nameOf(key)}${only.length < builds.length ? ` (${only.map(b => b.name).join(", ")} only)` : ""}`);
+        }
         out.push("", "</details>", "");
     }
     sections.push(out.join("\n"));
 }
+
+const header = builds.flatMap(b => [`${b.name}: run`, "inline", "promise"]);
+const totalCells = builds.flatMap(b => [totals[b.name].run, totals[b.name].inline, totals[b.name].promise]);
 
 writeFileSync(output, [
     "# Fable compatibility",
     "",
     "Generated by `dotnet fsi build.fsx test-fable` (`fable/Ranvier.Tests.Fable/Report.mjs`); do not edit by hand.",
     "",
-    "The .NET suite in `tests/Ranvier.Tests`, compiled with Fable and run under Node.js with Mocha, in two deliveries:",
+    "The .NET suite in `tests/Ranvier.Tests`, compiled with Fable and run under Node.js with Mocha. Two builds:",
+    "",
+    "- **untraced**: the Release build.",
+    "- **traced**: the Debug build, with the trace log (`RANVIER_TRACE`) compiled in. Tests of the log run only here.",
+    "",
+    "Each build runs in two deliveries:",
     "",
     "- **inline**: a test's `TaskCompletionSource` settles its awaiters before `SetResult` returns, as on .NET.",
     "  A failure here is a difference in behaviour.",
@@ -160,15 +190,19 @@ writeFileSync(output, [
     "Each difference named below is described in [the Fable guide](../content/fable/index.md).",
     "Excluded tests exercise a .NET-only facility and are compiled out with `#if !FABLE_COMPILER`.",
     "",
-    "| File | Run | Inline passed | Promise passed | Excluded | Partly excluded |",
-    "| --- | --- | --- | --- | --- | --- |",
+    `| File | ${header.join(" | ")} | Excluded | Partly excluded |`,
+    `| --- | ${header.map(() => "---").join(" | ")} | --- | --- |`,
     ...summary,
-    `| **Total** | ${totals.run} | ${totals.inline} | ${totals.promise} | ${totals.excluded} | ${totals.partial} |`,
+    `| **Total** | ${totalCells.join(" | ")} | ${excludedTotal} | ${partialTotal} |`,
     "",
     ...sections,
 ].join("\n"));
 
-console.log(`inline ${totals.inline}/${totals.run}, promise ${totals.promise}/${totals.run}, excluded ${totals.excluded}; wrote ${output}`);
+for (const { name } of builds) {
+    const t = totals[name];
+    console.log(`${name}: inline ${t.inline}/${t.run}, promise ${t.promise}/${t.run}`);
+}
+console.log(`excluded ${excludedTotal}; wrote ${output}`);
 if (untriaged.length > 0) {
     console.error(`${untriaged.length} untriaged inline failure(s):\n  ${untriaged.join("\n  ")}`);
     process.exit(1);

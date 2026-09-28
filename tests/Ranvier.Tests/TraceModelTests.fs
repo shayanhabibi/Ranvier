@@ -207,6 +207,8 @@ let tests =
                 Expect.equal (Trace.dumpText g) (Trace.dumpText g) "the dump is a function of the log"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: TraceModel.parseDump is .NET only.
             test "a dump parses back to the same snapshot" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -223,6 +225,7 @@ let tests =
                 Expect.equal (TraceModel.fold dump.Snapshot dump.Events) (Trace.snapshot g) "the dump folds to the live snapshot"
                 Expect.equal (TraceModel.dumpText "net" null dump.Snapshot dump.Events) text "a parsed dump writes the same text"
             }
+#endif
 
             test "dumpText inside an effect's run raises" {
                 use g = new Graph ()
@@ -238,6 +241,8 @@ let tests =
                 Expect.isTrue raised "a run in progress refuses the dump"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "dump off the graph thread raises" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -259,6 +264,7 @@ let tests =
                 worker.Join ()
                 Expect.isTrue raised.Value "another thread is refused"
             }
+#endif
 
             test "dumpText inside batch succeeds" {
                 use g = new Graph ()

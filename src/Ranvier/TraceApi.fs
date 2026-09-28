@@ -205,7 +205,7 @@ module Trace =
 
             TraceModel.pathOf snap o.Node
             + " "
-            + string o.Kind
+            + TraceNames.nodeKind o.Kind
             + " at "
             + site
             + " #"

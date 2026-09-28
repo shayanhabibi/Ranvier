@@ -118,6 +118,8 @@ let tests =
                 Expect.equal labels [| 0, "inner"; 0, "outer" |] "each label must close once, innermost first"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an Unchecked graph creating nodes from two threads records every NodeNew" {
                 use g =
                     new Graph (
@@ -134,6 +136,7 @@ let tests =
 
                 Expect.equal (ofKind TraceEventKind.NodeNew g).Length 40000 "each construction must record one NodeNew"
             }
+#endif
 
             test "createRoot records OwnerNew Flag 1 under the graph root" {
                 use g = new Graph ()
@@ -1047,6 +1050,8 @@ let tests =
                 Expect.all pulled (fun e -> e.Other <> 0) "every pass pulled in the walk names its reader"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an affinity violation inside a walk leaves an empty walker stack after the flush" {
                 let mutable foreign = Unchecked.defaultof<Signal<int>>
                 let thread = System.Threading.Thread (fun () -> foreign <- Signal (new Graph (), 0))
@@ -1107,6 +1112,7 @@ let tests =
                 s.Value <- 3
                 Expect.equal (pullerOf g (a :> INode).Id) effect "the next walk starts from an empty stack"
             }
+#endif
 
             test "a node reports the test's file:line" {
                 use g = new Graph ()

@@ -7,9 +7,6 @@
 //
 // Both modes add the TaskCompletionSource members Fable's library omits: SetCanceled (Fable spells it
 // SetCancelled) and the TrySet* family.
-import { TaskCompletionSource } from "../../dist/tests/fable_modules/fable-library-js.5.18.0/Task.js";
-import { OperationCanceledException } from "../../dist/tests/fable_modules/fable-library-js.5.18.0/AsyncBuilder.js";
-
 const Pending = 0, Resolved = 1, Rejected = 2;
 
 class InlineTask {
@@ -61,10 +58,14 @@ class InlineTask {
 
 let installed = null;
 
-export function install(mode) {
+// `source` is a TaskCompletionSource of the compiled library.
+export function install(mode, source) {
     if (installed !== null) return installed;
     installed = mode === "inline" ? "inline" : "promise";
-    const proto = TaskCompletionSource.prototype;
+    const proto = Object.getPrototypeOf(source);
+    // The library's OperationCanceledException, the class the engine tests a rejection against.
+    let OperationCanceledException;
+    proto.SetCancelled.call({ _reject: e => { OperationCanceledException = e.constructor; } });
 
     if (installed === "inline") {
         const inline = tcs => tcs.inline ?? (tcs.inline = new InlineTask());

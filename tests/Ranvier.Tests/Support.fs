@@ -6,6 +6,8 @@ open System.Threading.Tasks
 open Expecto
 open Ranvier
 
+#if !FABLE_COMPILER
+// .NET only: every caller measures allocations, and Fable.Mocha has no test rewriting.
 /// <summary>
 /// Runs <c>test</c> in an untraced build only. A traced build reports each of its cases as skipped, with reason
 /// "traced build".
@@ -17,6 +19,7 @@ let untracedOnly (test: Test) : Test =
     |> Test.replaceTestCode (fun name _ -> TestLabel (name, TestCase (Sync (fun () -> skiptest "traced build"), Normal), Normal))
 #else
     test
+#endif
 #endif
 
 /// <summary>

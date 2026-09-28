@@ -3,14 +3,17 @@ module Ranvier.Tests.Fable.Main
 open Fable.Core
 open Fable.Mocha
 
-/// <summary>Sets how a test's <c>TaskCompletionSource</c> delivers: <c>"inline"</c> or <c>"promise"</c>.</summary>
+/// <summary>
+/// Sets how a test's <c>TaskCompletionSource</c> delivers: <c>"inline"</c> or <c>"promise"</c>. The sample is a
+/// <c>TaskCompletionSource</c> of the compiled Fable library.
+/// </summary>
 [<Import("install", "./Delivery.js")>]
-let private install (mode: string) : string = jsNative
+let private install (mode: string) (source: obj) : string = jsNative
 
 [<Emit("process.env.RANVIER_FABLE_DELIVERY ?? 'promise'")>]
 let private requested: string = jsNative
 
-install requested |> ignore
+install requested (System.Threading.Tasks.TaskCompletionSource<unit> ()) |> ignore
 
 // Every [<Tests>] value of tests/Ranvier.Tests, in compile order, under the name of its file.
 let all =

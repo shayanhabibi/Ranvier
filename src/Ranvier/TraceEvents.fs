@@ -121,6 +121,76 @@ type TraceDropReason =
     /// <summary>A failure arrived while the node's newest run waits on a pending source.</summary>
     | Suspended = 3
 
+/// <summary>The case names of the trace enums, on .NET and under Fable. A value outside the cases gives its number.</summary>
+module internal TraceNames =
+    let eventKind (value: TraceEventKind) : string =
+#if FABLE_COMPILER
+        match value with
+        | TraceEventKind.GraphNew -> "GraphNew"
+        | TraceEventKind.NodeNew -> "NodeNew"
+        | TraceEventKind.OwnerNew -> "OwnerNew"
+        | TraceEventKind.Dispose -> "Dispose"
+        | TraceEventKind.OwnerDispose -> "OwnerDispose"
+        | TraceEventKind.Label -> "Label"
+        | TraceEventKind.Write -> "Write"
+        | TraceEventKind.Mark -> "Mark"
+        | TraceEventKind.MarkSkip -> "MarkSkip"
+        | TraceEventKind.Schedule -> "Schedule"
+        | TraceEventKind.CheckStart -> "CheckStart"
+        | TraceEventKind.CheckResolved -> "CheckResolved"
+        | TraceEventKind.EdgeAdd -> "EdgeAdd"
+        | TraceEventKind.EdgeRemove -> "EdgeRemove"
+        | TraceEventKind.ObserverAdd -> "ObserverAdd"
+        | TraceEventKind.ObserverRemove -> "ObserverRemove"
+        | TraceEventKind.RunStart -> "RunStart"
+        | TraceEventKind.Moved -> "Moved"
+        | TraceEventKind.RunEnd -> "RunEnd"
+        | TraceEventKind.WalkAbandoned -> "WalkAbandoned"
+        | TraceEventKind.FlushStart -> "FlushStart"
+        | TraceEventKind.FlushEnd -> "FlushEnd"
+        | TraceEventKind.BatchEnter -> "BatchEnter"
+        | TraceEventKind.BatchExit -> "BatchExit"
+        | TraceEventKind.DischargeStart -> "DischargeStart"
+        | TraceEventKind.DischargeEnd -> "DischargeEnd"
+        | TraceEventKind.Suspend -> "Suspend"
+        | TraceEventKind.FlightStart -> "FlightStart"
+        | TraceEventKind.Settle -> "Settle"
+        | TraceEventKind.Fail -> "Fail"
+        | TraceEventKind.FlightDrop -> "FlightDrop"
+        | other -> string (int other)
+#else
+        string value
+#endif
+
+    let nodeKind (value: TraceNodeKind) : string =
+#if FABLE_COMPILER
+        match value with
+        | TraceNodeKind.Signal -> "Signal"
+        | TraceNodeKind.AsyncSource -> "AsyncSource"
+        | TraceNodeKind.Memo -> "Memo"
+        | TraceNodeKind.Effect -> "Effect"
+        | TraceNodeKind.AsyncMemo -> "AsyncMemo"
+        | TraceNodeKind.Boundary -> "Boundary"
+        | TraceNodeKind.Projection -> "Projection"
+        | TraceNodeKind.ProjectionBeacon -> "ProjectionBeacon"
+        | TraceNodeKind.RowWatch -> "RowWatch"
+        | TraceNodeKind.LookupCell -> "LookupCell"
+        | other -> string (int other)
+#else
+        string value
+#endif
+
+    let dropReason (value: TraceDropReason) : string =
+#if FABLE_COMPILER
+        match value with
+        | TraceDropReason.Superseded -> "Superseded"
+        | TraceDropReason.Disposed -> "Disposed"
+        | TraceDropReason.Suspended -> "Suspended"
+        | other -> string (int other)
+#else
+        string value
+#endif
+
 /// <summary>One entry of a graph's trace log.</summary>
 /// <remarks>
 /// Node ids are the graph's own ids; owner ids come from the log's counter. <c>Cause</c> is the <c>Seq</c> of the

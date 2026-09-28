@@ -22,7 +22,7 @@ The engine Ranvier is derived from (Partas.Signals, at commit `915f139`) already
 - keyed projections, selectors and index projections;
 - `AsyncSource`, and `AsyncMemo` through `createAsync` and `createAsyncWith`, under all three flight policies.
 
-Ranvier's engine compiles under Fable in this repository, and the .NET test suite runs against it under Node.js (`dotnet fsi build.fsx test-fable`). Tests that exercise a .NET-only facility, such as threads, garbage collection or `ObservableCollection`, are compiled out. The run writes `docs/.ai/fable-compat.md`: the tests that pass, fail and are excluded, in each file. Every failure listed there is one of the differences below. No Fable package is published, and the Fable build is not part of Ranvier's release process yet.
+Ranvier's engine compiles under Fable in this repository, and the .NET test suite runs against it under Node.js (`dotnet fsi build.fsx test-fable`), once untraced and once with the trace log compiled in. Tests that exercise a .NET-only facility, such as threads, garbage collection or `ObservableCollection`, are compiled out. The run writes `docs/.ai/fable-compat.md`: the tests that pass, fail and are excluded, in each file. Every failure listed there is one of the differences below. No Fable package is published, and the Fable build is not part of Ranvier's release process yet.
 
 ## Known differences from .NET
 
@@ -52,6 +52,12 @@ These are the differences that exist today. Some may narrow; others follow from 
 
 **A null function argument is never null.** Fable wraps a function passed to a multi-argument parameter in a closure. Passing `Unchecked.defaultof<_>` as `subtract` to `Projection.foldGroup` raises `ArgumentNullException` on .NET and is accepted under Fable, failing later when it is called.
 
+**Trace records carry less.** A traced build runs under Fable, with three differences in what the log records:
+
+- A node's creation site is not captured: `Trace.origin` gives a null `Site`, and a path falls back to the node's kind.
+- A failure is recorded by its message alone, without the exception's type name.
+- A value is rendered with Fable's `%A`, so an anonymous record reads `{ Qty = 2 }` rather than `{| Qty = 2 |}`.
+
 **Loop bounds.** Fable re-evaluates the upper bound of `for i in a .. b` on every iteration. A bound that reads a signal, or anything else that can change inside the loop, iterates a different number of times under Fable. Bind the bound first.
 
 ## Not available under Fable
@@ -73,6 +79,7 @@ graph.Run (fun () ->
 The snippet uses only functions that exist on both targets, which is the style to follow in code meant to compile under Fable.
 
 - `Projection.AsObservableCollection`, since `ObservableCollection` is a .NET collection type.
+- `Trace.dump`, which writes a file, and `TraceModel.parseDump`. `Trace.dumpText` gives the same text.
 - `SynchronizationContextDispatcher`. There is no synchronisation context to capture and no other thread to marshal to.
 
 ## What comes next
