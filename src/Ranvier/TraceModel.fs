@@ -247,7 +247,11 @@ module TraceModel =
 
         let line =
             match value with
+#if FABLE_COMPILER
+            | :? exn as ex -> String.Join (" ", lines ex.Message)
+#else
             | :? exn as ex -> String.Join (" ", lines (ex.GetType().Name + ": " + ex.Message))
+#endif
             | :? string as s -> String.Join (" ", lines s)
 #if FABLE_COMPILER
             | :? float as f -> string f

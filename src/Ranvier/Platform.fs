@@ -110,6 +110,13 @@ module internal Platform =
     let private jsString (value: obj) : string = jsNative
 
     /// <summary>
+    /// True when <c>value</c> is an object carrying a member called <c>name</c>. Stands in for an interface type
+    /// test, which Fable compiles to false; interface members compile to plain members of that name.
+    /// </summary>
+    [<Emit("($0 != null && typeof $0 === 'object' && $1 in $0)")>]
+    let hasMember (value: obj) (name: string) : bool = jsNative
+
+    /// <summary>
     /// The outcome of a rejection. A reason that is not an exception fails with one whose
     /// message is the reason as a string.
     /// </summary>

@@ -517,9 +517,16 @@ type internal Tracer =
         (traced :?> ITraced).TraceLog
 
     static member private IdOf(node: obj) =
+#if FABLE_COMPILER
+        if Platform.hasMember node "Id" then
+            (node :?> INode).Id
+        else
+            0
+#else
         match node with
         | :? INode as node -> node.Id
         | _ -> 0
+#endif
 
     /// <summary>Records an edge event of <c>sources</c>, a bound source list, for <c>source</c> at <c>slot</c>.</summary>
     static member private Edge(kind: TraceEventKind, sources: obj, source: obj, slot: int) =
@@ -606,9 +613,14 @@ type internal Tracer =
         traced.TraceLog <- log
         traced.TraceId <- id
 
+#if FABLE_COMPILER
+        if Platform.hasMember set "IsSources" then
+            log.Register (set :?> ITracedEdges)
+#else
         match set with
         | :? ITracedEdges as edges -> log.Register edges
         | _ -> ()
+#endif
 #else
         ()
 #endif
@@ -753,6 +765,16 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member OwnerAdopt(parent: obj, child: obj, root: bool) =
 #if RANVIER_TRACE
+#if FABLE_COMPILER
+        if Platform.hasMember child "TraceLog" then
+            let child = child :?> ITraced
+
+            if isNull child.TraceLog then
+                let parent = parent :?> ITraced
+
+                if not (isNull parent.TraceLog) then
+                    Tracer.Joined (parent.TraceLog, child, parent.TraceId, 0, (if root then 1 else 0))
+#else
         match child with
         | :? ITraced as child when isNull child.TraceLog ->
             let parent = parent :?> ITraced
@@ -760,6 +782,7 @@ type internal Tracer =
             if not (isNull parent.TraceLog) then
                 Tracer.Joined (parent.TraceLog, child, parent.TraceId, 0, (if root then 1 else 0))
         | _ -> ()
+#endif
 #else
         ()
 #endif
