@@ -271,4 +271,21 @@ module MapModel =
             scene
         else
             frames[min index (frames.Length - 1)].After
+
+    /// <summary>
+    /// The timeline position, from 0 to 1, of frame <c>index</c> of <c>count</c>; <c>None</c> for one of the first
+    /// <c>setup</c> frames.
+    /// </summary>
+    let tickAt (setup: int) (count: int) (index: int) : float option =
+        if index < setup then
+            None
+        else
+            Some (float (index + 1 - setup) / float (count - setup))
+
+    /// <summary>
+    /// <c>index</c> held between the last setup frame and the last of <c>count</c> frames; -1 is the scene before
+    /// the first frame.
+    /// </summary>
+    let clampCursor (setup: int) (count: int) (index: int) : int =
+        max (setup - 1) (min index (count - 1))
 #endif
