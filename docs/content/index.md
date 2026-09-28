@@ -163,9 +163,9 @@ let view =
 createEffect (fun () -> printfn "%s" view.Value)
 
 controls [
-    "Settle 4", fun () -> price.Settle 4m
-    "Fail", fun () -> price.Fail (exn "feed offline")
-    "Settle 5", fun () -> price.Settle 5m
+    button "Settle 4" (fun () -> price.Settle 4m)
+    button "Fail" (fun () -> price.Fail (exn "feed offline"))
+    button "Settle 5" (fun () -> price.Settle 5m)
 ]
 ```
 

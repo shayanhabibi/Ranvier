@@ -59,8 +59,8 @@ let doubled = createMemo (fun _ -> count.Value * 2)
 createEffect (fun () -> printfn "doubled = %d" doubled.Value)
 
 controls [
-    "Set count to 5", fun () -> count.Value <- 5
-    "Add 1", fun () -> count.Value <- count.Value + 1
+    button "Set count to 5" (fun () -> count.Value <- 5)
+    button "Add 1" (fun () -> count.Value <- count.Value + 1)
 ]
 ```
 
@@ -494,9 +494,9 @@ let label = createMemo (fun _ -> if isEven.Value then "even" else "odd")
 createEffect (fun () -> printfn "%s" label.Value)
 
 controls [
-    "Write 2 (equal)", fun () -> count.Value <- 2
-    "Write 4", fun () -> count.Value <- 4
-    "Write 3", fun () -> count.Value <- 3
+    button "Write 2 (equal)" (fun () -> count.Value <- 2)
+    button "Write 4" (fun () -> count.Value <- 4)
+    button "Write 3" (fun () -> count.Value <- 3)
 ]
 ```
 
@@ -589,9 +589,9 @@ let second = createSignal "x"
 createEffect (fun () -> printfn "%s" (if useFirst.Value then first.Value else second.Value))
 
 controls [
-    "Toggle branch", fun () -> useFirst.Value <- not useFirst.Value
-    "Write first", fun () -> first.Value <- first.Value + "!"
-    "Write second", fun () -> second.Value <- second.Value + "!"
+    button "Toggle branch" (fun () -> useFirst.Value <- not useFirst.Value)
+    button "Write first" (fun () -> first.Value <- first.Value + "!")
+    button "Write second" (fun () -> second.Value <- second.Value + "!")
 ]
 ```
 
@@ -676,13 +676,13 @@ let sum = createMemo (fun _ -> a.Value + b.Value)
 createEffect (fun () -> printfn $"effect: {sum.Value}")
 
 controls [
-    "Two writes", fun () ->
+    button "Two writes" (fun () ->
         a.Value <- a.Value + 1
-        b.Value <- b.Value + 1
-    "Two writes in a batch", fun () ->
+        b.Value <- b.Value + 1)
+    button "Two writes in a batch" (fun () ->
         batch (fun () ->
             a.Value <- a.Value + 1
-            b.Value <- b.Value + 1)
+            b.Value <- b.Value + 1))
 ]
 ```
 

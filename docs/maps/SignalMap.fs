@@ -41,6 +41,16 @@ module private Dom =
         b.addEventListener ("click", fun _ -> onClick ())
         b
 
+    /// <summary>A labelled input: the caption, the widget, and the widget element.</summary>
+    let field (label: string) (kind: string) : HTMLElement * HTMLInputElement =
+        let wrap = el "label" $"rv-map__input rv-map__input--%s{kind}"
+        let caption = el "span" "rv-map__input-label"
+        caption.textContent <- label
+        let input = el "input" "rv-map__input-field" :?> HTMLInputElement
+        wrap.appendChild caption |> ignore
+        wrap.appendChild input |> ignore
+        wrap, input
+
     /// <summary>A class held for <c>ms</c> milliseconds, restarting its animation.</summary>
     let flash (e: Element) (cls: string) (ms: int) =
         e.classList.remove cls
@@ -115,13 +125,13 @@ module SignalMapComponent =
 
     /// <summary>
     /// A live map of a traced graph: the stage, the example's controls, a log and, when <c>timeline</c> is true, a
-    /// scrubber over every frame.
+    /// scrubber over every frame. Its graph runs under <c>policy</c>.
     /// </summary>
     /// <remarks>
     /// Placed in a <c>partas-solid-card</c>, it highlights the lines of the binding whose node runs. A binding is
     /// (label, first line, last line), with lines counted from 1 in the card's code block.
     /// </remarks>
-    let SignalMap (source: MapSource) (bindings: (string * int * int)[]) (timeline: bool) : HtmlElement =
+    let SignalMap (source: MapSource) (policy: FlightPolicy) (bindings: (string * int * int)[]) (timeline: bool) : HtmlElement =
         let reduced: bool = window?matchMedia("(prefers-reduced-motion: reduce)")?matches
 
         let timeline =
@@ -667,6 +677,65 @@ module SignalMapComponent =
             redrawTicks ()
             refresh ()
 
+        /// <summary>A live map's element for a control; <c>attempt</c> runs a write with the graph active.</summary>
+        let widget (attempt: string -> (unit -> unit) -> unit) (control: Control) : HTMLElement =
+            let write run =
+                playing <- true
+                attempt control.Label run
+
+            match control.Widget with
+            | Button press -> Dom.button control.Label "rv-map__button" (fun () -> write press)
+            | Slider (min, max, start, set) ->
+                let wrap, input = Dom.field control.Label "slider"
+                Dom.attrs input [ "type", "range"; "min", string min; "max", string max; "step", "1" ]
+                input.value <- string start
+                let shown = Dom.el "output" "rv-map__input-value"
+                shown.textContent <- string start
+                wrap.appendChild shown |> ignore
+
+                input.addEventListener (
+                    "input",
+                    fun _ ->
+                        shown.textContent <- input.value
+                        write (fun () -> set (int input.value))
+                )
+
+                wrap
+            | Number (start, set) ->
+                let wrap, input = Dom.field control.Label "number"
+                Dom.attrs input [ "type", "number"; "step", "any" ]
+                input.value <- string start
+
+                input.addEventListener (
+                    "change",
+                    fun _ ->
+                        Controls.parseNumber input.value
+                        |> Option.iter (fun v -> write (fun () -> set v))
+                )
+
+                wrap
+            | Text (start, set) ->
+                let wrap, input = Dom.field control.Label "text"
+                Dom.attrs input [ "type", "text" ]
+                input.value <- start
+                input.addEventListener ("change", fun _ -> write (fun () -> set input.value))
+                wrap
+            | Toggle (start, set) ->
+                let wrap, input = Dom.field control.Label "toggle"
+                Dom.attrs input [ "type", "checkbox" ]
+                input.``checked`` <- start
+                input.addEventListener ("change", fun _ -> write (fun () -> set input.``checked``))
+                wrap
+
+        /// <summary>Reads the events recorded since the last read and appends their frames.</summary>
+        let drain (g: Graph) =
+            let events = Trace.events g
+
+            if events.Length > read then
+                let fresh = events[read..]
+                read <- events.Length
+                append (MapModel.frames tail fresh)
+
         let rec start () =
             clear ()
             controlRow.innerHTML <- ""
@@ -674,50 +743,53 @@ module SignalMapComponent =
             graph
             |> Option.iter (fun g -> (g :> IDisposable).Dispose())
 
-            let g = new Graph ()
+            let g = new Graph ({ GraphOptions.Default with FlightPolicy = policy })
             graph <- Some g
 
-            let press (control: Control) =
+            let attempt (label: string) (run: unit -> unit) =
                 try
                     use _ = g.Activate ()
-                    control.Run ()
+                    run ()
                 with ex ->
-                    say $"{control.Label} threw: {ex.Message}" "is-error"
+                    say $"{label} threw: {ex.Message}" "is-error"
 
             try
                 match source with
                 | Replayed scenario ->
-                    let controls = scenario g
+                    let steps =
+                        scenario g
+                        |> List.collect (fun c -> c.Steps |> List.map (fun s -> c.Label, s))
+
                     baseline g
                     playing <- false
 
-                    // One control per task, in order.
-                    let rec pressFrom (rest: Control list) =
+                    // One step per task, in order; a step's log line follows every event recorded before it.
+                    let rec stepFrom (rest: (string * Step) list) =
                         match rest with
-                        | control :: rest when
+                        | (label, step) :: rest when
                             not disposed
                             && graph
                                |> Option.exists (fun current -> obj.ReferenceEquals (current, g))
                             ->
-                            press control
+                            drain g
 
-                            window.setTimeout ((fun () -> pressFrom rest), 0)
+                            step.Log
+                            |> Option.iter (fun line -> append [| MapModel.said tail line |])
+
+                            attempt label step.Run
+
+                            window.setTimeout ((fun () -> stepFrom rest), 0)
                             |> ignore
                         | _ -> ()
 
-                    pressFrom controls
+                    stepFrom steps
                 | Live scenario ->
                     let controls = scenario g
                     baseline g
                     playing <- true
 
                     for control in controls do
-                        controlRow.appendChild (
-                            Dom.button control.Label "rv-map__button" (fun () ->
-                                playing <- true
-                                press control)
-                        )
-                        |> ignore
+                        controlRow.appendChild (widget attempt control) |> ignore
 
                     controlRow.appendChild (Dom.button "Reset" "rv-map__button rv-map__button--reset" start)
                     |> ignore
@@ -727,15 +799,7 @@ module SignalMapComponent =
         let rec poll () =
             if not disposed then
                 try
-                    match graph with
-                    | Some g ->
-                        let events = Trace.events g
-
-                        if events.Length > read then
-                            let fresh = events[read..]
-                            read <- events.Length
-                            append (MapModel.frames tail fresh)
-                    | None -> ()
+                    graph |> Option.iter drain
 
                     window.requestAnimationFrame (fun _ -> poll ())
                     |> ignore

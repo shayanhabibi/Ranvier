@@ -89,8 +89,8 @@ let c = createMemo (fun _ -> a.Value + b.Value)
 createEffect (fun () -> printfn "c = %d" c.Value)
 
 controls [
-    "Write b", fun () -> b.Value <- b.Value + 1
-    "Settle a", fun () -> a.Settle 10
+    button "Write b" (fun () -> b.Value <- b.Value + 1)
+    button "Settle a" (fun () -> a.Settle 10)
 ]
 ```
 
@@ -266,8 +266,8 @@ let shown = createMemo (fun _ -> price.Value)
 createEffect (fun () -> printfn "shown %d" shown.Value)
 
 controls [
-    "Fail", fun () -> price.Fail (exn "offline")
-    "Settle 12", fun () -> price.Settle 12
+    button "Fail" (fun () -> price.Fail (exn "offline"))
+    button "Settle 12" (fun () -> price.Settle 12)
 ]
 ```
 

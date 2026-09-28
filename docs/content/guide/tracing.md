@@ -249,8 +249,8 @@ let total = createMemo (fun _ -> subtotal.Value - discount.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    "Add a line", fun () -> lines.Value <- lines.Value @ [ 5m ]
-    "Discount 2", fun () -> discount.Value <- 2m
+    button "Add a line" (fun () -> lines.Value <- lines.Value @ [ 5m ])
+    button "Discount 2" (fun () -> discount.Value <- 2m)
 ]
 ```
 

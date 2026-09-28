@@ -34,9 +34,9 @@ let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    "Add tea", fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ]
-    "Settle quote", fun () -> desk.Settle 5m
-    "Fail quote", fun () -> desk.Fail "quote down"
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5m)
+    button "Fail quote" (fun () -> desk.Fail "quote down")
 ]
 ```
 
@@ -80,10 +80,10 @@ let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
 controls [
-    "Two quick writes", fun () ->
+    button "Two quick writes" (fun () ->
         qty.Value <- qty.Value + 1
-        qty.Value <- qty.Value + 1
-    "Settle quote", fun () -> desk.Settle 5m
+        qty.Value <- qty.Value + 1)
+    button "Settle quote" (fun () -> desk.Settle 5m)
 ]
 ```
 
@@ -103,8 +103,8 @@ let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
-    "Add tea", fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ]
-    "Settle quote", fun () -> desk.Settle 5m
+    button "Add tea" (fun () -> lines.Value <- lines.Value @ [ "tea", 4m, 1 ])
+    button "Settle quote" (fun () -> desk.Settle 5m)
 ]
 ```
 
@@ -148,11 +148,11 @@ module Thermo =
         createEffect (fun () -> printfn $"{fahrenheit.Value}°F, warm: {warm.Value}")
 
         controls [
-            "Warmer", fun () -> celsius.Value <- celsius.Value + 5.0
-            "Cooler", fun () -> celsius.Value <- celsius.Value - 5.0
+            button "Warmer" (fun () -> celsius.Value <- celsius.Value + 5.0)
+            button "Cooler" (fun () -> celsius.Value <- celsius.Value - 5.0)
         ]
 
-    let Thermometer () = SignalMap (Live scenario) [||] false
+    let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false
 ```
 
 ## Limits
