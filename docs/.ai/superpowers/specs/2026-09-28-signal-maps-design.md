@@ -29,24 +29,30 @@ Success:
 
 | Unit | Location | Role |
 | --- | --- | --- |
-| Plugin options | `../Partas.Nacara.Plugins/src/Partas.Nacara.Plugins.Solid` | `project`, `define`, `transform` (§4) |
-| `MapModel` | `docs/maps/MapModel.fs` | Pure F#. Trace events and a starting snapshot to a graph and a frame list (§6) |
-| `Layout` | `docs/maps/Layout.fs` | Pure F#. Deterministic layered placement (§6.4) |
-| `Helpers` | `docs/maps/Helpers.fs` | Scenario helpers (`quote`, `settle`, `fail`) shared by the Fable build and replay scripts |
+| Plugin options | `../Partas.Nacara.Plugins/src/Partas.Nacara.Plugins.Solid` | `project`, `property`, `targetFramework`, `transform` (§4) |
+| `MapModel` | `docs/maps/model/MapModel.fs` | Pure F#. Trace events and a starting snapshot to a graph and a frame list (§6) |
+| `Layout` | `docs/maps/model/Layout.fs` | Pure F#. Deterministic layered placement (§6.4) |
+| `Helpers` | `docs/maps/model/Helpers.fs` | `controls` and the `Desk<'T>` request desk, shared by the Fable build and replay scripts |
+| `Replay` | `docs/maps/model/Replay.fs` | Trace events to an F# array literal |
 | `SignalMap` | `docs/maps/SignalMap.fs` | Solid component: SVG stage, animejs player, controls, log, optional timeline |
-| Map transform | `docs/Maps.fs`, registered in `docs/Site.fs` | Rewrites a `map` fence into a `SignalMap` call; runs replay scripts |
+| Map transform | `docs/maps/authoring` (`MapFence`, `ReplayRunner`), `docs/Maps.fs`, registered in `docs/Site.fs` | Rewrites a `map` fence into a `SignalMap` call; runs replay scripts |
 | Engine tests | `docs/maps/tests` (Expecto) | `MapModel` and `Layout` under .NET |
 | Demo page | `docs/content/design/signal-maps.md` | Out of the guide nav until approved |
 
-`docs/maps/Ranvier.Docs.Maps.fsproj` holds `Helpers`, `MapModel`, `Layout` and `SignalMap`. It references
-`src/Ranvier/Ranvier.fsproj` and Partas.Solid. The generated `Docs.fsproj` references it through
-`SolidExamples.project`, and `SolidExamples.define "RANVIER_TRACE"` traces the Fable build of Ranvier.
+`docs/maps/model/Ranvier.Docs.MapModel.fsproj` holds `Helpers`, `MapModel`, `Layout` and `Replay`, compiled by .NET
+and Fable, and references `src/Ranvier/Ranvier.fsproj`. `docs/maps/Ranvier.Docs.Maps.fsproj` (Fable only) holds
+`SignalMap` and references the model and Partas.Solid. The generated `Docs.fsproj` references it through
+`SolidExamples.project`, and `SolidExamples.property "RanvierTrace" "true"` traces the Fable build of Ranvier.
 
 ## 4. Plugin changes (Partas.Nacara.Plugins.Solid)
 
 - `SolidExamples.project (path: string)` adds a `ProjectReference` to the generated `Docs.fsproj`. A relative path
   resolves against the site root.
-- `SolidExamples.define (symbol: string)` adds the symbol to `DefineConstants` in the generated `Docs.fsproj`.
+- `SolidExamples.property (name: string) (value: string)` sets an MSBuild property for every project Fable cracks,
+  through the environment of the Fable process. `RanvierTrace` gates `Compile Include`s, so a define alone is not
+  enough.
+- `SolidExamples.targetFramework (tfm: string)` sets the generated project's target framework (default `net9.0`).
+- The build fingerprint covers the sources of referenced projects and the properties.
 - `SolidExamples.transform (token: string) (f: SolidTransformInput -> SolidTransformOutput)` registers a fence
   token. The scanner treats ```` ```fsharp <token> [flags] ```` as a solid cell: the page shows the author's code
   verbatim, and the compiled code is the transform's output.
@@ -77,11 +83,13 @@ controls [
 ````
 
 - The page shows the fence exactly as written; the scenario and its controls are on the page.
-- The compiled copy wraps each top-level `let x = create…` binding in `Trace.named "x"`. A binding already
-  written with `Trace.named` keeps its label.
+- The compiled copy follows each top-level `let x = create…` binding with `Trace.label (graph, x, "x")`.
+  `createEffect` returns no node and keeps its kind as its name.
 - The compiled copy is a `SignalMap` call whose scenario activates a graph and runs the body. `controls` is a
   function in `Helpers` that returns the control list.
-- Types and helpers the fence needs come from `Helpers` or a page-level `solid setup` block.
+- Helpers come from `Helpers`: `controls`, and `Desk<'T>`, whose `Quote` returns a pending task that `Settle` and
+  `Fail` complete. They act on the newest pending request.
+- A fence is self-contained: a replayed fence runs outside the page, so it declares no page-level types.
 - Flags:
 
 | Flag | Effect |
@@ -99,21 +107,23 @@ A bespoke demo calls `SignalMap` directly in a plain `solid` fence.
 ```fsharp
 type MapSource =
     | Live of scenario: (Graph -> Control list)
-    | Recorded of dump: string
+    | Recorded of events: TraceEvent[]
 ```
 
 - `Live`: the scenario runs once on mount. After mount and after each control action, the engine compares
   `Trace.events graph` with the last length it read, once per animation frame, and queues new events. Async
   settles arriving after the action are picked up the same way.
-- `Recorded`: `TraceModel.parseDump` supplies the starting snapshot and events. Controls are replaced by the
-  timeline's play, step and scrub.
+- `Recorded`: the events from graph creation, embedded as an F# literal (`TraceModel.parseDump` is .NET-only).
+  Controls are replaced by the timeline's play, step and scrub.
 
 The graph's nodes, names and kinds come from `TraceModel.snapshot`; edges come from `TraceModel.sources`. Both are
 re-read when an event names a node absent from the current graph.
 
 ### 6.2 Frames
 
-`MapModel.frames : TraceSnapshot -> TraceEvent[] -> Frame list` yields one frame per event:
+`MapModel.frames : Scene -> TraceEvent[] -> Frame[]` yields one frame per event. A `Scene` is the folded snapshot
+plus flights in progress, suspensions and error text. Events outside the table are quiet frames, applied without
+animation:
 
 | Event | Frame |
 | --- | --- |
@@ -135,7 +145,7 @@ scrubbing without replaying animations.
 - Under `prefers-reduced-motion`, state changes apply instantly and the log still updates.
 - Hover on a node shows its path, kind, value and run count. Click shows the rendered `Trace.why` in the log panel.
 - The log shows the most recent rendered events.
-- The timeline has one tick per event, coloured by kind, with play, step and scrub.
+- The timeline has one tick per animated frame, coloured by kind, with play, step and scrub.
 
 ### 6.4 Layout and visuals
 
@@ -151,10 +161,11 @@ scrubbing without replaying animations.
 ## 7. Replay
 
 - For a `replay` fence, the transform writes a script to the Solid workspace. The script references the traced
-  Debug `src/Ranvier/bin/Debug/net10.0/Ranvier.dll`, `#load`s `docs/maps/Helpers.fs`, activates a graph, runs the
-  code, presses each control in order, waits for pending flights, and prints `Trace.dumpText graph`.
-- The transform runs it with `dotnet fsi` and embeds the output as `Recorded dump`.
-- Dumps are cached in the workspace, keyed by a hash of the fence code, `Helpers.fs` and the DLL.
+  Debug `src/Ranvier/bin/Debug/net10.0/Ranvier.dll`, `#load`s `Helpers.fs` and `Replay.fs`, activates a graph,
+  runs the code, presses each control in order, and prints `Replay.literal (Trace.events graph)`.
+- The transform runs it with `dotnet fsi` and embeds the output as `Recorded events`.
+- Recordings are cached under `docs/.nacara/maps-replay`, keyed by a hash of the script, `Helpers.fs`, `Replay.fs`
+  and the DLL.
 
 ## 8. Errors
 
