@@ -63,6 +63,12 @@ type internal TraceLog(locked: bool) =
     // Node ids whose open run recorded `Moved`.
     let movedRuns = HashSet<int>()
 
+    // Node id and flight number to the flight's `FlightStart` seq.
+    let flights = Dictionary<struct (int * int), int>()
+
+    // Node id to the `Settle` or `Fail` seq its next `Moved` takes as cause.
+    let settles = Dictionary<int, int>()
+
     // The seq of the latest `Mark`.
     let mutable lastMark = 0
 
@@ -171,6 +177,22 @@ type internal TraceLog(locked: bool) =
 
     /// <summary>Records that <c>node</c>'s open run moved its value.</summary>
     member _.NoteMoved(node: int) = sync (fun () -> movedRuns.Add node |> ignore)
+
+    /// <summary>Records <c>seq</c> as the <c>FlightStart</c> of flight <c>flight</c> of <c>node</c>.</summary>
+    member _.NoteFlight(node: int, flight: int, seq: int) = sync (fun () -> flights[struct (node, flight)] <- seq)
+
+    /// <summary>The <c>FlightStart</c> seq of flight <c>flight</c> of <c>node</c>, or 0.</summary>
+    member _.FlightOf(node: int, flight: int) =
+        sync (fun () ->
+            match flights.TryGetValue (struct (node, flight)) with
+            | true, seq -> seq
+            | _ -> 0)
+
+    /// <summary>Records <c>seq</c> as the cause of <c>node</c>'s next <c>Moved</c>; 0 clears it.</summary>
+    member _.NoteSettle(node: int, seq: int) = sync (fun () -> settles[node] <- seq)
+
+    /// <summary>The <c>Settle</c> or <c>Fail</c> seq recorded for <c>node</c>'s next <c>Moved</c>, or 0.</summary>
+    member _.SettleOf(node: int) = sync (fun () -> lookup settles node)
 
     /// <summary>Whether <c>node</c>'s open run moved its value.</summary>
     member _.MovedInRun(node: int) = sync (fun () -> movedRuns.Contains node)
@@ -860,15 +882,94 @@ type internal Tracer =
         ()
 #endif
 
-    /// <summary>Records <c>Moved</c> for node <c>id</c>'s open run and opens a notification, closed by <c>Notified</c>.</summary>
+    /// <summary>
+    /// Records <c>Moved</c> for node <c>id</c> and opens a notification, closed by <c>Notified</c>. The cause is the
+    /// node's latest settle, else its open run.
+    /// </summary>
     [<Conditional("RANVIER_TRACE")>]
     static member Moved(graph: obj, id: int) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
         let run = log.OpenRun id
-        let seq = log.Append (TraceEventKind.Moved, id, 0, log.RunNumber id, 0, run, null)
-        log.NoteMoved id
+        let settle = log.SettleOf id
+        let number = if run <> 0 then log.RunNumber id else log.RunCount id
+        let seq = log.Append (TraceEventKind.Moved, id, 0, number, 0, (if settle <> 0 then settle else run), null)
+        log.NoteSettle (id, 0)
+
+        if run <> 0 then
+            log.NoteMoved id
+
         log.PushCause seq
+#else
+        ()
+#endif
+
+    /// <summary>Records <c>Suspend</c> for <c>reader</c>, a running computation, reading <c>source</c> while it is pending.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member Suspend(graph: obj, reader: obj, source: obj) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let id = Tracer.IdOf reader
+
+        log.Append (TraceEventKind.Suspend, id, Tracer.IdOf source, 0, 0, log.OpenRun id, null)
+        |> ignore
+#else
+        ()
+#endif
+
+    /// <summary>Records <c>FlightStart</c> for flight number <c>flight</c> of node <c>id</c>.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member FlightStart(graph: obj, id: int, flight: int) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let seq = log.Append (TraceEventKind.FlightStart, id, 0, flight, 0, log.OpenRun id, null)
+        log.NoteFlight (id, flight, seq)
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Records the result of flight number <c>flight</c> of node <c>id</c>: <c>Settle</c> for <c>outcome</c> 0,
+    /// <c>Fail</c> for 1, a cancelled <c>Fail</c> for 2. <c>held</c> marks a <c>Settle</c> that leaves the node pending.
+    /// </summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: bool) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let kind = if outcome = 0 then TraceEventKind.Settle else TraceEventKind.Fail
+        let flag = if outcome = 2 || held then 1 else 0
+        let seq = log.Append (kind, id, 0, flight, flag, log.FlightOf (id, flight), null)
+        log.NoteSettle (id, seq)
+#else
+        ()
+#endif
+
+    /// <summary>Records <c>FlightDrop</c> for flight number <c>flight</c> of node <c>id</c>, with <c>TraceDropReason</c> <c>reason</c>.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member FlightDrop(graph: obj, id: int, flight: int, reason: int) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+
+        log.Append (TraceEventKind.FlightDrop, id, 0, flight, reason, log.FlightOf (id, flight), null)
+        |> ignore
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Records <c>Settle</c>, or <c>Fail</c> when <c>failed</c> is true, for the async source of <c>observers</c>, a
+    /// bound observer set, and opens a notification, closed by <c>Notified</c>.
+    /// </summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member SourceSettled(observers: obj, failed: bool) =
+#if RANVIER_TRACE
+        let traced = observers :?> ITraced
+        let log = traced.TraceLog
+
+        if not (isNull log) then
+            let kind = if failed then TraceEventKind.Fail else TraceEventKind.Settle
+            let seq = log.Append (kind, traced.TraceId, 0, 0, 0, 0, null)
+            log.PushCause seq
 #else
         ()
 #endif

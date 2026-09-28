@@ -1769,8 +1769,9 @@ type Graph(options: GraphOptions) =
     /// The exception a pending read of <c>node</c> raises. Inside a computation's
     /// body, the read is recorded for <c>RunHosted</c>.
     /// </summary>
-    member internal _.NotReady(node: INode) : exn =
+    member internal this.NotReady(node: INode) : exn =
         if not (isNull (box current)) then
+            Tracer.Suspend (this, current, node)
             raisedPending <- node
 
         NotReadyException node
@@ -2012,7 +2013,7 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             value <- v
             status <- Status.None
-            Tracer.Write (observers, true)
+            Tracer.SourceSettled (observers, false)
 
             observers.NotifyDirty ()
             Tracer.Notified observers
@@ -2030,7 +2031,7 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             error <- reason
             status <- Status.Error
-            Tracer.Write (observers, true)
+            Tracer.SourceSettled (observers, true)
 
             observers.NotifyDirty ()
             Tracer.Notified observers
@@ -3106,11 +3107,14 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // older flight's value is the last settled one, and the node
             // stays pending.
             | Platform.FlightOutcome.Completed v when suspended ->
+                Tracer.FlightSettled (graph, id, gen, 0, true)
                 value <- v
                 status <- Status.Pending
             | Platform.FlightOutcome.Faulted _
-            | Platform.FlightOutcome.Canceled _ when suspended -> ()
+            | Platform.FlightOutcome.Canceled _ when suspended ->
+                Tracer.FlightDrop (graph, id, gen, 3)
             | Platform.FlightOutcome.Completed v ->
+                Tracer.FlightSettled (graph, id, gen, 0, false)
                 value <- v
                 error <- null
                 status <- Status.None
@@ -3118,9 +3122,12 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // A cancellation of the current flight is a failure.
             | Platform.FlightOutcome.Faulted ex
             | Platform.FlightOutcome.Canceled ex ->
+                Tracer.FlightSettled (graph, id, gen, (if outcome.IsCanceled then 2 else 1), false)
                 error <- ex
                 status <- Status.Error
                 wake ()
+        else
+            Tracer.FlightDrop (graph, id, gen, (if disposed then 2 else 1))
 
     let publish (gen: int) (outcome: Platform.FlightOutcome<'T>) =
         graph.Dispatch (fun () -> applyResult gen outcome)
@@ -3276,6 +3283,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
 
         if not (isNull flight) then
             let flight = flight
+            Tracer.FlightStart (graph, id, gen)
             let settle = publish gen
             launching <- true
 

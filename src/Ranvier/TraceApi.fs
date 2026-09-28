@@ -111,6 +111,15 @@ module Trace =
     /// <summary>Why <c>node</c> has not run since its last run ended, or <c>None</c> when the log shows no reason.</summary>
     let whyNot (graph: Graph) (node: INode) : WhyNotReason option = TraceModel.whyNot (events graph) node.Id
 
+    /// <summary>Every recorded run of <c>node</c> in <c>graph</c>'s log, with its status, movement, cause and flush.</summary>
+    let history (graph: Graph) (node: INode) : TraceHistory = TraceModel.history (events graph) null node.Id
+
+    /// <summary>
+    /// The pending sources read by <c>node</c>'s last run in <c>graph</c>'s log, and the node's flights with their
+    /// results.
+    /// </summary>
+    let waitingOn (graph: Graph) (node: INode) : TraceWaiting = TraceModel.waitingOn (events graph) node.Id
+
     /// <summary>
     /// The differences between <c>graph</c>'s live source lists and observer sets and those folded from its log, one
     /// line per node; empty when they match.
@@ -153,8 +162,8 @@ module Trace =
 
     /// <summary>
     /// <c>value</c> as text, with node ids shown as <c>graph</c>'s identity paths: a <c>Why</c>, a
-    /// <c>WhyNotReason option</c>, a <c>TraceSnapshot</c>, a <c>TraceEvent[]</c> with repeated marks folded, or a
-    /// <c>TraceOrigin</c>.
+    /// <c>WhyNotReason option</c>, a <c>TraceSnapshot</c>, a <c>TraceEvent[]</c> with repeated marks folded, a
+    /// <c>TraceOrigin</c>, a <c>TraceHistory</c> or a <c>TraceWaiting</c>.
     /// </summary>
     /// <exception cref="T:System.ArgumentException"><c>value</c> is none of those types.</exception>
     let render (graph: Graph) (value: obj) : string =
@@ -165,6 +174,8 @@ module Trace =
         | :? Why as why -> TraceModel.renderWhy snap why
         | :? option<WhyNotReason> as reason -> TraceModel.renderWhyNot snap reason
         | :? TraceSnapshot as s -> TraceModel.renderSnapshot s
+        | :? TraceHistory as h -> TraceModel.renderHistory snap h
+        | :? TraceWaiting as w -> TraceModel.renderWaiting snap w
         | :? (TraceEvent[]) as events -> TraceModel.renderEvents snap events
         | :? TraceOrigin as o ->
             let site = if isNull o.Site then "?" else string o.Site

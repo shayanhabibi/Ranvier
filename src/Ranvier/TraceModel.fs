@@ -16,6 +16,8 @@ type WhyRoot =
     | BeforeCheckpoint of file: string
     /// <summary>A run or mark whose cause the log does not record: the seq of the last step.</summary>
     | Unrecorded of last: int
+    /// <summary>An async source's settle or failure: the <c>Settle</c> or <c>Fail</c> seq.</summary>
+    | Settled of settle: int
 
 /// <summary>One event of a <c>Trace.why</c> chain.</summary>
 type WhyStep =
@@ -55,6 +57,65 @@ type WhyNotReason =
     /// not move.
     /// </summary>
     | NotReached of stopAt: int
+
+/// <summary>One run of a node, in <c>Trace.history</c>.</summary>
+type TraceRun =
+    {
+        /// <summary>The run number, from 1.</summary>
+        Run: int
+        /// <summary>The seq of the run's <c>RunStart</c>.</summary>
+        Start: int
+        /// <summary>How the run ended, or <c>None</c> while it is open.</summary>
+        Status: RunStatus option
+        /// <summary>True when the run moved the node's value, during the run or at its flight's settle.</summary>
+        Moved: bool
+        /// <summary>The end of the run's cause chain.</summary>
+        Root: WhyRoot
+        /// <summary>The number of the flush the run started in, or 0 outside every flush.</summary>
+        Flush: int
+    }
+
+/// <summary>A node's recorded runs, in <c>Trace.history</c>.</summary>
+type TraceHistory =
+    {
+        Node: int
+        /// <summary>The runs, oldest first.</summary>
+        Runs: TraceRun list
+    }
+
+/// <summary>A flight's state, in <c>TraceFlight</c>.</summary>
+[<RequireQualifiedAccess>]
+type TraceFlightState =
+    /// <summary>The log records the flight's start alone.</summary>
+    | InFlight
+    /// <summary>The flight settled at <c>seq</c>. <c>held</c> marks a value that left the node pending on a newer run.</summary>
+    | Settled of seq: int * held: bool
+    /// <summary>The flight failed at <c>seq</c>, cancelled when <c>cancelled</c> is true.</summary>
+    | Failed of seq: int * cancelled: bool
+    /// <summary>The flight's result was discarded at <c>seq</c>.</summary>
+    | Dropped of seq: int * reason: TraceDropReason
+
+/// <summary>One flight of an async memo, in <c>TraceWaiting</c>.</summary>
+type TraceFlight =
+    {
+        /// <summary>The flight number, from 1.</summary>
+        Flight: int
+        /// <summary>The seq of the flight's <c>FlightStart</c>.</summary>
+        Start: int
+        /// <summary>The number of the run that started the flight, or 0 when the log does not record it.</summary>
+        Run: int
+        State: TraceFlightState
+    }
+
+/// <summary>What a node waits on, in <c>Trace.waitingOn</c>.</summary>
+type TraceWaiting =
+    {
+        Node: int
+        /// <summary>The pending sources read by the node's last run, in read order.</summary>
+        Sources: int list
+        /// <summary>The node's flights, newest first.</summary>
+        Flights: TraceFlight list
+    }
 
 /// <summary>A node's state in a <c>TraceSnapshot</c>.</summary>
 [<RequireQualifiedAccess>]
@@ -286,6 +347,8 @@ module TraceModel =
                             Some (UserWrite e.Seq)
                         else
                             next e.Cause (fun () -> Unrecorded e.Seq)
+                    | TraceEventKind.Settle
+                    | TraceEventKind.Fail -> next e.Cause (fun () -> Settled e.Seq)
                     | _ -> next e.Cause (fun () -> Unrecorded e.Seq)
 
             let root = walk start
@@ -300,6 +363,116 @@ module TraceModel =
     /// <summary>The full cause chain of run number <c>run</c> of <c>node</c>, or of its last run when <c>run</c> is 0.</summary>
     let why (events: TraceEvent[]) (checkpoint: string) (node: int) (run: int) : Why =
         whyDepth events checkpoint 0 node run
+
+    /// <summary>
+    /// The run number a <c>Moved</c> belongs to: the run that started the settled flight when a <c>Settle</c> caused
+    /// it, else its <c>Arg</c>.
+    /// </summary>
+    let private movedRun (events: TraceEvent[]) (moved: TraceEvent) =
+        let fromFlight =
+            match find events moved.Cause with
+            | ValueSome settle when settle.Kind = TraceEventKind.Settle || settle.Kind = TraceEventKind.Fail ->
+                match find events settle.Cause with
+                | ValueSome flight when flight.Kind = TraceEventKind.FlightStart ->
+                    match find events flight.Cause with
+                    | ValueSome start when start.Kind = TraceEventKind.RunStart -> ValueSome start.Arg
+                    | _ -> ValueNone
+                | _ -> ValueNone
+            | _ -> ValueNone
+
+        defaultValueArg fromFlight moved.Arg
+
+    /// <summary>
+    /// Every recorded run of <c>node</c>, oldest first. <c>checkpoint</c> names the file holding earlier events, or is
+    /// null.
+    /// </summary>
+    let history (events: TraceEvent[]) (checkpoint: string) (node: int) : TraceHistory =
+        let ends = Dictionary<int, RunStatus>()
+        let moved = HashSet<int>()
+        let flushes = ResizeArray<int>()
+        let starts = ResizeArray<struct (TraceEvent * int)>()
+
+        for e in events do
+            match e.Kind with
+            | TraceEventKind.FlushStart -> flushes.Add e.Arg
+            | TraceEventKind.FlushEnd when flushes.Count > 0 -> flushes.RemoveAt (flushes.Count - 1)
+            | TraceEventKind.RunStart when e.Node = node ->
+                let flush = if flushes.Count = 0 then 0 else flushes[flushes.Count - 1]
+                starts.Add (struct (e, flush))
+            | TraceEventKind.RunEnd when e.Node = node -> ends[e.Cause] <- enum<RunStatus> e.Arg
+            | TraceEventKind.Moved when e.Node = node -> moved.Add (movedRun events e) |> ignore
+            | _ -> ()
+
+        let runs =
+            [
+                for struct (start, flush) in starts do
+                    {
+                        Run = start.Arg
+                        Start = start.Seq
+                        Status =
+                            match ends.TryGetValue start.Seq with
+                            | true, status -> Some status
+                            | _ -> None
+                        Moved = moved.Contains start.Arg
+                        Root = (why events checkpoint node start.Arg).Root |> Option.defaultValue (Unrecorded start.Seq)
+                        Flush = flush
+                    }
+            ]
+
+        {
+            Node = node
+            Runs = runs
+        }
+
+    /// <summary>The pending sources read by <c>node</c>'s last run, and the node's flights.</summary>
+    let waitingOn (events: TraceEvent[]) (node: int) : TraceWaiting =
+        let lastRun =
+            events
+            |> Array.tryFindBack (fun e -> e.Kind = TraceEventKind.RunStart && e.Node = node)
+            |> Option.map _.Seq
+            |> Option.defaultValue -1
+
+        let sources =
+            events
+            |> Array.filter (fun e -> e.Kind = TraceEventKind.Suspend && e.Node = node && e.Cause = lastRun)
+            |> Array.map _.Other
+            |> Array.distinct
+            |> List.ofArray
+
+        let states = Dictionary<int, TraceFlightState>()
+
+        for e in events do
+            if e.Node = node && e.Cause <> 0 then
+                match e.Kind with
+                | TraceEventKind.Settle -> states[e.Cause] <- TraceFlightState.Settled (e.Seq, e.Flag = 1)
+                | TraceEventKind.Fail -> states[e.Cause] <- TraceFlightState.Failed (e.Seq, e.Flag = 1)
+                | TraceEventKind.FlightDrop ->
+                    states[e.Cause] <- TraceFlightState.Dropped (e.Seq, enum<TraceDropReason> e.Flag)
+                | _ -> ()
+
+        let flights =
+            [
+                for e in Array.rev events do
+                    if e.Kind = TraceEventKind.FlightStart && e.Node = node then
+                        {
+                            Flight = e.Arg
+                            Start = e.Seq
+                            Run =
+                                match find events e.Cause with
+                                | ValueSome start when start.Kind = TraceEventKind.RunStart -> start.Arg
+                                | _ -> 0
+                            State =
+                                match states.TryGetValue e.Seq with
+                                | true, state -> state
+                                | _ -> TraceFlightState.InFlight
+                        }
+            ]
+
+        {
+            Node = node
+            Sources = sources
+            Flights = flights
+        }
 
     /// <summary>
     /// The first <c>WhyNotReason</c> matching the events after <c>node</c>'s last <c>RunEnd</c>, or after its
@@ -809,6 +982,7 @@ module TraceModel =
         | Some (BeforeCheckpoint null) -> "before the checkpoint"
         | Some (BeforeCheckpoint file) -> "before checkpoint " + file
         | Some (Unrecorded seq) -> "unrecorded after #" + string seq
+        | Some (Settled seq) -> "settle #" + string seq
 
     /// <summary>The cause chain as text: a heading, one line per step with its site, and the root.</summary>
     let renderWhy (snapshot: TraceSnapshot) (why: Why) : string =
@@ -839,6 +1013,61 @@ module TraceModel =
             "checked clean #" + string seq + " over " + String.Join (", ", upstream |> List.map (pathOf snapshot))
         | Some (SkippedAsRunningReader seq) -> "skipped as the running reader #" + string seq
         | Some (NotReached seq) -> "not reached: propagation stopped at #" + string seq
+
+    let private runStatusText (status: RunStatus) =
+        match status with
+        | RunStatus.Ok -> "ok"
+        | RunStatus.Pending -> "pending"
+        | RunStatus.Error -> "error"
+        | RunStatus.Abandoned -> "abandoned"
+        | other -> string (int other)
+
+    /// <summary>The runs as text: a heading, then one line per run with its status, flush and root.</summary>
+    let renderHistory (snapshot: TraceSnapshot) (history: TraceHistory) : string =
+        let lines = ResizeArray<string>()
+        lines.Add ("history " + pathOf snapshot history.Node)
+
+        for r in history.Runs do
+            let status =
+                match r.Status with
+                | Some status -> runStatusText status
+                | None -> "running"
+
+            let moved = if r.Moved then " moved" else ""
+            let flush = if r.Flush = 0 then "" else " flush " + string r.Flush
+
+            lines.Add (
+                "  run " + string r.Run + " #" + string r.Start + " " + status + moved + flush + " root: "
+                + rootText snapshot (Some r.Root)
+            )
+
+        String.Join ("\n", lines)
+
+    /// <summary>The suspension sources and flights as text: a heading, then one line per source and per flight.</summary>
+    let renderWaiting (snapshot: TraceSnapshot) (waiting: TraceWaiting) : string =
+        let lines = ResizeArray<string>()
+        lines.Add ("waiting " + pathOf snapshot waiting.Node)
+
+        for source in waiting.Sources do
+            lines.Add ("  suspended on " + pathOf snapshot source)
+
+        for f in waiting.Flights do
+            let state =
+                match f.State with
+                | TraceFlightState.InFlight -> "in flight"
+                | TraceFlightState.Settled (seq, false) -> "settled #" + string seq
+                | TraceFlightState.Settled (seq, true) -> "settled #" + string seq + ", held pending"
+                | TraceFlightState.Failed (seq, false) -> "failed #" + string seq
+                | TraceFlightState.Failed (seq, true) -> "cancelled #" + string seq
+                | TraceFlightState.Dropped (seq, reason) ->
+                    "dropped #" + string seq + " " + (string reason).ToLowerInvariant ()
+
+            lines.Add ("  flight " + string f.Flight + " #" + string f.Start + " run " + string f.Run + " " + state)
+
+        if waiting.Sources.IsEmpty && waiting.Flights.IsEmpty then
+            lines.Add "  nothing recorded"
+
+        String.Join ("\n", lines)
 
     let private statusText (status: TraceNodeStatus) =
         match status with

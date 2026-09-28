@@ -109,8 +109,8 @@ why /banner run 2
 
 Read it from the bottom: a write to `lines` marked `subtotal`; the banner's check pulled `total`,
 which pulled `subtotal`; each value moved, so the banner ran. `#n` is the event's position in the
-log. The chain ends at a root: a user write, the node's creation, a pull by a reader, or a cause
-older than the log (`unrecorded after #n`).
+log. The chain ends at a root: a user write, the node's creation, a pull by a reader, an async
+source's settle, or a cause older than the log (`unrecorded after #n`).
 
 `Trace.whyAt graph node run` explains an earlier run by number, and `Trace.whyDepth graph depth
 node` stops after `depth` steps.
@@ -140,6 +140,71 @@ banner clean. The other reasons:
 | `not reached: propagation stopped at #n` | Propagation stopped upstream: a write that kept its value, or a run that did not move. |
 | `disposed #n` | The node was disposed. |
 | `no reason recorded` | The node ran after its last mark, or was never marked. |
+
+## What did each run do
+
+The examples in this section add an async shipping quote to the cart. A new subtotal starts a new
+quote, and `total` reads both:
+
+```fsharp
+let shipping = Trace.named "shipping" (fun () -> createAsync (fun _ -> quote subtotal.Value))
+let total = Trace.named "total" (fun () -> createMemo (fun () -> subtotal.Value + shipping.Value))
+```
+
+`Trace.history` lists every run of a node, oldest first:
+
+```fsharp
+Trace.history graph total |> Trace.render graph |> printfn "%s"
+```
+
+```text
+history /total
+  run 1 #15 pending moved flush 1 root: created #8
+  run 2 #55 pending flush 2 root: user write #38
+  run 3 #71 ok moved flush 3 root: user write #38
+```
+
+Each line gives the run number, its `RunStart`, how it ended, whether it moved the value, the flush
+it started in and the root of its `why` chain. Run 2 read a quote still in flight and ended pending.
+Run 3 ran when the quote settled; its root is the write that started the quote.
+
+## What is it waiting on
+
+`Trace.waitingOn` names the pending sources the node's last run read, and lists the node's flights,
+newest first:
+
+```fsharp
+Trace.waitingOn graph total |> Trace.render graph |> printfn "%s"
+```
+
+```text
+waiting /total
+  suspended on /shipping
+```
+
+For an async memo, it lists each flight with the run that started it and its result:
+
+```text
+waiting /shipping
+  flight 2 #57 run 2 settled #64
+  flight 1 #26 run 1 dropped #63 superseded
+```
+
+The first quote settled after the second one started, so its result was dropped. A flight can end
+`in flight`, `settled`, `failed`, `cancelled` or `dropped`. A dropped flight is `superseded` by a
+newer flight, `disposed` with its node, or `suspended`: a failure that arrived while the newest run
+waits on a pending source. A settle marked `held pending` kept its value while a newer run waits.
+
+`Trace.why` follows a settle back to the run that started the flight:
+
+```text
+  #65 Moved /shipping (Cart.fsx:10)
+  #64 Settle /shipping (Cart.fsx:10)
+  #57 FlightStart /shipping (Cart.fsx:10)
+  #56 RunStart /shipping <- /banner (Cart.fsx:10)
+```
+
+An `AsyncSource` settle ends the chain at `settle #n`.
 
 ## Where did it come from
 
@@ -198,10 +263,10 @@ The same program produces the same dump, byte for byte, on every run of a single
   packed. Ship the untraced build.
 - **The log is unbounded.** Every event stays in memory for the graph's lifetime. A long session
   grows without limit; a checkpoint to trim it is planned.
-- **No values.** The log records that a node moved, not its old or new value. Value history and the
-  async queries (`history`, `waitingOn`) are planned.
-- **Async settles read as writes.** An `AsyncSource` settle ends a `why` chain as a user write at
-  the source; the flight, its task and any superseded flights are not recorded.
+- **No values.** The log records that a node moved, not its old or new value. `history` lists runs
+  without their values; value capture is planned.
+- **Flights are async memo flights.** `waitingOn` lists the flights of an `AsyncMemo`. An
+  `AsyncSource` has no flights: its settles appear as `Settle` and `Fail` events.
 - **Combinator nodes carry the site of the combinator call.** Rows and internal nodes of `filter`,
   `sortBy` and the other views share the call's file and line, told apart by `#n`, not by key.
 - **Sites follow the JIT.** An inlined method can report its caller's line. `Trace.named` is the

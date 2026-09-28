@@ -68,6 +68,25 @@ type TraceEventKind =
     | DischargeStart = 34
     /// <summary>A run scope's discharge ended. Fields as for <c>DischargeStart</c>.</summary>
     | DischargeEnd = 35
+    /// <summary>
+    /// A running computation read a pending source. <c>Other</c>: the source. <c>Cause</c>: the reader's
+    /// <c>RunStart</c>.
+    /// </summary>
+    | Suspend = 40
+    /// <summary>An async memo started a flight. <c>Arg</c>: the flight number, from 1. <c>Cause</c>: the <c>RunStart</c>.</summary>
+    | FlightStart = 41
+    /// <summary>
+    /// An async value settled. <c>Arg</c>: the flight number, or 0 for an async source. <c>Flag</c>: 1 when the node
+    /// stays pending on a newer run. <c>Cause</c>: the <c>FlightStart</c>, or 0.
+    /// </summary>
+    | Settle = 42
+    /// <summary>An async value failed. <c>Flag</c>: 1 when cancelled. Other fields as for <c>Settle</c>.</summary>
+    | Fail = 43
+    /// <summary>
+    /// A flight's result was discarded. <c>Arg</c>: the flight number. <c>Flag</c>: a <c>TraceDropReason</c>.
+    /// <c>Cause</c>: the <c>FlightStart</c>, or 0.
+    /// </summary>
+    | FlightDrop = 44
 
 /// <summary>The node type a <c>NodeNew</c> event records.</summary>
 type TraceNodeKind =
@@ -92,6 +111,15 @@ type RunStatus =
     /// ran outside every run.
     /// </summary>
     | Abandoned = 3
+
+/// <summary>Why a flight's result was discarded, in <c>FlightDrop.Flag</c>.</summary>
+type TraceDropReason =
+    /// <summary>A newer flight started first.</summary>
+    | Superseded = 1
+    /// <summary>The node was disposed.</summary>
+    | Disposed = 2
+    /// <summary>A failure arrived while the node's newest run waits on a pending source.</summary>
+    | Suspended = 3
 
 /// <summary>One entry of a graph's trace log.</summary>
 /// <remarks>

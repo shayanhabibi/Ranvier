@@ -147,7 +147,7 @@ Sites are an attribute of `NodeNew`/`OwnerNew` (§4.4), not an event.
 | `Label` | labelled node or owner id; 0 when unused | 0 | 0 from `Trace.named`, 1 from `Trace.label` | 0 | 0 | label string |
 | `Dispose` / `OwnerDispose` | id | 0 | 0 | 0 | 0 | null |
 | `Write` | signal | running computation, or 0 | 0 | 1 when the value moved | that computation's `RunStart` seq, or 0 | null |
-| `Mark` | target | source | 1 check, 2 dirty | 0 | `Write`, `Moved` or `Publish` seq | null |
+| `Mark` | target | source | 1 check, 2 dirty | 0 | `Write`, `Moved` or `Publish` seq; from phase 2, an async source's `Settle` or `Fail` seq | null |
 | `MarkSkip` | skipped reader | source | as `Mark` | 0 | as `Mark` | null |
 | `Schedule` | scheduled node | 0 | queue length ahead | 0 | the `Mark` seq | null |
 | `CheckStart` | node | 0 | 0 | 0 | 0 | null |
@@ -155,12 +155,16 @@ Sites are an attribute of `NodeNew`/`OwnerNew` (§4.4), not an event.
 | `EdgeAdd` / `EdgeRemove` | computation | source | slot | 0 | 0 | null |
 | `ObserverAdd` / `ObserverRemove` | source | observer | 0 | 0 | 0 | null |
 | `RunStart` | node | puller (walker top, else the innermost open run in the log, else 0) | run number (1-based) | 0 | first dirty `Mark` since the previous `RunStart`, or 0 | null |
-| `Moved` | node | 0 | run number | 0 | `RunStart` seq | null |
+| `Moved` | node | 0 | run number | 0 | `RunStart` seq; from phase 2, the flight's `Settle` or `Fail` seq when a flight result caused it | null |
 | `RunEnd` | node | 0 | `RunStatus` (`Ok`, `Pending`, `Error`, `Abandoned`) | 1 when a `Moved` was recorded in this run | `RunStart` seq | null |
 | `WalkAbandoned` | node whose frame was unwound | 0 | 0 | 0 | 0 | null |
 | `FlushStart` / `FlushEnd` | 0 | 0 | flush number | 0 | 0 | null |
 | `BatchEnter` / `BatchExit` | 0 | 0 | depth after the change | 0 | 0 | null |
 | `DischargeStart` / `DischargeEnd` | owner id | host node id | 0 | 0 | 0 | null |
+| `Suspend` (2) | reader | pending source | 0 | 0 | the reader's `RunStart` seq | null |
+| `FlightStart` (2) | async memo | 0 | flight number (1-based) | 0 | `RunStart` seq | null |
+| `Settle` / `Fail` (2) | async memo or source | 0 | flight number, 0 for a source | `Settle`: 1 when held pending; `Fail`: 1 when cancelled | `FlightStart` seq, 0 for a source | null |
+| `FlightDrop` (2) | async memo | 0 | flight number | `TraceDropReason`: 1 superseded, 2 disposed, 3 suspended | `FlightStart` seq | null |
 
 `EdgeAdd`/`EdgeRemove` mirror `SourceList` exactly (`Counters.EdgeAdded`/`EdgeRemoved`). `ObserverAdd`/`ObserverRemove`
 mirror `ObserverSet` insertion and removal (`Counters.ObserverInserted`/`ObserverRemoved`) and cover RowWatch

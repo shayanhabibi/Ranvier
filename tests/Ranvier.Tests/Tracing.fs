@@ -955,5 +955,126 @@ let tests =
                 Expect.equal (siteOf g view) (here line) "the view's site is the user's line"
                 Expect.equal (siteOf g m) (here memoLine) "createMemo reports the user's line"
             }
+
+            test "history lists each run with its status, movement, root and flush" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 1
+                let positive = createMemo (fun () -> a.Value > 0)
+                let runs = ref 0
+
+                createEffect (fun () ->
+                    positive.Value |> ignore
+                    incr runs)
+
+                a.Value <- 2
+                a.Value <- -1
+                let writes = ofKind TraceEventKind.Write g
+                let history = Trace.history g positive
+
+                Expect.equal history.Node (positive :> INode).Id "the history names its node"
+                Expect.equal (history.Runs |> List.map _.Run) [ 1; 2; 3 ] "one record per run"
+                Expect.isTrue (history.Runs |> List.forall (fun r -> r.Status = Some RunStatus.Ok)) "every run ended Ok"
+                Expect.equal (history.Runs |> List.map _.Moved) [ true; false; true ] "only the sign change moved"
+
+                Expect.equal
+                    (history.Runs |> List.map _.Root)
+                    [ Created (Trace.origin g positive).Seq; UserWrite writes[0].Seq; UserWrite writes[1].Seq ]
+                    "each run's root"
+
+                Expect.isTrue (history.Runs |> List.skip 1 |> List.forall (fun r -> r.Flush > 0)) "a write's runs start in a flush"
+                Expect.stringContains (Trace.render g history) "run 2 #" "render lists the runs"
+            }
+
+            test "waitingOn names the pending source the last run read" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let source = createAsyncSource<int> ()
+                let m = createMemo (fun () -> source.Value + 1)
+                Expect.equal m.TryValue Pending "the memo is pending on the source"
+                Expect.equal (Trace.waitingOn g m).Sources [ (source :> INode).Id ] "the memo waits on the source"
+                Expect.stringContains (Trace.render g (Trace.waitingOn g m)) "suspended on" "render names the source"
+
+                source.Settle 1
+                Expect.equal m.TryValue (Ready 2) "the settle published"
+                Expect.isEmpty (Trace.waitingOn g m).Sources "the settled run waits on nothing"
+            }
+
+            test "why through an async source ends at its settle" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let source = createAsyncSource<int> ()
+                let m = createMemo (fun () -> source.Value + 1)
+                m.TryValue |> ignore
+                source.Settle 1
+                m.TryValue |> ignore
+                let settle = (ofKind TraceEventKind.Settle g)[0]
+                Expect.equal settle.Node (source :> INode).Id "the settle names the source"
+                Expect.equal (Trace.why g m).Root (Some (Settled settle.Seq)) "the chain ends at the settle"
+            }
+
+            test "why through an async memo walks past the settle to the flight's run" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let flight = TaskCompletionSource<int>()
+                let a = createAsync (fun _ -> flight.Task)
+                let d = createMemo (fun () -> a.Value * 2)
+                d.TryValue |> ignore
+                flight.SetResult 5
+                Expect.equal d.TryValue (Ready 10) "the flight published"
+                let why = Trace.why g d
+                let kinds = why.Steps |> List.map _.Kind
+                Expect.contains kinds TraceEventKind.Settle "the chain passes the settle"
+                Expect.contains kinds TraceEventKind.FlightStart "and the flight's start"
+                Expect.equal why.Root (Some (Created (Trace.origin g a).Seq)) "and ends at the memo's first run"
+                Expect.isTrue (Trace.history g a).Runs.Head.Moved "the settle moved the flight's run"
+            }
+
+            test "waitingOn reports superseded, settled and failed flights" {
+                use g = new Graph ({ GraphOptions.Default with FlightPolicy = KeepLatest })
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let flights = ResizeArray<TaskCompletionSource<int>>()
+
+                let a =
+                    createAsync (fun _ ->
+                        s.Value |> ignore
+                        let flight = TaskCompletionSource<int>()
+                        flights.Add flight
+                        flight.Task)
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.TryValue |> ignore
+                Expect.equal ((Trace.waitingOn g a).Flights |> List.map _.State) [ TraceFlightState.InFlight; TraceFlightState.InFlight ] "two flights in progress"
+
+                flights[0].SetResult 1
+                flights[1].SetResult 2
+                let waiting = Trace.waitingOn g a
+
+                match waiting.Flights with
+                | [ second; first ] ->
+                    Expect.equal (second.Flight, second.Run) (2, 2) "the newest flight comes first, with its run"
+                    Expect.isTrue (second.State.IsSettled) "the current flight settled"
+
+                    match first.State with
+                    | TraceFlightState.Dropped (_, reason) -> Expect.equal reason TraceDropReason.Superseded "the older flight was superseded"
+                    | other -> failtestf "expected Dropped, got %A" other
+                | other -> failtestf "expected two flights, got %A" other
+
+                Expect.equal ((Trace.history g a).Runs |> List.map _.Moved) [ false; true ] "only the current flight moved"
+
+                s.Value <- 3
+                a.TryValue |> ignore
+                flights[2].SetException (exn "down")
+
+                Expect.isTrue
+                    (match (Trace.waitingOn g a).Flights.Head.State with
+                     | TraceFlightState.Failed (_, false) -> true
+                     | _ -> false)
+                    "a faulted flight reads Failed"
+
+                Expect.stringContains (Trace.render g (Trace.waitingOn g a)) "dropped #" "render shows the drop"
+            }
 #endif
         ]
