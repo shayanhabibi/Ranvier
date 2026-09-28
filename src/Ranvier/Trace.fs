@@ -23,51 +23,51 @@ type internal ITracedEdges =
 [<Sealed; AllowNullLiteral>]
 type internal TraceLog(locked: bool) =
     let gate = obj ()
-    let events = ResizeArray<TraceEvent>()
+    let events = ResizeArray<TraceEvent> ()
     let mutable clock = 0
     let mutable owners = 0
 
     // Node id to the owner id recorded by its `NodeNew`.
-    let nodeOwners = Dictionary<int, int>()
+    let nodeOwners = Dictionary<int, int> ()
 
     // Run-scope owner id to its host node id.
-    let scopeHosts = Dictionary<int, int>()
+    let scopeHosts = Dictionary<int, int> ()
 
     // Node id to the `RunStart` seq of its open run.
-    let openRuns = Dictionary<int, int>()
+    let openRuns = Dictionary<int, int> ()
 
     // Node id to the first dirty `Mark` seq since its last `RunStart`.
-    let firstDirty = Dictionary<int, int>()
+    let firstDirty = Dictionary<int, int> ()
 
     // Node ids of the running computations, innermost last.
-    let running = ResizeArray<int>()
+    let running = ResizeArray<int> ()
 
     // Node id to the label held for its `NodeNew`.
-    let reserved = Dictionary<int, string>()
+    let reserved = Dictionary<int, string> ()
 
     // Node ids of the walker frames, innermost last.
-    let walkers = ResizeArray<int>()
+    let walkers = ResizeArray<int> ()
 
     // The `CheckStart` seq of each walker frame, parallel to `walkers`.
-    let walkStarts = ResizeArray<int>()
+    let walkStarts = ResizeArray<int> ()
 
     // Seqs of the notifications in progress, innermost last: a `Write` or `Moved` seq, or 0 when unattributed.
-    let causes = ResizeArray<int>()
+    let causes = ResizeArray<int> ()
 
     // Node id to the run number of its open run.
-    let runNumbers = Dictionary<int, int>()
+    let runNumbers = Dictionary<int, int> ()
 
     // Node id to the number of runs recorded for it.
-    let runCounts = Dictionary<int, int>()
+    let runCounts = Dictionary<int, int> ()
 
     // Node ids whose open run recorded `Moved`.
-    let movedRuns = HashSet<int>()
+    let movedRuns = HashSet<int> ()
 
     // Node id and flight number to the flight's `FlightStart` seq.
-    let flights = Dictionary<struct (int * int), int>()
+    let flights = Dictionary<struct (int * int), int> ()
 
     // Node id to the `Settle` or `Fail` seq its next `Moved` takes as cause.
-    let settles = Dictionary<int, int>()
+    let settles = Dictionary<int, int> ()
 
     // The seq of the latest `Mark`.
     let mutable lastMark = 0
@@ -81,13 +81,13 @@ type internal TraceLog(locked: bool) =
     let mutable discharges = 0
 
     // Flush number and running-stack depth of each open flush, innermost last.
-    let flushFrames = ResizeArray<struct (int * int)>()
+    let flushFrames = ResizeArray<struct (int * int)> ()
 
     // Observer sets and source lists bound to the log. Fable holds them strongly.
 #if FABLE_COMPILER
-    let edgeSets = ResizeArray<ITracedEdges>()
+    let edgeSets = ResizeArray<ITracedEdges> ()
 #else
-    let edgeSets = ResizeArray<WeakReference<ITracedEdges>>()
+    let edgeSets = ResizeArray<WeakReference<ITracedEdges>> ()
 #endif
 
     // The index of the last `value` in `list`, or -1.
@@ -99,7 +99,8 @@ type internal TraceLog(locked: bool) =
 
         i
 
-    let sync (f: unit -> 'T) : 'T = if locked then lock gate f else f ()
+    let sync (f: unit -> 'T) : 'T =
+        if locked then lock gate f else f ()
 
     let append kind node other arg flag cause (payload: obj) =
         if clock = Int32.MaxValue then
@@ -108,16 +109,14 @@ type internal TraceLog(locked: bool) =
         clock <- clock + 1
 
         events.Add
-            {
-                Seq = clock
-                Kind = kind
-                Node = node
-                Other = other
-                Arg = arg
-                Flag = flag
-                Cause = cause
-                Payload = payload
-            }
+            { Seq = clock
+              Kind = kind
+              Node = node
+              Other = other
+              Arg = arg
+              Flag = flag
+              Cause = cause
+              Payload = payload }
 
         clock
 
@@ -139,22 +138,31 @@ type internal TraceLog(locked: bool) =
 
     /// <summary>The <c>RunStart</c> seq of the innermost running computation's open run, or 0.</summary>
     member _.CreatingRun =
-        sync (fun () -> if running.Count = 0 then 0 else lookup openRuns running[running.Count - 1])
+        sync (fun () ->
+            if running.Count = 0 then
+                0
+            else
+                lookup openRuns running[running.Count - 1])
 
     /// <summary>The owner id recorded for <c>node</c>, or 0.</summary>
-    member _.OwnerOf(node: int) = sync (fun () -> lookup nodeOwners node)
+    member _.OwnerOf(node: int) =
+        sync (fun () -> lookup nodeOwners node)
 
     /// <summary>The host node id of the run scope <c>owner</c>, or 0.</summary>
-    member _.HostOf(owner: int) = sync (fun () -> lookup scopeHosts owner)
+    member _.HostOf(owner: int) =
+        sync (fun () -> lookup scopeHosts owner)
 
     /// <summary>Records <c>owner</c> as the owner of <c>node</c>.</summary>
-    member _.SetOwner(node: int, owner: int) = sync (fun () -> nodeOwners[node] <- owner)
+    member _.SetOwner(node: int, owner: int) =
+        sync (fun () -> nodeOwners[node] <- owner)
 
     /// <summary>Records <c>host</c> as the host node of the run scope <c>owner</c>.</summary>
-    member _.SetHost(owner: int, host: int) = sync (fun () -> scopeHosts[owner] <- host)
+    member _.SetHost(owner: int, host: int) =
+        sync (fun () -> scopeHosts[owner] <- host)
 
     /// <summary>The <c>RunStart</c> seq of <c>node</c>'s open run, or 0.</summary>
-    member _.OpenRun(node: int) = sync (fun () -> lookup openRuns node)
+    member _.OpenRun(node: int) =
+        sync (fun () -> lookup openRuns node)
 
     /// <summary>
     /// Opens run number <c>run</c> of <c>node</c> at <c>seq</c>: pushes the node on the running stack and clears its
@@ -170,16 +178,20 @@ type internal TraceLog(locked: bool) =
             running.Add node)
 
     /// <summary>The number of runs recorded for <c>node</c>.</summary>
-    member _.RunCount(node: int) = sync (fun () -> lookup runCounts node)
+    member _.RunCount(node: int) =
+        sync (fun () -> lookup runCounts node)
 
     /// <summary>The run number of <c>node</c>'s open run, or 0.</summary>
-    member _.RunNumber(node: int) = sync (fun () -> lookup runNumbers node)
+    member _.RunNumber(node: int) =
+        sync (fun () -> lookup runNumbers node)
 
     /// <summary>Records that <c>node</c>'s open run moved its value.</summary>
-    member _.NoteMoved(node: int) = sync (fun () -> movedRuns.Add node |> ignore)
+    member _.NoteMoved(node: int) =
+        sync (fun () -> movedRuns.Add node |> ignore)
 
     /// <summary>Records <c>seq</c> as the <c>FlightStart</c> of flight <c>flight</c> of <c>node</c>.</summary>
-    member _.NoteFlight(node: int, flight: int, seq: int) = sync (fun () -> flights[struct (node, flight)] <- seq)
+    member _.NoteFlight(node: int, flight: int, seq: int) =
+        sync (fun () -> flights[struct (node, flight)] <- seq)
 
     /// <summary>The <c>FlightStart</c> seq of flight <c>flight</c> of <c>node</c>, or 0.</summary>
     member _.FlightOf(node: int, flight: int) =
@@ -189,13 +201,16 @@ type internal TraceLog(locked: bool) =
             | _ -> 0)
 
     /// <summary>Records <c>seq</c> as the cause of <c>node</c>'s next <c>Moved</c>; 0 clears it.</summary>
-    member _.NoteSettle(node: int, seq: int) = sync (fun () -> settles[node] <- seq)
+    member _.NoteSettle(node: int, seq: int) =
+        sync (fun () -> settles[node] <- seq)
 
     /// <summary>The <c>Settle</c> or <c>Fail</c> seq recorded for <c>node</c>'s next <c>Moved</c>, or 0.</summary>
-    member _.SettleOf(node: int) = sync (fun () -> lookup settles node)
+    member _.SettleOf(node: int) =
+        sync (fun () -> lookup settles node)
 
     /// <summary>Whether <c>node</c>'s open run moved its value.</summary>
-    member _.MovedInRun(node: int) = sync (fun () -> movedRuns.Contains node)
+    member _.MovedInRun(node: int) =
+        sync (fun () -> movedRuns.Contains node)
 
     /// <summary>Closes <c>node</c>'s open run and removes the node from the running stack.</summary>
     member _.EndRun(node: int) =
@@ -237,7 +252,8 @@ type internal TraceLog(locked: bool) =
                 [| for j in running.Count - 1 .. -1 .. 0 -> running[j] |])
 
     /// <summary>The first dirty <c>Mark</c> seq since <c>node</c>'s last run, or 0.</summary>
-    member _.FirstDirty(node: int) = sync (fun () -> lookup firstDirty node)
+    member _.FirstDirty(node: int) =
+        sync (fun () -> lookup firstDirty node)
 
     /// <summary>Records <c>seq</c> as <c>node</c>'s first dirty mark unless one is pending.</summary>
     member _.NoteDirty(node: int, seq: int) =
@@ -246,7 +262,8 @@ type internal TraceLog(locked: bool) =
                 firstDirty[node] <- seq)
 
     /// <summary>Opens the notification of the <c>Write</c> or <c>Moved</c> at <c>seq</c>.</summary>
-    member _.PushCause(seq: int) = sync (fun () -> causes.Add seq)
+    member _.PushCause(seq: int) =
+        sync (fun () -> causes.Add seq)
 
     /// <summary>Closes the innermost notification.</summary>
     member _.PopCause() =
@@ -255,7 +272,8 @@ type internal TraceLog(locked: bool) =
                 causes.RemoveAt (causes.Count - 1))
 
     /// <summary>The seq of the innermost notification in progress, or 0.</summary>
-    member _.Cause = sync (fun () -> if causes.Count = 0 then 0 else causes[causes.Count - 1])
+    member _.Cause =
+        sync (fun () -> if causes.Count = 0 then 0 else causes[causes.Count - 1])
 
     /// <summary>Records <c>seq</c> as the latest <c>Mark</c>, on <c>target</c>.</summary>
     member _.NoteMark(target: int, seq: int) =
@@ -264,7 +282,8 @@ type internal TraceLog(locked: bool) =
             lastMarkTarget <- target)
 
     /// <summary>The seq of the latest <c>Mark</c> when its target is <c>node</c>, or 0.</summary>
-    member _.MarkOf(node: int) = sync (fun () -> if lastMarkTarget = node then lastMark else 0)
+    member _.MarkOf(node: int) =
+        sync (fun () -> if lastMarkTarget = node then lastMark else 0)
 
     /// <summary>Opens a flush and returns its number, starting at 1.</summary>
     member _.EnterFlush() =
@@ -292,10 +311,15 @@ type internal TraceLog(locked: bool) =
         sync (fun () -> discharges <- discharges + (if entering then 1 else -1))
 
     /// <summary>True while a flush, a run-scope discharge or a recorded run is in progress.</summary>
-    member _.Busy = sync (fun () -> flushFrames.Count > 0 || discharges > 0 || running.Count > 0)
+    member _.Busy =
+        sync (fun () ->
+            flushFrames.Count > 0
+            || discharges > 0
+            || running.Count > 0)
 
     /// <summary>Holds <c>label</c> for the <c>NodeNew</c> of <c>node</c>.</summary>
-    member _.Reserve(node: int, label: string) = sync (fun () -> reserved[node] <- label)
+    member _.Reserve(node: int, label: string) =
+        sync (fun () -> reserved[node] <- label)
 
     /// <summary>Removes and returns the label held for <c>node</c>, or null.</summary>
     member _.TakeReserved(node: int) : string =
@@ -347,33 +371,39 @@ type internal TraceLog(locked: bool) =
 
     /// <summary>The <c>Other</c> of the event at <c>seq</c>, or 0 when no event has that seq.</summary>
     member _.OtherAt(seq: int) =
-        sync (fun () -> if seq >= 1 && seq <= events.Count then events[seq - 1].Other else 0)
+        sync (fun () ->
+            if seq >= 1 && seq <= events.Count then
+                events[seq - 1].Other
+            else
+                0)
 
     /// <summary>The node id of the innermost walker frame, or 0.</summary>
-    member _.Walker = sync (fun () -> if walkers.Count = 0 then 0 else walkers[walkers.Count - 1])
+    member _.Walker =
+        sync (fun () -> if walkers.Count = 0 then 0 else walkers[walkers.Count - 1])
 
     /// <summary>The node id of the innermost open run, or 0.</summary>
-    member _.Current = sync (fun () -> if running.Count = 0 then 0 else running[running.Count - 1])
+    member _.Current =
+        sync (fun () -> if running.Count = 0 then 0 else running[running.Count - 1])
 
 #if FABLE_COMPILER
     /// <summary>Registers a node's observer set or source list for edge reconciliation.</summary>
-    member _.Register(set: ITracedEdges) = sync (fun () -> edgeSets.Add set)
+    member _.Register(set: ITracedEdges) =
+        sync (fun () -> edgeSets.Add set)
 
     /// <summary>The registered observer sets and source lists.</summary>
     member _.EdgeSets: ITracedEdges[] = sync (fun () -> edgeSets.ToArray ())
 #else
     /// <summary>Registers a node's observer set or source list for edge reconciliation.</summary>
-    member _.Register(set: ITracedEdges) = sync (fun () -> edgeSets.Add (WeakReference<ITracedEdges> set))
+    member _.Register(set: ITracedEdges) =
+        sync (fun () -> edgeSets.Add (WeakReference<ITracedEdges> set))
 
     /// <summary>The registered observer sets and source lists that are still alive.</summary>
     member _.EdgeSets: ITracedEdges[] =
         sync (fun () ->
-            [|
-                for weak in edgeSets do
-                    match weak.TryGetTarget () with
-                    | true, set -> yield set
-                    | _ -> ()
-            |])
+            [| for weak in edgeSets do
+                   match weak.TryGetTarget () with
+                   | true, set -> yield set
+                   | _ -> () |])
 #endif
 
     /// <summary>Runs <c>f</c> with no other thread's event appended in between, on a log built with <c>locked</c>.</summary>
@@ -418,7 +448,7 @@ type internal Tracer =
         labels.RemoveAt last
 
         if not (isNull label || isNull graph) then
-            (graph :?> ITraced).TraceLog.Append(TraceEventKind.Label, 0, 0, 0, 0, 0, label)
+            (graph :?> ITraced).TraceLog.Append (TraceEventKind.Label, 0, 0, 0, 0, 0, label)
             |> ignore
 
     /// <summary>Records a <c>Label</c> for <c>id</c> when the innermost pending label on this thread is unconsumed.</summary>
@@ -477,7 +507,8 @@ type internal Tracer =
                 Tracer.Consume (log, id))
 
     /// <summary>The log of <c>traced</c>, an <c>ITraced</c>.</summary>
-    static member private LogOf(traced: obj) = (traced :?> ITraced).TraceLog
+    static member private LogOf(traced: obj) =
+        (traced :?> ITraced).TraceLog
 
     static member private IdOf(node: obj) =
         match node with
@@ -690,7 +721,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member NodeDispose(graph: obj, id: int) =
 #if RANVIER_TRACE
-        (graph :?> ITraced).TraceLog.Append(TraceEventKind.Dispose, id, 0, 0, 0, 0, null)
+        (graph :?> ITraced).TraceLog.Append (TraceEventKind.Dispose, id, 0, 0, 0, 0, null)
         |> ignore
 #else
         ()
@@ -734,7 +765,7 @@ type internal Tracer =
         let owner = owner :?> ITraced
 
         if not (isNull owner.TraceLog) then
-            owner.TraceLog.Append(TraceEventKind.OwnerDispose, owner.TraceId, 0, 0, 0, 0, null)
+            owner.TraceLog.Append (TraceEventKind.OwnerDispose, owner.TraceId, 0, 0, 0, 0, null)
             |> ignore
 #else
         ()
@@ -850,7 +881,9 @@ type internal Tracer =
         if not (isNull log) then
             let current = log.Current
             let cause = if current = 0 then 0 else log.OpenRun current
-            let seq = log.Append (TraceEventKind.Write, traced.TraceId, current, 0, (if moved then 1 else 0), cause, value)
+
+            let seq =
+                log.Append (TraceEventKind.Write, traced.TraceId, current, 0, (if moved then 1 else 0), cause, value)
 
             if moved then
                 log.PushCause seq
@@ -893,7 +926,10 @@ type internal Tracer =
         let run = log.OpenRun id
         let settle = log.SettleOf id
         let number = if run <> 0 then log.RunNumber id else log.RunCount id
-        let seq = log.Append (TraceEventKind.Moved, id, 0, number, 0, (if settle <> 0 then settle else run), value)
+
+        let seq =
+            log.Append (TraceEventKind.Moved, id, 0, number, 0, (if settle <> 0 then settle else run), value)
+
         log.NoteSettle (id, 0)
 
         if run <> 0 then
@@ -922,7 +958,10 @@ type internal Tracer =
     static member FlightStart(graph: obj, id: int, flight: int) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
-        let seq = log.Append (TraceEventKind.FlightStart, id, 0, flight, 0, log.OpenRun id, null)
+
+        let seq =
+            log.Append (TraceEventKind.FlightStart, id, 0, flight, 0, log.OpenRun id, null)
+
         log.NoteFlight (id, flight, seq)
 #else
         ()
@@ -937,7 +976,13 @@ type internal Tracer =
     static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: bool, payload: obj) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
-        let kind = if outcome = 0 then TraceEventKind.Settle else TraceEventKind.Fail
+
+        let kind =
+            if outcome = 0 then
+                TraceEventKind.Settle
+            else
+                TraceEventKind.Fail
+
         let flag = if outcome = 2 || held then 1 else 0
         let seq = log.Append (kind, id, 0, flight, flag, log.FlightOf (id, flight), payload)
         log.NoteSettle (id, seq)
@@ -969,7 +1014,12 @@ type internal Tracer =
         let log = traced.TraceLog
 
         if not (isNull log) then
-            let kind = if failed then TraceEventKind.Fail else TraceEventKind.Settle
+            let kind =
+                if failed then
+                    TraceEventKind.Fail
+                else
+                    TraceEventKind.Settle
+
             let seq = log.Append (kind, traced.TraceId, 0, 0, 0, 0, payload)
             log.PushCause seq
 #else
@@ -993,7 +1043,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member BatchEnter(graph: obj, depth: int) =
 #if RANVIER_TRACE
-        (Tracer.LogOf graph).Append(TraceEventKind.BatchEnter, 0, 0, depth, 0, 0, null)
+        (Tracer.LogOf graph).Append (TraceEventKind.BatchEnter, 0, 0, depth, 0, 0, null)
         |> ignore
 #else
         ()
@@ -1003,7 +1053,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member BatchExit(graph: obj, depth: int) =
 #if RANVIER_TRACE
-        (Tracer.LogOf graph).Append(TraceEventKind.BatchExit, 0, 0, depth, 0, 0, null)
+        (Tracer.LogOf graph).Append (TraceEventKind.BatchExit, 0, 0, depth, 0, 0, null)
         |> ignore
 #else
         ()
@@ -1101,7 +1151,10 @@ type internal Tracer =
         let walker = log.Walker
         let puller = if walker <> 0 then walker else log.Current
         let run = if run = 0 then log.RunCount id + 1 else run
-        let seq = log.Append (TraceEventKind.RunStart, id, puller, run, 0, log.FirstDirty id, null)
+
+        let seq =
+            log.Append (TraceEventKind.RunStart, id, puller, run, 0, log.FirstDirty id, null)
+
         log.StartRun (id, seq, run)
 #else
         ()

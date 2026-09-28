@@ -249,6 +249,7 @@ type internal ObserverSet() =
             Counters.ObserverRemoved ()
 #endif
             Tracer.ObserverRemove (this, c)
+
             if position <> last then
                 let moved = (Platform.itemAt last items).Observer
                 items[position] <- ObserverSlot moved
@@ -439,7 +440,8 @@ type internal SourceList() =
     let heldBefore (until: int) (source: ISource) =
         let mutable i = 0
 
-        while i < until && not (obj.ReferenceEquals (sourceAt i, source)) do
+        while i < until
+              && not (obj.ReferenceEquals (sourceAt i, source)) do
             i <- i + 1
 
         i < until
@@ -484,9 +486,15 @@ type internal SourceList() =
         cursor <- 0
 
     member this.Add(self: IComputation, source: ISource) =
-        if cursor < count && obj.ReferenceEquals (sourceAt cursor, source) then
+        if
+            cursor < count
+            && obj.ReferenceEquals (sourceAt cursor, source)
+        then
             cursor <- cursor + 1
-        elif cursor > 0 && obj.ReferenceEquals (sourceAt (cursor - 1), source) then
+        elif
+            cursor > 0
+            && obj.ReferenceEquals (sourceAt (cursor - 1), source)
+        then
             // The same source read twice in a row — a loop over one signal, or
             // a helper that reads what the caller just read. Recording it
             // again would make the list as long as the read count, and would
@@ -665,11 +673,7 @@ and Owner internal (sink: Owner) =
     /// scope of a computation, projection or lookup records into <c>Graph.Root.Errors</c>, and its own list stays empty.
     /// </remarks>
     member _.Errors =
-        Seq.delay (fun () ->
-            if isNull errors then
-                Seq.empty
-            else
-                errors :> seq<exn>)
+        Seq.delay (fun () -> if isNull errors then Seq.empty else errors :> seq<exn>)
 
     /// <summary>
     /// Takes ownership of <c>child</c> without a handle: it is disposed with the
@@ -682,8 +686,7 @@ and Owner internal (sink: Owner) =
         this.AttachLinked
             { new IOwned with
                 member _.Release() =
-                    child.Dispose ()
-            }
+                    child.Dispose () }
         |> ignore
 
     member internal this.AttachLinked(child: IOwned) =
@@ -733,7 +736,11 @@ and Owner internal (sink: Owner) =
     /// and discards the list when it finishes.
     /// </summary>
     member internal _.Unlink(link: OwnerLink) =
-        if not (isNull link) && link.Linked && link.Generation = generation then
+        if
+            not (isNull link)
+            && link.Linked
+            && link.Generation = generation
+        then
             link.Linked <- false
 
             if isNull link.Prev then
@@ -759,7 +766,7 @@ and Owner internal (sink: Owner) =
     member _.RecordError(ex: exn) =
         if isNull (box sink) then
             if isNull errors then
-                errors <- ResizeArray<exn>()
+                errors <- ResizeArray<exn> ()
 
             errors.Add ex
         else
@@ -780,7 +787,7 @@ and Owner internal (sink: Owner) =
             this.RunLate f
         else
             if isNull cleanups then
-                cleanups <- ResizeArray<unit -> unit>()
+                cleanups <- ResizeArray<unit -> unit> ()
 
             cleanups.Add f
 
@@ -892,7 +899,7 @@ and internal ILateRunner =
 /// The scope <c>Graph.CreateRoot</c> hands out.
 /// </summary>
 and [<Sealed>] internal RootScope(runner: ILateRunner) =
-    inherit Owner (Unchecked.defaultof<Owner>)
+    inherit Owner(Unchecked.defaultof<Owner>)
 
     member _.Runner: ILateRunner = runner
 
@@ -1091,7 +1098,7 @@ type Graph(options: GraphOptions) =
     /// for the price of one store.
     /// </para>
     /// </remarks>
-    let queue = ResizeArray<IScheduled>()
+    let queue = ResizeArray<IScheduled> ()
 
     /// <summary>
     /// Entries written. Slots at or past this are spent and reusable.
@@ -1139,7 +1146,8 @@ type Graph(options: GraphOptions) =
     /// Saved on entry to each flight continuation, keyed by the body's frame: the tracking
     /// context, owner and raised pending read. Innermost last.
     /// </summary>
-    let mutable continuations: ResizeArray<struct (obj * IComputation * Owner * INode)> = null
+    let mutable continuations: ResizeArray<struct (obj * IComputation * Owner * INode)> =
+        null
 
     /// <summary>
     /// The scope host whose body entered <c>untrack</c> before creating anything.
@@ -1178,7 +1186,7 @@ type Graph(options: GraphOptions) =
     /// Work that arrived from another thread, waiting for this one to come and
     /// run it. See <c>Platform.Inbox</c> for why it is the queue it is.
     /// </summary>
-    let inbox = Platform.Inbox<unit -> unit>()
+    let inbox = Platform.Inbox<unit -> unit> ()
 
     let dispatcher =
         match options.Dispatcher with
@@ -1237,8 +1245,7 @@ type Graph(options: GraphOptions) =
         { new IDisposable with
             member _.Dispose() =
                 cell.Activated <- activated
-                cell.Hosting <- hosting
-        }
+                cell.Hosting <- hosting }
 
     /// <summary>
     /// The calling thread's ambient graph, or null.
@@ -1267,7 +1274,12 @@ type Graph(options: GraphOptions) =
     /// Makes this graph ambient and returns the graph it replaced in <c>Hosting</c>.
     /// </summary>
     member inline private this.EnterAmbient() : obj =
-        let cell = if isNull ownerAmbient then AmbientSlot.Cell else ownerAmbient
+        let cell =
+            if isNull ownerAmbient then
+                AmbientSlot.Cell
+            else
+                ownerAmbient
+
         let previous = cell.Hosting
 
         if not (obj.ReferenceEquals (previous, this)) then
@@ -1283,7 +1295,12 @@ type Graph(options: GraphOptions) =
         if not (obj.ReferenceEquals (previous, this)) then
             match previous with
             | :? Graph as g when g.Running ->
-                let cell = if isNull ownerAmbient then AmbientSlot.Cell else ownerAmbient
+                let cell =
+                    if isNull ownerAmbient then
+                        AmbientSlot.Cell
+                    else
+                        ownerAmbient
+
                 cell.Hosting <- previous
             | _ -> ()
 
@@ -1345,7 +1362,10 @@ type Graph(options: GraphOptions) =
     member this.Dispose() =
         root.Dispose ()
 
-        if not (isNull ownerAmbient) && obj.ReferenceEquals (ownerAmbient.Hosting, this) then
+        if
+            not (isNull ownerAmbient)
+            && obj.ReferenceEquals (ownerAmbient.Hosting, this)
+        then
             ownerAmbient.Hosting <- null
 
     interface IDisposable with
@@ -1521,7 +1541,11 @@ type Graph(options: GraphOptions) =
     /// </summary>
     member internal this.RequestFlush() =
         if queueHead < queueCount && batchDepth = 0 then
-            if pullDepth = 0 && isNull (box current) && not untrackedInBody then
+            if
+                pullDepth = 0
+                && isNull (box current)
+                && not untrackedInBody
+            then
                 this.Flush ()
             elif not flushing then
                 flushOwed <- true
@@ -1613,7 +1637,11 @@ type Graph(options: GraphOptions) =
         this.Detached (owner, owner.DisposeScope)
         Tracer.DischargeEnd owner
 
-        if batchDepth = 0 && not flushing && queueHead < queueCount then
+        if
+            batchDepth = 0
+            && not flushing
+            && queueHead < queueCount
+        then
             flushOwed <- true
 
     /// <summary>
@@ -1879,7 +1907,7 @@ type Signal<'T>(graph: Graph, initial: 'T) =
     // Resolved once, here, rather than per write: the policy's generic member
     // is the only place the value type is known, and a typed comparer keeps the
     // cutoff test allocation-free.
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal = graph.Options.Equality.Comparer<'T> ()
 
 #if RANVIER_COUNTERS
     do Counters.SignalCreated ()
@@ -1945,7 +1973,8 @@ type Signal<'T>(graph: Graph, initial: 'T) =
             Tracer.Write (observers, false, box v)
 
     /// <summary>Marks every reader for a check, leaving the value unchanged.</summary>
-    member internal _.NotifyCheck() = observers.NotifyCheck ()
+    member internal _.NotifyCheck() =
+        observers.NotifyCheck ()
 
     /// <summary>
     /// Non-throwing, tracked read.
@@ -2099,7 +2128,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// it once: the policy's generic member is the only place <c>'T</c> is known,
     /// and a typed comparer keeps the test allocation-free.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal = graph.Options.Equality.Comparer<'T> ()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -2192,8 +2221,10 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
         graph.Discharge scope
 
         if not disposed then
-            if runs = before then this.Run ()
-            elif freshness = Freshness.Dirty then this.Recompute ()
+            if runs = before then
+                this.Run ()
+            elif freshness = Freshness.Dirty then
+                this.Recompute ()
 
     member private this.Run() =
         // Marked clean *before* the body runs, not after. A body that
@@ -2246,7 +2277,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             status <- Status.Error
         | NotReadyException source ->
             if isNull pendingSources then
-                pendingSources <- HashSet<INode>(HashIdentity.Reference)
+                pendingSources <- HashSet<INode> (HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -2288,7 +2319,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
-            sources.SourceAt(i).UpdateIfNecessary()
+            sources.SourceAt(i).UpdateIfNecessary ()
             i <- i + 1
 
         Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -2302,10 +2333,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
         // measured at ~1 ns against a ~1.3 ns baseline — the read is small
         // enough that one avoidable test is most of it.
         if freshness <> Freshness.Clean && not disposed then
-            if graph.Deferring then
-                this.Refresh ()
-            else
-                this.Pull ()
+            if graph.Deferring then this.Refresh () else this.Pull ()
 
     /// <summary>
     /// Brings a stale memo current when <c>Graph.Deferring</c> is false: outside
@@ -2358,7 +2386,8 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// Marks every reader dirty. A reader of a row whose key was removed
     /// re-runs and reads the key as absent.
     /// </summary>
-    member internal _.NotifyRemoved() = observers.NotifyDirty ()
+    member internal _.NotifyRemoved() =
+        observers.NotifyDirty ()
 
     /// <summary>
     /// Whether the run in progress has created an owned node in a pure body. A violated run fails and keeps the previous
@@ -2601,7 +2630,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         // remember to collect.
         link <- graph.CurrentOwner.AttachLinked this
         Tracer.EffectNew (graph, id, link.Owner)
-        (this :> IComputation).MarkDirty()
+        (this :> IComputation).MarkDirty ()
         graph.RequestFlush ()
 
     /// <summary>
@@ -2659,7 +2688,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
                     let mutable i = 0
 
                     while freshness = Freshness.Check && i < sources.Count do
-                        sources.SourceAt(i).UpdateIfNecessary()
+                        sources.SourceAt(i).UpdateIfNecessary ()
                         i <- i + 1
 
                     Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -2724,7 +2753,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         with
         | NotReadyException source ->
             if isNull pendingSources then
-                pendingSources <- HashSet<INode>(HashIdentity.Reference)
+                pendingSources <- HashSet<INode> (HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -2890,7 +2919,11 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
             status <- Status.Error
 
         // RunEnd in both branches keeps the untraced IL equal to the unhooked method (tools/verify-trace.fsx, gate 1).
-        if settled && not disposed && not (hasActed && equal.Equals (last, v)) then
+        if
+            settled
+            && not disposed
+            && not (hasActed && equal.Equals (last, v))
+        then
             this.Act v
             Tracer.RunEnd (graph, id, status)
         else
@@ -2940,7 +2973,8 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     member _.Error = error
 
     interface IDisposable with
-        member this.Dispose() = this.Dispose ()
+        member this.Dispose() =
+            this.Dispose ()
 
     interface IOwned with
         member this.Release() =
@@ -3112,6 +3146,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 status <- Status.Pending
             | Platform.FlightOutcome.Faulted _
             | Platform.FlightOutcome.Canceled _ when suspended ->
+                // An older flight's failure is dropped; the node stays pending on the source.
                 Tracer.FlightDrop (graph, id, gen, 3)
             | Platform.FlightOutcome.Completed v ->
                 Tracer.FlightSettled (graph, id, gen, 0, false, box v)
@@ -3188,8 +3223,10 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             graph.Discharge scope
 
             if not disposed then
-                if runs = before then this.Launch ()
-                elif freshness = Freshness.Dirty then this.Start ()
+                if runs = before then
+                    this.Launch ()
+                elif freshness = Freshness.Dirty then
+                    this.Start ()
 
 
     member private this.Launch() =
@@ -3223,7 +3260,10 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
         runs <- runs + 1
         Tracer.RunStart (graph, id, runs)
         error <- null
-        status <- Status.Pending ||| (status &&& Status.Uninitialized)
+
+        status <-
+            Status.Pending
+            ||| (status &&& Status.Uninitialized)
 
         let mutable flight = null
 
@@ -3276,7 +3316,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // source that is itself pending. There is nothing to await, only
             // another source to wait on.
             if isNull pendingSources then
-                pendingSources <- HashSet<INode>(HashIdentity.Reference)
+                pendingSources <- HashSet<INode> (HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
         | ex -> fail ex
@@ -3321,7 +3361,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
-                    sources.SourceAt(i).UpdateIfNecessary()
+                    sources.SourceAt(i).UpdateIfNecessary ()
                     i <- i + 1
 
                 Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -3525,7 +3565,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// <summary>
     /// The cutoff comparer, resolved once — see <c>Memo</c>.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal = graph.Options.Equality.Comparer<'T> ()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -3579,8 +3619,10 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             graph.Discharge scope
 
             if not disposed then
-                if runs = before then this.Run ()
-                elif freshness = Freshness.Dirty then this.Recompute ()
+                if runs = before then
+                    this.Run ()
+                elif freshness = Freshness.Dirty then
+                    this.Recompute ()
 
 
     member private this.Run() =
@@ -3618,7 +3660,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
 
         let recordPending (source: INode) =
             if isNull pendingSources then
-                pendingSources <- HashSet<INode>(HashIdentity.Reference)
+                pendingSources <- HashSet<INode> (HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -3740,7 +3782,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
-                    sources.SourceAt(i).UpdateIfNecessary()
+                    sources.SourceAt(i).UpdateIfNecessary ()
                     i <- i + 1
 
                 Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
