@@ -275,7 +275,8 @@ The same program produces the same dump, byte for byte, on every run of a single
 
 ## Limits
 
-- **.NET only.** The Fable target does not record a trace yet.
+- **Fable records, without dumps.** A Fable build records the log that [signal maps](signal-maps.md)
+  draw; `Trace.dump` is absent there.
 - **Development builds only.** A traced build is slower and allocates per event, and cannot be
   packed. Ship the untraced build.
 - **The log is unbounded.** Every event stays in memory for the graph's lifetime. A long session
@@ -312,5 +313,6 @@ The same program produces the same dump, byte for byte, on every run of a single
 
 ## Next
 
+- [Signal maps](signal-maps.md): the log drawn live, beneath the examples in these docs.
 - [Troubleshooting](troubleshooting.md): exception messages and symptoms, with their causes and fixes.
 - [Getting started](getting-started.md): the graph, owners and batching the log records.

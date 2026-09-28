@@ -141,7 +141,13 @@ let theme =
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
-            Menu.section "Reference" [ Menu.page "guide/tracing.md"; Menu.page "guide/troubleshooting.md" ]
+            Menu.section
+                "Reference"
+                [
+                    Menu.page "guide/tracing.md"
+                    Menu.page "guide/signal-maps.md"
+                    Menu.page "guide/troubleshooting.md"
+                ]
         ]
     |> Theme.menu
         "concepts"
@@ -234,6 +240,7 @@ let private ogCards =
     [
         "async-and-pending", "async", "Async and pending: boundary states along a nerve fibre"
         "tracing", "tracing", "Tracing: a cause chain traced back along a nerve fibre"
+        "signal-maps", "signal-maps", "Signal maps: a traced graph drawn live, a write travelling its edges"
         "guide", "guide", "Ranvier guide: build with signals"
         "concepts", "concepts", "Ranvier concepts: how the graph works"
         "fable", "fable", "Ranvier on Fable: the JavaScript target"
