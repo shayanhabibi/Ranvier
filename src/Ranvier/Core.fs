@@ -1265,7 +1265,7 @@ type Graph(options: GraphOptions) =
     /// <summary>
     /// True while the graph runs a body, a flush, a stale read or a teardown.
     /// </summary>
-    member private _.Running =
+    member internal _.Running =
         flushing
         || pullDepth > 0
         || not (isNull (box current))

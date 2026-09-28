@@ -241,7 +241,9 @@ module Trace =
         gate graph "Trace.dumpText"
         TraceModel.dumpText "net" null TraceModel.emptySnapshot (events graph)
 
+#if !FABLE_COMPILER
     /// <summary>Writes the JSONL dump of <c>graph</c>'s log, schema 1, to <c>path</c>, and returns the full path.</summary>
+    /// <remarks>Absent from a Fable build.</remarks>
     /// <exception cref="T:System.InvalidOperationException">As for <c>dumpText</c>.</exception>
     let dump (graph: Graph) (path: string) : string =
         gate graph "Trace.dump"
@@ -249,6 +251,7 @@ module Trace =
         let full = System.IO.Path.GetFullPath path
         System.IO.File.WriteAllText (full, text)
         full
+#endif
 
 #else
     /// <summary>Runs <c>f</c>. A traced build also labels the first node or owner it creates on this thread.</summary>

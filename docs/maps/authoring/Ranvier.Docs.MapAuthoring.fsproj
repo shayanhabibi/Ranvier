@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>Ranvier.Docs.Maps.Authoring</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="MapFence.fs" />
+        <Compile Include="ReplayRunner.fs" />
+    </ItemGroup>
+
+</Project>

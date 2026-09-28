@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>Ranvier.Docs.Maps</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Helpers.fs" />
+        <Compile Include="MapModel.fs" />
+        <Compile Include="Layout.fs" />
+        <Compile Include="Replay.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\src\Ranvier\Ranvier.fsproj" />
+    </ItemGroup>
+
+</Project>

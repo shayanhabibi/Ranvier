@@ -80,6 +80,20 @@ a.Settle 10
 c.TryValue        // Ready 12
 ```
 
+In the map, a write to `b` while `a` is pending re-runs `c`, which stays pending and publishes nothing. Settling `a` lets `c` publish.
+
+```fsharp map
+let a = createAsyncSource<int> ()
+let b = createSignal 1
+let c = createMemo (fun () -> a.Value + b.Value)
+createEffect (fun () -> printfn "c = %d" c.Value)
+
+controls [
+    "Write b", fun () -> b.Value <- b.Value + 1
+    "Settle a", fun () -> a.Settle 10
+]
+```
+
 ### Two ways to read
 
 - `.Value` is the transparent read. It returns the value, raises `NotReadyException` while the node is
@@ -242,6 +256,19 @@ price.Fail (exn "offline")
 shown.TryValue        // Failed "offline"
 price.Settle 12
 shown.TryValue        // Ready 12
+```
+
+In the map, **Fail** marks `price`, `shown` and the effect failed. **Settle 12** clears the error at every level.
+
+```fsharp map
+let price = createAsyncSource<int> ()
+let shown = createMemo (fun () -> price.Value)
+createEffect (fun () -> printfn "shown %d" shown.Value)
+
+controls [
+    "Fail", fun () -> price.Fail (exn "offline")
+    "Settle 12", fun () -> price.Settle 12
+]
 ```
 
 Recovery is driven by re-reads, and no reset call exists. A failed async source can be settled later, which
