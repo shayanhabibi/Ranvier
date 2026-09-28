@@ -66,7 +66,7 @@ let tests =
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
 
-                let m = Memo (g, (fun () -> a.Value * 2))
+                let m = Memo (g, (fun _ -> a.Value * 2))
 
                 let seen = ResizeArray ()
                 let e = new Effect (g, (fun () -> seen.Add m.Value))

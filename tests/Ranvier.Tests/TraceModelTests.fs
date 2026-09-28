@@ -98,8 +98,8 @@ let tests =
 
                 let outer =
                     Trace.named "outer" (fun () ->
-                        createMemoWith (fun () ->
-                            let m = Trace.named "inner" (fun () -> createMemo (fun () -> 1))
+                        createMemoWith (fun _ ->
+                            let m = Trace.named "inner" (fun () -> createMemo (fun _ -> 1))
                             inner <- m
                             m.Value))
 
@@ -115,9 +115,9 @@ let tests =
 
                 let list =
                     Trace.named "list" (fun () ->
-                        createMemoWith (fun () ->
-                            let a = Trace.named "row" (fun () -> createMemo (fun () -> 1))
-                            let b = Trace.named "row" (fun () -> createMemo (fun () -> 2))
+                        createMemoWith (fun _ ->
+                            let a = Trace.named "row" (fun () -> createMemo (fun _ -> 1))
+                            let b = Trace.named "row" (fun () -> createMemo (fun _ -> 2))
                             rows.Add a
                             rows.Add b
                             s.Value + a.Value + b.Value))
@@ -161,7 +161,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value + 1)
+                let m = createMemo (fun _ -> s.Value + 1)
                 m.Value |> ignore
                 let before = (Trace.events g |> Array.last).Seq
                 s.Value <- 2
@@ -175,7 +175,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let memos = List.init 12 (fun i -> createMemo (fun () -> s.Value + i))
+                let memos = List.init 12 (fun i -> createMemo (fun _ -> s.Value + i))
 
                 createEffect (fun () ->
                     for m in memos do
@@ -201,7 +201,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value * 2)
+                let m = createMemo (fun _ -> s.Value * 2)
                 createEffect (fun () -> m.Value |> ignore)
                 s.Value <- 3
                 Expect.equal (Trace.dumpText g) (Trace.dumpText g) "the dump is a function of the log"
@@ -211,7 +211,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = Trace.named "count" (fun () -> createSignal 1)
-                let m = createMemo (fun () -> s.Value * 2)
+                let m = createMemo (fun _ -> s.Value * 2)
                 createEffect (fun () -> m.Value |> ignore)
                 s.Value <- 3
                 let text = Trace.dumpText g

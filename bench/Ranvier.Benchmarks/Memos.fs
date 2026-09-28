@@ -12,7 +12,7 @@ open Ranvier
 type MemoBenchmarks() =
     let graph = new Graph ()
     let source = Signal (graph, 1)
-    let memo = Memo (graph, (fun () -> source.Value * 2))
+    let memo = Memo (graph, (fun _ -> source.Value * 2))
     let mutable counter = 0
 
     [<GlobalSetup>]
@@ -60,11 +60,11 @@ type ChainBenchmarks() =
 
     [<GlobalSetup>]
     member this.Setup() =
-        let mutable previous = Memo (graph, (fun () -> source.Value + 1))
+        let mutable previous = Memo (graph, (fun _ -> source.Value + 1))
 
         for _ in 2 .. this.Depth do
             let inner = previous
-            previous <- Memo (graph, (fun () -> inner.Value + 1))
+            previous <- Memo (graph, (fun _ -> inner.Value + 1))
 
         tail <- previous
         tail.TryValue |> ignore
@@ -96,9 +96,9 @@ type ChainBenchmarks() =
 type DiamondBenchmarks() =
     let graph = new Graph ()
     let source = Signal (graph, 1)
-    let left = Memo (graph, (fun () -> source.Value + 1))
-    let right = Memo (graph, (fun () -> source.Value * 2))
-    let join = Memo (graph, (fun () -> left.Value + right.Value))
+    let left = Memo (graph, (fun _ -> source.Value + 1))
+    let right = Memo (graph, (fun _ -> source.Value * 2))
+    let join = Memo (graph, (fun _ -> left.Value + right.Value))
     let mutable counter = 0
 
     [<GlobalSetup>]

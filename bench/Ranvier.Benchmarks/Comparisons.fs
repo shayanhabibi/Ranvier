@@ -38,7 +38,7 @@ open Ranvier
 type DerivedValueComparison() =
     let graph = new Graph ()
     let signal = Signal (graph, 1)
-    let memo = Memo (graph, (fun () -> signal.Value * 2))
+    let memo = Memo (graph, (fun _ -> signal.Value * 2))
 
     let changeable = cval 1
     let adaptive = AVal.map (fun v -> v * 2) changeable
@@ -135,7 +135,7 @@ type ChainComparison() =
 
     [<GlobalSetup>]
     member this.Setup() =
-        let mutable memoPrevious = Memo (graph, (fun () -> signal.Value + 1))
+        let mutable memoPrevious = Memo (graph, (fun _ -> signal.Value + 1))
         let mutable adaptivePrevious = AVal.map (fun v -> v + 1) changeable
 
         let mutable r3Previous =
@@ -143,7 +143,7 @@ type ChainComparison() =
 
         for _ in 2 .. this.Depth do
             let inner = memoPrevious
-            memoPrevious <- Memo (graph, (fun () -> inner.Value + 1))
+            memoPrevious <- Memo (graph, (fun _ -> inner.Value + 1))
             adaptivePrevious <- AVal.map (fun v -> v + 1) adaptivePrevious
             r3Previous <- R3.ObservableExtensions.Select (r3Previous, (fun v -> v + 1))
 
@@ -189,7 +189,7 @@ type ChainComparison() =
 type CutoffComparison() =
     let graph = new Graph ()
     let signal = Signal (graph, 1)
-    let memo = Memo (graph, (fun () -> signal.Value * 2))
+    let memo = Memo (graph, (fun _ -> signal.Value * 2))
 
     let changeable = cval 1
     let adaptive = AVal.map (fun v -> v * 2) changeable

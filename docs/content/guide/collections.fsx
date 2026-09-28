@@ -163,7 +163,7 @@ let rows =
         _.Id
         (fun item ->
             let id = (item ()).Id
-            let shout = createMemo (fun () -> (item ()).Title.ToUpper ())
+            let shout = createMemo (fun _ -> (item ()).Title.ToUpper ())
             onCleanup (fun () -> removed.Add id)
             fun () -> shout.Value)
         (fun () -> todos.Value)
@@ -206,7 +206,7 @@ form's message begins `A projection's map created an owned node`; the factory fo
 *)
 
 let misplaced =
-    createProjection _.Id (fun t -> (createMemo (fun () -> t.Title)).Value) (fun () -> todos.Value)
+    createProjection _.Id (fun t -> (createMemo (fun _ -> t.Title)).Value) (fun () -> todos.Value)
 
 (**
 
@@ -406,11 +406,11 @@ A `createMemo` over a path is the fine-grained read. Under the default policy ea
 reference, so a reader of an unchanged branch stays asleep.
 *)
 
-let owner = createMemo (fun () -> store.Value.Owner)
-let home = createMemo (fun () -> owner.Value.Home)
-let city = createMemo (fun () -> home.Value.City)
-let zip = createMemo (fun () -> home.Value.Zip)
-let theme = createMemo (fun () -> store.Value.Theme)
+let owner = createMemo (fun _ -> store.Value.Owner)
+let home = createMemo (fun _ -> owner.Value.Home)
+let city = createMemo (fun _ -> home.Value.City)
+let zip = createMemo (fun _ -> home.Value.Zip)
+let theme = createMemo (fun _ -> store.Value.Theme)
 
 (**
 
@@ -468,7 +468,7 @@ it keeps its previous `Some` instance and its readers stay asleep.
 *)
 
 let second = createOptionMemo (fun () -> store.Value.Items |> List.tryFind (fun t -> t.Id = 2))
-let wrapped = createMemo (fun () -> store.Value.Items |> List.tryFind (fun t -> t.Id = 2))
+let wrapped = createMemo (fun _ -> store.Value.Items |> List.tryFind (fun t -> t.Id = 2))
 
 (*** hide ***)
 let secondRuns = ref 0
@@ -590,7 +590,7 @@ upstream value, and returns the key's reader. Nodes the mapping creates belong t
 let labels =
     orderedTitles
     |> Projection.mapWith (fun id title ->
-        let length = createMemo (fun () -> String.length (title ()))
+        let length = createMemo (fun _ -> String.length (title ()))
         fun () -> $"{id}:{length.Value}")
 
 labels.Get 3

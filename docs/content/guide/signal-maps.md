@@ -26,11 +26,11 @@ let desk = Desk<decimal>()
 let lines = createSignal [ "tea", 4m, 1 ]
 
 let subtotal =
-    createMemo (fun () ->
+    createMemo (fun _ ->
         lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
 
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
-let total = createMemo (fun () -> subtotal.Value + shipping.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
+let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
@@ -74,8 +74,8 @@ settle.
 ```fsharp map timeline
 let desk = Desk<decimal>()
 let qty = createSignal 1
-let subtotal = createMemo (fun () -> 4m * decimal qty.Value)
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
 controls [
@@ -94,11 +94,11 @@ let desk = Desk<decimal>()
 let lines = createSignal [ "tea", 4m, 1 ]
 
 let subtotal =
-    createMemo (fun () ->
+    createMemo (fun _ ->
         lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
 
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
-let total = createMemo (fun () -> subtotal.Value + shipping.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
+let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
 controls [
@@ -143,8 +143,8 @@ module Thermo =
     let scenario (graph: Graph) =
         use _ = graph.Activate ()
         let celsius = Trace.named "celsius" (fun () -> createSignal 20.0)
-        let fahrenheit = Trace.named "fahrenheit" (fun () -> createMemo (fun () -> celsius.Value * 9.0 / 5.0 + 32.0))
-        let warm = Trace.named "warm" (fun () -> createMemo (fun () -> celsius.Value >= 25.0))
+        let fahrenheit = Trace.named "fahrenheit" (fun () -> createMemo (fun _ -> celsius.Value * 9.0 / 5.0 + 32.0))
+        let warm = Trace.named "warm" (fun () -> createMemo (fun _ -> celsius.Value >= 25.0))
         createEffect (fun () -> printfn $"{fahrenheit.Value}°F, warm: {warm.Value}")
 
         controls [

@@ -753,7 +753,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 0
-                let m = createMemo (fun () -> s.Value / 10)
+                let m = createMemo (fun _ -> s.Value / 10)
                 let items = createSignal [ 1; 2 ]
                 let mutable passes = 0
 
@@ -797,7 +797,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 0
-                let m = createMemo (fun () -> s.Value)
+                let m = createMemo (fun _ -> s.Value)
 
                 let proj =
                     createProjection (fun x -> if x > 0 then failwithf "e%d" x else x) id (fun () -> [ m.Value ])
@@ -1455,7 +1455,7 @@ let tests =
                 let memoRuns = ref 0
 
                 let total =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         memoRuns.Value <- memoRuns.Value + 1
                         stage.Keys |> Array.sumBy stage.Get)
 
@@ -1523,7 +1523,7 @@ let tests =
 
                         keys)
 
-                let parity = createMemo (fun () -> other.Value % 2)
+                let parity = createMemo (fun _ -> other.Value % 2)
 
                 createEffect (fun () ->
                     parity.Value |> ignore
@@ -1555,7 +1555,7 @@ let tests =
                         calls.Value <- calls.Value + 1
                         gate.Value)
 
-                let parity = createMemo (fun () -> other.Value % 2)
+                let parity = createMemo (fun _ -> other.Value % 2)
 
                 createEffect (fun () ->
                     parity.Value |> ignore
@@ -1694,7 +1694,7 @@ let summaryTests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let flight, proj = pendingRow true
-                let any = createMemo (fun () -> proj.AnyPending)
+                let any = createMemo (fun _ -> proj.AnyPending)
                 Expect.isTrue any.Value "precondition: the row is in flight"
 
                 let inside =
@@ -1714,7 +1714,7 @@ let summaryTests =
                 let proj =
                     createProjection id (fun n -> if n = 1 then flight.Value else n) (fun () -> items.Value)
 
-                let pending = createMemo (fun () -> List.ofArray proj.PendingKeys)
+                let pending = createMemo (fun _ -> List.ofArray proj.PendingKeys)
                 Expect.throwsT<NotReadyException> (fun () -> proj.Get 1 |> ignore) "precondition: the row is in flight"
                 Expect.equal pending.Value [ 1 ] "precondition: the summary counts it"
 

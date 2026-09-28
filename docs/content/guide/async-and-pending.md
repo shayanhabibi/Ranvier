@@ -64,7 +64,7 @@ let graph = newGraph ()
 let user, greeting =
     graph.Run (fun () ->
         let user = createAsyncSource<string> ()
-        let greeting = createMemo (fun () -> "Hello, " + user.Value)
+        let greeting = createMemo (fun _ -> "Hello, " + user.Value)
         user, greeting)
 
 greeting.TryValue
@@ -123,7 +123,7 @@ by hand. `Settle value` publishes a value, and `Fail exn` publishes a failure.
 
 ```fsharp
 let price = graph.Run (fun () -> createAsyncSource<int> ())
-let shown = graph.Run (fun () -> createMemo (fun () -> price.Value))
+let shown = graph.Run (fun () -> createMemo (fun _ -> price.Value))
 
 price.Settle 10
 shown.Value |> ignore
@@ -149,7 +149,7 @@ show whileFailed, show shown.TryValue, price.Status
 
 ## Async memos
 
-`createAsync (compute: CancellationToken -> Task<'T>)` returns an `AsyncMemo<'T>`. The memo is lazy:
+`createAsync (compute: Previous<'T> -> CancellationToken -> Task<'T>)` returns an `AsyncMemo<'T>`. The memo is lazy:
 the first read starts a flight, and the memo is pending until the task completes. A change to a
 source the body read starts a new flight on the next read, and the memo is pending again. `Peek`
 returns the last settled value without starting a flight.
@@ -165,7 +165,7 @@ let response = TaskCompletionSource<string> ()
 
 let profile =
     flightGraph.Run (fun () ->
-        createAsync (fun _ ->
+        createAsync (fun _ _ ->
             let id = userId.Value // tracked: read before the first await
 
             task {
@@ -229,10 +229,10 @@ a superseded flight publishes nothing.
 let failGraph = newGraph ()
 
 let refused =
-    failGraph.Run (fun () -> createAsync (fun _ -> failwith "no connection" : Task<int>))
+    failGraph.Run (fun () -> createAsync (fun _ _ -> failwith "no connection" : Task<int>))
 
 let faulting = TaskCompletionSource<int> ()
-let faulted = failGraph.Run (fun () -> createAsync (fun _ -> faulting.Task))
+let faulted = failGraph.Run (fun () -> createAsync (fun _ _ -> faulting.Task))
 faulted.TryValue |> ignore
 faulting.SetException (TimeoutException "timed out")
 pumpUntil failGraph (fun () -> not (faulted.Status.HasFlag Status.Pending)) (TimeSpan.FromSeconds 5.)
@@ -264,7 +264,7 @@ In the map, `Desk` stands in for a remote service: its requests stay pending unt
 ```fsharp map timeline
 let desk = Desk<string>()
 let userId = createSignal 1
-let profile = createAsync (fun _ -> desk.Quote userId.Value)
+let profile = createAsync (fun _ _ -> desk.Quote userId.Value)
 createEffect (fun () -> printfn $"profile {profile.Value}")
 
 controls [
@@ -280,10 +280,69 @@ before its first `await` fails in its turn, after the flights started before it.
 run waits on a pending source, an earlier flight's value becomes the `Peek` value and the memo stays
 pending.
 
+### The previous value
+
+The body's first argument is a `Previous<'T>`: a handle on the value the memo last published. Its
+one member, `Settled`, is a `Task<'T voption>` that completes with `ValueNone` before the first value. As
+on a [memo](getting-started.md#the-previous-value), a run that suspends on a pending source or fails
+leaves the previous value unchanged.
+
+Read every input, then await `previous.Settled`. Under `CancelPrevious` and `KeepLatest`, `Settled`
+is complete when the body runs, and only the newest flight's result becomes a previous value.
+Under `Queue`, `Settled` completes when the flight started before this one is applied, so the
+flights fold in start order. An await on it suspends, and reads after it are untracked. If the
+earlier flight fails or is dropped, `Settled` returns the value published before it. Disposing the
+memo completes a pending `Settled` with the value last published.
+
+`Settled` creates its task when first read: one completed task, shared by every read until the memo
+next publishes, or under `Queue`, one pending task for a flight that waits on an earlier one. The
+async scenarios in the [counter bench](../benchmarks/counters.md) run within 0.1 % of their earlier
+instruction counts, with the same allocation.
+
+Each page below appends to the list the previous flight produced. The second page answers first,
+and the second flight still waits for the first:
+
+```fsharp
+let queueGraph =
+    new Graph (
+        { GraphOptions.Default with
+            Dispatcher = Some (ManualDispatcher () :> IGraphDispatcher)
+            FlightPolicy = FlightPolicy.Queue }
+    )
+
+let page = queueGraph.Run (fun () -> createSignal 1)
+let replies = Array.init 2 (fun _ -> TaskCompletionSource<string list> ())
+
+let feed =
+    queueGraph.Run (fun () ->
+        createAsync (fun previous _ ->
+            let n = page.Value // tracked: read before the first await
+
+            task {
+                let! items = replies[n - 1].Task
+                let! earlier = previous.Settled
+                return ValueOption.defaultValue [] earlier @ items
+            }))
+
+let pages = ResizeArray<string list> ()
+queueGraph.Run (fun () -> createEffect (fun () -> pages.Add feed.Value))
+
+page.Value <- 2
+replies[1].SetResult [ "c"; "d" ]
+replies[0].SetResult [ "a"; "b" ]
+pumpUntil queueGraph (fun () -> pages.Count = 2) (TimeSpan.FromSeconds 5.)
+List.ofSeq pages
+```
+
+```text
+[["a"; "b"]; ["a"; "b"; "c"; "d"]]
+```
+
 ### Bodies written with cancellableTask
 
 On .NET, the `cancellableTask` builder from [IcedTasks](https://github.com/TheAngryByrd/IcedTasks)
-builds a `CancellationToken -> Task<'T>`, the type `createAsync` takes. Its `let!` and `do!` pass
+builds a `CancellationToken -> Task<'T>`: write the body as `fun previous -> cancellableTask { ... }`, or
+apply it to the token as below. Its `let!` and `do!` pass
 the flight's token to any `CancellationToken -> Task` they bind, and each bind throws once the
 token is cancelled. Under `CancelPrevious`, a superseded flight stops at its next bind and settles
 as cancelled, so it publishes nothing.
@@ -297,7 +356,7 @@ let fetchProfile (id: int) (token: CancellationToken) : Task<string> =
     http.GetStringAsync ($"/users/%d{id}", token)
 
 let profile =
-    createAsync (fun token ->
+    createAsync (fun _ token ->
         (cancellableTask {
             let id = userId.Value // tracked: read before the first bind that suspends
             let! body = fetchProfile id
@@ -308,8 +367,9 @@ let profile =
 Build the `cancellableTask` inside the function, once per flight. When the compiler cannot turn
 the builder into a static state machine, as in Debug builds, the invocations of a single
 `cancellableTask` value share their resumption state: a flight started while an earlier one is
-suspended resumes at the earlier flight's `await` and blocks on it. `createAsync (cancellableTask
-{ ... })` can pass every test in Release and hang in Debug.
+suspended resumes at the earlier flight's `await` and blocks on it. A body bound once, as in
+`let body = cancellableTask { ... }` then `createAsync (fun _ -> body)`, can pass every test in Release
+and hang in Debug.
 
 The tracking and purity rules of the body are unchanged: the builder runs synchronously up to its
 first bind that suspends. IcedTasks targets .NET only; a body shared with Fable stays a `task`.
@@ -497,7 +557,7 @@ let release = new ManualResetEventSlim (false)
 
 let answer =
     poolGraph.Run (fun () ->
-        createAsync (fun _ ->
+        createAsync (fun _ _ ->
             Task.Run (fun () ->
                 release.Wait ()
                 6 * 7)))

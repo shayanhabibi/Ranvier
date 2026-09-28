@@ -235,7 +235,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             try
                                 g.Untrack (fun () -> failwith "boom")
                             with _ ->

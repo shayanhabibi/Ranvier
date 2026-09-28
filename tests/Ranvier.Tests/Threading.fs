@@ -248,7 +248,7 @@ let tests =
                 let query =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             Task.Run (fun () ->
                                 gate.Wait ()
                                 11)

@@ -25,7 +25,7 @@ follows Solid 2.0's async-aware signals.
 open Ranvier
 
 let user = createAsyncSource<string> ()
-let greeting = createMemo (fun () -> "Hello, " + user.Value)
+let greeting = createMemo (fun _ -> "Hello, " + user.Value)
 
 greeting.TryValue   // Pending
 user.Settle "Ada"

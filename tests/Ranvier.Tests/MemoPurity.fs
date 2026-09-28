@@ -29,7 +29,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> (createMemo (fun () -> s.Value)).Value)
+                let m = createMemo (fun _ -> (createMemo (fun _ -> s.Value)).Value)
 
                 let ex = invalidOp (fun () -> m.Value |> ignore) "creation fails the run"
                 Expect.stringContains ex.Message "createMemoWith" "the message names the owning memo"
@@ -42,7 +42,7 @@ let tests =
                 let mutable cleaned = 0
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         s.Value)
 
@@ -59,7 +59,7 @@ let tests =
                 let mutable ran = false
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         createEffect (fun () -> ran <- true)
                         1)
 
@@ -73,7 +73,7 @@ let tests =
                 let s = createSignal 1
 
                 let m =
-                    createMemo (fun () -> (untrack (fun () -> createMemo (fun () -> s.Value))).Value)
+                    createMemo (fun _ -> (untrack (fun () -> createMemo (fun _ -> s.Value))).Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> m.Value |> ignore) "untrack does not hide a creation"
             }
@@ -83,7 +83,7 @@ let tests =
                 use _ = g.Activate ()
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         try
                             createRoot (fun _ -> 1)
                         with _ ->
@@ -98,7 +98,7 @@ let tests =
                 let create = createSignal true
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         if create.Value then
                             onCleanup ignore
 
@@ -113,7 +113,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> (createSignal (s.Value * 2)).Value)
+                let m = createMemo (fun _ -> (createSignal (s.Value * 2)).Value)
 
                 Expect.equal m.Value 2 "a signal is an unowned source"
             }
@@ -125,12 +125,12 @@ let tests =
                 let mutable cleaned = 0
 
                 let owning =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         n)
 
-                let reader = createMemo (fun () -> owning.Value * 10)
+                let reader = createMemo (fun _ -> owning.Value * 10)
 
                 Expect.equal reader.Value 10 "the pull succeeds"
                 s.Value <- 2
@@ -141,7 +141,7 @@ let tests =
             test "the direct constructor is pure by default" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let m = Memo (g, (fun () -> (Memo (g, (fun () -> 1))).Value))
+                let m = Memo (g, (fun _ -> (Memo (g, (fun _ -> 1))).Value))
 
                 Expect.throwsT<InvalidOperationException> (fun () -> m.Value |> ignore) "the constructor defaults to pure"
             }
@@ -155,7 +155,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        (fun () ->
+                        (fun _ ->
                             let n = s.Value
                             onCleanup (fun () -> cleaned.Add n)
                             n),
@@ -173,7 +173,7 @@ let tests =
                 use _ = g.Activate ()
 
                 let a =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         onCleanup ignore
                         Task.FromResult 1)
 
@@ -217,7 +217,7 @@ let tests =
                         (fun () -> s.Value)
 
                 let reader =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         try
                             lookup.Get 2
                         with :? InvalidOperationException ->

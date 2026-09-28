@@ -43,7 +43,7 @@ let tests =
                 let runs =
                     g.Run (fun () ->
                         let s = createSignal 1
-                        let doubled = createMemo (fun () -> s.Value * 2)
+                        let doubled = createMemo (fun _ -> s.Value * 2)
                         let seen = ResizeArray ()
 
                         createEffect (fun () -> seen.Add doubled.Value)
@@ -101,7 +101,7 @@ let tests =
                 g.Run (fun () ->
                     let tracked = createSignal 1
                     let hidden = createSignal 10
-                    let m = createMemo (fun () -> tracked.Value + untrack (fun () -> hidden.Value))
+                    let m = createMemo (fun _ -> tracked.Value + untrack (fun () -> hidden.Value))
 
                     Expect.equal m.Value 11 "the untracked read still returns the value"
 

@@ -167,8 +167,8 @@ let tests =
                 let s = createSignal 1
 
                 let m =
-                    createMemoWith (fun () ->
-                        createMemo (fun () -> 0) |> ignore
+                    createMemoWith (fun _ ->
+                        createMemo (fun _ -> 0) |> ignore
                         s.Value)
 
                 m.Value |> ignore
@@ -203,9 +203,9 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 createAsyncSource<int>() |> ignore
-                let m = createMemo (fun () -> s.Value)
+                let m = createMemo (fun _ -> s.Value)
                 createEffect (fun () -> m.Value |> ignore)
-                createAsync (fun _ -> Task.FromResult 1) |> ignore
+                createAsync (fun _ _ -> Task.FromResult 1) |> ignore
                 let b = createSuspense (fun _ -> 0) (fun () -> s.Value)
                 b.Value |> ignore
                 let p = createProjection id (fun x -> x * 10) (fun () -> [ s.Value ])
@@ -282,8 +282,8 @@ let tests =
 
                 let m =
                     Trace.named "outer" (fun () ->
-                        createMemoWith (fun () ->
-                            inner <- Trace.named "inner" (fun () -> createMemo (fun () -> 0))
+                        createMemoWith (fun _ ->
+                            inner <- Trace.named "inner" (fun () -> createMemo (fun _ -> 0))
                             count.Value))
 
                 m.Value |> ignore
@@ -311,7 +311,7 @@ let tests =
             test "origin reports a node's kind, label and owner" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let m = Trace.named "total" (fun () -> createMemo (fun () -> 1))
+                let m = Trace.named "total" (fun () -> createMemo (fun _ -> 1))
                 let origin = Trace.origin g m
 
                 Expect.equal
@@ -328,7 +328,7 @@ let tests =
                 use _ = g.Activate ()
                 let mutable inner = Unchecked.defaultof<Memo<int>>
 
-                createRoot (fun _ -> inner <- Trace.named "inner" (fun () -> createMemo (fun () -> 1)))
+                createRoot (fun _ -> inner <- Trace.named "inner" (fun () -> createMemo (fun _ -> 1)))
                 |> ignore
 
                 let origin = Trace.origin g inner
@@ -341,10 +341,10 @@ let tests =
                 use _ = g.Activate ()
                 let a = createSignal 1
                 let flag = createSignal true
-                let b = createMemo (fun () -> a.Value + 1)
-                let c = createMemo (fun () -> a.Value * 2)
-                let d = createMemo (fun () -> b.Value + c.Value)
-                let e = createMemo (fun () -> if flag.Value then b.Value else c.Value)
+                let b = createMemo (fun _ -> a.Value + 1)
+                let c = createMemo (fun _ -> a.Value * 2)
+                let d = createMemo (fun _ -> b.Value + c.Value)
+                let e = createMemo (fun _ -> if flag.Value then b.Value else c.Value)
                 d.Value + e.Value |> ignore
                 a.Value <- 2
                 d.Value + e.Value |> ignore
@@ -387,8 +387,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 0
-                let m1 = createMemo (fun () -> s.Value + 1)
-                let m2 = createMemo (fun () -> s.Value + 2)
+                let m1 = createMemo (fun _ -> s.Value + 1)
+                let m2 = createMemo (fun _ -> s.Value + 2)
                 m1.Value + m2.Value |> ignore
                 s.Value <- 5
                 let write = (ofKind TraceEventKind.Write g)[0]
@@ -407,7 +407,7 @@ let tests =
                 use _ = g.Activate ()
                 let t = createSignal 0
                 let s = createSignal 0
-                let m = createMemo (fun () -> s.Value * 2)
+                let m = createMemo (fun _ -> s.Value * 2)
                 let mutable reader = 0
 
                 createEffect (fun () ->
@@ -449,7 +449,7 @@ let tests =
                 let s = createSignal 0
 
                 let m =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         s.Value <- 1
                         0)
 
@@ -472,7 +472,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value % 2)
+                let m = createMemo (fun _ -> s.Value % 2)
                 m.Value |> ignore
                 s.Value <- 3
                 m.Value |> ignore
@@ -492,7 +492,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createAsyncSource<int>()
-                let m = createMemo (fun () -> source.Value)
+                let m = createMemo (fun _ -> source.Value)
                 m.TryValue |> ignore
                 let ended = (ofKind TraceEventKind.RunEnd g)[0]
                 Expect.equal (enum<RunStatus> ended.Arg) RunStatus.Pending "the run must end Pending"
@@ -501,7 +501,7 @@ let tests =
             test "an async memo and a projection record their runs" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let a = createAsync (fun _ -> Task.FromResult 1)
+                let a = createAsync (fun _ _ -> Task.FromResult 1)
                 let p = createProjection id id (fun () -> [ 1 ])
                 a.TryValue |> ignore
                 p.Keys |> ignore
@@ -522,7 +522,7 @@ let tests =
                 use _ = g.Activate ()
                 let a = createSignal 0
                 let b = createSignal 0
-                let m = createMemo (fun () -> a.Value + b.Value)
+                let m = createMemo (fun _ -> a.Value + b.Value)
                 m.Value |> ignore
                 a.Value <- 1
                 b.Value <- 1
@@ -599,7 +599,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let gate = TaskCompletionSource<int>()
-                let a = createAsync (fun _ -> gate.Task)
+                let a = createAsync (fun _ _ -> gate.Task)
                 createEffect (fun () -> a.TryValue |> ignore)
                 gate.SetResult 5
                 let node = (a :> INode).Id
@@ -625,7 +625,7 @@ let tests =
 
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> ThrowingEquals s.Value)
+                let m = createMemo (fun _ -> ThrowingEquals s.Value)
                 m.Value |> ignore
                 s.Value <- 2
                 Expect.throws (fun () -> m.Value |> ignore) "the comparer throws out of the run"
@@ -654,12 +654,12 @@ let tests =
 
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> ThrowingEquals s.Value)
+                let m = createMemo (fun _ -> ThrowingEquals s.Value)
                 m.Value |> ignore
                 s.Value <- 2
 
                 let reader =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         try
                             m.Value |> ignore
                         with Boom ->
@@ -693,8 +693,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let a = createSignal 1
-                let b = createMemo (fun () -> a.Value + 1)
-                let d = createMemo (fun () -> b.Value * 2)
+                let b = createMemo (fun _ -> a.Value + 1)
+                let d = createMemo (fun _ -> b.Value * 2)
                 d.Value |> ignore
                 a.Value <- 2
                 d.Value |> ignore
@@ -720,7 +720,7 @@ let tests =
             test "why ends at Created for a first run" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let m = createMemo (fun () -> 1)
+                let m = createMemo (fun _ -> 1)
                 m.Value |> ignore
                 let created = (ofKind TraceEventKind.NodeNew g)[0]
                 Expect.equal (Trace.whyAt g m 1).Root (Some (Created created.Seq)) "run 1 roots at NodeNew"
@@ -788,7 +788,7 @@ let tests =
             test "whyNot reports Disposed" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let m = createMemo (fun () -> 1)
+                let m = createMemo (fun _ -> 1)
                 m.Value |> ignore
                 m.Dispose ()
                 let disposed = (ofKind TraceEventKind.Dispose g)[0]
@@ -813,7 +813,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 0
-                let m = createMemo (fun () -> s.Value)
+                let m = createMemo (fun _ -> s.Value)
                 m.Value |> ignore
                 s.Value <- 1
                 let mark = (ofKind TraceEventKind.Mark g)[0]
@@ -824,7 +824,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value % 2)
+                let m = createMemo (fun _ -> s.Value % 2)
                 createEffect (fun () -> m.Value |> ignore)
                 let effect = (ofKind TraceEventKind.NodeNew g |> Array.last).Node
                 s.Value <- 3
@@ -844,8 +844,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value % 2)
-                let m = createMemo (fun () -> a.Value)
+                let a = createMemo (fun _ -> s.Value % 2)
+                let m = createMemo (fun _ -> a.Value)
                 m.Value |> ignore
                 s.Value <- 3
                 m.Value |> ignore
@@ -862,7 +862,7 @@ let tests =
                 use _ = g.Activate ()
                 let t = createSignal 0
                 let s = createSignal 0
-                let m = createMemo (fun () -> s.Value * 2)
+                let m = createMemo (fun _ -> s.Value * 2)
 
                 createEffect (fun () ->
                     s.Value <- t.Value
@@ -882,7 +882,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> s.Value)
+                let m = createMemo (fun _ -> s.Value)
                 createEffect (fun () -> m.Value |> ignore)
                 s.Value <- 1
                 let write = ofKind TraceEventKind.Write g |> Array.last
@@ -893,8 +893,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
-                let b = createMemo (fun () -> a.Value + 1)
+                let a = createMemo (fun _ -> s.Value * 2)
+                let b = createMemo (fun _ -> a.Value + 1)
                 b.Value |> ignore
                 s.Value <- 2
                 b.Value |> ignore
@@ -915,7 +915,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
+                let a = createMemo (fun _ -> s.Value * 2)
                 createEffect (fun () -> a.Value |> ignore)
                 let effect = idsOf TraceNodeKind.Effect g |> Array.exactlyOne
                 s.Value <- 2
@@ -926,8 +926,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
-                let am = createAsync (fun _ -> Task.FromResult a.Value)
+                let a = createMemo (fun _ -> s.Value * 2)
+                let am = createAsync (fun _ _ -> Task.FromResult a.Value)
                 am.TryValue |> ignore
                 s.Value <- 2
                 am.TryValue |> ignore
@@ -938,7 +938,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
+                let a = createMemo (fun _ -> s.Value * 2)
                 let b = createSuspense (fun _ -> 0) (fun () -> a.Value)
                 b.Value |> ignore
                 s.Value <- 2
@@ -950,7 +950,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
+                let a = createMemo (fun _ -> s.Value * 2)
                 let p = createProjection id id (fun () -> [ a.Value ])
                 p.Keys |> ignore
                 s.Value <- 2
@@ -962,7 +962,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
+                let a = createMemo (fun _ -> s.Value * 2)
                 let p = createProjection id (fun k -> k * a.Value) (fun () -> [ 1; 2 ])
                 p.Snapshot |> ignore
                 let rows = idsOf TraceNodeKind.Memo g |> Array.skip 1
@@ -993,7 +993,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let a = createMemo (fun () -> s.Value * 2)
+                let a = createMemo (fun _ -> s.Value * 2)
                 let l = createSelector (fun () -> a.Value)
                 createEffect (fun () -> l.Get 2 |> ignore)
                 // The lookup's source memo and refresh effect, created ahead of the reader.
@@ -1074,7 +1074,7 @@ let tests =
                 let s = createSignal 1
 
                 let a =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         let v = s.Value * 2
 
                         if v = 4 then
@@ -1112,7 +1112,7 @@ let tests =
                 use _ = g.Activate ()
                 let rows = createProjection id id (fun () -> [ 1 ])
                 let view, line = rows |> Projection.map (fun n -> n + 1), __LINE__
-                let m, memoLine = createMemo (fun () -> 1), __LINE__
+                let m, memoLine = createMemo (fun _ -> 1), __LINE__
                 Expect.equal (siteOf g view) (here line) "the view's site is the user's line"
                 Expect.equal (siteOf g m) (here memoLine) "createMemo reports the user's line"
             }
@@ -1121,7 +1121,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let a = createSignal 1
-                let positive = createMemo (fun () -> a.Value > 0)
+                let positive = createMemo (fun _ -> a.Value > 0)
                 let runs = ref 0
 
                 createEffect (fun () ->
@@ -1171,7 +1171,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createAsyncSource<int>()
-                let m = createMemo (fun () -> source.Value + 1)
+                let m = createMemo (fun _ -> source.Value + 1)
                 Expect.equal m.TryValue Pending "the memo is pending on the source"
                 Expect.equal (Trace.waitingOn g m).Sources [ (source :> INode).Id ] "the memo waits on the source"
                 Expect.stringContains (Trace.render g (Trace.waitingOn g m)) "suspended on" "render names the source"
@@ -1185,7 +1185,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createAsyncSource<int>()
-                let m = createMemo (fun () -> source.Value + 1)
+                let m = createMemo (fun _ -> source.Value + 1)
                 m.TryValue |> ignore
                 source.Settle 1
                 m.TryValue |> ignore
@@ -1198,8 +1198,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let flight = TaskCompletionSource<int>()
-                let a = createAsync (fun _ -> flight.Task)
-                let d = createMemo (fun () -> a.Value * 2)
+                let a = createAsync (fun _ _ -> flight.Task)
+                let d = createMemo (fun _ -> a.Value * 2)
                 d.TryValue |> ignore
                 flight.SetResult 5
                 Expect.equal d.TryValue (Ready 10) "the flight published"
@@ -1216,7 +1216,7 @@ let tests =
                 use _ = g.Activate ()
                 let a = createSignal 1
                 let source = createAsyncSource<int>()
-                let m = createMemo (fun () -> a.Value + source.Value)
+                let m = createMemo (fun _ -> a.Value + source.Value)
                 createEffect (fun () -> m.TryValue |> ignore)
                 source.Settle 10
                 a.Value <- 2
@@ -1262,7 +1262,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    createAsync (fun _ ->
+                    createAsync (fun _ _ ->
                         s.Value |> ignore
                         let flight = TaskCompletionSource<int>()
                         flights.Add flight

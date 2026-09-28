@@ -27,7 +27,7 @@ type ConstructionBenchmarks() =
 
     [<Benchmark>]
     member _.CreateAndDisposeMemo() =
-        let memo = Memo (graph, (fun () -> 1))
+        let memo = Memo (graph, (fun _ -> 1))
         memo.Dispose ()
 
     [<Benchmark>]
@@ -51,7 +51,7 @@ type ReadingNodeBenchmarks() =
 
     [<Benchmark>]
     member _.CreateAndDisposeReadingMemo() =
-        let memo = Memo (graph, (fun () -> source.Value + 1))
+        let memo = Memo (graph, (fun _ -> source.Value + 1))
         memo.TryValue |> ignore
         memo.Dispose ()
 
@@ -88,7 +88,7 @@ type FanOutLifecycleBenchmarks() =
         let owner =
             graph.CreateRoot (fun owner ->
                 for _ in 1 .. this.Nodes do
-                    let memo = Memo (graph, (fun () -> source.Value + 1))
+                    let memo = Memo (graph, (fun _ -> source.Value + 1))
                     memo.TryValue |> ignore
 
                 owner)
@@ -113,7 +113,7 @@ type ScopeBenchmarks() =
         let owner =
             graph.CreateRoot (fun owner ->
                 for _ in 1 .. this.Children do
-                    let memo = Memo (graph, (fun () -> source.Value + 1))
+                    let memo = Memo (graph, (fun _ -> source.Value + 1))
                     memo.TryValue |> ignore
 
                 owner)
@@ -129,7 +129,7 @@ type ScopeBenchmarks() =
     member this.DisposeChildrenIndividually() =
         let memos =
             Array.init this.Children (fun _ ->
-                let memo = Memo (graph, (fun () -> source.Value + 1))
+                let memo = Memo (graph, (fun _ -> source.Value + 1))
                 memo.TryValue |> ignore
                 memo)
 

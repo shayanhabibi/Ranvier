@@ -40,7 +40,7 @@ let appGraph = new Graph ()
 let doubled =
     use _ = appGraph.Activate ()
     let count = createSignal 2
-    createMemo (fun () -> count.Value * 2)
+    createMemo (fun _ -> count.Value * 2)
 
 doubled.Value
 ```
@@ -112,7 +112,7 @@ let shopGraph = new Graph ()
 let price, total, label =
     shopGraph.Run (fun () ->
         let price = createAsyncSource<int> ()
-        let total = createMemo (fun () -> price.Value * 3)
+        let total = createMemo (fun _ -> price.Value * 3)
         let label = createSuspense (fun () -> "loading") (fun () -> string total.Value)
         price, total, label)
 
@@ -152,7 +152,7 @@ let subscriptions =
     owningGraph.Run (fun () ->
         let topic = createSignal "news"
 
-        createMemoWith (fun () ->
+        createMemoWith (fun _ ->
             let name = topic.Value
             // Owned by this run: released before the next run and with the memo.
             onCleanup ignore
@@ -194,7 +194,7 @@ let labels =
             id
             (fun item ->
                 // Runs once per key; the memo is disposed with the key.
-                let label = createMemo (fun () -> sprintf "#%d" (item ()))
+                let label = createMemo (fun _ -> sprintf "#%d" (item ()))
                 fun () -> label.Value)
             (fun () -> items.Value))
 
@@ -432,7 +432,7 @@ let userId = Signal (queryGraph, 1)
 let profile =
     new AsyncMemo<string> (
         queryGraph,
-        fun _ ->
+        fun _ _ ->
             task {
                 let id = userId.Value // read before the first await: tracked
                 do! Task.Yield ()
@@ -469,7 +469,7 @@ let fetchGraph = new Graph ()
 let reportFlight = TaskCompletionSource<string> ()
 
 // Created once, outside the boundary.
-let report = new AsyncMemo<string> (fetchGraph, fun _ -> reportFlight.Task)
+let report = new AsyncMemo<string> (fetchGraph, fun _ _ -> reportFlight.Task)
 
 let reportView =
     Boundary<string>.Suspense (fetchGraph, (fun () -> "report: " + report.Value), (fun () -> "loading"))

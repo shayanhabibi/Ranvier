@@ -20,7 +20,7 @@ let tests =
                 let other = createSignal 0
 
                 let o =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> other.Value |> ignore)
                         n)
@@ -28,7 +28,7 @@ let tests =
                 let mutable runs = 0
 
                 let p =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         runs <- runs + 1
                         s.Value |> ignore
                         o.Value * 10)
@@ -49,7 +49,7 @@ let tests =
                 let other = createSignal 0
 
                 let o =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
                         onCleanup (fun () -> other.Value |> ignore)
                         n)
@@ -75,7 +75,7 @@ let tests =
                 let mutable rootCleaned = 0
 
                 let o =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         let n = s.Value
 
                         onCleanup (fun () ->
@@ -85,7 +85,7 @@ let tests =
                         n)
 
                 let p =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         s.Value |> ignore
                         o.Value * 10)
 
@@ -107,7 +107,7 @@ let tests =
                 let other = createSignal 0
 
                 let o =
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         onCleanup (fun () -> other.Value |> ignore)
                         1)
 
@@ -168,7 +168,7 @@ let tests =
                         (fun () -> s.Value)
 
                 let p =
-                    createMemo (fun () ->
+                    createMemo (fun _ ->
                         s.Value |> ignore
                         lookup.Get 2)
 
@@ -201,7 +201,7 @@ let tests =
                             [ prev; next ])
                         (fun () -> s.Value)
 
-                let p = createMemo (fun () -> lookup.Get 2)
+                let p = createMemo (fun _ -> lookup.Get 2)
                 Expect.equal p.Value 3 "first read"
                 s.Value <- 2
 
@@ -244,7 +244,7 @@ let tests =
                 let mutable self: Memo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         onCleanup ignore
                         self.Dispose ()
                         createEffect (fun () -> tick.Value |> ignore)
@@ -261,7 +261,7 @@ let tests =
                 let mutable self: Memo<int> = Unchecked.defaultof<_>
 
                 self <-
-                    createMemoWith (fun () ->
+                    createMemoWith (fun _ ->
                         self.Dispose ()
                         createEffect (fun () -> tick.Value |> ignore)
                         1)

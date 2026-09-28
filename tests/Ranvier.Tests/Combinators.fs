@@ -1386,7 +1386,7 @@ let mapWithTests =
                 let view =
                     rows source
                     |> Projection.mapWith (fun key value ->
-                        let doubled = createMemo (fun () -> value () * 2)
+                        let doubled = createMemo (fun _ -> value () * 2)
                         onCleanup (fun () -> disposed.Add key)
                         fun () -> doubled.Value)
 

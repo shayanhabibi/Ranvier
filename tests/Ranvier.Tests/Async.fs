@@ -36,7 +36,7 @@ let tests =
             test "reading an unsettled flight suspends" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "a flight in progress is pending"
                 Expect.equal a.Runs 1 "the read started the flight"
@@ -53,7 +53,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             incr started
                             Task.FromResult 1
                     )
@@ -73,7 +73,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let v = s.Value
                             requested.Add v
                             Task.FromResult (v * 10)
@@ -94,7 +94,7 @@ let tests =
                 let a =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             let b = before.Value
 
                             task {
@@ -135,7 +135,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gate.Task
                                 g.OnCleanup (fun () -> cleaned.Value <- true)
@@ -173,7 +173,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gate.Task
                                 s.Value <- 1
@@ -196,7 +196,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gate.Task
 
@@ -233,7 +233,7 @@ let tests =
                 let b =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gateB.Task
                                 return 0
@@ -243,7 +243,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gateA.Task
                                 s.Value <- 1
@@ -281,7 +281,7 @@ let tests =
                 let b =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gateB.Task
                                 return 0
@@ -291,7 +291,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             if not gateB.Task.IsCompleted then
                                 gateB.SetResult ()
 
@@ -301,7 +301,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! gateA.Task
                                 return m.Value
@@ -326,7 +326,7 @@ let tests =
                 let a =
                     new AsyncMemo<string> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             task {
                                 do! Task.CompletedTask
                                 return after.Value
@@ -348,7 +348,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    new AsyncMemo<int> (g, (fun _ -> if s.Value = 1 then first.Task else second.Task))
+                    new AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 first.Settle 10
                 Expect.equal a.TryValue (Ready 10) "settled"
@@ -368,7 +368,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    new AsyncMemo<int> (g, (fun _ -> if s.Value = 1 then first.Task else second.Task))
+                    new AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 Expect.equal a.TryValue Pending "first flight in progress"
                 s.Value <- 2
@@ -392,7 +392,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             // The read is what links the edge; without it the
                             // second pull is a cache hit and no flight starts.
                             s.Value |> ignore
@@ -438,7 +438,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             let flight = body () token
                             flights.Add flight
                             flight
@@ -477,7 +477,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             // The read is what links the edge; without it the
                             // second pull is a cache hit and no flight starts.
                             s.Value |> ignore
@@ -506,7 +506,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    new AsyncMemo<int> (g, (fun _ -> if s.Value = 1 then first.Task else second.Task))
+                    new AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 a.TryValue |> ignore
                 s.Value <- 2
@@ -536,7 +536,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun _ ->
+                        fun _ _ ->
                             s.Value |> ignore
                             let flight = Flight<int>()
                             flights.Add flight
@@ -557,7 +557,7 @@ let tests =
             test "a failed flight settles as Failed" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "precondition"
                 flight.Fail (exn "boom")
@@ -569,7 +569,7 @@ let tests =
 
             test "a body that throws before awaiting settles as Failed" {
                 let g = new Graph ()
-                let a = new AsyncMemo<int> (g, (fun _ -> failwith "no flight"))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> failwith "no flight"))
 
                 match a.TryValue with
                 | Failed e -> Expect.equal e.Message "no flight" "a synchronous throw is a failure, not a flight"
@@ -580,7 +580,7 @@ let tests =
                 let g = new Graph ()
                 let upstream = AsyncSource<int>(g)
 
-                let a = new AsyncMemo<int> (g, (fun _ -> Task.FromResult (upstream.Value * 2)))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> Task.FromResult (upstream.Value * 2)))
 
                 Expect.equal a.TryValue Pending "suspended before it could start a flight"
 
@@ -596,8 +596,8 @@ let tests =
             test "pending propagates into a memo and an effect" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
-                let doubled = Memo (g, (fun () -> a.Value * 2))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let doubled = Memo (g, (fun _ -> a.Value * 2))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add doubled.Value))
@@ -617,7 +617,7 @@ let tests =
                 let a =
                     new AsyncMemo<int> (
                         g,
-                        fun token ->
+                        fun _ token ->
                             tokens.Add token
                             Flight<int>().Task
                     )
@@ -631,7 +631,7 @@ let tests =
             test "a settle after disposal does not publish" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
+                let a = new AsyncMemo<int> (g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 a.Dispose ()

@@ -32,14 +32,14 @@ let private cart () =
     Trace.label (g, lines, "lines")
 
     let subtotal =
-        createMemo (fun () ->
+        createMemo (fun _ ->
             lines.Value
             |> List.sumBy (fun l -> l.Price * decimal l.Qty))
 
     Trace.label (g, subtotal, "subtotal")
-    let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+    let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
     Trace.label (g, shipping, "shipping")
-    let total = createMemo (fun () -> subtotal.Value + shipping.Value)
+    let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
     Trace.label (g, total, "total")
     createEffect (fun () -> total.TryValue |> ignore)
 
@@ -78,7 +78,7 @@ let private quote () =
     let g = new Graph ()
     use _ = g.Activate ()
     let price = createAsyncSource<decimal>()
-    let total = createMemo (fun () -> price.Value * 3m)
+    let total = createMemo (fun _ -> price.Value * 3m)
     Trace.label (g, total, "total")
 
     let view =
@@ -221,7 +221,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let a = Trace.named "a" (fun () -> createSignal 1)
-                let b = Trace.named "b" (fun () -> createMemo (fun () -> a.Value * 2))
+                let b = Trace.named "b" (fun () -> createMemo (fun _ -> a.Value * 2))
                 createEffect (fun () -> b.Value |> ignore)
                 a.Value <- 3
                 let events = Trace.events g

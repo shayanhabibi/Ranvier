@@ -95,7 +95,7 @@ let tests =
             test "settling an AsyncSource twice publishes the second value" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> a.Value))
+                let m = Memo (g, (fun _ -> a.Value))
 
                 a.Settle 1
                 Expect.equal m.Value 1 "first settle"
@@ -108,7 +108,7 @@ let tests =
             test "settling with the value already there is not cut off" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> a.Value))
+                let m = Memo (g, (fun _ -> a.Value))
 
                 a.Settle 1
                 m.Value |> ignore
@@ -173,7 +173,7 @@ let tests =
             test "a pending read publishes nothing until the source settles" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> a.Value + 100))
+                let m = Memo (g, (fun _ -> a.Value + 100))
 
                 Expect.equal m.TryValue Pending "nothing is published while the source is pending"
 
@@ -212,7 +212,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        (fun () ->
+                        (fun _ ->
                             try
                                 a.Value
                             with _ ->
@@ -228,7 +228,7 @@ let tests =
             test "an async memo whose task captures a pending read is pending" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = new AsyncMemo<int> (g, (fun _ -> task { return a.Value * 2 }))
+                let m = new AsyncMemo<int> (g, (fun _ _ -> task { return a.Value * 2 }))
 
                 Expect.equal m.TryValue Pending "a faulted task is not an error when the fault is the channel"
 
@@ -328,7 +328,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        (fun () ->
+                        (fun _ ->
                             g.Untrack (fun () ->
                                 try
                                     a.Value
@@ -366,7 +366,7 @@ let tests =
                 let m =
                     Memo (
                         g,
-                        fun () ->
+                        fun _ ->
                             let x =
                                 try
                                     a.Value
@@ -390,7 +390,7 @@ let tests =
             test "an uncaught pending read inside untrack stays pending after the source settles" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> g.Untrack (fun () -> a.Value) + 1))
+                let m = Memo (g, (fun _ -> g.Untrack (fun () -> a.Value) + 1))
                 let mutable effectRuns = 0
 
                 let e =

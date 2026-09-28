@@ -17,7 +17,7 @@ let tests =
             test "disposing a memo stops it being woken" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun () -> s.Value * 2))
+                let c = Memo (g, (fun _ -> s.Value * 2))
 
                 Expect.equal c.TryValue (Ready 2) "first"
                 c.Dispose ()
@@ -30,7 +30,7 @@ let tests =
             test "disposing a memo twice is a no-op" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun () -> s.Value))
+                let c = Memo (g, (fun _ -> s.Value))
 
                 c.TryValue |> ignore
                 c.Dispose ()
@@ -42,7 +42,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
 
-                let c, owner = g.CreateRoot (fun owner -> Memo (g, (fun () -> s.Value * 2)), owner)
+                let c, owner = g.CreateRoot (fun owner -> Memo (g, (fun _ -> s.Value * 2)), owner)
 
                 Expect.equal c.TryValue (Ready 2) "live"
                 owner.Dispose ()
@@ -72,7 +72,7 @@ let tests =
             test "a disposed memo stops waking what reads it" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun () -> s.Value * 2))
+                let c = Memo (g, (fun _ -> s.Value * 2))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add c.Value))
@@ -88,7 +88,7 @@ let tests =
             test "disposing the graph takes every memo with it" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun () -> s.Value * 2))
+                let c = Memo (g, (fun _ -> s.Value * 2))
 
                 Expect.equal c.TryValue (Ready 2) "live"
                 g.Root.Dispose ()

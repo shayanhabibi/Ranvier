@@ -13,12 +13,12 @@ let private cart =
             "let lines = createSignal [ 4m ]"
             ""
             "let subtotal ="
-            "    createMemo (fun () ->"
+            "    createMemo (fun _ ->"
             "        lines.Value |> List.sum)"
             ""
             "// the quote waits on the desk"
-            "let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)"
-            "let total = createMemo (fun () -> subtotal.Value + shipping.Value)"
+            "let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)"
+            "let total = createMemo (fun _ -> subtotal.Value + shipping.Value)"
             "createEffect (fun () -> total.TryValue |> ignore)"
             ""
             "controls ["
@@ -51,6 +51,23 @@ let private root () =
 
         up (DirectoryInfo AppContext.BaseDirectory)
     | path -> path
+
+let private replaySettings () : ReplaySettings =
+    let dir = root ()
+
+    match ReplayRunner.buildTraced dir with
+    | Ok ranvier ->
+        {
+            Ranvier = ranvier
+            Sources =
+                [ "Helpers.fs"; "Replay.fs" ]
+                |> List.map (fun f -> Path.Combine(dir, "docs", "maps", "model", f))
+            Cache = Path.Combine(Path.GetTempPath(), "ranvier-maps-replay-tests", string (Guid.NewGuid()))
+        }
+    | Error output -> failtestf "the traced build failed:\n%s" output
+
+/// Replay settings over a traced build of Ranvier, built once for every test that records.
+let private replay = lazy (replaySettings ())
 
 [<Tests>]
 let tests =
@@ -90,7 +107,7 @@ let tests =
             }
 
             test "a fence without trailing controls is rejected at its last line" {
-                let code = "let a = createSignal 1\nlet b = createMemo (fun () -> a.Value)\n\n"
+                let code = "let a = createSignal 1\nlet b = createMemo (fun _ -> a.Value)\n\n"
 
                 Expect.equal
                     (MapFence.scenario "x" code |> Result.mapError (List.map fst))
@@ -127,17 +144,8 @@ let tests =
             }
 
             test "record runs the scenario and prints its events" {
-                let dir = root ()
                 let code, _, _ = scenario cart
-
-                let settings =
-                    {
-                        Ranvier = typeof<Ranvier.Graph>.Assembly.Location
-                        Sources =
-                            [ "Helpers.fs"; "Replay.fs" ]
-                            |> List.map (fun f -> Path.Combine(dir, "docs", "maps", "model", f))
-                        Cache = Path.Combine(Path.GetTempPath(), "ranvier-maps-replay-tests", string (Guid.NewGuid()))
-                    }
+                let settings = replay.Force()
 
                 match ReplayRunner.record settings code (MapFence.moduleName "cart") with
                 | Ok literal ->
@@ -149,21 +157,11 @@ let tests =
             }
 
             test "record runs each control with the graph active" {
-                let dir = root ()
-
                 let batched =
                     "let a = createSignal 0\ncreateEffect (fun () -> printfn \"a %d\" a.Value)\n\ncontrols [\n    \"Batch\", fun () -> batch (fun () -> a.Value <- 7)\n]"
 
                 let code, _, _ = scenario batched
-
-                let settings =
-                    {
-                        Ranvier = typeof<Ranvier.Graph>.Assembly.Location
-                        Sources =
-                            [ "Helpers.fs"; "Replay.fs" ]
-                            |> List.map (fun f -> Path.Combine(dir, "docs", "maps", "model", f))
-                        Cache = Path.Combine(Path.GetTempPath(), "ranvier-maps-replay-tests", string (Guid.NewGuid()))
-                    }
+                let settings = replay.Force()
 
                 match ReplayRunner.record settings code (MapFence.moduleName "cart") with
                 | Ok literal -> Expect.stringContains literal "\"7\"" "the batched write"

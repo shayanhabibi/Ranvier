@@ -16,7 +16,7 @@ A memo that reads an async value has to do something before the value exists:
 
 ```fsharp
 let displayName (u: User) = u.FirstName + " " + u.LastName   // an ordinary helper
-let greeting = createMemo (fun () -> "Hi " + displayName (user.Value))
+let greeting = createMemo (fun _ -> "Hi " + displayName (user.Value))
 ```
 
 `displayName` knows nothing about reactivity. If `user` is still loading, the read has to stop the memo
@@ -71,7 +71,7 @@ another branch is still in flight:
 ```fsharp
 let a = createAsyncSource<int> ()
 let b = createSignal 1
-let c = createMemo (fun () -> a.Value + b.Value)
+let c = createMemo (fun _ -> a.Value + b.Value)
 
 c.TryValue        // Pending
 b.Value <- 2
@@ -85,7 +85,7 @@ In the map, a write to `b` while `a` is pending re-runs `c`, which stays pending
 ```fsharp map
 let a = createAsyncSource<int> ()
 let b = createSignal 1
-let c = createMemo (fun () -> a.Value + b.Value)
+let c = createMemo (fun _ -> a.Value + b.Value)
 createEffect (fun () -> printfn "c = %d" c.Value)
 
 controls [
@@ -250,7 +250,7 @@ and its readers see the error, not Pending. The exception passes through interme
 
 ```fsharp
 let price = createAsyncSource<int> ()
-let shown = createMemo (fun () -> price.Value)
+let shown = createMemo (fun _ -> price.Value)
 
 price.Fail (exn "offline")
 shown.TryValue        // Failed "offline"
@@ -262,7 +262,7 @@ In the map, **Fail** marks `price`, `shown` and the effect failed. **Settle 12**
 
 ```fsharp map
 let price = createAsyncSource<int> ()
-let shown = createMemo (fun () -> price.Value)
+let shown = createMemo (fun _ -> price.Value)
 createEffect (fun () -> printfn "shown %d" shown.Value)
 
 controls [
