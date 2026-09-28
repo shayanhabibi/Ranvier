@@ -46,7 +46,9 @@ module private Dom =
         e.classList.remove cls
         e?getBBox () |> ignore
         e.classList.add cls
-        window.setTimeout ((fun () -> e.classList.remove cls), ms) |> ignore
+
+        window.setTimeout ((fun () -> e.classList.remove cls), ms)
+        |> ignore
 
 /// <summary>A node's drawing on the stage.</summary>
 type private NodeView =
@@ -96,7 +98,10 @@ module private Look =
         | TraceNodeStatus.Ended _ -> "abandoned"
 
     let badge (text: string) =
-        if text.Length > 16 then text.Substring (0, 15) + "…" else text
+        if text.Length > 16 then
+            text.Substring (0, 15) + "…"
+        else
+            text
 
     /// <summary>A cubic edge from the right of a source to the left of an observer.</summary>
     let edgePath (x1: float, y1: float) (x2: float, y2: float) =
@@ -117,8 +122,7 @@ module SignalMapComponent =
     /// (label, first line, last line), with lines counted from 1 in the card's code block.
     /// </remarks>
     let SignalMap (source: MapSource) (bindings: (string * int * int)[]) (timeline: bool) : HtmlElement =
-        let reduced: bool =
-            window?matchMedia("(prefers-reduced-motion: reduce)")?matches
+        let reduced: bool = window?matchMedia("(prefers-reduced-motion: reduce)")?matches
 
         let timeline =
             timeline
@@ -194,7 +198,10 @@ module SignalMapComponent =
         let light (node: int) =
             let name = MapModel.name shown.Snapshot node
 
-            match bindings |> Array.tryFind (fun (b, _, _) -> b = name) with
+            match
+                bindings
+                |> Array.tryFind (fun (b, _, _) -> b = name)
+            with
             | Some (_, first, last) ->
                 let all = codeLines ()
 
@@ -229,7 +236,16 @@ module SignalMapComponent =
                 [
                     path
                     Look.kindName n.Kind
-                    Look.statusName n.Status
+                    match n.Status with
+                    | _ when MapModel.pending shown n.Id -> "pending"
+                    | _ when shown.Errors.ContainsKey n.Id -> "failed"
+                    | _ when
+                        n.Kind = TraceNodeKind.Signal
+                        || n.Kind = TraceNodeKind.AsyncSource
+                        ->
+                        "source"
+                    | TraceNodeStatus.Ended RunStatus.Pending -> "settled"
+                    | status -> Look.statusName status
                     match n.Value with
                     | Some v -> "= " + v
                     | None -> ()
@@ -238,7 +254,7 @@ module SignalMapComponent =
                     | Some s -> "waiting on " + TraceModel.pathOf shown.Snapshot s
                     | None -> ()
                     match shown.Errors.TryFind n.Id with
-                    | Some e -> "failed: " + e
+                    | Some e -> "error: " + e
                     | None -> ()
                 ]
 
@@ -247,7 +263,7 @@ module SignalMapComponent =
         let explain (id: int) =
             let events =
                 [|
-                    for i in 0 .. cursor do
+                    for i in 0..cursor do
                         history[i].Event
                 |]
 
@@ -255,7 +271,15 @@ module SignalMapComponent =
                 try
                     TraceModel.renderWhy shown.Snapshot (TraceModel.why events null id 0)
                 with _ ->
-                    MapModel.name shown.Snapshot id + " has not run."
+                    match
+                        shown.Snapshot.Nodes.TryFind id
+                        |> Option.map _.Kind
+                    with
+                    | Some TraceNodeKind.Signal
+                    | Some TraceNodeKind.AsyncSource ->
+                        MapModel.name shown.Snapshot id
+                        + " is a source: it changes when written or settled, and never runs."
+                    | _ -> MapModel.name shown.Snapshot id + " has not run."
 
         let viewOf (n: TraceSnapshotNode) =
             let shape = Look.shapeOf n.Kind
@@ -325,7 +349,11 @@ module SignalMapComponent =
             let fromX, fromY = view.At
             view.At <- x, y
 
-            if animate && not reduced && (fromX, fromY) <> (0.0, 0.0) then
+            if
+                animate
+                && not reduced
+                && (fromX, fromY) <> (0.0, 0.0)
+            then
                 let at = createObj [ "x" ==> fromX; "y" ==> fromY ]
 
                 Anime.animate
@@ -350,7 +378,9 @@ module SignalMapComponent =
 
             let live =
                 snapshot.Nodes.Values
-                |> Seq.filter (fun n -> MapModel.visible n && n.Status <> TraceNodeStatus.Disposed)
+                |> Seq.filter (fun n ->
+                    MapModel.visible n
+                    && n.Status <> TraceNodeStatus.Disposed)
                 |> Seq.map _.Id
                 |> Set.ofSeq
 
@@ -360,7 +390,7 @@ module SignalMapComponent =
 
             for id in List.ofSeq nodes.Keys do
                 if not (live.Contains id) then
-                    nodes[id].Group.remove ()
+                    nodes[id].Group.remove()
                     nodes.Remove id |> ignore
                     unlight id
 
@@ -368,7 +398,10 @@ module SignalMapComponent =
                 if not (nodes.ContainsKey id) then
                     nodes[id] <- viewOf snapshot.Nodes[id]
 
-            let key = String.Join (";", live) + "|" + String.Join (";", links)
+            let key =
+                String.Join (";", live)
+                + "|"
+                + String.Join (";", links)
 
             if key <> layoutKey then
                 layoutKey <- key
@@ -403,10 +436,22 @@ module SignalMapComponent =
             for KeyValue (id, view) in nodes do
                 let n = snapshot.Nodes[id]
                 view.Name.textContent <- MapModel.name snapshot id
-                view.Value.textContent <- n.Value |> Option.map Look.badge |> Option.defaultValue ""
+
+                view.Value.textContent <-
+                    n.Value
+                    |> Option.map Look.badge
+                    |> Option.defaultValue ""
+
                 Dom.toggle view.Group "is-running" (n.Status = TraceNodeStatus.Running)
-                Dom.toggle view.Group "is-pending" (n.Status = TraceNodeStatus.Ended RunStatus.Pending)
-                Dom.toggle view.Group "is-fresh" (n.Status = TraceNodeStatus.Fresh)
+                Dom.toggle view.Group "is-pending" (MapModel.pending scene id)
+
+                Dom.toggle
+                    view.Group
+                    "is-fresh"
+                    (n.Status = TraceNodeStatus.Fresh
+                     && n.Kind <> TraceNodeKind.Signal
+                     && n.Kind <> TraceNodeKind.AsyncSource)
+
                 Dom.toggle view.Group "is-flight" (scene.Flights.ContainsKey id)
                 Dom.toggle view.Group "is-waiting" (scene.Waiting.ContainsKey id)
                 Dom.toggle view.Group "is-failed" (scene.Errors.ContainsKey id)
@@ -418,7 +463,12 @@ module SignalMapComponent =
                 let length: float = path?getTotalLength ()
 
                 let dot =
-                    Dom.svg "circle" (if bright then "rv-map-dot rv-map-dot--bright" else "rv-map-dot")
+                    Dom.svg
+                        "circle"
+                        (if bright then
+                             "rv-map-dot rv-map-dot--bright"
+                         else
+                             "rv-map-dot")
 
                 dot.setAttribute ("r", (if bright then "4.5" else "3.5"))
                 dotLayer.appendChild dot |> ignore
@@ -469,10 +519,17 @@ module SignalMapComponent =
                 for t in targets do
                     travel s t true
 
-                shape s |> Option.iter (fun v -> Dom.flash v.Value "is-swap" 600)
-            | Drop id -> shape id |> Option.iter (fun v -> Dom.flash v.Group "is-dropped" 700)
-            | Settled id -> shape id |> Option.iter (fun v -> Dom.flash v.Group "is-settled" 800)
-            | Failed id -> shape id |> Option.iter (fun v -> Dom.flash v.Group "is-failing" 800)
+                shape s
+                |> Option.iter (fun v -> Dom.flash v.Value "is-swap" 600)
+            | Drop id ->
+                shape id
+                |> Option.iter (fun v -> Dom.flash v.Group "is-dropped" 700)
+            | Settled id ->
+                shape id
+                |> Option.iter (fun v -> Dom.flash v.Group "is-settled" 800)
+            | Failed id ->
+                shape id
+                |> Option.iter (fun v -> Dom.flash v.Group "is-failing" 800)
             | _ -> ()
 
         let ticks = Dom.el "div" "rv-map__ticks"
@@ -593,7 +650,9 @@ module SignalMapComponent =
                 controlRow.innerHTML <- ""
                 append (MapModel.frames MapModel.start events)
             | Live scenario ->
-                graph |> Option.iter (fun g -> (g :> IDisposable).Dispose ())
+                graph
+                |> Option.iter (fun g -> (g :> IDisposable).Dispose())
+
                 let g = new Graph ()
                 graph <- Some g
                 playing <- true
@@ -602,17 +661,14 @@ module SignalMapComponent =
                 try
                     for control in scenario g do
                         controlRow.appendChild (
-                            Dom.button
-                                control.Label
-                                "rv-map__button"
-                                (fun () ->
-                                    playing <- true
+                            Dom.button control.Label "rv-map__button" (fun () ->
+                                playing <- true
 
-                                    try
-                                        use _ = g.Activate ()
-                                        control.Run ()
-                                    with ex ->
-                                        say $"{control.Label} threw: {ex.Message}" "is-error")
+                                try
+                                    use _ = g.Activate ()
+                                    control.Run ()
+                                with ex ->
+                                    say $"{control.Label} threw: {ex.Message}" "is-error")
                         )
                         |> ignore
 
@@ -634,12 +690,14 @@ module SignalMapComponent =
                             append (MapModel.frames tail fresh)
                     | None -> ()
 
-                    window.requestAnimationFrame (fun _ -> poll ()) |> ignore
+                    window.requestAnimationFrame (fun _ -> poll ())
+                    |> ignore
                 with ex ->
                     fail ("The map stopped: " + ex.Message)
 
         if timeline then
             let row = Dom.el "div" "rv-map__timeline"
+
             playButton.addEventListener (
                 "click",
                 fun _ ->
@@ -656,21 +714,18 @@ module SignalMapComponent =
             )
 
             let step =
-                Dom.button
-                    "Step"
-                    "rv-map__button"
-                    (fun () ->
-                        playing <- false
-                        let mutable go = true
+                Dom.button "Step" "rv-map__button" (fun () ->
+                    playing <- false
+                    let mutable go = true
 
-                        while go && cursor + 1 < history.Count do
-                            cursor <- cursor + 1
-                            show history[cursor]
+                    while go && cursor + 1 < history.Count do
+                        cursor <- cursor + 1
+                        show history[cursor]
 
-                            if history[cursor].Cue <> Quiet then
-                                go <- false
+                        if history[cursor].Cue <> Quiet then
+                            go <- false
 
-                        refresh ())
+                    refresh ())
 
             Dom.attrs scrub [ "type", "range"; "min", "0"; "step", "1"; "aria-label", "Event" ]
             scrub.addEventListener ("input", fun _ -> jump (int scrub.value - 1))
@@ -698,6 +753,8 @@ module SignalMapComponent =
         Partas.Solid.Bindings.onCleanup (fun () ->
             disposed <- true
             window.clearTimeout timer
-            graph |> Option.iter (fun g -> (g :> IDisposable).Dispose ()))
+
+            graph
+            |> Option.iter (fun g -> (g :> IDisposable).Dispose()))
 
         unbox<HtmlElement> root
