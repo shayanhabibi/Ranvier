@@ -51,6 +51,19 @@ doubled = 2
 doubled = 10
 ```
 
+The same graph, live. A write flashes `count`, a mark travels to `doubled`, and the effect runs. Hover a node for its state, or click it for the cause of its last run.
+
+```fsharp map
+let count = createSignal 1
+let doubled = createMemo (fun () -> count.Value * 2)
+createEffect (fun () -> printfn "doubled = %d" doubled.Value)
+
+controls [
+    "Set count to 5", fun () -> count.Value <- 5
+    "Add 1", fun () -> count.Value <- count.Value + 1
+]
+```
+
 ## The graph
 
 Every node belongs to a `Graph`. `new Graph ()` uses `GraphOptions.Default`. The `Api` functions
@@ -394,6 +407,21 @@ printfn "effect runs: %d, isEven runs: %d" cutoffRuns parityRuns
 effect runs: 1, isEven runs: 2
 ```
 
+In the map, an equal write stops at `count`. A write that keeps the parity re-runs `isEven`, which recomputes to the same value and stops there. A write that flips the parity reaches the effect.
+
+```fsharp map
+let count = createSignal 2
+let isEven = createMemo (fun () -> count.Value % 2 = 0)
+let label = createMemo (fun () -> if isEven.Value then "even" else "odd")
+createEffect (fun () -> printfn "%s" label.Value)
+
+controls [
+    "Write 2 (equal)", fun () -> count.Value <- 2
+    "Write 4", fun () -> count.Value <- 4
+    "Write 3", fun () -> count.Value <- 3
+]
+```
+
 `GraphOptions.Equality` chooses the comparison. The default, `JsIdentityPolicy`, follows JavaScript
 `===`. `StructuralPolicy` compares with `EqualityComparer<'T>.Default`.
 
@@ -474,6 +502,21 @@ printfn "%A" branchLog
 ["a"; "x"; "y"; "b"; "c"]
 ```
 
+Toggle the branch to move the effect's edge between `first` and `second`. A write to the source off the branch wakes nothing.
+
+```fsharp map
+let useFirst = createSignal true
+let first = createSignal "a"
+let second = createSignal "x"
+createEffect (fun () -> printfn "%s" (if useFirst.Value then first.Value else second.Value))
+
+controls [
+    "Toggle branch", fun () -> useFirst.Value <- not useFirst.Value
+    "Write first", fun () -> first.Value <- first.Value + "!"
+    "Write second", fun () -> second.Value <- second.Value + "!"
+]
+```
+
 ## Untrack
 
 `untrack body` runs `body` and records no dependencies for the reads inside it. Calls nest, and
@@ -544,6 +587,25 @@ effect: Ada Lovelace
 memo inside the batch: Grace Hopper
 effect: Grace Hopper
 batch result
+```
+
+In the map, two separate writes run the effect twice. The same two writes in a batch run it once.
+
+```fsharp map
+let a = createSignal 0
+let b = createSignal 0
+let sum = createMemo (fun () -> a.Value + b.Value)
+createEffect (fun () -> printfn $"effect: {sum.Value}")
+
+controls [
+    "Two writes", fun () ->
+        a.Value <- a.Value + 1
+        b.Value <- b.Value + 1
+    "Two writes in a batch", fun () ->
+        batch (fun () ->
+            a.Value <- a.Value + 1
+            b.Value <- b.Value + 1)
+]
 ```
 
 ## Scopes and disposal

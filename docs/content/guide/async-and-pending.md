@@ -259,6 +259,21 @@ superseded flight:
 superseded flight's `CancellationToken` is cancelled. Pass the token to the IO the flight performs,
 so that `CancelPrevious` stops the superseded IO.
 
+In the map, `Desk` stands in for a remote service: its requests stay pending until a button answers them. **Next user** starts a flight; pressed twice, the second flight supersedes the first, which drops. **Answer** settles the newest flight and **Fail** fails it. The timeline steps through each event.
+
+```fsharp map timeline
+let desk = Desk<string>()
+let userId = createSignal 1
+let profile = createAsync (fun _ -> desk.Quote userId.Value)
+createEffect (fun () -> printfn $"profile {profile.Value}")
+
+controls [
+    "Next user", fun () -> userId.Value <- userId.Value + 1
+    "Answer", fun () -> desk.Settle $"user {userId.Value}"
+    "Fail", fun () -> desk.Fail "no connection"
+]
+```
+
 Under `Queue` each outcome is readable as soon as it is applied, while later flights are still in
 progress: a new run makes the memo pending until the next outcome is applied. A body that throws
 before its first `await` fails in its turn, after the flights started before it. While the newest
@@ -371,6 +386,19 @@ waiting, (view.TryValue, view.IsWaiting)
 
 ```text
 ((Ready "loading", true, None), (Ready "loaded report", false))
+```
+
+In the map, the effect reads `view` and runs with the fallback while `data` is pending. **Settle** runs the body again with the value; **Fail** passes the failure through the boundary to the effect.
+
+```fsharp map
+let data = createAsyncSource<string> ()
+let view = createSuspense (fun _ -> "loading") (fun () -> "loaded " + data.Value)
+createEffect (fun () -> printfn "%s" view.Value)
+
+controls [
+    "Settle", fun () -> data.Settle "report"
+    "Fail", fun () -> data.Fail (exn "offline")
+]
 ```
 
 A fallback may read reactive values itself. A fallback that suspends leaves the boundary `Pending`,
