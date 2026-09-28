@@ -113,6 +113,9 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
     2.5rem 2rem 5rem -2.5rem color-mix(in oklab, var(--rv-violet) 30%, transparent),
     var(--nacara-shadow-floating); }
 .nacara-layout--splash .rv-map__svg { max-width: 46rem; margin: 0 auto; }
+.nacara-content .rv-map-edit { margin: -1.75rem 0 2.5rem; text-align: right; font-size: .8125rem; }
+.nacara-content .rv-map-edit a { color: var(--nacara-text-muted); }
+.nacara-content .rv-map-edit a:hover { color: var(--rv-contour); }
 
 .rv-trace { display: grid; gap: 1.25rem; }
 .nacara-content .rv-trace__lead { margin: 0; color: var(--nacara-text-muted); max-width: 40rem; }

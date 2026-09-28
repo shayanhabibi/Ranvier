@@ -283,6 +283,17 @@ let site =
     |> Sitemap.register
     |> LinkValidator.register
     |> SolidExamples.registerWith solidExamples
+    |> LiveExample.registerWith (
+        LiveExample.preset (
+            LiveExamplePreset.create "maps"
+            |> LiveExamplePreset.project "maps/Ranvier.Docs.Maps.fsproj"
+            |> LiveExamplePreset.property "RanvierTrace" "true"
+            |> LiveExamplePreset.css "../brand/tokens/ranvier-brand-tokens.css"
+            |> LiveExamplePreset.css "theme/maps.css"
+            |> LiveExamplePreset.template "live/snippet.html"
+            |> LiveExamplePreset.asDefault
+        )
+    )
     |> OgImage.registerWith ogImages
     |> AgentFriendly.registerWith (
         AgentFriendly.summary "Fine-grained reactive computation for .NET, with a Fable target planned"
