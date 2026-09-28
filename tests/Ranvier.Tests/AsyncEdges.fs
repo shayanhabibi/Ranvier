@@ -188,7 +188,9 @@ let tests =
                             trigger.Value |> ignore
                             let flight = TaskCompletionSource<int>()
 
-                            token.Register (fun () -> flight.TrySetException (TimeoutException "superseded") |> ignore)
+                            token.Register (fun () ->
+                                flight.TrySetException (TimeoutException "superseded")
+                                |> ignore)
                             |> ignore
 
                             flights.Add flight
@@ -255,7 +257,10 @@ let tests =
                         fun token ->
                             if trigger.Value = 0 then
                                 let flight = TaskCompletionSource<int>()
-                                token.Register (fun () -> flight.TrySetCanceled token |> ignore) |> ignore
+
+                                token.Register (fun () -> flight.TrySetCanceled token |> ignore)
+                                |> ignore
+
                                 flight.Task
                             else
                                 TaskCompletionSource<int>().Task
@@ -539,7 +544,7 @@ let tests =
 
                 let isDisposedFailure reading =
                     match reading with
-                    | Failed(:? ObjectDisposedException) -> true
+                    | Failed (:? ObjectDisposedException) -> true
                     | _ -> false
 
                 Expect.isTrue (isDisposedFailure a.TryValue) "the memo reads as disposed"
@@ -633,7 +638,10 @@ let tests =
                         g,
                         fun _ ->
                             let v = up.Value
-                            if failing.Value then failwith "sync"
+
+                            if failing.Value then
+                                failwith "sync"
+
                             flights <- flights + 1
                             Task.FromResult (v * 2)
                     )

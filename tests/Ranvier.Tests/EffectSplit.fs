@@ -12,8 +12,12 @@ open Ranvier
 type private Flight<'T>() =
     let source = TaskCompletionSource<'T>()
     member _.Task = source.Task
-    member _.Settle(v: 'T) = source.SetResult v
-    member _.Fail(e: exn) = source.SetException e
+
+    member _.Settle(v: 'T) =
+        source.SetResult v
+
+    member _.Fail(e: exn) =
+        source.SetException e
 
 /// <summary>
 /// Each pair runs one scenario through <c>createEffect</c> and through <c>createEffectOn</c>.
@@ -29,8 +33,8 @@ let tests =
                 let a = AsyncSource<int>(g)
                 let log = ResizeArray ()
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         log.Add "request"
                         log.Add $"saw {a.Value}"))
 
@@ -45,12 +49,10 @@ let tests =
                 let a = AsyncSource<int>(g)
                 let log = ResizeArray ()
 
-                do (
-                    createEffectOn
-                        (fun () -> a.Value)
-                        (fun v ->
-                            log.Add "request"
-                            log.Add $"saw {v}"))
+                do
+                    (createEffectOn (fun () -> a.Value) (fun v ->
+                        log.Add "request"
+                        log.Add $"saw {v}"))
 
                 a.Settle 5
 
@@ -64,8 +66,8 @@ let tests =
                 let b = AsyncSource<int>(g)
                 let sent = ref 0
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         incr sent
                         let x = a.Value
                         let y = b.Value
@@ -100,8 +102,8 @@ let tests =
                 let opened = ref 0
                 let closed = ref 0
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         incr opened
                         onCleanup (fun () -> incr closed)
                         ignore a.Value))
@@ -118,12 +120,10 @@ let tests =
                 let opened = ref 0
                 let closed = ref 0
 
-                do (
-                    createEffectOn
-                        (fun () -> a.Value)
-                        (fun _ ->
-                            incr opened
-                            onCleanup (fun () -> incr closed)))
+                do
+                    (createEffectOn (fun () -> a.Value) (fun _ ->
+                        incr opened
+                        onCleanup (fun () -> incr closed)))
 
                 a.Settle 1
 
@@ -147,8 +147,8 @@ let tests =
 
                 let log = ResizeArray ()
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         log.Add "render"
                         log.Add $"show {user.Value}"))
 
@@ -179,12 +179,10 @@ let tests =
 
                 let log = ResizeArray ()
 
-                do (
-                    createEffectOn
-                        (fun () -> user.Value)
-                        (fun name ->
-                            log.Add $"show {name}"
-                            onCleanup (fun () -> log.Add $"hide {name}")))
+                do
+                    (createEffectOn (fun () -> user.Value) (fun name ->
+                        log.Add $"show {name}"
+                        onCleanup (fun () -> log.Add $"hide {name}")))
 
                 flights[1].Settle "ada"
                 key.Value <- 2
@@ -202,8 +200,8 @@ let tests =
                 let a = new AsyncMemo<int> (g, (fun _ -> flight.Task))
                 let log = ResizeArray ()
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         log.Add "request"
                         log.Add $"saw {a.Value}"))
 
@@ -244,15 +242,13 @@ let tests =
                 let log = ResizeArray ()
 
                 do
-                    createEffectOn
-                        (fun () -> user.Value)
-                        (fun name ->
-                            log.Add $"show {name}"
-                            onCleanup (fun () -> log.Add $"hide {name}"))
+                    createEffectOn (fun () -> user.Value) (fun name ->
+                        log.Add $"show {name}"
+                        onCleanup (fun () -> log.Add $"hide {name}"))
 
                 flights[1].Settle "ada"
                 key.Value <- 2
-                flights[2].Fail (InvalidOperationException "offline")
+                flights[2].Fail(InvalidOperationException "offline")
 
                 Expect.sequenceEqual log [ "show ada" ] "the failed re-flight leaves ada shown"
             }
@@ -262,7 +258,10 @@ let tests =
                 use _ = g.Activate ()
                 let count = Signal (g, 1)
                 let theme = Signal (g, "light")
-                let render (n: int) = $"{n} in {theme.Value}"
+
+                let render (n: int) =
+                    $"{n} in {theme.Value}"
+
                 let log = ResizeArray ()
 
                 do (createEffect (fun () -> log.Add (render count.Value)))
@@ -277,7 +276,10 @@ let tests =
                 use _ = g.Activate ()
                 let count = Signal (g, 1)
                 let theme = Signal (g, "light")
-                let render (n: int) = $"{n} in {theme.Value}"
+
+                let render (n: int) =
+                    $"{n} in {theme.Value}"
+
                 let log = ResizeArray ()
 
                 do (createEffectOn (fun () -> count.Value) (fun n -> log.Add (render n)))
@@ -294,8 +296,8 @@ let tests =
                 let items = Signal (g, [ 1; 2 ])
                 let sent = ref 0
 
-                do (
-                    createEffect (fun () ->
+                do
+                    (createEffect (fun () ->
                         let n = List.length items.Value
                         incr sent
                         ignore n))
@@ -327,9 +329,9 @@ let tests =
                 let doubled = Signal (g, 0)
                 let seen = ResizeArray ()
 
-                do (
-                    createEffectOn (fun () -> s.Value) (fun v -> doubled.Value <- v * 2)
-                    createEffectOn (fun () -> doubled.Value) seen.Add)
+                do
+                    (createEffectOn (fun () -> s.Value) (fun v -> doubled.Value <- v * 2)
+                     createEffectOn (fun () -> doubled.Value) seen.Add)
 
                 s.Value <- 5
 
@@ -344,11 +346,9 @@ let tests =
 
                 let root =
                     createRoot (fun owner ->
-                        createEffectOn
-                            (fun () -> s.Value)
-                            (fun v ->
-                                log.Add $"show {v}"
-                                onCleanup (fun () -> log.Add $"hide {v}"))
+                        createEffectOn (fun () -> s.Value) (fun v ->
+                            log.Add $"show {v}"
+                            onCleanup (fun () -> log.Add $"hide {v}"))
 
                         owner)
 
@@ -376,17 +376,15 @@ let tests =
                 let log = ResizeArray ()
 
                 do
-                    createEffectOn
-                        (fun () -> user.Value)
-                        (fun name ->
-                            log.Add $"show {name}"
-                            onCleanup (fun () -> log.Add $"hide {name}"))
+                    createEffectOn (fun () -> user.Value) (fun name ->
+                        log.Add $"show {name}"
+                        onCleanup (fun () -> log.Add $"hide {name}"))
 
                 flights[1].Settle "ada"
                 key.Value <- 2
                 flights[2].Settle "ada"
                 key.Value <- 3
-                flights[3].Fail (InvalidOperationException "offline")
+                flights[3].Fail(InvalidOperationException "offline")
                 key.Value <- 4
                 flights[4].Settle "ada"
 
@@ -399,12 +397,13 @@ let tests =
                 let s = Signal (g, 1)
                 let log = ResizeArray ()
 
-                do (
-                    createEffectOn
-                        (fun () -> s.Value)
-                        (fun v ->
-                            log.Add v
-                            onCleanup (fun () -> if v = 2 then s.Value <- 10)))
+                do
+                    (createEffectOn (fun () -> s.Value) (fun v ->
+                        log.Add v
+
+                        onCleanup (fun () ->
+                            if v = 2 then
+                                s.Value <- 10)))
 
                 s.Value <- 2
                 s.Value <- 3
@@ -421,14 +420,12 @@ let tests =
 
                 root <-
                     createRoot (fun owner ->
-                        createEffectOn
-                            (fun () -> s.Value)
-                            (fun v ->
-                                log.Add $"show {v}"
+                        createEffectOn (fun () -> s.Value) (fun v ->
+                            log.Add $"show {v}"
 
-                                onCleanup (fun () ->
-                                    log.Add $"hide {v}"
-                                    root.Dispose ()))
+                            onCleanup (fun () ->
+                                log.Add $"hide {v}"
+                                root.Dispose ()))
 
                         owner)
 
@@ -447,12 +444,10 @@ let tests =
 
                 let root =
                     createRoot (fun owner ->
-                        createEffectOn
-                            (fun () -> s.Value)
-                            (fun v ->
-                                createEffect (fun () -> log.Add $"inner {v} {tick.Value}")
-                                untrack (fun () -> onCleanup (fun () -> log.Add $"untracked hide {v}"))
-                                onCleanup (fun () -> log.Add $"hide {v}"))
+                        createEffectOn (fun () -> s.Value) (fun v ->
+                            createEffect (fun () -> log.Add $"inner {v} {tick.Value}")
+                            untrack (fun () -> onCleanup (fun () -> log.Add $"untracked hide {v}"))
+                            onCleanup (fun () -> log.Add $"hide {v}"))
 
                         owner)
 
@@ -464,14 +459,16 @@ let tests =
 
                 Expect.sequenceEqual
                     log
-                    [ "inner 1 0"
-                      "inner 1 1"
-                      "hide 1"
-                      "untracked hide 1"
-                      "inner 2 1"
-                      "inner 2 2"
-                      "hide 2"
-                      "untracked hide 2" ]
+                    [
+                        "inner 1 0"
+                        "inner 1 1"
+                        "hide 1"
+                        "untracked hide 1"
+                        "inner 2 1"
+                        "inner 2 2"
+                        "hide 2"
+                        "untracked hide 2"
+                    ]
                     "each action's effect and cleanups end with it"
             }
 
@@ -483,21 +480,16 @@ let tests =
 
                 let root =
                     createRoot (fun owner ->
-                        createEffectOn
-                            (fun () -> s.Value)
-                            (fun v ->
-                                untrack (fun () -> onCleanup (fun () -> log.Add $"untracked hide {v}"))
-                                log.Add $"act {v}")
+                        createEffectOn (fun () -> s.Value) (fun v ->
+                            untrack (fun () -> onCleanup (fun () -> log.Add $"untracked hide {v}"))
+                            log.Add $"act {v}")
 
                         owner)
 
                 s.Value <- 2
                 root.Dispose ()
 
-                Expect.sequenceEqual
-                    log
-                    [ "act 1"; "untracked hide 1"; "act 2"; "untracked hide 2" ]
-                    "the untracked cleanup belongs to the action"
+                Expect.sequenceEqual log [ "act 1"; "untracked hide 1"; "act 2"; "untracked hide 2" ] "the untracked cleanup belongs to the action"
 
                 Expect.isEmpty g.Root.Errors "the cleanup found its owner"
             }
@@ -508,12 +500,10 @@ let tests =
                 let s = Signal (g, 1)
                 let log = ResizeArray ()
 
-                do (
-                    createEffectOn
-                        (fun () -> s.Value)
-                        (fun v ->
-                            log.Add $"act {v}"
-                            onCleanup (fun () -> failwith $"cleanup {v}")))
+                do
+                    (createEffectOn (fun () -> s.Value) (fun v ->
+                        log.Add $"act {v}"
+                        onCleanup (fun () -> failwith $"cleanup {v}")))
 
                 s.Value <- 2
 
@@ -531,14 +521,12 @@ let tests =
                 let s = Signal (g, 1)
                 let log = ResizeArray ()
 
-                do (
-                    createEffectOn
-                        (fun () -> s.Value % 10)
-                        (fun v ->
-                            log.Add v
+                do
+                    (createEffectOn (fun () -> s.Value % 10) (fun v ->
+                        log.Add v
 
-                            if v = 2 then
-                                failwith "boom"))
+                        if v = 2 then
+                            failwith "boom"))
 
                 s.Value <- 2
                 s.Value <- 12
@@ -554,8 +542,8 @@ let tests =
                 let log = ResizeArray ()
                 let caught = ref 0
 
-                do (
-                    createEffectOn
+                do
+                    (createEffectOn
                         (fun () ->
                             try
                                 onCleanup ignore

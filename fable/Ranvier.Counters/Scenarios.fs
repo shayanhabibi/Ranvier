@@ -83,7 +83,8 @@ module private Ranvier =
                     if split then
                         createEffectOn (fun () -> shared.Value + row.Value) (fun v -> sink <- v)
                     else
-                        new Effect (graph, (fun () -> sink <- shared.Value + row.Value)) |> ignore
+                        new Effect (graph, (fun () -> sink <- shared.Value + row.Value))
+                        |> ignore
 
                     row)
 
@@ -197,7 +198,8 @@ module private Ranvier =
                     use _ = graph.Activate ()
                     createEffectOn (fun () -> source.Value >>> 30) (fun v -> sink <- v)
                 else
-                    new Effect (graph, (fun () -> sink <- source.Value >>> 30)) |> ignore
+                    new Effect (graph, (fun () -> sink <- source.Value >>> 30))
+                    |> ignore
 
                 owner)
 
@@ -212,7 +214,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -416,7 +418,11 @@ module private Ripple =
 
 let private workload (prepare: int -> Workloads.Workload) (n: int) : Prepared =
     let prepared = prepare n
-    { Run = prepared.Run; Teardown = prepared.Teardown }
+
+    {
+        Run = prepared.Run
+        Teardown = prepared.Teardown
+    }
 
 let private scenario name unit ops (engines: (string * (int -> Prepared)) list) =
     engines
@@ -462,52 +468,81 @@ let all (scale: int) : Case list =
                 [ "Ranvier", Ranvier.dispose false; "Fable.Ripple", Ripple.dispose ]
         yield! scenario "create-on" $"one root of %d{RowCount} createEffectOn rows" (8 * scale) [ "Ranvier", Ranvier.create true ]
         yield!
-            scenario "update-on" $"write every %d{UpdateStride}th of %d{RowCount} createEffectOn rows" (50 * scale) [
-                "Ranvier", Ranvier.update true
-            ]
+            scenario "update-on" $"write every %d{UpdateStride}th of %d{RowCount} createEffectOn rows" (50 * scale) [ "Ranvier", Ranvier.update true ]
         yield! scenario "dispose-on" $"dispose one root of %d{RowCount} createEffectOn rows" (8 * scale) [ "Ranvier", Ranvier.dispose true ]
         yield!
-            scenario "derive-effect" "write a new value whose derived value is unchanged, Effect" (50000 * scale) [
-                "Ranvier", Ranvier.derivedCutoff false
-            ]
+            scenario
+                "derive-effect"
+                "write a new value whose derived value is unchanged, Effect"
+                (50000 * scale)
+                [ "Ranvier", Ranvier.derivedCutoff false ]
         yield!
-            scenario "derive-on" "write a new value whose derived value is unchanged, createEffectOn" (50000 * scale) [
-                "Ranvier", Ranvier.derivedCutoff true
-            ]
+            scenario
+                "derive-on"
+                "write a new value whose derived value is unchanged, createEffectOn"
+                (50000 * scale)
+                [ "Ranvier", Ranvier.derivedCutoff true ]
         yield!
-            scenario "work-status" "write every 10th of 1000 rows; the act formats a label, 1 write in 10 changes it" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.status false; "Ranvier (createEffectOn)", Ranvier.status true
-            ]
+            scenario
+                "work-status"
+                "write every 10th of 1000 rows; the act formats a label, 1 write in 10 changes it"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.status false
+                    "Ranvier (createEffectOn)", Ranvier.status true
+                ]
         yield!
-            scenario "work-value" "write every 10th of 1000 rows; the act formats a label, every write changes it" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.value false; "Ranvier (createEffectOn)", Ranvier.value true
-            ]
+            scenario
+                "work-value"
+                "write every 10th of 1000 rows; the act formats a label, every write changes it"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.value false
+                    "Ranvier (createEffectOn)", Ranvier.value true
+                ]
         yield!
-            scenario "work-form" "write one field of each of 125 8-field forms; validity feeds a signal and an effect" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.form false; "Ranvier (createEffectOn)", Ranvier.form true
-            ]
+            scenario
+                "work-form"
+                "write one field of each of 125 8-field forms; validity feeds a signal and an effect"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.form false
+                    "Ranvier (createEffectOn)", Ranvier.form true
+                ]
         yield!
-            scenario "app-table" $"alternate a filter query and a sort direction over %d{Workloads.Rows} rows" (50 * scale) [
-                "Ranvier", workload Workloads.table
-            ]
+            scenario
+                "app-table"
+                $"alternate a filter query and a sort direction over %d{Workloads.Rows} rows"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.table ]
         yield!
-            scenario "app-detail" $"move the selection over %d{Workloads.Rows} rows; the detail rebuilds %d{Workloads.DetailNodes} memo and effect pairs" (50 * scale) [
-                "Ranvier", workload Workloads.detail
-            ]
+            scenario
+                "app-detail"
+                $"move the selection over %d{Workloads.Rows} rows; the detail rebuilds %d{Workloads.DetailNodes} memo and effect pairs"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.detail ]
         yield!
-            scenario "shape-diamond" $"write a source read by %d{Workloads.DiamondWidth} memos joined by one" (5000 * scale) [
-                "Ranvier", workload Workloads.wideDiamond
-            ]
+            scenario
+                "shape-diamond"
+                $"write a source read by %d{Workloads.DiamondWidth} memos joined by one"
+                (5000 * scale)
+                [ "Ranvier", workload Workloads.wideDiamond ]
         yield!
-            scenario "shape-dynamic" $"alternate a branch flip and a write of every active source of %d{Workloads.DynamicReaders} effects" (500 * scale) [
-                "Ranvier", workload Workloads.dynamicBranches
-            ]
+            scenario
+                "shape-dynamic"
+                $"alternate a branch flip and a write of every active source of %d{Workloads.DynamicReaders} effects"
+                (500 * scale)
+                [ "Ranvier", workload Workloads.dynamicBranches ]
         yield!
-            scenario "async-resolve" $"reload %d{Workloads.Widgets} suspense widgets of %d{Workloads.SourcesPerWidget} sources, then settle each" (50 * scale) [
-                "Ranvier", workload Workloads.asyncResolve
-            ]
+            scenario
+                "async-resolve"
+                $"reload %d{Workloads.Widgets} suspense widgets of %d{Workloads.SourcesPerWidget} sources, then settle each"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.asyncResolve ]
         yield!
-            scenario "async-recover" "fail one source of one error-boundary widget, then settle a replacement" (500 * scale) [
-                "Ranvier", workload Workloads.asyncRecover
-            ]
+            scenario
+                "async-recover"
+                "fail one source of one error-boundary widget, then settle a replacement"
+                (500 * scale)
+                [ "Ranvier", workload Workloads.asyncRecover ]
     ]

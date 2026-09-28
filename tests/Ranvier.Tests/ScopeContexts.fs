@@ -140,7 +140,11 @@ let tests =
                                  with _ ->
                                      ())
 
-                                (try self.Get 2 with _ -> -100) + 1
+                                (try
+                                    self.Get 2
+                                 with _ ->
+                                     -100)
+                                + 1
                             else
                                 sel + k)
                         (fun _ _ -> [ 1; 2 ])
@@ -172,7 +176,11 @@ let tests =
 
                 let ex =
                     Expect.throwsC
-                        (fun () -> g.Batch (fun () -> s.Value <- 2; p.Value) |> ignore)
+                        (fun () ->
+                            g.Batch (fun () ->
+                                s.Value <- 2
+                                p.Value)
+                            |> ignore)
                         id
 
                 Expect.isFalse (ex.Message.Contains "createMemo") "the reader is not blamed"
@@ -208,7 +216,11 @@ let tests =
                 use _ = g.Activate ()
                 let w = createSignal 0
                 let mutable effectRuns = 0
-                createEffect (fun () -> w.Value |> ignore; effectRuns <- effectRuns + 1)
+
+                createEffect (fun () ->
+                    w.Value |> ignore
+                    effectRuns <- effectRuns + 1)
+
                 let mutable seenMid = -1
 
                 let lookup =

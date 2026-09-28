@@ -35,16 +35,23 @@ let counterRun (run: Run) =
 let private counterCase (counters: WorkerRun) (index: int) (case: CaseRun) =
     let other = counters.Cases[index]
 
-    if other.Scenario <> case.Scenario || other.Engine <> case.Engine then
-        failwith
-            $"The counter worker ran %s{other.Scenario}/%s{other.Engine} where the measured worker ran %s{case.Scenario}/%s{case.Engine}."
+    if
+        other.Scenario <> case.Scenario
+        || other.Engine <> case.Engine
+    then
+        failwith $"The counter worker ran %s{other.Scenario}/%s{other.Engine} where the measured worker ran %s{case.Scenario}/%s{case.Engine}."
 
     other
 
 /// <summary>
 /// The median and range of one figure across runs.
 /// </summary>
-type Stat = { Median: float; Min: float; Max: float }
+type Stat =
+    {
+        Median: float
+        Min: float
+        Max: float
+    }
 
 let private stat (values: float[]) =
     let sorted = Array.sort values
@@ -99,12 +106,14 @@ type Row =
 
 /// <summary>True for Ranvier and its variants, such as <c>Ranvier (createEffect)</c>.</summary>
 let private isRanvier (engine: string) =
-    engine = "Ranvier" || engine.StartsWith "Ranvier ("
+    engine = "Ranvier"
+    || engine.StartsWith "Ranvier ("
 
 let private createdCounters =
     set [ "SignalsCreated"; "MemosCreated"; "EffectsCreated"; "OwnersCreated" ]
 
-let private perOp (small: int64) (large: int64) (n: int) = float (large - small) / float n
+let private perOp (small: int64) (large: int64) (n: int) =
+    float (large - small) / float n
 
 let rows (sources: string[]) (run: Run) : Row[] =
     let regions =
@@ -133,7 +142,10 @@ let rows (sources: string[]) (run: Run) : Row[] =
             | _ -> [||], [||]
 
         let counters =
-            if counterSource.CountersCompiled && isRanvier case.Engine then
+            if
+                counterSource.CountersCompiled
+                && isRanvier case.Engine
+            then
                 let source = counterCase counterSource index case
 
                 Array.map2
@@ -181,7 +193,11 @@ let medianRows (sources: string[]) (runs: Run[]) : Row[] =
                 row.Pmc
                 |> Array.mapi (fun k p ->
                     { p with
-                        Value = (perRun |> Array.map (fun r -> r[i].Pmc[k].Value) |> stat).Median
+                        Value =
+                            (perRun
+                             |> Array.map (fun r -> r[i].Pmc[k].Value)
+                             |> stat)
+                                .Median
                     })
         })
 
@@ -229,10 +245,13 @@ let calibrate (sources: string[]) (runs: Run[]) : Calibration =
                 let case = first.Cases[caseIndex]
 
                 for m in 0 .. case.Measurements.Length - 1 do
-                    let measurements = runs |> Array.map (fun r -> r.Worker.Cases[caseIndex].Measurements[m])
+                    let measurements =
+                        runs
+                        |> Array.map (fun r -> r.Worker.Cases[caseIndex].Measurements[m])
 
                     let counterMeasurements =
-                        runs |> Array.map (fun r -> (counterRun r).Cases[caseIndex].Measurements[m])
+                        runs
+                        |> Array.map (fun r -> (counterRun r).Cases[caseIndex].Measurements[m])
 
                     let label = if m = 0 then "N" else "2N"
                     let bytes = measurements |> Array.map (fun x -> x.Bytes)
@@ -247,7 +266,9 @@ let calibrate (sources: string[]) (runs: Run[]) : Calibration =
                             }
 
                     for c in 0 .. counterMeasurements[0].Counters.Length - 1 do
-                        let values = counterMeasurements |> Array.map (fun x -> x.Counters[c].Value)
+                        let values =
+                            counterMeasurements
+                            |> Array.map (fun x -> x.Counters[c].Value)
 
                         if Array.distinct(values).Length > 1 then
                             yield
@@ -267,7 +288,10 @@ let calibrate (sources: string[]) (runs: Run[]) : Calibration =
                 let row = perRun[0][i]
 
                 for k in 0 .. row.Pmc.Length - 1 do
-                    let values = perRun |> Array.map (fun r -> r[i].Pmc[k].Value) |> stat
+                    let values =
+                        perRun
+                        |> Array.map (fun r -> r[i].Pmc[k].Value)
+                        |> stat
 
                     yield
                         {
@@ -309,7 +333,11 @@ let engineLabel (versions: Map<string, string>) (engine: string) =
     | None -> engine
 
 let private versionLine (versions: Map<string, string>) =
-    String.Join (", ", versions |> Seq.map (fun (KeyValue (name, version)) -> $"%s{name} %s{version}"))
+    String.Join (
+        ", ",
+        versions
+        |> Seq.map (fun (KeyValue (name, version)) -> $"%s{name} %s{version}")
+    )
 
 let private shortName (source: string) =
     match source with
@@ -339,7 +367,7 @@ type Header =
 
 /// <summary>"true" when the loaded Ranvier assembly is a traced build, otherwise "false".</summary>
 let ranvierTrace () =
-    typeof<Ranvier.Graph>.Assembly.GetCustomAttributes (typeof<Reflection.AssemblyMetadataAttribute>, false)
+    typeof<Ranvier.Graph>.Assembly.GetCustomAttributes(typeof<Reflection.AssemblyMetadataAttribute>, false)
     |> Array.exists (fun a ->
         let a = a :?> Reflection.AssemblyMetadataAttribute
         a.Key = "RanvierTrace" && a.Value = "true")
@@ -347,7 +375,9 @@ let ranvierTrace () =
 
 let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: Calibration) =
     let text = StringBuilder ()
-    let line (s: string) = text.Append(s).Append("\r\n") |> ignore
+
+    let line (s: string) =
+        text.Append(s).Append("\r\n") |> ignore
 
     line $"# Counter bench, %s{header.Commit}"
     line ""
@@ -363,8 +393,13 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
     line ""
     line "## Engine differences"
     line ""
-    line "- R3 pushes each write straight to its subscribers, without batching or glitch-free ordering. Its chain is `Select` operators holding no cached value."
-    line "- FSharp.Data.Adaptive dispose removes the callback subscriptions only. The `AVal.map2` nodes stay in the weak output sets of their `cval`s until collected."
+
+    line
+        "- R3 pushes each write straight to its subscribers, without batching or glitch-free ordering. Its chain is `Select` operators holding no cached value."
+
+    line
+        "- FSharp.Data.Adaptive dispose removes the callback subscriptions only. The `AVal.map2` nodes stay in the weak output sets of their `cval`s until collected."
+
     line ""
 
     let hasPmc = table |> Array.exists (fun r -> r.Pmc.Length > 0)
@@ -379,8 +414,18 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
         let first = group[0]
         line $"## %s{scenario}: %s{first.Unit} (N = %d{first.N})"
         line ""
-        line ("| Engine | " + String.Join (" | ", pmcColumns) + " | bytes/op | objects/op | counters/op |")
-        line ("| --- |" + String.replicate pmcColumns.Length " ---: |" + " ---: | ---: | --- |")
+
+        line (
+            "| Engine | "
+            + String.Join (" | ", pmcColumns)
+            + " | bytes/op | objects/op | counters/op |"
+        )
+
+        line (
+            "| --- |"
+            + String.replicate pmcColumns.Length " ---: |"
+            + " ---: | ---: | --- |"
+        )
 
         for row in group do
             let pmc =
@@ -403,12 +448,28 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
                 elif row.Counters.Length = 0 then
                     "0"
                 else
-                    String.Join (", ", row.Counters |> Array.map (fun c -> c.Name + " " + format c.Value))
+                    String.Join (
+                        ", ",
+                        row.Counters
+                        |> Array.map (fun c -> c.Name + " " + format c.Value)
+                    )
 
             let gc = if row.GcFree then "" else " (GC in region)"
 
-            line
-                ("| " + String.Join (" | ", [| engineLabel header.Versions row.Engine; yield! pmc; format row.BytesPerOp + gc; objects; counters |]) + " |")
+            line (
+                "| "
+                + String.Join (
+                    " | ",
+                    [|
+                        engineLabel header.Versions row.Engine
+                        yield! pmc
+                        format row.BytesPerOp + gc
+                        objects
+                        counters
+                    |]
+                )
+                + " |"
+            )
 
         line ""
 
@@ -427,7 +488,10 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
             let values = String.Join (", ", d.Values)
             line $"| %s{d.Scenario} | %s{d.Engine} | %s{d.Measure} | %s{values} |"
 
-    if calibration.Spreads.Length > 0 && calibration.Runs > 1 then
+    if
+        calibration.Spreads.Length > 0
+        && calibration.Runs > 1
+    then
         line ""
         line "| Scenario | Engine | Source | Median/op | Min/op | Max/op | Spread |"
         line "| --- | --- | --- | ---: | ---: | ---: | ---: |"
@@ -437,7 +501,7 @@ let markdown (header: Header) (sources: string[]) (table: Row[]) (calibration: C
                 if s.Min = 0.0 then
                     "n/a"
                 else
-                    ((s.Max - s.Min) / s.Min).ToString ("P2", invariant)
+                    ((s.Max - s.Min) / s.Min).ToString("P2", invariant)
 
             line $"| %s{s.Scenario} | %s{s.Engine} | %s{s.Source} | %s{format s.Median} | %s{format s.Min} | %s{format s.Max} | %s{spread} |"
 
@@ -506,14 +570,10 @@ type NodeSection =
         Rows: NodeRow[]
     }
 
-let private perOpF (small: float) (large: float) (n: int) = (large - small) / float n
+let private perOpF (small: float) (large: float) (n: int) =
+    (large - small) / float n
 
-let nodeRows
-    (sources: string[])
-    (allocation: NodeRuns.NodeRun[])
-    (counters: NodeRuns.NodeRun[])
-    (pmc: NodeRuns.NodePmcRun[])
-    : NodeRow[] =
+let nodeRows (sources: string[]) (allocation: NodeRuns.NodeRun[]) (counters: NodeRuns.NodeRun[]) (pmc: NodeRuns.NodePmcRun[]) : NodeRow[] =
     allocation[0].Cases
     |> Array.mapi (fun i case ->
         let small = case.Measurements[0]
@@ -526,9 +586,16 @@ let nodeRows
             |> stat
 
         let pmcStats =
-            if pmc |> Array.exists (fun r -> r.MainThread.Length > 0) then
+            if
+                pmc
+                |> Array.exists (fun r -> r.MainThread.Length > 0)
+            then
                 let perRun (regions: Pmc.RegionCounts[]) (k: int) =
-                    let byRegion = regions |> Array.map (fun c -> c.Region, c) |> dict
+                    let byRegion =
+                        regions
+                        |> Array.map (fun c -> c.Region, c)
+                        |> dict
+
                     let a = byRegion[small.Region].Values[k]
                     let b = byRegion[large.Region].Values[k]
                     perOp (int64 a) (int64 b) n
@@ -537,8 +604,14 @@ let nodeRows
                 |> Array.mapi (fun k name ->
                     {
                         Name = name
-                        MainThread = pmc |> Array.map (fun r -> perRun r.MainThread k) |> stat
-                        AllThreads = pmc |> Array.map (fun r -> perRun r.AllThreads k) |> stat
+                        MainThread =
+                            pmc
+                            |> Array.map (fun r -> perRun r.MainThread k)
+                            |> stat
+                        AllThreads =
+                            pmc
+                            |> Array.map (fun r -> perRun r.AllThreads k)
+                            |> stat
                     })
             else
                 [||]
@@ -576,7 +649,9 @@ let nodeRows
             HeapUsedBytes = across (fun m -> m.HeapUsedBytes)
             GcFree =
                 allocation
-                |> Array.forall (fun run -> run.Cases[i].Measurements |> Array.forall (fun m -> m.NoGcRegion))
+                |> Array.forall (fun run ->
+                    run.Cases[i].Measurements
+                    |> Array.forall (fun m -> m.NoGcRegion))
             ObjectsPerOp =
                 if perOpCounters.Length = 0 then
                     None
@@ -585,10 +660,13 @@ let nodeRows
                     |> Array.filter (fun c -> createdCounters.Contains c.Name)
                     |> Array.sumBy (fun c -> c.Value)
                     |> Some
-            Counters = perOpCounters |> Array.filter (fun c -> c.Value <> 0.0)
+            Counters =
+                perOpCounters
+                |> Array.filter (fun c -> c.Value <> 0.0)
             CountersIdentical =
                 counters.Length < 2
-                || counters |> Array.forall (fun run -> countersOf run = countersOf counters[0])
+                || counters
+                   |> Array.forall (fun run -> countersOf run = countersOf counters[0])
         })
 
 let private formatStat (s: Stat) =
@@ -608,7 +686,10 @@ let private range (s: Stat) =
 /// </summary>
 let nodeMarkdown (sources: string[]) (section: NodeSection) =
     let text = StringBuilder ()
-    let line (s: string) = text.Append(s).Append("\r\n") |> ignore
+
+    let line (s: string) =
+        text.Append(s).Append("\r\n") |> ignore
+
     let runs = section.AllocationRuns.Length
 
     line $"# Fable under Node.js %s{section.Node}"
@@ -624,7 +705,9 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
     line "- Every figure is (m(2N) - m(N)) / N. A figure followed by a bracketed range differed between processes."
     line ""
 
-    let hasPmc = section.Rows |> Array.exists (fun r -> r.Pmc.Length > 0)
+    let hasPmc =
+        section.Rows
+        |> Array.exists (fun r -> r.Pmc.Length > 0)
 
     let pmcColumns =
         if hasPmc then
@@ -633,7 +716,9 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
         else
             [| "instr/op" |]
 
-    for scenario, group in section.Rows |> Array.groupBy (fun r -> r.Scenario) do
+    for scenario, group in
+        section.Rows
+        |> Array.groupBy (fun r -> r.Scenario) do
         let first = group[0]
         line $"## %s{scenario}: %s{first.Unit} (N = %d{first.N})"
         line ""
@@ -644,7 +729,11 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
             + " | bytes/op | bytes range | heapUsed/op | objects/op | counters/op |"
         )
 
-        line ("| --- |" + String.replicate pmcColumns.Length " ---: |" + " ---: | ---: | ---: | ---: | --- |")
+        line (
+            "| --- |"
+            + String.replicate pmcColumns.Length " ---: |"
+            + " ---: | ---: | ---: | ---: | --- |"
+        )
 
         for row in group do
             let pmc =
@@ -660,9 +749,16 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
                 | None -> "n/a"
 
             let counters =
-                if row.ObjectsPerOp.IsNone then "n/a"
-                elif row.Counters.Length = 0 then "0"
-                else String.Join (", ", row.Counters |> Array.map (fun c -> c.Name + " " + format c.Value))
+                if row.ObjectsPerOp.IsNone then
+                    "n/a"
+                elif row.Counters.Length = 0 then
+                    "0"
+                else
+                    String.Join (
+                        ", ",
+                        row.Counters
+                        |> Array.map (fun c -> c.Name + " " + format c.Value)
+                    )
 
             let counters =
                 if row.CountersIdentical then

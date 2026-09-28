@@ -14,13 +14,13 @@ let baseUrl = "/Ranvier/"
 
 /// A stylesheet from docs/theme, with the `__BASE__` placeholder in asset URLs replaced by baseUrl.
 let private themeCss name =
-    File.ReadAllText(Path.Combine(__SOURCE_DIRECTORY__, "theme", name)).Replace("__BASE__", baseUrl)
+    File.ReadAllText(Path.Combine (__SOURCE_DIRECTORY__, "theme", name)).Replace("__BASE__", baseUrl)
 
 /// brand/tokens/ranvier-brand-tokens.css, the single source of the --rv-* colours, with its
 /// [data-ranvier-theme] selectors mapped to the docs theme's :root[data-theme].
 let private brandTokensCss =
     File
-        .ReadAllText(Path.Combine(__SOURCE_DIRECTORY__, "..", "brand", "tokens", "ranvier-brand-tokens.css"))
+        .ReadAllText(Path.Combine (__SOURCE_DIRECTORY__, "..", "brand", "tokens", "ranvier-brand-tokens.css"))
         .Replace("[data-ranvier-theme=", ":root[data-theme=")
 
 /// Colour tokens shared by both schemes. Each resolves to a --rv-* brand token for the active scheme.
@@ -75,8 +75,7 @@ let private brandSyntax (s: SyntaxTokens) =
 /// so any value left at its default would be re-emitted under :root[data-theme="dark"].
 let private sizing (t: Tokens) =
     { t with
-        FontSans =
-            "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif"
+        FontSans = "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif"
         FontMono =
             "\"Geist Mono\", ui-monospace, \"Cascadia Code\", \"JetBrains Mono\", SFMono-Regular, Menlo, Consolas, \"Liberation Mono\", monospace"
         Radius = "0.625rem"
@@ -93,7 +92,12 @@ let private sizing (t: Tokens) =
 let private fontLinks =
     [
         Html.link [ prop.rel "preconnect"; prop.href "https://fonts.googleapis.com" ]
-        Html.link [ prop.rel "preconnect"; prop.href "https://fonts.gstatic.com"; prop.custom ("crossorigin", "") ]
+        Html.link
+            [
+                prop.rel "preconnect"
+                prop.href "https://fonts.gstatic.com"
+                prop.custom ("crossorigin", "")
+            ]
         Html.link
             [
                 prop.rel "stylesheet"
@@ -115,10 +119,10 @@ let theme =
     |> Theme.favIcon "favicon.svg"
     |> Theme.navbar
         [
-            NavbarSection("Guide", "guide", "/guide/")
-            NavbarSection("Concepts", "concepts", "/concepts/")
-            NavbarSection("Benchmarks", "benchmarks", "/benchmarks/")
-            NavbarSection("Fable", "fable", "/fable/")
+            NavbarSection ("Guide", "guide", "/guide/")
+            NavbarSection ("Concepts", "concepts", "/concepts/")
+            NavbarSection ("Benchmarks", "benchmarks", "/benchmarks/")
+            NavbarSection ("Fable", "fable", "/fable/")
         ]
     |> Theme.menu
         "guide"
@@ -137,12 +141,7 @@ let theme =
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
-            Menu.section
-                "Reference"
-                [
-                    Menu.page "guide/tracing.md"
-                    Menu.page "guide/troubleshooting.md"
-                ]
+            Menu.section "Reference" [ Menu.page "guide/tracing.md"; Menu.page "guide/troubleshooting.md" ]
         ]
     |> Theme.menu
         "concepts"
@@ -176,25 +175,34 @@ let theme =
     |> Theme.menu "about" [ Menu.section "About" [ Menu.page "about/provenance.md" ] ]
     |> Theme.navbarEnd
         [
-            NavbarIcon("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
+            NavbarIcon ("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
         ]
     |> Theme.editUrl "https://github.com/shayanhabibi/Ranvier/edit/main/docs"
     |> Theme.lightTokens (fun t ->
         { brandColours (sizing t) with
             Shadow = "0 1px 2px rgb(23 35 45 / 6%), 0 2px 8px rgb(23 35 45 / 5%)"
             ShadowFloating = "0 12px 32px -8px rgb(23 35 45 / 18%), 0 2px 6px rgb(23 35 45 / 6%)"
-        }
-    )
+        })
     |> Theme.darkTokens (fun t ->
         { brandColours (sizing t) with
             Shadow = "0 1px 2px rgb(0 0 0 / 45%), 0 4px 16px rgb(0 0 0 / 30%)"
             ShadowFloating = "0 16px 40px -8px rgb(0 0 0 / 55%), 0 0 0 1px var(--rv-border)"
-        }
-    )
+        })
     // Strings keep a code-only green per scheme; everything else is a brand token.
-    |> Theme.lightSyntax (fun s -> { brandSyntax s with String = "#1F7A5A" })
-    |> Theme.darkSyntax (fun s -> { brandSyntax s with String = "#9FDDBF" })
-    |> Theme.layerAfter "responsive" "brand" (brandTokensCss + System.Environment.NewLine + themeCss "brand.css")
+    |> Theme.lightSyntax (fun s ->
+        { brandSyntax s with
+            String = "#1F7A5A"
+        })
+    |> Theme.darkSyntax (fun s ->
+        { brandSyntax s with
+            String = "#9FDDBF"
+        })
+    |> Theme.layerAfter
+        "responsive"
+        "brand"
+        (brandTokensCss
+         + System.Environment.NewLine
+         + themeCss "brand.css")
     |> Theme.layerAfter "brand" "landing" (themeCss "landing.css")
     |> Theme.headExtra (darkByDefault :: fontLinks)
     |> Theme.footer (
@@ -230,12 +238,16 @@ let private ogCards =
 
 /// The card of the most specific section named by a page's path.
 let private sectionCard (page: Page) =
-    let segments = page.Id.Split([| '/'; '\\'; ':' |]) |> Array.map (fun s -> s.Replace(".md", ""))
+    let segments =
+        page.Id.Split ([| '/'; '\\'; ':' |])
+        |> Array.map (fun s -> s.Replace (".md", ""))
 
     ogCards
     |> List.tryFind (fun (segment, _, _) -> Array.contains segment segments)
     |> Option.map (fun (_, card, alt) ->
-        OgImage.image $"/og/%s{card}.png" |> OgImage.withAlt alt |> OgImage.withSize 1200 630)
+        OgImage.image $"/og/%s{card}.png"
+        |> OgImage.withAlt alt
+        |> OgImage.withSize 1200 630)
 
 let private ogImages (options: OgImageOptions) =
     options
@@ -272,4 +284,5 @@ let site =
     |> Site.collection (Theme.docs theme "content")
 
 [<EntryPoint>]
-let main argv = Nacara.run site argv
+let main argv =
+    Nacara.run site argv

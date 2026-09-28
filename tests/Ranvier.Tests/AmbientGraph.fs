@@ -58,7 +58,9 @@ let tests =
             test "an owning memo pulled outside the graph creates nodes" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let m = g.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> s.Value + 1)).Value))
+
+                let m =
+                    g.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> s.Value + 1)).Value))
 
                 s.Value <- 5
 
@@ -100,7 +102,10 @@ let tests =
                 let b = new Graph ()
                 let sa = Signal (a, 0)
                 let sb = Signal (b, 1)
-                let m = b.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> sb.Value * 10)).Value))
+
+                let m =
+                    b.Run (fun () -> createMemoWith (fun () -> (createMemo (fun () -> sb.Value * 10)).Value))
+
                 let seen = ResizeArray ()
 
                 a.Run (fun () ->

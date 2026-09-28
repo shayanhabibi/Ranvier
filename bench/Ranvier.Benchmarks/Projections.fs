@@ -26,7 +26,8 @@ type ProjectionBenchmarks() =
         projection <- createProjection fst snd (fun () -> source.Value)
 
         for i in 1 .. this.Items do
-            new Effect (graph, (fun () -> sink <- projection.Get i)) |> ignore
+            new Effect (graph, (fun () -> sink <- projection.Get i))
+            |> ignore
 
     /// <summary>
     /// A tracked read of a cached row.
@@ -54,7 +55,7 @@ type ProjectionBenchmarks() =
 
     [<GlobalCleanup>]
     member _.Cleanup() =
-        (graph :> IDisposable).Dispose ()
+        (graph :> IDisposable).Dispose()
 
 /// <summary>
 /// A selector whose key 7 loses its last observer and is read again before the

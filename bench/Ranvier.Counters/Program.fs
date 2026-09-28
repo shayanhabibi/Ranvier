@@ -73,21 +73,37 @@ let rec private parse (options: Options) (args: string list) =
     match args with
     | [] -> options
     | "--worker" :: path :: rest -> parse { options with Worker = Some path } rest
-    | "--counters-worker" :: path :: rest -> parse { options with CountersWorker = Some (Path.GetFullPath path) } rest
+    | "--counters-worker" :: path :: rest ->
+        parse
+            { options with
+                CountersWorker = Some (Path.GetFullPath path)
+            }
+            rest
     | "--no-pmc" :: rest -> parse { options with Pmc = false } rest
     | "--repeat" :: k :: rest -> parse { options with Repeat = int k } rest
     | "--scale" :: k :: rest -> parse { options with Scale = int k } rest
     | "--sources" :: list :: rest ->
         parse
             { options with
-                Sources = list.Split (',', StringSplitOptions.RemoveEmptyEntries ||| StringSplitOptions.TrimEntries)
+                Sources =
+                    list.Split (
+                        ',',
+                        StringSplitOptions.RemoveEmptyEntries
+                        ||| StringSplitOptions.TrimEntries
+                    )
             }
             rest
     | "--list-sources" :: rest -> parse { options with ListSources = true } rest
     | "--out" :: dir :: rest -> parse { options with Out = Some dir } rest
     | "--fable" :: dir :: rest -> parse { options with Fable = Some dir } rest
     | "--node" :: path :: rest -> parse { options with Node = path } rest
-    | "--pmc-dry-run" :: rest -> parse { options with Pmc = false; PmcDryRun = true } rest
+    | "--pmc-dry-run" :: rest ->
+        parse
+            { options with
+                Pmc = false
+                PmcDryRun = true
+            }
+            rest
     | "--reconcile" :: rest -> parse { options with Reconcile = true } rest
     | ("--help" | "-h") :: rest -> parse { options with Help = true } rest
     | unknown :: _ -> failwith $"Unknown argument '%s{unknown}'. See --help."
@@ -98,9 +114,12 @@ let rec private parse (options: Options) (args: string list) =
 /// </summary>
 let private repositoryRoot () =
     let rec search (dir: DirectoryInfo) =
-        if isNull dir then None
-        elif File.Exists (Path.Combine (dir.FullName, "Ranvier.slnx")) then Some dir.FullName
-        else search dir.Parent
+        if isNull dir then
+            None
+        elif File.Exists (Path.Combine (dir.FullName, "Ranvier.slnx")) then
+            Some dir.FullName
+        else
+            search dir.Parent
 
     search (DirectoryInfo Environment.CurrentDirectory)
     |> Option.orElse (search (DirectoryInfo AppContext.BaseDirectory))
@@ -132,7 +151,7 @@ let private commit (root: string option) =
 /// The package version of the assembly defining <c>t</c>, without source-revision metadata.
 /// </summary>
 let private packageVersion (t: Type) =
-    match t.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute> () with
+    match t.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>() with
     | null -> string (t.Assembly.GetName().Version)
     | a -> a.InformationalVersion.Split('+')[0]
 
@@ -140,13 +159,23 @@ let private packageVersion (t: Type) =
 /// Package versions of the Fable build in <c>output</c>, read from its <c>fable_modules</c> directory names.
 /// </summary>
 let private fableVersions (output: string) =
-    let modules = Path.Combine (NodeRuns.script output "plain" |> Path.GetDirectoryName, "fable_modules")
+    let modules =
+        Path.Combine (
+            NodeRuns.script output "plain"
+            |> Path.GetDirectoryName,
+            "fable_modules"
+        )
 
     if Directory.Exists modules then
         Directory.GetDirectories modules
         |> Array.choose (fun dir ->
-            let m = Text.RegularExpressions.Regex.Match (Path.GetFileName dir, @"^(.+?)\.(\d.*)$")
-            if m.Success then Some (m.Groups[1].Value, m.Groups[2].Value) else None)
+            let m =
+                Text.RegularExpressions.Regex.Match (Path.GetFileName dir, @"^(.+?)\.(\d.*)$")
+
+            if m.Success then
+                Some (m.Groups[1].Value, m.Groups[2].Value)
+            else
+                None)
     else
         [||]
 
@@ -169,7 +198,7 @@ let private workerAt (path: string) =
     if not (File.Exists path) then
         failwith $"No counter worker at %s{path}."
 
-    if Path.GetExtension(path).Equals (".dll", StringComparison.OrdinalIgnoreCase) then
+    if Path.GetExtension(path).Equals(".dll", StringComparison.OrdinalIgnoreCase) then
         "dotnet", [ path ]
     else
         path, []
@@ -180,7 +209,9 @@ let private workerAt (path: string) =
 let private runWorker (host: string, prefix: string list) (scale: int) (resultFile: string) =
     let info = ProcessStartInfo host
 
-    for arg in prefix @ [ "--worker"; resultFile; "--scale"; string scale ] do
+    for arg in
+        prefix
+        @ [ "--worker"; resultFile; "--scale"; string scale ] do
         info.ArgumentList.Add arg
 
     info.UseShellExecute <- false
@@ -194,10 +225,12 @@ let private runWorker (host: string, prefix: string list) (scale: int) (resultFi
     if p.ExitCode <> 0 then
         failwith $"The worker exited with %d{p.ExitCode}."
 
-    JsonSerializer.Deserialize<WorkerRun> (File.ReadAllText resultFile)
+    JsonSerializer.Deserialize<WorkerRun>(File.ReadAllText resultFile)
 
 let private measure (options: Options) (index: int) =
-    let directory = Path.Combine (Path.GetTempPath (), $"ranvier-counters-%d{Environment.ProcessId}-%d{index}")
+    let directory =
+        Path.Combine (Path.GetTempPath (), $"ranvier-counters-%d{Environment.ProcessId}-%d{index}")
+
     Directory.CreateDirectory directory |> ignore
 
     try
@@ -206,7 +239,8 @@ let private measure (options: Options) (index: int) =
         let counters =
             options.CountersWorker
             |> Option.map (fun path ->
-                let run = runWorker (workerAt path) options.Scale (Path.Combine (directory, "counters.json"))
+                let run =
+                    runWorker (workerAt path) options.Scale (Path.Combine (directory, "counters.json"))
 
                 if not run.CountersCompiled then
                     failwith $"The counter worker at %s{path} was built without RanvierCounters."
@@ -243,7 +277,9 @@ let private measure (options: Options) (index: int) =
 /// A fresh scratch directory, deleted after <c>body</c> returns.
 /// </summary>
 let private withScratch (name: string) (body: string -> 'T) =
-    let directory = Path.Combine (Path.GetTempPath (), $"ranvier-counters-%d{Environment.ProcessId}-%s{name}")
+    let directory =
+        Path.Combine (Path.GetTempPath (), $"ranvier-counters-%d{Environment.ProcessId}-%s{name}")
+
     Directory.CreateDirectory directory |> ignore
 
     try
@@ -277,11 +313,15 @@ let private measureNode (options: Options) (sha: string) (output: string) : Repo
 
     let runs (script: string) (name: string) =
         Array.init options.Repeat (fun i ->
-            withScratch $"%s{name}-%d{i}" (fun dir ->
-                NodeRuns.run options.Node script options.Scale (Path.Combine (dir, "node.json"))))
+            withScratch $"%s{name}-%d{i}" (fun dir -> NodeRuns.run options.Node script options.Scale (Path.Combine (dir, "node.json"))))
 
     let allocation = runs plain "node-plain"
-    let counterRuns = if File.Exists counters then runs counters "node-counters" else [||]
+
+    let counterRuns =
+        if File.Exists counters then
+            runs counters "node-counters"
+        else
+            [||]
 
     let pmc =
         if options.Pmc then
@@ -306,8 +346,7 @@ let private measureNode (options: Options) (sha: string) (output: string) : Repo
             Array.init options.Repeat (fun i ->
                 withScratch $"node-dry-%d{i}" (fun dir ->
                     {
-                        NodeRuns.Run =
-                            NodeRuns.runHandshake options.Node plain options.Scale (Path.Combine (dir, "node.json")) mark
+                        NodeRuns.Run = NodeRuns.runHandshake options.Node plain options.Scale (Path.Combine (dir, "node.json")) mark
                         NodeRuns.MainThread = [||]
                         NodeRuns.AllThreads = [||]
                     }))
@@ -318,7 +357,9 @@ let private measureNode (options: Options) (sha: string) (output: string) : Repo
 
     let mode =
         if options.Pmc then
-            "per-context-switch PMC counters (" + String.Join (", ", sources) + "); main: the main thread, all: every thread of the process"
+            "per-context-switch PMC counters ("
+            + String.Join (", ", sources)
+            + "); main: the main thread, all: every thread of the process"
         elif options.PmcDryRun then
             $"not collected (--pmc-dry-run: %d{pmc.Length} handshake runs completed without ETW sessions)"
         else
@@ -405,7 +446,9 @@ let main argv =
                     )
                 Mode =
                     if options.Pmc then
-                        "per-context-switch PMC counters (" + String.Join (", ", sources) + ")"
+                        "per-context-switch PMC counters ("
+                        + String.Join (", ", sources)
+                        + ")"
                     else
                         "not collected (--no-pmc)"
                 Counters =
@@ -413,7 +456,12 @@ let main argv =
                     | Some _ -> "from a separate RanvierCounters build (--counters-worker)"
                     | None when Worker.countersCompiled -> "from the measured build"
                     | None -> "not collected (built without RanvierCounters)"
-                Environment = String.Join (" ", workerEnvironment |> List.map (fun (k, v) -> $"%s{k}=%s{v}"))
+                Environment =
+                    String.Join (
+                        " ",
+                        workerEnvironment
+                        |> List.map (fun (k, v) -> $"%s{k}=%s{v}")
+                    )
                 Versions =
                     Map
                         [
@@ -425,7 +473,9 @@ let main argv =
                 RanvierTrace = Report.ranvierTrace ()
             }
 
-        let node = options.Fable |> Option.map (measureNode options sha)
+        let node =
+            options.Fable
+            |> Option.map (measureNode options sha)
 
         let outDirectory =
             match options.Out, root with

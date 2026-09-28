@@ -22,7 +22,8 @@ open Microsoft.Diagnostics.Tracing.Parsers
 open Microsoft.Diagnostics.Tracing.Parsers.Kernel
 open Microsoft.Diagnostics.Tracing.Session
 
-let DefaultSources = [| "InstructionRetired"; "TotalCycles"; "BranchMispredictions" |]
+let DefaultSources =
+    [| "InstructionRetired"; "TotalCycles"; "BranchMispredictions" |]
 
 let isElevated () =
     let elevated = TraceEventSession.IsElevated ()
@@ -104,7 +105,8 @@ module private Native =
         let events = Marshal.AllocHGlobal 24
 
         try
-            ids |> Array.iteri (fun i id -> Marshal.WriteInt32 (counters, 4 * i, id))
+            ids
+            |> Array.iteri (fun i id -> Marshal.WriteInt32 (counters, 4 * i, id))
 
             check
                 "TraceSetInformation(TracePmcCounterListInfo)"
@@ -159,7 +161,9 @@ let start (directory: string) (sources: string[]) =
 
     let kernelFile = Path.Combine (directory, "kernel.etl")
     let markerFile = Path.Combine (directory, "markers.etl")
-    let kernel = new TraceEventSession (KernelTraceEventParser.KernelSessionName, kernelFile)
+
+    let kernel =
+        new TraceEventSession (KernelTraceEventParser.KernelSessionName, kernelFile)
 
     try
         kernel.BufferSizeMB <- 512
@@ -176,7 +180,8 @@ let start (directory: string) (sources: string[]) =
         let markers = new TraceEventSession (markerSessionName, markerFile)
 
         try
-            markers.EnableProvider (EventSource.GetGuid typeof<Markers>) |> ignore
+            markers.EnableProvider (EventSource.GetGuid typeof<Markers>)
+            |> ignore
         with _ ->
             markers.Dispose ()
             reraise ()
@@ -198,7 +203,7 @@ let start (directory: string) (sources: string[]) =
 /// </summary>
 let private recordOf: Func<TraceEvent, nativeint> =
     let field =
-        typeof<TraceEvent>.GetField ("eventRecord", BindingFlags.Instance ||| BindingFlags.NonPublic)
+        typeof<TraceEvent>.GetField("eventRecord", BindingFlags.Instance ||| BindingFlags.NonPublic)
 
     let getter =
         DynamicMethod ("eventRecordOf", typeof<nativeint>, [| typeof<TraceEvent> |], typeof<TraceEvent>.Module, true)
@@ -214,7 +219,8 @@ let private recordOf: Func<TraceEvent, nativeint> =
 /// The raw QPC timestamp of <c>data</c>: <c>EVENT_RECORD.EventHeader.TimeStamp</c>.
 /// Values from different files share one timeline.
 /// </summary>
-let private qpcOf (data: TraceEvent) = Marshal.ReadInt64 (recordOf.Invoke data, 16)
+let private qpcOf (data: TraceEvent) =
+    Marshal.ReadInt64 (recordOf.Invoke data, 16)
 
 /// <summary>
 /// <c>EVENT_HEADER_EXT_TYPE_PMC_COUNTERS</c>.
@@ -285,21 +291,20 @@ type private Bracket =
 /// </summary>
 let private requireNoLoss (source: ETWTraceEventSource) (file: string) =
     if source.EventsLost > 0 then
-        failwith
-            $"%s{file} lost %d{source.EventsLost} event(s); the counter totals would be incomplete. Rerun on a quieter machine."
+        failwith $"%s{file} lost %d{source.EventsLost} event(s); the counter totals would be incomplete. Rerun on a quieter machine."
 
 /// <summary>
 /// The region brackets marked by <c>markerProcess</c>, and the thread that marked
 /// them.
 /// </summary>
 let private readBrackets (collector: Collector) (markerProcess: int) =
-    let brackets = Dictionary<int, Bracket> ()
+    let brackets = Dictionary<int, Bracket>()
     let mutable threadId = -1
     let markerProvider = EventSource.GetGuid typeof<Markers>
     use source = new ETWTraceEventSource (collector.MarkerFile)
 
     source.add_AllEvents (
-        Action<TraceEvent> (fun data ->
+        Action<TraceEvent>(fun data ->
             let id = int data.ID
 
             if
@@ -313,7 +318,12 @@ let private readBrackets (collector: Collector) (markerProcess: int) =
                     match brackets.TryGetValue region with
                     | true, b -> b
                     | _ ->
-                        let b = { Begin = Int64.MaxValue; End = Int64.MinValue }
+                        let b =
+                            {
+                                Begin = Int64.MaxValue
+                                End = Int64.MinValue
+                            }
+
                         brackets[region] <- b
                         b
 
@@ -350,13 +360,13 @@ type private Interval =
 /// first of them, or -1.
 /// </summary>
 let private readIntervals (collector: Collector) (tracked: HashSet<int>) (processId: int voption) =
-    let intervals = ResizeArray<Interval> ()
-    let switchedIn = Dictionary<int, Interval> ()
+    let intervals = ResizeArray<Interval>()
+    let switchedIn = Dictionary<int, Interval>()
     let mutable mainThread = -1
     use source = new ETWTraceEventSource (collector.KernelFile)
 
     source.Kernel.add_ThreadStart (
-        Action<ThreadTraceData> (fun data ->
+        Action<ThreadTraceData>(fun data ->
             if processId = ValueSome data.ProcessID then
                 if mainThread < 0 then
                     mainThread <- data.ThreadID
@@ -365,7 +375,7 @@ let private readIntervals (collector: Collector) (tracked: HashSet<int>) (proces
     )
 
     source.Kernel.add_ThreadCSwitch (
-        Action<CSwitchTraceData> (fun data ->
+        Action<CSwitchTraceData>(fun data ->
             let oldTracked = tracked.Contains data.OldThreadID
             let newTracked = tracked.Contains data.NewThreadID
 
@@ -404,12 +414,7 @@ let private readIntervals (collector: Collector) (tracked: HashSet<int>) (proces
 /// <c>includes</c>. An interval belongs to a region when it starts between the
 /// region's <c>Begin</c> and <c>End</c> markers.
 /// </summary>
-let private totals
-    (sources: int)
-    (brackets: Dictionary<int, Bracket>)
-    (intervals: ResizeArray<Interval>)
-    (includes: int -> bool)
-    : RegionCounts[] =
+let private totals (sources: int) (brackets: Dictionary<int, Bracket>) (intervals: ResizeArray<Interval>) (includes: int -> bool) : RegionCounts[] =
     brackets
     |> Seq.sortBy (fun pair -> pair.Key)
     |> Seq.map (fun pair ->
@@ -418,7 +423,11 @@ let private totals
         let mutable count = 0
 
         for interval in intervals do
-            if includes interval.Thread && interval.Start > bracket.Begin && interval.Start < bracket.End then
+            if
+                includes interval.Thread
+                && interval.Start > bracket.Begin
+                && interval.Start < bracket.End
+            then
                 count <- count + 1
 
                 for k in 0 .. min sums.Length interval.Values.Length - 1 do
@@ -452,7 +461,9 @@ let private requireIntervals (counts: RegionCounts[]) =
 let analyse (collector: Collector) (processId: int) : RegionCounts[] =
     let brackets, thread = readBrackets collector processId
     let intervals, _ = readIntervals collector (HashSet [ thread ]) ValueNone
-    totals collector.Sources.Length brackets intervals ((=) thread) |> requireIntervals
+
+    totals collector.Sources.Length brackets intervals ((=) thread)
+    |> requireIntervals
 
 /// <summary>
 /// Counter totals per region for a process whose regions were marked by
@@ -462,11 +473,17 @@ let analyse (collector: Collector) (processId: int) : RegionCounts[] =
 /// </summary>
 let analyseProcess (collector: Collector) (markerProcess: int) (processId: int) =
     let brackets, _ = readBrackets collector markerProcess
-    let intervals, mainThread = readIntervals collector (HashSet ()) (ValueSome processId)
+
+    let intervals, mainThread =
+        readIntervals collector (HashSet ()) (ValueSome processId)
 
     if mainThread < 0 then
         failwith $"No thread of process %d{processId} started during the kernel session."
 
     let sources = collector.Sources.Length
-    let main = totals sources brackets intervals ((=) mainThread) |> requireIntervals
+
+    let main =
+        totals sources brackets intervals ((=) mainThread)
+        |> requireIntervals
+
     main, totals sources brackets intervals (fun _ -> true)

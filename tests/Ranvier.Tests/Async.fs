@@ -453,12 +453,12 @@ let tests =
 
                 first.Settle 10
 
-                Expect.throws (fun () -> flights[0].Wait (TimeSpan.FromSeconds 5.) |> ignore) "the superseded flight ends"
+                Expect.throws (fun () -> flights[0].Wait(TimeSpan.FromSeconds 5.) |> ignore) "the superseded flight ends"
                 Expect.isTrue flights[0].IsCanceled "at its next bind, as cancelled"
                 Expect.equal a.TryValue Pending "the superseded flight publishes nothing"
 
                 second.Settle 20
-                Expect.isTrue (flights[1].Wait (TimeSpan.FromSeconds 5.)) "the current flight completes"
+                Expect.isTrue (flights[1].Wait(TimeSpan.FromSeconds 5.)) "the current flight completes"
                 Expect.equal (List.ofSeq finished) [ 2 ] "only the current flight runs to its end"
                 Expect.equal a.TryValue (Ready 20) "the current flight publishes"
             }

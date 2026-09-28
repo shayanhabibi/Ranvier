@@ -19,7 +19,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let m =
                     createMemoWith (fun () ->
@@ -43,7 +43,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let tick = createSignal 0
-                let runs = ResizeArray<int> ()
+                let runs = ResizeArray<int>()
 
                 let m =
                     createMemoWith (fun () ->
@@ -70,7 +70,8 @@ let tests =
                 let s = createSignal 1
                 let k = createSignal 10
 
-                let outer = createMemoWith (fun () -> let n = s.Value in createMemo (fun () -> n * k.Value))
+                let outer =
+                    createMemoWith (fun () -> let n = s.Value in createMemo (fun () -> n * k.Value))
 
                 let first = outer.Value
                 Expect.equal first.Value 10 "the first inner memo computes"
@@ -97,7 +98,7 @@ let tests =
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         inner.Value)
 
-                let seen = ResizeArray<int> ()
+                let seen = ResizeArray<int>()
 
                 createEffect (fun () ->
                     tick.Value |> ignore
@@ -137,7 +138,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let m =
                     createMemoWith (fun () ->
@@ -170,7 +171,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let log = createSignal 0
-                let effectSeen = ResizeArray<int * int> ()
+                let effectSeen = ResizeArray<int * int>()
 
                 let m =
                     createMemoWith (fun () ->
@@ -190,15 +191,13 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let b =
-                    createSuspense
-                        (fun _ -> -1)
-                        (fun () ->
-                            let n = s.Value
-                            onCleanup (fun () -> cleaned.Add n)
-                            n)
+                    createSuspense (fun _ -> -1) (fun () ->
+                        let n = s.Value
+                        onCleanup (fun () -> cleaned.Add n)
+                        n)
 
                 Expect.equal b.Value 1 "first run"
                 s.Value <- 2
@@ -213,7 +212,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let a =
                     createAsyncWith (fun _ ->
@@ -238,7 +237,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let tick = createSignal 0
-                let gate = TaskCompletionSource<unit> ()
+                let gate = TaskCompletionSource<unit>()
 
                 let a =
                     createAsyncWith (fun _ ->
@@ -282,16 +281,13 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let items = createSignal [ 1; 2 ]
-                let cleaned = ResizeArray<int list> ()
+                let cleaned = ResizeArray<int list>()
 
                 let proj =
-                    createProjection
-                        id
-                        (fun x -> x * 10)
-                        (fun () ->
-                            let current = items.Value
-                            onCleanup (fun () -> cleaned.Add current)
-                            current)
+                    createProjection id (fun x -> x * 10) (fun () ->
+                        let current = items.Value
+                        onCleanup (fun () -> cleaned.Add current)
+                        current)
 
                 let reader = createProjection id (fun (x: int) -> proj.Get x + 1) (fun () -> [ 1 ])
 
@@ -310,7 +306,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let log = ResizeArray<string> ()
+                let log = ResizeArray<string>()
                 let mutable self: Memo<int> = Unchecked.defaultof<_>
                 let mutable bodyRuns = 0
 
@@ -337,7 +333,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let seen = ResizeArray<int> ()
+                let seen = ResizeArray<int>()
                 let mutable a: Memo<int> = Unchecked.defaultof<_>
 
                 a <-
@@ -360,7 +356,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let seen = ResizeArray<int> ()
+                let seen = ResizeArray<int>()
                 let mutable d: Memo<int> = Unchecked.defaultof<_>
 
                 let m =
@@ -398,7 +394,10 @@ let tests =
                             tick.Value |> ignore
                             effectRuns <- effectRuns + 1)
 
-                        onCleanup (fun () -> if n = 1 then self.Dispose ())
+                        onCleanup (fun () ->
+                            if n = 1 then
+                                self.Dispose ())
+
                         n)
 
                 self.Value |> ignore
@@ -493,9 +492,11 @@ let tests =
                 let items = createSignal [ 1 ]
 
                 let proj =
-                    createProjectionWith id (fun item ->
-                        onCleanup (fun () -> failwith "boom")
-                        fun () -> item ())
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            onCleanup (fun () -> failwith "boom")
+                            fun () -> item ())
                         (fun () -> items.Value)
 
                 proj.Get 1 |> ignore
@@ -509,7 +510,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let w = createSignal 0
-                let log = ResizeArray<int * int> ()
+                let log = ResizeArray<int * int>()
 
                 let m =
                     createMemoWith (fun () ->

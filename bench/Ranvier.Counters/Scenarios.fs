@@ -63,7 +63,7 @@ let private noTeardown () = ()
 
 let private disposeAll (items: ResizeArray<IDisposable>) =
     for i in 0 .. items.Count - 1 do
-        items[i].Dispose ()
+        items[i].Dispose()
 
 module private Ranvier =
 
@@ -83,7 +83,8 @@ module private Ranvier =
                     if split then
                         createEffectOn (fun () -> shared.Value + row.Value) (fun v -> sink <- v)
                     else
-                        new Effect (graph, (fun () -> sink <- shared.Value + row.Value)) |> ignore
+                        new Effect (graph, (fun () -> sink <- shared.Value + row.Value))
+                        |> ignore
 
                     row)
 
@@ -101,9 +102,9 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     for i in 0 .. roots.Count - 1 do
-                        (roots[i] :> IDisposable).Dispose ()
+                        (roots[i] :> IDisposable).Dispose()
 
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     let update (split: bool) (n: int) =
@@ -120,7 +121,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     let chain (n: int) =
@@ -143,7 +144,7 @@ module private Ranvier =
                         next.Value <- next.Value + 1
                         source.Value <- next.Value
                         sink <- tail.Value
-            Teardown = fun () -> (graph :> IDisposable).Dispose ()
+            Teardown = fun () -> (graph :> IDisposable).Dispose()
         }
 
     let cutoff (n: int) =
@@ -152,7 +153,9 @@ module private Ranvier =
 
         let owner =
             graph.CreateRoot (fun owner ->
-                new Effect (graph, (fun () -> sink <- source.Value)) |> ignore
+                new Effect (graph, (fun () -> sink <- source.Value))
+                |> ignore
+
                 owner)
 
         {
@@ -163,7 +166,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     let dispose (split: bool) (n: int) =
@@ -175,7 +178,7 @@ module private Ranvier =
                 fun () ->
                     for owner in roots do
                         owner.Dispose ()
-            Teardown = fun () -> (graph :> IDisposable).Dispose ()
+            Teardown = fun () -> (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -193,7 +196,8 @@ module private Ranvier =
                     use _ = graph.Activate ()
                     createEffectOn (fun () -> source.Value >>> 30) (fun v -> sink <- v)
                 else
-                    new Effect (graph, (fun () -> sink <- source.Value >>> 30)) |> ignore
+                    new Effect (graph, (fun () -> sink <- source.Value >>> 30))
+                    |> ignore
 
                 owner)
 
@@ -208,7 +212,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -246,7 +250,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -313,7 +317,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -329,7 +333,8 @@ module private Ranvier =
                 let rows = createProjection fst snd (fun () -> source.Value)
 
                 for key in 0 .. RowCount - 1 do
-                    new Effect (graph, (fun () -> sink <- rows.Get key)) |> ignore
+                    new Effect (graph, (fun () -> sink <- rows.Get key))
+                    |> ignore
 
                 owner)
 
@@ -354,7 +359,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     let projectReorder (n: int) =
@@ -371,7 +376,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
     /// <summary>
@@ -393,10 +398,12 @@ module private Ranvier =
                     |> Projection.sortBy (fun v -> -v)
                     |> Projection.map (fun v -> v + 1)
 
-                new Effect (graph, (fun () -> sink <- tail.Keys.Length)) |> ignore
+                new Effect (graph, (fun () -> sink <- tail.Keys.Length))
+                |> ignore
 
                 for key in 0..2 .. RowCount - 1 do
-                    new Effect (graph, (fun () -> sink <- tail.Get key)) |> ignore
+                    new Effect (graph, (fun () -> sink <- tail.Get key))
+                    |> ignore
 
                 owner)
 
@@ -415,7 +422,7 @@ module private Ranvier =
             Teardown =
                 fun () ->
                     owner.Dispose ()
-                    (graph :> IDisposable).Dispose ()
+                    (graph :> IDisposable).Dispose()
         }
 
 module private Adaptive =
@@ -531,11 +538,7 @@ module private R3 =
                 let row = new ReactiveProperty<int> (i)
 
                 let value =
-                    Observable.CombineLatest (
-                        (shared :> Observable<int>),
-                        (row :> Observable<int>),
-                        (fun a b -> a + b)
-                    )
+                    Observable.CombineLatest ((shared :> Observable<int>), (row :> Observable<int>), (fun a b -> a + b))
 
                 subscriptions.Add (subscribe value)
                 row)
@@ -571,13 +574,18 @@ module private R3 =
 
     let chain (n: int) =
         let source = new ReactiveProperty<int> (0)
-        let mutable tail = ObservableExtensions.Select ((source :> Observable<int>), (fun v -> v + 1))
+
+        let mutable tail =
+            ObservableExtensions.Select ((source :> Observable<int>), (fun v -> v + 1))
 
         for _ in 2..ChainDepth do
             tail <- ObservableExtensions.Select (tail, (fun v -> v + 1))
 
         let latest = ref 0
-        let subscription = ObservableSubscribeExtensions.Subscribe (tail, (fun v -> latest.Value <- v))
+
+        let subscription =
+            ObservableSubscribeExtensions.Subscribe (tail, (fun v -> latest.Value <- v))
+
         let next = ref 0
 
         {
@@ -615,7 +623,11 @@ module private R3 =
 
 let private workload (prepare: int -> Workloads.Workload) (n: int) : Prepared =
     let prepared = prepare n
-    { Run = prepared.Run; Teardown = prepared.Teardown }
+
+    {
+        Run = prepared.Run
+        Teardown = prepared.Teardown
+    }
 
 let private scenario name unit ops (engines: (string * (int -> Prepared)) list) =
     engines
@@ -634,104 +646,140 @@ let private scenario name unit ops (engines: (string * (int -> Prepared)) list) 
 let all (scale: int) : Case list =
     [
         yield!
-            scenario "create" $"one root of %d{RowCount} rows" (8 * scale) [
-                "Ranvier", Ranvier.create false
-                "FSharp.Data.Adaptive", Adaptive.create
-                "R3", R3.create
-            ]
+            scenario
+                "create"
+                $"one root of %d{RowCount} rows"
+                (8 * scale)
+                [
+                    "Ranvier", Ranvier.create false
+                    "FSharp.Data.Adaptive", Adaptive.create
+                    "R3", R3.create
+                ]
         yield!
-            scenario "update" $"write every %d{UpdateStride}th of %d{RowCount} rows" (50 * scale) [
-                "Ranvier", Ranvier.update false
-                "FSharp.Data.Adaptive", Adaptive.update
-                "R3", R3.update
-            ]
+            scenario
+                "update"
+                $"write every %d{UpdateStride}th of %d{RowCount} rows"
+                (50 * scale)
+                [
+                    "Ranvier", Ranvier.update false
+                    "FSharp.Data.Adaptive", Adaptive.update
+                    "R3", R3.update
+                ]
         yield!
-            scenario "chain" $"write the source of %d{ChainDepth} memos, read the tail" (5000 * scale) [
-                "Ranvier", Ranvier.chain
-                "FSharp.Data.Adaptive", Adaptive.chain
-                "R3", R3.chain
-            ]
+            scenario
+                "chain"
+                $"write the source of %d{ChainDepth} memos, read the tail"
+                (5000 * scale)
+                [
+                    "Ranvier", Ranvier.chain
+                    "FSharp.Data.Adaptive", Adaptive.chain
+                    "R3", R3.chain
+                ]
         yield!
-            scenario "cutoff" "write an equal value to an observed source" (50000 * scale) [
-                "Ranvier", Ranvier.cutoff
-                "FSharp.Data.Adaptive", Adaptive.cutoff
-                "R3", R3.cutoff
-            ]
+            scenario
+                "cutoff"
+                "write an equal value to an observed source"
+                (50000 * scale)
+                [
+                    "Ranvier", Ranvier.cutoff
+                    "FSharp.Data.Adaptive", Adaptive.cutoff
+                    "R3", R3.cutoff
+                ]
         yield!
-            scenario "dispose" $"dispose one root of %d{RowCount} rows" (8 * scale) [
-                "Ranvier", Ranvier.dispose false
-                "FSharp.Data.Adaptive", Adaptive.dispose
-                "R3", R3.dispose
-            ]
+            scenario
+                "dispose"
+                $"dispose one root of %d{RowCount} rows"
+                (8 * scale)
+                [
+                    "Ranvier", Ranvier.dispose false
+                    "FSharp.Data.Adaptive", Adaptive.dispose
+                    "R3", R3.dispose
+                ]
+        yield! scenario "create-on" $"one root of %d{RowCount} createEffectOn rows" (8 * scale) [ "Ranvier", Ranvier.create true ]
         yield!
-            scenario "create-on" $"one root of %d{RowCount} createEffectOn rows" (8 * scale) [
-                "Ranvier", Ranvier.create true
-            ]
+            scenario "update-on" $"write every %d{UpdateStride}th of %d{RowCount} createEffectOn rows" (50 * scale) [ "Ranvier", Ranvier.update true ]
+        yield! scenario "dispose-on" $"dispose one root of %d{RowCount} createEffectOn rows" (8 * scale) [ "Ranvier", Ranvier.dispose true ]
         yield!
-            scenario "update-on" $"write every %d{UpdateStride}th of %d{RowCount} createEffectOn rows" (50 * scale) [
-                "Ranvier", Ranvier.update true
-            ]
+            scenario
+                "derive-effect"
+                "write a new value whose derived value is unchanged, Effect"
+                (50000 * scale)
+                [ "Ranvier", Ranvier.derivedCutoff false ]
         yield!
-            scenario "dispose-on" $"dispose one root of %d{RowCount} createEffectOn rows" (8 * scale) [
-                "Ranvier", Ranvier.dispose true
-            ]
+            scenario
+                "derive-on"
+                "write a new value whose derived value is unchanged, createEffectOn"
+                (50000 * scale)
+                [ "Ranvier", Ranvier.derivedCutoff true ]
         yield!
-            scenario "derive-effect" "write a new value whose derived value is unchanged, Effect" (50000 * scale) [
-                "Ranvier", Ranvier.derivedCutoff false
-            ]
+            scenario
+                "work-status"
+                "write every 10th of 1000 rows; the act formats a label, 1 write in 10 changes it"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.status false
+                    "Ranvier (createEffectOn)", Ranvier.status true
+                ]
         yield!
-            scenario "derive-on" "write a new value whose derived value is unchanged, createEffectOn" (50000 * scale) [
-                "Ranvier", Ranvier.derivedCutoff true
-            ]
+            scenario
+                "work-value"
+                "write every 10th of 1000 rows; the act formats a label, every write changes it"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.value false
+                    "Ranvier (createEffectOn)", Ranvier.value true
+                ]
         yield!
-            scenario "work-status" "write every 10th of 1000 rows; the act formats a label, 1 write in 10 changes it" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.status false
-                "Ranvier (createEffectOn)", Ranvier.status true
-            ]
+            scenario
+                "work-form"
+                "write one field of each of 125 8-field forms; validity feeds a signal and an effect"
+                (50 * scale)
+                [
+                    "Ranvier (createEffect)", Ranvier.form false
+                    "Ranvier (createEffectOn)", Ranvier.form true
+                ]
+        yield! scenario "project-edit" $"change one row of a %d{RowCount}-row projection" (50 * scale) [ "Ranvier", Ranvier.projectEdit ]
+        yield! scenario "project-reorder" $"reverse a %d{RowCount}-row projection" (50 * scale) [ "Ranvier", Ranvier.projectReorder ]
         yield!
-            scenario "work-value" "write every 10th of 1000 rows; the act formats a label, every write changes it" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.value false
-                "Ranvier (createEffectOn)", Ranvier.value true
-            ]
+            scenario
+                "project-chain"
+                $"change one row of a %d{RowCount}-row filter, sortBy, map chain"
+                (50 * scale)
+                [ "Ranvier", Ranvier.projectChain ]
         yield!
-            scenario "work-form" "write one field of each of 125 8-field forms; validity feeds a signal and an effect" (50 * scale) [
-                "Ranvier (createEffect)", Ranvier.form false
-                "Ranvier (createEffectOn)", Ranvier.form true
-            ]
+            scenario
+                "app-table"
+                $"alternate a filter query and a sort direction over %d{Workloads.Rows} rows"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.table ]
         yield!
-            scenario "project-edit" $"change one row of a %d{RowCount}-row projection" (50 * scale) [
-                "Ranvier", Ranvier.projectEdit
-            ]
+            scenario
+                "app-detail"
+                $"move the selection over %d{Workloads.Rows} rows; the detail rebuilds %d{Workloads.DetailNodes} memo and effect pairs"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.detail ]
         yield!
-            scenario "project-reorder" $"reverse a %d{RowCount}-row projection" (50 * scale) [
-                "Ranvier", Ranvier.projectReorder
-            ]
+            scenario
+                "shape-diamond"
+                $"write a source read by %d{Workloads.DiamondWidth} memos joined by one"
+                (5000 * scale)
+                [ "Ranvier", workload Workloads.wideDiamond ]
         yield!
-            scenario "project-chain" $"change one row of a %d{RowCount}-row filter, sortBy, map chain" (50 * scale) [
-                "Ranvier", Ranvier.projectChain
-            ]
+            scenario
+                "shape-dynamic"
+                $"alternate a branch flip and a write of every active source of %d{Workloads.DynamicReaders} effects"
+                (500 * scale)
+                [ "Ranvier", workload Workloads.dynamicBranches ]
         yield!
-            scenario "app-table" $"alternate a filter query and a sort direction over %d{Workloads.Rows} rows" (50 * scale) [
-                "Ranvier", workload Workloads.table
-            ]
+            scenario
+                "async-resolve"
+                $"reload %d{Workloads.Widgets} suspense widgets of %d{Workloads.SourcesPerWidget} sources, then settle each"
+                (50 * scale)
+                [ "Ranvier", workload Workloads.asyncResolve ]
         yield!
-            scenario "app-detail" $"move the selection over %d{Workloads.Rows} rows; the detail rebuilds %d{Workloads.DetailNodes} memo and effect pairs" (50 * scale) [
-                "Ranvier", workload Workloads.detail
-            ]
-        yield!
-            scenario "shape-diamond" $"write a source read by %d{Workloads.DiamondWidth} memos joined by one" (5000 * scale) [
-                "Ranvier", workload Workloads.wideDiamond
-            ]
-        yield!
-            scenario "shape-dynamic" $"alternate a branch flip and a write of every active source of %d{Workloads.DynamicReaders} effects" (500 * scale) [
-                "Ranvier", workload Workloads.dynamicBranches
-            ]
-        yield!
-            scenario "async-resolve" $"reload %d{Workloads.Widgets} suspense widgets of %d{Workloads.SourcesPerWidget} sources, then settle each" (50 * scale) [
-                "Ranvier", workload Workloads.asyncResolve
-            ]
-        yield!
-            scenario "async-recover" "fail one source of one error-boundary widget, then settle a replacement" (500 * scale) [
-                "Ranvier", workload Workloads.asyncRecover
-            ]
+            scenario
+                "async-recover"
+                "fail one source of one error-boundary widget, then settle a replacement"
+                (500 * scale)
+                [ "Ranvier", workload Workloads.asyncRecover ]
     ]

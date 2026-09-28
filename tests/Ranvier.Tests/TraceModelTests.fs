@@ -18,21 +18,30 @@ let private ev kind node other arg flag : TraceEvent =
 
 /// <summary>Numbers <c>events</c> from seq 1.</summary>
 let private numbered (events: TraceEvent list) =
-    events |> List.mapi (fun i e -> { e with Seq = i + 1 }) |> Array.ofList
+    events
+    |> List.mapi (fun i e -> { e with Seq = i + 1 })
+    |> Array.ofList
 
 let private nodeNew id owner (kind: TraceNodeKind) (site: string) =
-    { ev TraceEventKind.NodeNew id owner (int kind) 0 with Payload = site }
+    { ev TraceEventKind.NodeNew id owner (int kind) 0 with
+        Payload = site
+    }
 
 let private label id (text: string) =
-    { ev TraceEventKind.Label id 0 0 0 with Payload = text }
+    { ev TraceEventKind.Label id 0 0 0 with
+        Payload = text
+    }
 
 let private graphNew = ev TraceEventKind.GraphNew 0 1 0 0
 
 let private pathsOf (events: TraceEvent[]) =
     let s = TraceModel.snapshot events
-    s.Nodes |> Map.map (fun id _ -> TraceModel.pathOf s id)
 
-let private path (events: TraceEvent[]) id = (pathsOf events)[id]
+    s.Nodes
+    |> Map.map (fun id _ -> TraceModel.pathOf s id)
+
+let private path (events: TraceEvent[]) id =
+    (pathsOf events)[id]
 
 let private live (g: Graph) (node: INode) =
     let s = Trace.snapshot g
@@ -52,13 +61,14 @@ let tests =
 
             test "a segment is the label, else the site, else the kind" {
                 let events =
-                    numbered [
-                        graphNew
-                        nodeNew 1 0 TraceNodeKind.Signal "App.fs:3"
-                        label 1 "count"
-                        nodeNew 2 0 TraceNodeKind.Memo "App.fs:4"
-                        nodeNew 3 0 TraceNodeKind.Effect "?"
-                    ]
+                    numbered
+                        [
+                            graphNew
+                            nodeNew 1 0 TraceNodeKind.Signal "App.fs:3"
+                            label 1 "count"
+                            nodeNew 2 0 TraceNodeKind.Memo "App.fs:4"
+                            nodeNew 3 0 TraceNodeKind.Effect "?"
+                        ]
 
                 Expect.equal (path events 1) "/count" "a label wins"
                 Expect.equal (path events 2) "/App.fs:4" "a site follows"
@@ -70,7 +80,12 @@ let tests =
                 use _ = g.Activate ()
                 let a = createRoot (fun _ -> Trace.named "a" (fun () -> createSignal 1))
                 let b = createRoot (fun _ -> Trace.named "a" (fun () -> createSignal 2))
-                let owners = (Trace.snapshot g).Owners |> Map.toList |> List.map (fun (_, o) -> o.Path)
+
+                let owners =
+                    (Trace.snapshot g).Owners
+                    |> Map.toList
+                    |> List.map (fun (_, o) -> o.Path)
+
                 Expect.containsAll owners [ "/root#0"; "/root#1" ] "each root counts its earlier siblings"
                 Expect.equal (live g a) "/a" "an ownerless signal under a root hangs off the graph root"
                 Expect.equal (live g b) "/a#1" "a repeated segment takes #n"
@@ -96,7 +111,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let rows = ResizeArray<INode> ()
+                let rows = ResizeArray<INode>()
 
                 let list =
                     Trace.named "list" (fun () ->
@@ -120,13 +135,14 @@ let tests =
 
             test "a bare path resolves the latest incarnation when none is live" {
                 let events =
-                    numbered [
-                        graphNew
-                        nodeNew 1 0 TraceNodeKind.Signal "App.fs:3"
-                        ev TraceEventKind.Dispose 1 0 0 0
-                        nodeNew 2 0 TraceNodeKind.Signal "App.fs:3"
-                        ev TraceEventKind.Dispose 2 0 0 0
-                    ]
+                    numbered
+                        [
+                            graphNew
+                            nodeNew 1 0 TraceNodeKind.Signal "App.fs:3"
+                            ev TraceEventKind.Dispose 1 0 0 0
+                            nodeNew 2 0 TraceNodeKind.Signal "App.fs:3"
+                            ev TraceEventKind.Dispose 2 0 0 0
+                        ]
 
                 let s = TraceModel.snapshot events
                 Expect.equal (s.Nodes[2].Path) "/App.fs:3#1" "the second node is a sibling of the first"
@@ -134,7 +150,9 @@ let tests =
             }
 
             test "labels escape / # [ ] @ and backslash" {
-                let events = numbered [ graphNew; nodeNew 1 0 TraceNodeKind.Signal "?"; label 1 @"a/b#c[d]e@f\g" ]
+                let events =
+                    numbered [ graphNew; nodeNew 1 0 TraceNodeKind.Signal "?"; label 1 @"a/b#c[d]e@f\g" ]
+
                 Expect.equal (path events 1) @"/a\/b\#c\[d\]e\@f\\g" "every reserved character is escaped"
                 Expect.equal (TraceModel.resolve (TraceModel.snapshot events) @"/a\/b\#c\[d\]e\@f\\g") (Some 1) "an escaped @ is not a suffix"
             }
@@ -158,12 +176,24 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let memos = List.init 12 (fun i -> createMemo (fun () -> s.Value + i))
-                createEffect (fun () -> for m in memos do m.Value |> ignore)
+
+                createEffect (fun () ->
+                    for m in memos do
+                        m.Value |> ignore)
+
                 let from = (Trace.events g |> Array.last).Seq
                 s.Value <- 2
-                let write = Trace.events g |> Array.filter (fun e -> e.Seq > from)
+
+                let write =
+                    Trace.events g
+                    |> Array.filter (fun e -> e.Seq > from)
+
                 let text = Trace.render g write
-                let folded = text.Split '\n' |> Array.filter (fun l -> l.Contains "× 12 memos marked")
+
+                let folded =
+                    text.Split '\n'
+                    |> Array.filter (fun l -> l.Contains "× 12 memos marked")
+
                 Expect.equal folded.Length 1 $"one line holds the twelve marks:\n{text}"
             }
 
@@ -212,7 +242,9 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 createSignal 1 |> ignore
-                let file = System.IO.Path.Combine (System.IO.Path.GetTempPath (), "partas-trace-offthread.jsonl")
+
+                let file =
+                    System.IO.Path.Combine (System.IO.Path.GetTempPath (), "partas-trace-offthread.jsonl")
 
                 let raised = ref false
 
@@ -232,7 +264,12 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let text = batch (fun () -> s.Value <- 2; Trace.dumpText g)
+
+                let text =
+                    batch (fun () ->
+                        s.Value <- 2
+                        Trace.dumpText g)
+
                 Expect.isNonEmpty text "a batch is between flushes"
             }
 #endif

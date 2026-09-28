@@ -191,11 +191,9 @@ let tests =
                 let log = ResizeArray ()
 
                 g.Run (fun () ->
-                    createEffectOn
-                        (fun () -> s.Value)
-                        (fun v ->
-                            log.Add $"act {v}"
-                            onCleanup (fun () -> log.Add $"clean {v}")))
+                    createEffectOn (fun () -> s.Value) (fun v ->
+                        log.Add $"act {v}"
+                        onCleanup (fun () -> log.Add $"clean {v}")))
 
                 s.Value <- 2
 

@@ -35,7 +35,12 @@ let dotnetPanels (rows: Report.Row[]) =
         if bars.Length = 0 then
             None
         else
-            Some { Scenario = scenario; N = group[0].N; Bars = bars })
+            Some
+                {
+                    Scenario = scenario
+                    N = group[0].N
+                    Bars = bars
+                })
 
 /// <summary>Panels for the Node.js rows, from the main-thread medians; empty without PMC collection.</summary>
 let nodePanels (sources: string[]) (rows: Report.NodeRow[]) =
@@ -53,13 +58,40 @@ let nodePanels (sources: string[]) (rows: Report.NodeRow[]) =
             if bars.Length = 0 then
                 None
             else
-                Some { Scenario = scenario; N = group[0].N; Bars = bars })
+                Some
+                    {
+                        Scenario = scenario
+                        N = group[0].N
+                        Bars = bars
+                    })
 
 /// <summary>Engines in color-slot order. An engine keeps its slot in every chart.</summary>
-let private engineOrder = [| "Ranvier"; "FSharp.Data.Adaptive"; "R3"; "Fable.Ripple" |]
+let private engineOrder =
+    [| "Ranvier"; "FSharp.Data.Adaptive"; "R3"; "Fable.Ripple" |]
 
-let private lightSlots = [| "#2a78d6"; "#eb6834"; "#1baf7a"; "#eda100"; "#e87ba4"; "#008300"; "#4a3aa7"; "#e34948" |]
-let private darkSlots = [| "#3987e5"; "#d95926"; "#199e70"; "#c98500"; "#d55181"; "#008300"; "#9085e9"; "#e66767" |]
+let private lightSlots =
+    [|
+        "#2a78d6"
+        "#eb6834"
+        "#1baf7a"
+        "#eda100"
+        "#e87ba4"
+        "#008300"
+        "#4a3aa7"
+        "#e34948"
+    |]
+
+let private darkSlots =
+    [|
+        "#3987e5"
+        "#d95926"
+        "#199e70"
+        "#c98500"
+        "#d55181"
+        "#008300"
+        "#9085e9"
+        "#e66767"
+    |]
 
 let private invariant = CultureInfo.InvariantCulture
 
@@ -69,7 +101,8 @@ let private compact (value: float) =
     else
         value.ToString ("N1", invariant)
 
-let private escape (s: string) = WebUtility.HtmlEncode s
+let private escape (s: string) =
+    WebUtility.HtmlEncode s
 
 let private label = Report.engineLabel
 
@@ -99,20 +132,39 @@ let private PanelGap = 14.0
 /// largest bar; light and dark colors follow <c>prefers-color-scheme</c>.
 /// </summary>
 let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
-    let present = panels |> Array.collect (fun p -> Array.map fst p.Bars) |> Array.distinct
-    let unknown = present |> Array.filter (fun e -> not (Array.contains e engineOrder))
-    let engines = Array.append (engineOrder |> Array.filter (fun e -> Array.contains e present)) unknown
+    let present =
+        panels
+        |> Array.collect (fun p -> Array.map fst p.Bars)
+        |> Array.distinct
+
+    let unknown =
+        present
+        |> Array.filter (fun e -> not (Array.contains e engineOrder))
+
+    let engines =
+        Array.append
+            (engineOrder
+             |> Array.filter (fun e -> Array.contains e present))
+            unknown
 
     let slot (engine: string) =
         match Array.tryFindIndex ((=) engine) engineOrder with
         | Some i -> i
-        | None -> engineOrder.Length + Array.findIndex ((=) engine) unknown
+        | None ->
+            engineOrder.Length
+            + Array.findIndex ((=) engine) unknown
 
-    if engines |> Array.exists (fun e -> slot e >= lightSlots.Length) then
+    if
+        engines
+        |> Array.exists (fun e -> slot e >= lightSlots.Length)
+    then
         failwith $"""More than %d{lightSlots.Length} engines: %s{String.Join (", ", engines)}"""
 
     let text = StringBuilder ()
-    let add (s: string) = text.Append(s).Append('\n') |> ignore
+
+    let add (s: string) =
+        text.Append(s).Append('\n') |> ignore
+
     let plot = Width - LabelWidth - ValueWidth
 
     let legend =
@@ -133,15 +185,25 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
         |]
 
     let header =
-        (legend |> Array.map (fun (_, _, _, y) -> y) |> Array.max) + 20.0
+        (legend
+         |> Array.map (fun (_, _, _, y) -> y)
+         |> Array.max)
+        + 20.0
 
     let height =
         header
-        + (panels |> Array.sumBy (fun p -> PanelTitle + float p.Bars.Length * BarStep + PanelGap))
+        + (panels
+           |> Array.sumBy (fun p ->
+               PanelTitle
+               + float p.Bars.Length * BarStep
+               + PanelGap))
 
-    let px (v: float) = v.ToString ("0.#", invariant)
+    let px (v: float) =
+        v.ToString ("0.#", invariant)
 
-    add $"""<svg xmlns="http://www.w3.org/2000/svg" width="%s{px Width}" height="%s{px height}" viewBox="0 0 %s{px Width} %s{px height}" role="img">"""
+    add
+        $"""<svg xmlns="http://www.w3.org/2000/svg" width="%s{px Width}" height="%s{px height}" viewBox="0 0 %s{px Width} %s{px height}" role="img">"""
+
     add $"<title>%s{escape title}</title>"
     add "<style>"
     add "text{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:12px}"
@@ -161,8 +223,7 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
     add $"""<rect class="surface" width="%s{px Width}" height="%s{px height}" rx="8"/>"""
     add $"""<text class="ink" x="16" y="26" style="font-size:15px;font-weight:600">%s{escape title}</text>"""
 
-    add
-        """<text class="ink2" x="16" y="44">Instructions per operation. Each panel scales from zero to its largest bar.</text>"""
+    add """<text class="ink2" x="16" y="44">Instructions per operation. Each panel scales from zero to its largest bar.</text>"""
 
     for engine, name, x, y in legend do
         add $"""<rect class="s%d{slot engine}" x="%s{px x}" y="%s{px y}" width="10" height="10" rx="2"/>"""
@@ -171,20 +232,35 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
     let mutable y = header
 
     for panel in panels do
-        add $"""<text class="ink" x="16" y="%s{px (y + 16.0)}" style="font-weight:600">%s{escape panel.Scenario}<tspan class="muted" style="font-weight:400"> N = %d{panel.N}</tspan></text>"""
+        add
+            $"""<text class="ink" x="16" y="%s{px (y + 16.0)}" style="font-weight:600">%s{escape panel.Scenario}<tspan class="muted" style="font-weight:400"> N = %d{panel.N}</tspan></text>"""
 
         let top = y + PanelTitle
-        let largest = panel.Bars |> Array.map (snd >> max 0.0) |> Array.fold max 0.0
+
+        let largest =
+            panel.Bars
+            |> Array.map (snd >> max 0.0)
+            |> Array.fold max 0.0
+
         let x0 = LabelWidth
 
-        add $"""<line class="axis" x1="%s{px x0}" y1="%s{px (top - 3.0)}" x2="%s{px x0}" y2="%s{px (top + float panel.Bars.Length * BarStep - 3.0)}"/>"""
+        add
+            $"""<line class="axis" x1="%s{px x0}" y1="%s{px (top - 3.0)}" x2="%s{px x0}" y2="%s{px (top + float panel.Bars.Length * BarStep - 3.0)}"/>"""
 
         panel.Bars
         |> Array.iteri (fun i (engine, value) ->
             let by = top + float i * BarStep
-            let w = if largest > 0.0 then max 0.0 value / largest * plot else 0.0
+
+            let w =
+                if largest > 0.0 then
+                    max 0.0 value / largest * plot
+                else
+                    0.0
+
             let name = label versions engine
-            let tip = $"%s{panel.Scenario}, %s{name}: %s{compact value} instructions per operation"
+
+            let tip =
+                $"%s{panel.Scenario}, %s{name}: %s{compact value} instructions per operation"
 
             add $"""<text class="ink2" x="%s{px (x0 - 8.0)}" y="%s{px (by + 11.0)}" text-anchor="end">%s{escape name}</text>"""
 
@@ -205,7 +281,9 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
 /// </summary>
 let appendix (dotnet: string option) (node: string option) =
     let text = StringBuilder ()
-    let line (s: string) = text.Append(s).Append("\r\n") |> ignore
+
+    let line (s: string) =
+        text.Append(s).Append("\r\n") |> ignore
 
     if dotnet.IsSome || node.IsSome then
         line "# Appendix: instructions per operation"

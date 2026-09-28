@@ -36,7 +36,7 @@ let SourcesPerWidget = 10
 let mutable private sink = 0
 
 #if RANVIER_TRACE
-let private created = ResizeArray<Graph> ()
+let private created = ResizeArray<Graph>()
 
 /// <summary>The graphs created by <c>newGraph</c> since the last call, oldest first.</summary>
 let takeGraphs () : Graph[] =
@@ -50,12 +50,13 @@ let newGraph () =
     created.Add graph
     graph
 #else
-let inline newGraph () = new Graph ()
+let inline newGraph () =
+    new Graph ()
 #endif
 
 let private teardown (owner: Owner) (graph: Graph) () =
     owner.Dispose ()
-    (graph :> IDisposable).Dispose ()
+    (graph :> IDisposable).Dispose()
 
 /// <summary>
 /// A <c>Rows</c>-row projection through a <c>filter</c> on a query signal and a <c>sortBy</c> on a direction signal.
@@ -141,7 +142,9 @@ let wideDiamond (n: int) =
         graph.CreateRoot (fun owner ->
             use _ = graph.Activate ()
             let source = createSignal 0
-            let branches = Array.init DiamondWidth (fun j -> createMemo (fun () -> source.Value + j))
+
+            let branches =
+                Array.init DiamondWidth (fun j -> createMemo (fun () -> source.Value + j))
 
             let sum =
                 createMemo (fun () ->
@@ -261,8 +264,7 @@ let asyncResolve (n: int) =
 /// </summary>
 let asyncRecover (n: int) =
     let graph, owner, slots =
-        widgets (fun body ->
-            createBoundary (fun last -> ValueOption.defaultValue -1 last) (fun _ last -> ValueOption.defaultValue -2 last) body)
+        widgets (fun body -> createBoundary (fun last -> ValueOption.defaultValue -1 last) (fun _ last -> ValueOption.defaultValue -2 last) body)
 
     let failure = exn "load failed"
 

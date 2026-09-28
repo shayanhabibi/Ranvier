@@ -29,7 +29,8 @@ type Counted(id: int, name: string, calls: int ref) =
         | :? Counted as c -> c.Id = id && c.Name = name
         | _ -> false
 
-    override _.GetHashCode() = hash (id, name)
+    override _.GetHashCode() =
+        hash (id, name)
 
 type Store = { Items: Counted list; Tick: int }
 
@@ -59,7 +60,8 @@ let private countRuns (read: unit -> 'a) =
 
     runs
 
-let private same (a: 'T) (b: 'T) = obj.ReferenceEquals (a, b)
+let private same (a: 'T) (b: 'T) =
+    obj.ReferenceEquals (a, b)
 
 [<Tests>]
 let tests =
@@ -108,7 +110,10 @@ let tests =
                 Signal.update state id
 
                 Signal.update state (fun m ->
-                    let todos = m.Todos |> List.updateBy _.Id 99 (fun t -> { t with Title = "absent" })
+                    let todos =
+                        m.Todos
+                        |> List.updateBy _.Id 99 (fun t -> { t with Title = "absent" })
+
                     if same todos m.Todos then m else { m with Todos = todos })
 
                 Expect.equal rootRuns.Value 1 "the root reader stays asleep"
@@ -118,7 +123,11 @@ let tests =
 
             test "List.updateBy with no match returns the input list" {
                 let xs = model.Todos
-                let ys = xs |> List.updateBy _.Id 99 (fun t -> { t with Title = "x" })
+
+                let ys =
+                    xs
+                    |> List.updateBy _.Id 99 (fun t -> { t with Title = "x" })
+
                 Expect.isTrue (same xs ys) "the input reference comes back"
             }
 
@@ -131,20 +140,30 @@ let tests =
             test "updateBy returns the input when f returns a NaN element unchanged" {
                 let xs = [ 1.0; nan; 3.0 ]
                 let arr = Array.ofList xs
-                let keyOf (x: float) = if Double.IsNaN x then 0 else int x
+
+                let keyOf (x: float) =
+                    if Double.IsNaN x then 0 else int x
+
                 Expect.isTrue (same xs (xs |> List.updateBy keyOf 0 id)) "the input list comes back"
                 Expect.isTrue (same arr (arr |> Array.updateBy keyOf 0 id)) "the input array comes back"
             }
 
             test "updateBy returns the input when f returns an equal value-typed element" {
                 let xs = [ struct (1, "a"); struct (2, "b") ]
-                let ys = xs |> List.updateBy (fun struct (k, _) -> k) 2 (fun struct (k, v) -> struct (k, v))
+
+                let ys =
+                    xs
+                    |> List.updateBy (fun struct (k, _) -> k) 2 (fun struct (k, v) -> struct (k, v))
+
                 Expect.isTrue (same xs ys) "an equal struct counts as unchanged"
             }
 
             test "List.updateBy at index 0 shares the tail" {
                 let xs = model.Todos
-                let ys = xs |> List.updateBy _.Id 1 (fun t -> { t with Title = "uno" })
+
+                let ys =
+                    xs
+                    |> List.updateBy _.Id 1 (fun t -> { t with Title = "uno" })
 
                 Expect.equal (ys |> List.map _.Title) [ "uno"; "two"; "three" ] "the first element is replaced"
                 Expect.isTrue (same (List.tail xs) (List.tail ys)) "the tail is the input's tail"
@@ -152,7 +171,10 @@ let tests =
 
             test "List.updateBy copies the prefix and shares the tail after the match" {
                 let xs = model.Todos
-                let ys = xs |> List.updateBy _.Id 2 (fun t -> { t with Title = "dos" })
+
+                let ys =
+                    xs
+                    |> List.updateBy _.Id 2 (fun t -> { t with Title = "dos" })
 
                 Expect.equal (ys |> List.map _.Title) [ "one"; "dos"; "three" ] "the match is replaced"
                 Expect.isTrue (same (List.skip 2 xs) (List.skip 2 ys)) "the suffix after the match is shared"
@@ -162,25 +184,32 @@ let tests =
 
             test "List.updateBy with duplicate keys rewrites the first match only" {
                 let xs =
-                    [
-                        { Id = 1; Title = "a" }
-                        { Id = 2; Title = "b" }
-                        { Id = 2; Title = "c" }
-                    ]
+                    [ { Id = 1; Title = "a" }; { Id = 2; Title = "b" }; { Id = 2; Title = "c" } ]
 
-                let ys = xs |> List.updateBy _.Id 2 (fun t -> { t with Title = "z" })
+                let ys =
+                    xs
+                    |> List.updateBy _.Id 2 (fun t -> { t with Title = "z" })
+
                 Expect.equal (ys |> List.map _.Title) [ "a"; "z"; "c" ] "only the first match changes"
             }
 
             test "List.updateBy matches keys structurally" {
                 let xs = [ [| 1 |], "a"; [| 2 |], "b" ]
-                let ys = xs |> List.updateBy fst [| 2 |] (fun (k, _) -> k, "z")
+
+                let ys =
+                    xs
+                    |> List.updateBy fst [| 2 |] (fun (k, _) -> k, "z")
+
                 Expect.equal (ys |> List.map snd) [ "a"; "z" ] "an equal array key matches"
             }
 
             test "Array.updateBy with no match or an unchanged element returns the input array" {
                 let xs = Array.ofList model.Todos
-                let missing = xs |> Array.updateBy _.Id 99 (fun t -> { t with Title = "x" })
+
+                let missing =
+                    xs
+                    |> Array.updateBy _.Id 99 (fun t -> { t with Title = "x" })
+
                 let unchanged = xs |> Array.updateBy _.Id 2 id
                 Expect.isTrue (same xs missing) "no match returns the input"
                 Expect.isTrue (same xs unchanged) "an unchanged element returns the input"
@@ -188,13 +217,11 @@ let tests =
 
             test "Array.updateBy copies the array and rewrites the first match only" {
                 let xs =
-                    [|
-                        { Id = 1; Title = "a" }
-                        { Id = 2; Title = "b" }
-                        { Id = 2; Title = "c" }
-                    |]
+                    [| { Id = 1; Title = "a" }; { Id = 2; Title = "b" }; { Id = 2; Title = "c" } |]
 
-                let ys = xs |> Array.updateBy _.Id 2 (fun t -> { t with Title = "z" })
+                let ys =
+                    xs
+                    |> Array.updateBy _.Id 2 (fun t -> { t with Title = "z" })
 
                 Expect.isFalse (same xs ys) "a change allocates a new array"
                 Expect.equal (ys |> Array.map _.Title) [| "a"; "z"; "c" |] "only the first match changes"
@@ -218,7 +245,9 @@ let tests =
                 let selected =
                     createOptionMemo (fun () ->
                         bodyRuns.Value <- bodyRuns.Value + 1
-                        state.Value.Items |> List.tryFind (fun c -> c.Id = 2))
+
+                        state.Value.Items
+                        |> List.tryFind (fun c -> c.Id = 2))
 
                 let dependent = countRuns (fun () -> selected.Value)
                 let first = selected.Peek
@@ -236,26 +265,61 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let calls = ref 0
-                let state = createSignal { Items = [ Counted (2, "b", calls) ]; Tick = 0 }
-                let selected = createOptionMemo (fun () -> state.Value.Items |> List.tryFind (fun c -> c.Id = 2))
+
+                let state =
+                    createSignal
+                        {
+                            Items = [ Counted (2, "b", calls) ]
+                            Tick = 0
+                        }
+
+                let selected =
+                    createOptionMemo (fun () ->
+                        state.Value.Items
+                        |> List.tryFind (fun c -> c.Id = 2))
+
                 let dependent = countRuns (fun () -> selected.Value)
 
-                Signal.update state (fun s -> { s with Items = [ Counted (2, "b", calls) ] })
+                Signal.update state (fun s ->
+                    { s with
+                        Items = [ Counted (2, "b", calls) ]
+                    })
 
                 Expect.equal dependent.Value 2 "the dependent wakes once"
                 Expect.equal calls.Value 0 "reference policy calls no Equals"
             }
 
             test "createOptionMemo: a policy-equal re-run returns the previous Some instance" {
-                use g = new Graph ({ GraphOptions.Default with Equality = StructuralPolicy () })
+                use g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Equality = StructuralPolicy ()
+                        }
+                    )
+
                 use _ = g.Activate ()
                 let calls = ref 0
-                let state = createSignal { Items = [ Counted (2, "b", calls) ]; Tick = 0 }
-                let selected = createOptionMemo (fun () -> state.Value.Items |> List.tryFind (fun c -> c.Id = 2))
+
+                let state =
+                    createSignal
+                        {
+                            Items = [ Counted (2, "b", calls) ]
+                            Tick = 0
+                        }
+
+                let selected =
+                    createOptionMemo (fun () ->
+                        state.Value.Items
+                        |> List.tryFind (fun c -> c.Id = 2))
+
                 let dependent = countRuns (fun () -> selected.Value)
                 let first = selected.Peek
 
-                Signal.update state (fun s -> { s with Items = [ Counted (2, "b", calls) ] })
+                Signal.update state (fun s ->
+                    { s with
+                        Items = [ Counted (2, "b", calls) ]
+                    })
+
                 selected.Value |> ignore
 
                 Expect.isTrue (same first selected.Peek) "the previous Some comes back"
@@ -264,7 +328,13 @@ let tests =
             }
 
             test "createOptionMemo under structural policy: an unchanged element costs one Equals, in the memo's cutoff" {
-                use g = new Graph ({ GraphOptions.Default with Equality = StructuralPolicy () })
+                use g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Equality = StructuralPolicy ()
+                        }
+                    )
+
                 use _ = g.Activate ()
                 let calls = ref 0
                 let element = Counted (2, "b", calls)
@@ -290,14 +360,24 @@ let tests =
                 let state = createSignal model
 
                 let selected =
-                    createOptionMemo (fun () -> state.Value.Todos |> List.tryFind (fun t -> t.Id = 4))
+                    createOptionMemo (fun () ->
+                        state.Value.Todos
+                        |> List.tryFind (fun t -> t.Id = 4))
 
                 Expect.equal selected.Value None "absent"
 
-                Signal.update state (fun m -> { m with Todos = m.Todos @ [ { Id = 4; Title = "four" } ] })
+                Signal.update state (fun m ->
+                    { m with
+                        Todos = m.Todos @ [ { Id = 4; Title = "four" } ]
+                    })
+
                 Expect.equal selected.Value (Some { Id = 4; Title = "four" }) "present"
 
-                Signal.update state (fun m -> { m with Todos = m.Todos |> List.filter (fun t -> t.Id <> 4) })
+                Signal.update state (fun m ->
+                    { m with
+                        Todos = m.Todos |> List.filter (fun t -> t.Id <> 4)
+                    })
+
                 Expect.equal selected.Value None "absent again"
             }
 
@@ -305,7 +385,12 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let state = createSignal model
-                let wrapped = createMemo (fun () -> state.Value.Todos |> List.tryFind (fun t -> t.Id = 2))
+
+                let wrapped =
+                    createMemo (fun () ->
+                        state.Value.Todos
+                        |> List.tryFind (fun t -> t.Id = 2))
+
                 let dependent = countRuns (fun () -> wrapped.Value)
 
                 Signal.update state (fun m -> { m with Theme = "light" })
@@ -319,8 +404,7 @@ let tests =
                 let state = createSignal model
 
                 let outer =
-                    createMemo (fun () ->
-                        (createOptionMemo (fun () -> state.Value.Todos |> List.tryHead)).Value)
+                    createMemo (fun () -> (createOptionMemo (fun () -> state.Value.Todos |> List.tryHead)).Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> outer.Value |> ignore) "the owned-node rule applies"
             }
@@ -359,15 +443,9 @@ let tests =
                 Expect.equal city.Value "Oslo" "the leaf moved"
                 Expect.equal (user.Runs, addr.Runs, city.Runs) (2, 2, 2) "every spine memo re-runs"
 
-                Expect.equal
-                    (zip.Runs, name.Runs, theme.Runs)
-                    (2, 2, 2)
-                    "each direct child of a spine node re-runs"
+                Expect.equal (zip.Runs, name.Runs, theme.Runs) (2, 2, 2) "each direct child of a spine node re-runs"
 
-                Expect.equal
-                    (cityRuns.Value, zipRuns.Value, nameRuns.Value, themeRuns.Value)
-                    (2, 1, 1, 1)
-                    "only the reader of the changed leaf wakes"
+                Expect.equal (cityRuns.Value, zipRuns.Value, nameRuns.Value, themeRuns.Value) (2, 1, 1, 1) "only the reader of the changed leaf wakes"
             }
 
             test "a keyed write wakes only the written projection row" {
@@ -375,18 +453,21 @@ let tests =
                 use _ = g.Activate ()
                 let state = createSignal model
                 let rows = createProjection _.Id _.Title (fun () -> state.Value.Todos)
-                let rowRuns = dict [ for t in model.Todos -> t.Id, countRuns (fun () -> rows.Get t.Id) ]
+
+                let rowRuns =
+                    dict [ for t in model.Todos -> t.Id, countRuns (fun () -> rows.Get t.Id) ]
+
                 let keyRuns = countRuns (fun () -> rows.Keys)
 
                 Signal.update state (fun m ->
-                    let todos = m.Todos |> List.updateBy _.Id 2 (fun t -> { t with Title = "dos" })
+                    let todos =
+                        m.Todos
+                        |> List.updateBy _.Id 2 (fun t -> { t with Title = "dos" })
+
                     if same todos m.Todos then m else { m with Todos = todos })
 
                 Expect.equal (rows.Get 2) "dos" "the row moved"
 
-                Expect.equal
-                    (rowRuns[1].Value, rowRuns[2].Value, rowRuns[3].Value, keyRuns.Value)
-                    (1, 2, 1, 1)
-                    "only the written row's reader wakes"
+                Expect.equal (rowRuns[1].Value, rowRuns[2].Value, rowRuns[3].Value, keyRuns.Value) (1, 2, 1, 1) "only the written row's reader wakes"
             }
         ]

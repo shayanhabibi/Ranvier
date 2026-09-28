@@ -16,10 +16,7 @@ let tests =
                 let selected = createSignal 1
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () -> selected.Value)
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
                 Expect.isTrue (lookup.Get 1) "1 is selected"
                 Expect.isFalse (lookup.Get 2) "2 is not"
@@ -29,7 +26,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let selected = createSignal 1
-                let computed = ResizeArray<int> ()
+                let computed = ResizeArray<int>()
 
                 let lookup =
                     createLookup
@@ -52,13 +49,10 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let selected = createSignal 1
-                let runs = System.Collections.Generic.Dictionary<int, int> ()
+                let runs = System.Collections.Generic.Dictionary<int, int>()
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () -> selected.Value)
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
                 for k in 1..4 do
                     createEffect (fun () ->
@@ -85,10 +79,7 @@ let tests =
                 let lookup, inside =
                     batch (fun () ->
                         let lookup =
-                            createLookup
-                                (fun s k -> s = k)
-                                (fun prev next -> [ prev; next ])
-                                (fun () -> selected.Value)
+                            createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
                         lookup, lookup.Get 1)
 
@@ -101,16 +92,12 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let selected = createSignal 1
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
                 let mutable lookup = Unchecked.defaultof<Lookup<int, bool>>
 
                 createEffect (fun () ->
                     if isNull (box lookup) then
-                        lookup <-
-                            createLookup
-                                (fun s k -> s = k)
-                                (fun prev next -> [ prev; next ])
-                                (fun () -> selected.Value)
+                        lookup <- createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
                     seen.Add (lookup.Get 1))
 
@@ -126,10 +113,7 @@ let tests =
                 let length =
                     batch (fun () ->
                         let lookup =
-                            createLookup
-                                (fun (s: string) k -> s.Length + k)
-                                (fun _ _ -> [ 0 ])
-                                (fun () -> name.Value)
+                            createLookup (fun (s: string) k -> s.Length + k) (fun _ _ -> [ 0 ]) (fun () -> name.Value)
 
                         lookup.Get 0)
 
@@ -142,10 +126,7 @@ let tests =
                 let selected = createSignal 1
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () -> selected.Value)
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
                 Expect.isTrue (lookup.Get 1) "1 is selected"
 
@@ -164,12 +145,9 @@ let tests =
                 let selected = createSignal 1
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () -> selected.Value)
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
 
-                let seen = ResizeArray<int * bool> ()
+                let seen = ResizeArray<int * bool>()
                 createEffect (fun () -> seen.Add (selected.Value, lookup.Get 2))
 
                 selected.Value <- 2
@@ -197,7 +175,7 @@ let tests =
                         (fun prev next -> [ prev; next ])
                         (fun () -> selected.Value)
 
-                let rows = System.Collections.Generic.Dictionary<int, Effect> ()
+                let rows = System.Collections.Generic.Dictionary<int, Effect>()
 
                 for k in 1..3 do
                     rows[k] <- new Effect (g, fun () -> lookup.Get k |> ignore)
@@ -227,7 +205,7 @@ let tests =
                         (fun prev next -> [ prev; next ])
                         (fun () -> selected.Value)
 
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
                 let row = new Effect (g, fun () -> seen.Add (lookup.Get 1))
 
                 failing <- true
@@ -256,7 +234,7 @@ let tests =
                         (fun prev next -> [ prev; next ])
                         (fun () -> selected.Value)
 
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
                 let row = new Effect (g, fun () -> seen.Add (lookup.Get 5))
 
                 Expect.equal row.Status Status.Error "the first read failed"
@@ -274,14 +252,11 @@ let tests =
                 let selected = createSignal 1
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () ->
-                            if selected.Value < 0 then
-                                failwith "negative"
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () ->
+                        if selected.Value < 0 then
+                            failwith "negative"
 
-                            selected.Value)
+                        selected.Value)
 
                 let row = new Effect (g, fun () -> lookup.Get 4 |> ignore)
 
@@ -296,13 +271,13 @@ let tests =
             test "a pending source suspends each row once, and the rows recover when it settles" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let source = createAsyncSource<int> ()
+                let source = createAsyncSource<int>()
 
                 let lookup =
                     createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () -> source.Value)
 
                 let runs = [| 0; 0 |]
-                let seen = [| ResizeArray<bool> (); ResizeArray<bool> () |]
+                let seen = [| ResizeArray<bool>(); ResizeArray<bool>() |]
 
                 // The cap stops a runaway flush so the assertions below can report it.
                 let row i =
@@ -312,7 +287,7 @@ let tests =
                             runs[i] <- runs[i] + 1
 
                             if runs[i] <= 100 then
-                                seen[i].Add (lookup.Get (i + 1))
+                                seen[i].Add(lookup.Get (i + 1))
                     )
 
                 let rows = [| row 0; row 1 |]
@@ -333,18 +308,16 @@ let tests =
             test "a source that becomes pending suspends its rows until it settles" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let first = createAsyncSource<int> ()
-                let second = createAsyncSource<int> ()
+                let first = createAsyncSource<int>()
+                let second = createAsyncSource<int>()
                 let useSecond = createSignal false
 
                 let lookup =
-                    createLookup
-                        (fun s k -> s = k)
-                        (fun prev next -> [ prev; next ])
-                        (fun () -> if useSecond.Value then second.Value else first.Value)
+                    createLookup (fun s k -> s = k) (fun prev next -> [ prev; next ]) (fun () ->
+                        if useSecond.Value then second.Value else first.Value)
 
                 first.Settle 1
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
                 let mutable runs = 0
 
                 let row =
@@ -371,7 +344,7 @@ let tests =
                 use _ = g.Activate ()
                 let selected = createSignal 1
                 let selector = createSelector (fun () -> selected.Value)
-                let runs = System.Collections.Generic.Dictionary<int, int> ()
+                let runs = System.Collections.Generic.Dictionary<int, int>()
 
                 for k in 1..4 do
                     createEffect (fun () ->
@@ -420,7 +393,7 @@ let tests =
                 use _ = g.Activate ()
                 let selected = createSignal 1
                 let selector = createSelector (fun () -> selected.Value)
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
 
                 createEffect (fun () -> seen.Add (selector.Get 7))
 
@@ -445,7 +418,7 @@ let tests =
                 selected.Value <- 7
                 Expect.equal selector.CellCount 0 "the cell was dropped"
 
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
                 createEffect (fun () -> seen.Add (selector.Get 7))
                 selected.Value <- 2
 
@@ -505,10 +478,12 @@ let tests =
                 let selector = createSelector (fun () -> selected.Value)
 
                 let owners =
-                    [ for i in 100..1099 ->
-                          createRoot (fun owner ->
-                              createEffect (fun () -> selector.Get i |> ignore)
-                              owner) ]
+                    [
+                        for i in 100..1099 ->
+                            createRoot (fun owner ->
+                                createEffect (fun () -> selector.Get i |> ignore)
+                                owner)
+                    ]
 
                 Expect.equal selector.CellCount 1000 "one live cell per row"
 
@@ -641,7 +616,7 @@ let tests =
                 let selected = createSignal 1
                 let key = createSignal 7
                 let selector = createSelector (fun () -> selected.Value)
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
 
                 createEffect (fun () -> seen.Add (selector.Get key.Value))
 
@@ -660,7 +635,7 @@ let tests =
                 use _ = g.Activate ()
                 let selected = createSignal { Row = 1; Column = 1 }
                 let selector = createSelector (fun () -> selected.Value)
-                let seen = ResizeArray<bool> ()
+                let seen = ResizeArray<bool>()
 
                 createEffect (fun () -> seen.Add (selector.Get { Row = 2; Column = 1 }))
 

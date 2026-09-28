@@ -2,8 +2,8 @@ namespace Ranvier
 
 /// <summary>A view's pending keys absent from its <c>Keys</c>, written by the view's pass.</summary>
 type internal HeldOut<'K when 'K: equality>(graph: Graph) =
-    let cell = Signal<'K[]> (graph, Array.empty)
-    let pass = ResizeArray<'K> ()
+    let cell = Signal<'K[]>(graph, Array.empty)
+    let pass = ResizeArray<'K>()
 
     /// <summary>The keys the last pass held out, in upstream order. A tracked read.</summary>
     member _.Keys = cell.Value
@@ -12,10 +12,12 @@ type internal HeldOut<'K when 'K: equality>(graph: Graph) =
     member _.Cell = cell
 
     /// <summary>Discards the keys a failed pass staged.</summary>
-    member _.Begin() = pass.Clear ()
+    member _.Begin() =
+        pass.Clear ()
 
     /// <summary>Stages <c>key</c> for the pass in progress.</summary>
-    member _.Add(key: 'K) = pass.Add key
+    member _.Add(key: 'K) =
+        pass.Add key
 
     /// <summary>
     /// Stages the keys <c>upstream</c> holds out of its <c>Keys</c>, after those already staged, then writes the staged
@@ -29,7 +31,10 @@ type internal HeldOut<'K when 'K: equality>(graph: Graph) =
 
         let current = cell.Peek
 
-        if current.Length <> pass.Count || not (Seq.forall2 (=) current pass) then
+        if
+            current.Length <> pass.Count
+            || not (Seq.forall2 (=) current pass)
+        then
             cell.Value <- pass.ToArray ()
 
         pass.Clear ()
@@ -38,8 +43,8 @@ type internal HeldOut<'K when 'K: equality>(graph: Graph) =
 /// The keys of <c>upstream</c>, in upstream order, with rows from exactly one of <c>map</c> and <c>factory</c>, as on
 /// <c>KeyedProjection</c>.
 /// </summary>
-type internal MapView<'K, 'V, 'U when 'K: equality>
-    (graph: Graph, upstream: Projection<'K, 'V>, map: 'K -> 'U, factory: (unit -> 'K) -> (unit -> 'U)) =
+type internal MapView<'K, 'V, 'U when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, map: 'K -> 'U, factory: (unit -> 'K) -> (unit -> 'U))
+    =
     inherit KeyedProjection<'K, 'K, 'U>(graph, id, map, factory, (fun () -> upstream.Keys))
 
     let heldOut = HeldOut<'K> graph
@@ -60,8 +65,7 @@ type internal MapView<'K, 'V, 'U when 'K: equality>
 /// A null <c>offset</c> starts at position 0, and a null <c>count</c> runs to the last key. A negative offset is 0. An
 /// offset past the last key or a negative count gives an empty window, and a count past the last key ends it at the last key.
 /// </remarks>
-type internal SliceView<'K, 'V when 'K: equality>
-    (graph: Graph, upstream: Projection<'K, 'V>, offset: unit -> int, count: unit -> int) =
+type internal SliceView<'K, 'V when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, offset: unit -> int, count: unit -> int) =
     inherit RowsOf<'K, 'K, 'V>(graph, (fun key -> upstream.Get key), Unchecked.defaultof<_>)
 
     let heldOut = HeldOut<'K> graph
@@ -72,10 +76,20 @@ type internal SliceView<'K, 'V when 'K: equality>
     override this.Enumerate() =
         heldOut.Begin ()
         let offset = if isNull (box offset) then 0 else max 0 (offset ())
-        let count = if isNull (box count) then System.Int32.MaxValue else count ()
+
+        let count =
+            if isNull (box count) then
+                System.Int32.MaxValue
+            else
+                count ()
+
         let keys = upstream.Keys
         let start = min offset keys.Length
-        let stop = if count <= 0 then start elif count >= keys.Length - start then keys.Length else start + count
+
+        let stop =
+            if count <= 0 then start
+            elif count >= keys.Length - start then keys.Length
+            else start + count
 
         for i in start .. stop - 1 do
             let key = keys[i]
@@ -114,8 +128,10 @@ type internal FilterView<'K, 'V, 'U when 'K: equality>
                 | Ready true -> this.Visit (key, key)
                 | Ready false -> ()
                 | Pending ->
-                    if not entry.Settled then heldOut.Add key
-                    elif entry.Row.Peek then this.Visit (key, key)
+                    if not entry.Settled then
+                        heldOut.Add key
+                    elif entry.Row.Peek then
+                        this.Visit (key, key)
                 | Failed _ ->
                     this.Visit (key, key)
                     this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
@@ -130,8 +146,8 @@ type internal FilterView<'K, 'V, 'U when 'K: equality>
 /// A pending sort key keeps the key's last settled sort key. A failed sort key leaves the key out of <c>Keys</c> and keeps
 /// its row, which raises the failure. A <c>float</c> or <c>float32</c> NaN sort key orders after every other sort key.
 /// </remarks>
-type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>
-    (graph: Graph, upstream: Projection<'K, 'V>, sortKeys: Projection<'K, 'S> ref) =
+type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>(graph: Graph, upstream: Projection<'K, 'V>, sortKeys: Projection<'K, 'S> ref)
+    =
     inherit
         RowsOf<'K, 'K, 'V>(
             graph,
@@ -144,10 +160,10 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>
     let heldOut = HeldOut<'K> graph
 
     // The placed keys and their sort keys in upstream order, for the current and the last pass.
-    let mutable placed = ResizeArray<'K> ()
-    let mutable ranks = ResizeArray<'S> ()
-    let mutable lastPlaced = ResizeArray<'K> ()
-    let mutable lastRanks = ResizeArray<'S> ()
+    let mutable placed = ResizeArray<'K>()
+    let mutable ranks = ResizeArray<'S>()
+    let mutable lastPlaced = ResizeArray<'K>()
+    let mutable lastRanks = ResizeArray<'S>()
 
     /// <summary>Positions into <c>lastPlaced</c>, in output order.</summary>
     let mutable order: int[] = Array.empty
@@ -179,7 +195,10 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>
         let mutable i = 0
 
         while same && i < placed.Count do
-            same <- equalKeys.Equals (placed[i], lastPlaced[i]) && compareRanks ranks[i] lastRanks[i] = 0
+            same <-
+                equalKeys.Equals (placed[i], lastPlaced[i])
+                && compareRanks ranks[i] lastRanks[i] = 0
+
             i <- i + 1
 
         same
@@ -247,7 +266,7 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>
 /// <c>outerKeys</c> first, so it follows the upstream without a reader of the outer view.
 /// </summary>
 type internal Group<'K, 'V when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, outerKeys: unit -> unit) =
-    let members = Signal<'K[]> (graph, Array.empty)
+    let members = Signal<'K[]>(graph, Array.empty)
 
     let view =
         new KeyedProjection<'K, 'K, 'V> (
@@ -263,7 +282,7 @@ type internal Group<'K, 'V when 'K: equality>(graph: Graph, upstream: Projection
     do view.GetRaisesDisposed <- true
 
     /// <summary>The members placed by the pass in progress, in upstream order.</summary>
-    member val Pass = ResizeArray<'K> ()
+    member val Pass = ResizeArray<'K>()
 
     member _.View = view :> Projection<'K, 'V>
 
@@ -271,7 +290,10 @@ type internal Group<'K, 'V when 'K: equality>(graph: Graph, upstream: Projection
     member this.Publish() =
         let current = members.Peek
 
-        if current.Length <> this.Pass.Count || not (Seq.forall2 (=) current this.Pass) then
+        if
+            current.Length <> this.Pass.Count
+            || not (Seq.forall2 (=) current this.Pass)
+        then
             members.Value <- this.Pass.ToArray ()
 
         this.Pass.Clear ()
@@ -284,16 +306,16 @@ type internal Group<'K, 'V when 'K: equality>(graph: Graph, upstream: Projection
 /// A pending group key keeps the key's last settled group. A key whose group key failed or has never settled is in
 /// <c>UngroupedKeys</c> and in no group. An inner view is disposed once its group is empty.
 /// </remarks>
-type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
-    internal (graph: Graph, upstream: Projection<'K, 'V>, groupKeys: Projection<'K, 'G> ref) as this =
+type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality> internal (graph: Graph, upstream: Projection<'K, 'V>, groupKeys: Projection<'K, 'G> ref) as this
+    =
     inherit Projection<'G, Projection<'K, 'V>>(graph)
 
-    let groups = Platform.KeyMap<'G, Group<'K, 'V>> ()
-    let order = ResizeArray<'G> ()
-    let emptied = ResizeArray<'G> ()
+    let groups = Platform.KeyMap<'G, Group<'K, 'V>>()
+    let order = ResizeArray<'G>()
+    let emptied = ResizeArray<'G>()
     let heldOut = HeldOut<'K> graph
-    let adds = ResizeArray<struct ('G * Group<'K, 'V>)> ()
-    let writes = ResizeArray<struct (Signal<Projection<'K, 'V>> * Projection<'K, 'V>)> ()
+    let adds = ResizeArray<struct ('G * Group<'K, 'V>)>()
+    let writes = ResizeArray<struct (Signal<Projection<'K, 'V>> * Projection<'K, 'V>)>()
 
     do this.ExtraObserved <- fun () -> heldOut.Cell.ObserverCount > 0
 
@@ -301,7 +323,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
         let mutable group = groups.Find groupKey
 
         if isNull (box group) then
-            group <- graph.RunOwned (this.Scope, fun () -> Group<'K, 'V> (graph, upstream, (fun () -> this.Keys |> ignore)))
+            group <- graph.RunOwned (this.Scope, fun () -> Group<'K, 'V>(graph, upstream, (fun () -> this.Keys |> ignore)))
             groups.Set (groupKey, group)
 
         if group.Pass.Count = 0 then
@@ -322,11 +344,11 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
 
     member private this.CreateAdded() =
         for struct (groupKey, group) in adds do
-            let source = Signal<Projection<'K, 'V>> (graph, group.View)
-            let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>> (groupKey, source)
+            let source = Signal<Projection<'K, 'V>>(graph, group.View)
+            let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>>(groupKey, source)
             this.Entries.Set (groupKey, entry)
             entry.Reader <- fun () -> source.Value
-            entry.Row <- Memo<Projection<'K, 'V>>.Create (graph, (fun () -> this.RunRow entry), ScopeMode.ValueRow)
+            entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun () -> this.RunRow entry), ScopeMode.ValueRow)
 
     member private this.Enumerate() =
         heldOut.Begin ()
@@ -339,11 +361,18 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
             if not (isNull entry) then
                 match entry.Row.TryValue with
                 | Ready groupKey -> this.Place (key, groupKey)
-                | Pending -> if entry.Settled then this.Place (key, entry.Row.Peek) else heldOut.Add key
+                | Pending ->
+                    if entry.Settled then
+                        this.Place (key, entry.Row.Peek)
+                    else
+                        heldOut.Add key
                 | Failed _ -> heldOut.Add key
 
         emptied.Clear ()
-        groups.Iterate (fun groupKey group -> if group.Pass.Count = 0 then emptied.Add groupKey)
+
+        groups.Iterate (fun groupKey group ->
+            if group.Pass.Count = 0 then
+                emptied.Add groupKey)
 
         for groupKey in order do
             let group = groups.Find groupKey
@@ -377,7 +406,8 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
         groupKeys.Value.GetSettled key
 
     interface IProjectionPass with
-        member this.Enumerate() = this.Enumerate ()
+        member this.Enumerate() =
+            this.Enumerate ()
 
         member this.CreateAdded() =
             if adds.Count > 0 then
@@ -398,8 +428,8 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality>
 [<Sealed>]
 type internal FoldReads(graph: Graph, changed: unit -> unit) =
     let id = graph.NextId ()
-    let read = System.Collections.Generic.HashSet<ISource> (HashIdentity.Reference)
-    let order = ResizeArray<ISource> ()
+    let read = System.Collections.Generic.HashSet<ISource>(HashIdentity.Reference)
+    let order = ResizeArray<ISource>()
     let mutable dirty = false
     let mutable check = false
 
@@ -409,7 +439,7 @@ type internal FoldReads(graph: Graph, changed: unit -> unit) =
             let mutable i = 0
 
             while not dirty && i < order.Count do
-                order[i].UpdateIfNecessary ()
+                order[i].UpdateIfNecessary()
                 i <- i + 1
 
         let moved = dirty
@@ -484,8 +514,12 @@ type internal FoldRow<'K, 'V>(graph: Graph, entry: RowEntry<'K, 'V>, touched: Fo
 
     interface IComputation with
         member _.AddSource _ = ()
-        member this.MarkDirty() = touched this
-        member this.MarkCheck() = touched this
+
+        member this.MarkDirty() =
+            touched this
+
+        member this.MarkCheck() =
+            touched this
 
 /// <summary>
 /// The fold of the settled row values of <c>upstream</c>, kept current in O(changed rows) when <c>subtract</c> is non-null
@@ -503,10 +537,10 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
     let observers = ObserverSet ()
     let invertible = not (isNull (box subtract))
     let equal = graph.Options.Equality.Comparer<'V>()
-    let rows = Platform.KeyMap<'K, FoldRow<'K, 'V>> ()
-    let queue = ResizeArray<FoldRow<'K, 'V>> ()
-    let added = ResizeArray<FoldRow<'K, 'V>> ()
-    let removed = ResizeArray<'K> ()
+    let rows = Platform.KeyMap<'K, FoldRow<'K, 'V>>()
+    let queue = ResizeArray<FoldRow<'K, 'V>>()
+    let added = ResizeArray<FoldRow<'K, 'V>>()
+    let removed = ResizeArray<'K>()
 
     /// <summary>The <c>Keys</c> array of the last membership diff, or null before the first read.</summary>
     let mutable lastKeys: 'K[] = null
@@ -591,7 +625,10 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
                 row.Value <- v
                 valued <- valued + 1
 
-                if invertible then this.Step (fun s -> add s v) else full <- true
+                if invertible then
+                    this.Step (fun s -> add s v)
+                else
+                    full <- true
             elif not (equal.Equals (row.Value, v)) then
                 let old = row.Value
                 row.Value <- v
@@ -606,7 +643,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
     /// <summary>Stops observing the row and removes its contribution.</summary>
     member private this.Detach(row: FoldRow<'K, 'V>) =
         row.Attached <- false
-        (row.Entry.Row :> ISource).RemoveObserver (row :> IComputation)
+        (row.Entry.Row :> ISource).RemoveObserver(row :> IComputation)
         this.Unfail row
 
         if row.HasValue then
@@ -635,18 +672,23 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
             if not (isNull entry) then
                 let row = rows.Find key
 
-                if not (isNull (box row)) && obj.ReferenceEquals (row.Entry, entry) then
+                if
+                    not (isNull (box row))
+                    && obj.ReferenceEquals (row.Entry, entry)
+                then
                     row.Generation <- generation
                 else
                     if not (isNull (box row)) then
                         this.Detach row
 
-                    let fresh = FoldRow<'K, 'V> (graph, entry, touched)
+                    let fresh = FoldRow<'K, 'V>(graph, entry, touched)
                     fresh.Generation <- generation
                     rows.Set (key, fresh)
                     added.Add fresh
 
-        rows.Iterate (fun key row -> if row.Generation <> generation then removed.Add key)
+        rows.Iterate (fun key row ->
+            if row.Generation <> generation then
+                removed.Add key)
 
         for key in removed do
             this.Detach (rows.Find key)
@@ -657,7 +699,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         for row in added do
             row.Queued <- true
             row.Attached <- true
-            (row.Entry.Row :> ISource).AddObserver (row :> IComputation)
+            (row.Entry.Row :> ISource).AddObserver(row :> IComputation)
             this.Read row
 
         added.Clear ()
@@ -690,7 +732,10 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         if reads.Moved () then
             full <- true
 
-        if not (isNull keys) && not (obj.ReferenceEquals (keys, lastKeys)) then
+        if
+            not (isNull keys)
+            && not (obj.ReferenceEquals (keys, lastKeys))
+        then
             this.Diff keys
 
         let mutable i = 0
@@ -698,7 +743,10 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         while i < queue.Count do
             let row = queue[i]
 
-            if row.Attached && row.Entry.Live then this.Read row else row.Queued <- false
+            if row.Attached && row.Entry.Live then
+                this.Read row
+            else
+                row.Queued <- false
 
             i <- i + 1
 
@@ -709,7 +757,9 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
 
     member private _.Failure: exn =
         if isNull (box failure) then
-            rows.Iterate (fun _ row -> if isNull (box failure) && not (isNull row.Error) then failure <- row)
+            rows.Iterate (fun _ row ->
+                if isNull (box failure) && not (isNull row.Error) then
+                    failure <- row)
 
         failure.Error
 
@@ -738,7 +788,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
 
             rows.Iterate (fun _ row ->
                 row.Attached <- false
-                (row.Entry.Row :> ISource).RemoveObserver (row :> IComputation))
+                (row.Entry.Row :> ISource).RemoveObserver(row :> IComputation))
 
             rows.Clear ()
             queue.Clear ()
@@ -752,8 +802,11 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         member _.Status = Status.None
 
     interface ISource with
-        member _.AddObserver c = observers.Add c
-        member _.RemoveObserver c = observers.Remove c
+        member _.AddObserver c =
+            observers.Add c
+
+        member _.RemoveObserver c =
+            observers.Remove c
 
         member this.UpdateIfNecessary() =
             if not disposed && not (isNull lastKeys) then
@@ -893,12 +946,7 @@ module Projection =
             :> Projection<'K, 'U>
         else
             let view =
-                new MapView<'K, 'V, 'U> (
-                    upstream.Graph,
-                    upstream,
-                    (fun key -> mapping (upstream.Get key)),
-                    Unchecked.defaultof<_>
-                )
+                new MapView<'K, 'V, 'U> (upstream.Graph, upstream, (fun key -> mapping (upstream.Get key)), Unchecked.defaultof<_>)
 
             view.PendingExtra <- fun () -> view.HeldOut
             view :> Projection<'K, 'U>
@@ -924,10 +972,11 @@ module Projection =
             mapping k (fun () -> upstream.Get k)
 
         if isNull (box upstream.PendingExtra) then
-            new KeyedProjection<'K, 'K, 'U> (upstream.Graph, id, Unchecked.defaultof<_>, factory, (fun () -> upstream.Keys))
-            :> Projection<'K, 'U>
+            new KeyedProjection<'K, 'K, 'U> (upstream.Graph, id, Unchecked.defaultof<_>, factory, (fun () -> upstream.Keys)) :> Projection<'K, 'U>
         else
-            let view = new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
+            let view =
+                new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
+
             view.PendingExtra <- fun () -> view.HeldOut
             view :> Projection<'K, 'U>
 
@@ -1084,18 +1133,13 @@ module Projection =
     /// let total = rows |> Projection.foldGroup (+) (-) 0
     /// </code>
     /// </example>
-    let foldGroup
-        (add: 'S -> 'V -> 'S)
-        (subtract: 'S -> 'V -> 'S)
-        (zero: 'S)
-        (upstream: Projection<'K, 'V>)
-        : Memo<'S> =
+    let foldGroup (add: 'S -> 'V -> 'S) (subtract: 'S -> 'V -> 'S) (zero: 'S) (upstream: Projection<'K, 'V>) : Memo<'S> =
         if isNull (box subtract) then
             nullArg (nameof subtract)
 
         let graph = upstream.Graph
-        let aggregate = ProjectionFold<'K, 'V, 'S> (graph, upstream, add, subtract, zero)
-        aggregate.Memo <- Memo<'S>.Create (graph, aggregate.Compute, ScopeMode.Pure)
+        let aggregate = ProjectionFold<'K, 'V, 'S>(graph, upstream, add, subtract, zero)
+        aggregate.Memo <- Memo<'S>.Create(graph, aggregate.Compute, ScopeMode.Pure)
         aggregate.Memo
 
     /// <summary>A memo of the settled values of <c>upstream</c> folded with <c>folder</c> from <c>state</c>, in <c>Keys</c> order.</summary>
@@ -1105,8 +1149,11 @@ module Projection =
     /// </remarks>
     let fold (folder: 'S -> 'V -> 'S) (state: 'S) (upstream: Projection<'K, 'V>) : Memo<'S> =
         let graph = upstream.Graph
-        let aggregate = ProjectionFold<'K, 'V, 'S> (graph, upstream, folder, Unchecked.defaultof<_>, state)
-        aggregate.Memo <- Memo<'S>.Create (graph, aggregate.Compute, ScopeMode.Pure)
+
+        let aggregate =
+            ProjectionFold<'K, 'V, 'S>(graph, upstream, folder, Unchecked.defaultof<_>, state)
+
+        aggregate.Memo <- Memo<'S>.Create(graph, aggregate.Compute, ScopeMode.Pure)
         aggregate.Memo
 
     /// <summary>A memo of the sum of <c>projection</c> over the values of <c>upstream</c>, kept current per row change.</summary>
@@ -1121,7 +1168,7 @@ module Projection =
     /// let hours = rows |> Projection.sumBy (fun t -> t.Hours)
     /// </code>
     /// </example>
-    let inline sumBy (projection: 'V -> ^N) (upstream: Projection<'K, 'V>) : Memo< ^N> =
+    let inline sumBy (projection: 'V -> ^N) (upstream: Projection<'K, 'V>) : Memo< ^N > =
         upstream
         |> map projection
         |> foldGroup
@@ -1150,10 +1197,10 @@ module Projection =
     /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>false</c>.</remarks>
     let exists (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
         let count = countBy predicate upstream
-        Memo<bool>.Create (upstream.Graph, (fun () -> count.Value > 0), ScopeMode.Pure)
+        Memo<bool>.Create(upstream.Graph, (fun () -> count.Value > 0), ScopeMode.Pure)
 
     /// <summary>A memo of whether every value of <c>upstream</c> satisfies <c>predicate</c>: a <c>countBy</c> of misses at zero.</summary>
     /// <remarks>Costs and pending and failed rows follow <c>countBy</c>. An empty projection reads <c>true</c>.</remarks>
     let forall (predicate: 'V -> bool) (upstream: Projection<'K, 'V>) : Memo<bool> =
         let misses = countBy (predicate >> not) upstream
-        Memo<bool>.Create (upstream.Graph, (fun () -> misses.Value = 0), ScopeMode.Pure)
+        Memo<bool>.Create(upstream.Graph, (fun () -> misses.Value = 0), ScopeMode.Pure)

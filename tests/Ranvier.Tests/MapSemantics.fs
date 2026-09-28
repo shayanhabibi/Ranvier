@@ -8,7 +8,8 @@ open Ranvier
 
 type private User = { Id: int; Name: string }
 
-let private users = [ { Id = 1; Name = "ada" }; { Id = 2; Name = "bob" }; { Id = 3; Name = "cy" } ]
+let private users =
+    [ { Id = 1; Name = "ada" }; { Id = 2; Name = "bob" }; { Id = 3; Name = "cy" } ]
 
 /// <summary>
 /// Counts runs of an effect reading <c>read</c>, swallowing suspension and failure.
@@ -27,7 +28,11 @@ let private observe (read: unit -> 'a) =
     runs
 
 let private bump (d: Dictionary<int, int>) k =
-    d[k] <- (match d.TryGetValue k with | true, n -> n | _ -> 0) + 1
+    d[k] <-
+        (match d.TryGetValue k with
+         | true, n -> n
+         | _ -> 0)
+        + 1
 
 /// <summary>
 /// Reads a row expected to be pending, so it enters the pending summary.
@@ -49,12 +54,12 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let flights = Dictionary<int, TaskCompletionSource<string>> ()
+                let flights = Dictionary<int, TaskCompletionSource<string>>()
 
                 for u in users do
-                    flights[u.Id] <- TaskCompletionSource<string> ()
+                    flights[u.Id] <- TaskCompletionSource<string>()
 
-                let created = Dictionary<int, int> ()
+                let created = Dictionary<int, int>()
 
                 let proj =
                     createProjectionWith
@@ -67,10 +72,12 @@ let tests =
                         (fun () -> source.Value)
 
                 let views =
-                    [ for u in users -> u.Id, createSuspense (fun _ -> "loading") (fun () -> proj.Get u.Id) ]
+                    [
+                        for u in users -> u.Id, createSuspense (fun _ -> "loading") (fun () -> proj.Get u.Id)
+                    ]
                     |> dict
 
-                let log = ResizeArray<string> ()
+                let log = ResizeArray<string>()
                 createEffect (fun () -> log.Add views[1].Value)
 
                 Expect.throwsT<NotReadyException> (fun () -> proj.Get 1 |> ignore) "row 1 is pending"
@@ -106,7 +113,7 @@ let tests =
                         (fun item ->
                             created <- created + 1
                             onCleanup (fun () -> cleaned <- cleaned + 1)
-                            let upper = createMemo (fun () -> (item ()).Name.ToUpper ())
+                            let upper = createMemo (fun () -> (item ()).Name.ToUpper())
                             fun () -> upper.Value)
                         (fun () -> source.Value)
 
@@ -114,7 +121,9 @@ let tests =
                 Expect.equal (proj.Get 1) "ADA" "initial"
                 let createdBefore = created
 
-                source.Value <- source.Value |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
 
                 Expect.equal (proj.Get 1) "ADELE" "the row shows the new content"
                 Expect.equal row1.Value 2 "the row observer woke once"
@@ -160,7 +169,9 @@ let tests =
                 let row2 = observe (fun () -> proj.Get 2)
                 let row3 = observe (fun () -> proj.Get 3)
 
-                source.Value <- source.Value |> List.map (fun u -> if u.Id = 2 then { u with Name = "bo" } else u)
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> if u.Id = 2 then { u with Name = "bo" } else u)
 
                 Expect.equal (proj.Get 2) "bo" "edited"
                 Expect.equal row2.Value 2 "the edited row woke"
@@ -173,8 +184,8 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let created = Dictionary<int, int> ()
-                let cleaned = Dictionary<int, int> ()
+                let created = Dictionary<int, int>()
+                let cleaned = Dictionary<int, int>()
 
                 let proj =
                     createProjectionWith
@@ -204,13 +215,13 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let gates = Dictionary<int, AsyncSource<string>> ()
+                let gates = Dictionary<int, AsyncSource<string>>()
 
                 let proj =
                     createProjectionWith
                         _.Id
                         (fun item ->
-                            let gate = createAsyncSource<string> ()
+                            let gate = createAsyncSource<string>()
                             gates[(item ()).Id] <- gate
                             fun () -> gate.Value)
                         (fun () -> source.Value)
@@ -219,10 +230,10 @@ let tests =
                 for u in users do
                     readPending proj u.Id
 
-                let anyLog = ResizeArray<bool> ()
+                let anyLog = ResizeArray<bool>()
                 createEffect (fun () -> anyLog.Add proj.AnyPending)
                 let view = createSuspense (fun _ -> "loading") (fun () -> proj.Get 1)
-                let viewLog = ResizeArray<string> ()
+                let viewLog = ResizeArray<string>()
                 createEffect (fun () -> viewLog.Add view.Value)
 
                 Expect.throwsT<NotReadyException> (fun () -> proj.Get 1 |> ignore) "pending row raises"
@@ -266,7 +277,7 @@ let tests =
                     createIndexProjectionWith
                         (fun item ->
                             created <- created + 1
-                            fun () -> (item () : string).ToUpper ())
+                            fun () -> (item (): string).ToUpper())
                         (fun () -> source.Value)
 
                 let slot0 = observe (fun () -> proj.Get 0)
@@ -289,7 +300,9 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let proj = createProjection _.Id (fun u -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
+
+                let proj =
+                    createProjection _.Id (fun u -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
 
                 let ex = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
 
@@ -302,10 +315,15 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let flight = TaskCompletionSource<string> ()
+                let flight = TaskCompletionSource<string>()
 
                 let proj =
-                    createProjection _.Id (fun (u: User) -> (createAsync (fun _ -> flight.Task)).Value + u.Name) (fun () -> source.Value)
+                    createProjection
+                        _.Id
+                        (fun (u: User) ->
+                            (createAsync (fun _ -> flight.Task)).Value
+                            + u.Name)
+                        (fun () -> source.Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> proj.Get 1 |> ignore) "the spec's example throws on the first read"
                 Expect.isFalse proj.AnyPending "the row failed; it is not pending"
@@ -378,7 +396,9 @@ let tests =
                     Expect.throwsT<InvalidOperationException> (fun () -> proj.Get 1 |> ignore) "the row fails"
 
                     Expect.equal
-                        (proj.Snapshot |> Seq.map (fun p -> p.Key, p.Value) |> List.ofSeq)
+                        (proj.Snapshot
+                         |> Seq.map (fun p -> p.Key, p.Value)
+                         |> List.ofSeq)
                         [ 2, "bob"; 3, "cy" ]
                         "the never-settled row is absent"
 
@@ -457,7 +477,8 @@ let tests =
                         let inner = createMemo (fun () -> s.Value * 2)
                         inner.Value)
 
-                let proj = createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
+                let proj =
+                    createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
 
                 Expect.equal (proj.Get 1) "ada20" "the outside memo's nested memo is not blamed on the row"
 
@@ -485,7 +506,10 @@ let tests =
 
                 Expect.equal (proj.Get 1) "ada" "the factory memo's nested memo is not blamed on the reader"
 
-                source.Value <- source.Value |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+
                 Expect.equal (proj.Get 1) "adele" "the row follows the item"
             }
 
@@ -500,7 +524,8 @@ let tests =
                         onCleanup (fun () -> cleaned <- cleaned + 1)
                         1)
 
-                let proj = createProjection _.Id (fun (u: User) -> u.Id + ext.Value) (fun () -> source.Value)
+                let proj =
+                    createProjection _.Id (fun (u: User) -> u.Id + ext.Value) (fun () -> source.Value)
 
                 Expect.equal (proj.Get 1) 2 "the row reads the memo"
                 Expect.equal cleaned 0 "the cleanup is registered, not run"
@@ -567,7 +592,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let proj =
                     createProjectionWith
@@ -616,7 +641,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let reads = Dictionary<int, int> ()
+                let reads = Dictionary<int, int>()
 
                 let proj =
                     createProjection
@@ -633,7 +658,10 @@ let tests =
                 Expect.equal reads.Count 1 "one row computed"
                 Expect.equal reads[2] 1 "once"
 
-                source.Value <- source.Value |> List.map (fun u -> { u with Name = u.Name + "!" })
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> { u with Name = u.Name + "!" })
+
                 Expect.equal reads.Count 1 "a changed item does not compute an unread row"
                 Expect.equal reads[2] 1 "nor re-run an unobserved one"
 
@@ -645,7 +673,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let reads = Dictionary<int, int> ()
+                let reads = Dictionary<int, int>()
 
                 let proj =
                     createProjection
@@ -674,7 +702,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal [ 1 ]
-                let gate = createAsyncSource<int> ()
+                let gate = createAsyncSource<int>()
                 let offset = createSignal 0
                 let runs = ref 0
 
@@ -710,11 +738,22 @@ let tests =
                 let proj =
                     createProjection
                         _.Id
-                        (fun (u: User) -> if u.Id = 2 && broken.Value then failwith "row 2 failed" else u.Name)
+                        (fun (u: User) ->
+                            if u.Id = 2 && broken.Value then
+                                failwith "row 2 failed"
+                            else
+                                u.Name)
                         (fun () -> source.Value)
 
-                let seen = ResizeArray<string> ()
-                createEffect (fun () -> seen.Add (try proj.Get 2 with e -> e.Message))
+                let seen = ResizeArray<string>()
+
+                createEffect (fun () ->
+                    seen.Add (
+                        try
+                            proj.Get 2
+                        with e ->
+                            e.Message
+                    ))
 
                 Expect.equal (proj.Get 1) "ada" "row 1 is unaffected"
                 Expect.throwsT<Exception> (fun () -> proj.Get 2 |> ignore) "Get re-raises the row's error"
@@ -737,7 +776,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal [ 1; 2 ]
-                let factories = Dictionary<int, int> ()
+                let factories = Dictionary<int, int>()
 
                 let proj =
                     createProjectionWith
@@ -770,7 +809,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal [ 1 ]
-                let gate = createAsyncSource<int> ()
+                let gate = createAsyncSource<int>()
 
                 let proj =
                     createProjectionWith
@@ -880,7 +919,8 @@ let tests =
                         let inner = createMemo (fun () -> s.Value * 2)
                         inner.Value)
 
-                let proj = createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
+                let proj =
+                    createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
 
                 Expect.equal (proj.Get 1) "ada20" "the row computes the outside memo first"
                 proj.Dispose ()
@@ -948,13 +988,18 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let source = createSignal users
-                let proj = createProjection _.Id (fun (u: User) -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
+
+                let proj =
+                    createProjection _.Id (fun (u: User) -> (createMemo (fun () -> u.Name)).Value) (fun () -> source.Value)
 
                 let first = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
                 Expect.isTrue (first :? InvalidOperationException) "an InvalidOperationException"
                 Expect.stringContains first.Message "createProjectionWith" "naming the factory form"
 
-                source.Value <- source.Value |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+
                 let again = Expect.throwsC (fun () -> proj.Get 1 |> ignore) id
                 Expect.stringContains again.Message "createProjectionWith" "the re-run throws as well"
             }
@@ -970,7 +1015,8 @@ let tests =
                         let inner = untrack (fun () -> createMemo (fun () -> s.Value * 2))
                         inner.Value)
 
-                let proj = createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
+                let proj =
+                    createProjection _.Id (fun (u: User) -> $"%s{u.Name}%d{ext.Value}") (fun () -> source.Value)
 
                 Expect.equal (proj.Get 1) "ada20" "the row computes the outside memo first"
 
@@ -983,8 +1029,8 @@ let tests =
                 use _ = g.Activate ()
                 let source = createSignal users
                 let s = createSignal 1
-                let cleaned = Dictionary<int, int> ()
-                let effectRuns = Dictionary<int, int> ()
+                let cleaned = Dictionary<int, int>()
+                let effectRuns = Dictionary<int, int>()
 
                 let proj =
                     createProjectionWith
@@ -1004,7 +1050,10 @@ let tests =
                 Expect.equal (proj.Get 1) "ada1" "row 1 reads its factory's memo"
                 Expect.equal (proj.Get 2) "bob1" "row 2 reads its own"
 
-                source.Value <- source.Value |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+                source.Value <-
+                    source.Value
+                    |> List.map (fun u -> if u.Id = 1 then { u with Name = "adele" } else u)
+
                 Expect.equal (proj.Get 1) "adele1" "an item change keeps the factory's memo"
                 Expect.equal cleaned.Count 0 "and disposes nothing"
 
@@ -1046,7 +1095,10 @@ let tests =
                         id
                         (fun x ->
                             if x = 1 then
-                                try self.Get 2 with _ -> "fallback"
+                                try
+                                    self.Get 2
+                                with _ ->
+                                    "fallback"
                             else
                                 onCleanup ignore
                                 "two")

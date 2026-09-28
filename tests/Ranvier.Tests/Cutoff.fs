@@ -236,7 +236,15 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
                 let cached = exn "same"
-                let a = Memo<int>(g, (fun () -> ignore s.Value; raise cached))
+
+                let a =
+                    Memo<int>(
+                        g,
+                        (fun () ->
+                            ignore s.Value
+                            raise cached)
+                    )
+
                 let mutable memoRuns = 0
                 let mutable effectRuns = 0
 
@@ -248,7 +256,12 @@ let tests =
                             a.Value + 1)
                     )
 
-                new Effect (g, (fun () -> effectRuns <- effectRuns + 1; ignore a.TryValue))
+                new Effect (
+                    g,
+                    (fun () ->
+                        effectRuns <- effectRuns + 1
+                        ignore a.TryValue)
+                )
                 |> ignore
 
                 Expect.equal (reason b.TryValue) "same" "first failure"

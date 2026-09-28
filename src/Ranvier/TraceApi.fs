@@ -43,7 +43,8 @@ module Trace =
             )
 
     /// <summary>A copy of the events <c>graph</c> has recorded, oldest first.</summary>
-    let events (graph: Graph) : TraceEvent[] = ((box graph) :?> ITraced).TraceLog.Events
+    let events (graph: Graph) : TraceEvent[] =
+        ((box graph) :?> ITraced).TraceLog.Events
 
     /// <summary>The creation record of <c>node</c> in <c>graph</c>'s log.</summary>
     /// <exception cref="T:System.ArgumentException"><c>graph</c>'s log holds no <c>NodeNew</c> for <c>node</c>.</exception>
@@ -51,14 +52,20 @@ module Trace =
         let events = events graph
         let id = node.Id
 
-        match events |> Array.tryFindIndex (fun e -> e.Kind = TraceEventKind.NodeNew && e.Node = id) with
+        match
+            events
+            |> Array.tryFindIndex (fun e -> e.Kind = TraceEventKind.NodeNew && e.Node = id)
+        with
         | None -> invalidArg (nameof node) $"The graph's trace log holds no NodeNew for node {id}."
         | Some i ->
             let created = events[i]
 
             let relabel =
                 events
-                |> Array.tryFindBack (fun e -> e.Kind = TraceEventKind.Label && e.Arg = 1 && e.Node = id)
+                |> Array.tryFindBack (fun e ->
+                    e.Kind = TraceEventKind.Label
+                    && e.Arg = 1
+                    && e.Node = id)
 
             let label =
                 match relabel with
@@ -76,7 +83,9 @@ module Trace =
 
             let rec chain owner =
                 match snap.Owners.TryFind owner with
-                | Some o -> owner :: (if o.Parent = 0 then [] else chain o.Parent)
+                | Some o ->
+                    owner
+                    :: (if o.Parent = 0 then [] else chain o.Parent)
                 | None -> []
 
             {
@@ -93,7 +102,8 @@ module Trace =
 
     /// <summary>The cause chain of <c>node</c>'s last run in <c>graph</c>'s log.</summary>
     /// <exception cref="T:System.ArgumentException">The log holds no <c>RunStart</c> for <c>node</c>.</exception>
-    let why (graph: Graph) (node: INode) : Why = TraceModel.why (events graph) null node.Id 0
+    let why (graph: Graph) (node: INode) : Why =
+        TraceModel.why (events graph) null node.Id 0
 
     /// <summary>The cause chain of run number <c>run</c>, from 1, of <c>node</c> in <c>graph</c>'s log.</summary>
     /// <exception cref="T:System.ArgumentException">The log holds no such run.</exception>
@@ -109,16 +119,19 @@ module Trace =
         TraceModel.whyDepth (events graph) null depth node.Id 0
 
     /// <summary>Why <c>node</c> has not run since its last run ended, or <c>None</c> when the log shows no reason.</summary>
-    let whyNot (graph: Graph) (node: INode) : WhyNotReason option = TraceModel.whyNot (events graph) node.Id
+    let whyNot (graph: Graph) (node: INode) : WhyNotReason option =
+        TraceModel.whyNot (events graph) node.Id
 
     /// <summary>Every recorded run of <c>node</c> in <c>graph</c>'s log, with its status, movement, cause and flush.</summary>
-    let history (graph: Graph) (node: INode) : TraceHistory = TraceModel.history (events graph) null node.Id
+    let history (graph: Graph) (node: INode) : TraceHistory =
+        TraceModel.history (events graph) null node.Id
 
     /// <summary>
     /// The pending sources read by <c>node</c>'s last run in <c>graph</c>'s log, and the node's flights with their
     /// results.
     /// </summary>
-    let waitingOn (graph: Graph) (node: INode) : TraceWaiting = TraceModel.waitingOn (events graph) node.Id
+    let waitingOn (graph: Graph) (node: INode) : TraceWaiting =
+        TraceModel.waitingOn (events graph) node.Id
 
     /// <summary>
     /// The differences between <c>graph</c>'s live source lists and observer sets and those folded from its log, one
@@ -135,30 +148,40 @@ module Trace =
                 let live = set.Ids
 
                 if set.IsSources then
-                    let folded = sources |> Map.tryFind set.Owner |> Option.defaultValue []
+                    let folded =
+                        sources
+                        |> Map.tryFind set.Owner
+                        |> Option.defaultValue []
 
                     if List.ofArray live <> folded then
                         yield $"sources of {set.Owner}: live %A{live}, folded %A{folded}"
                 else
-                    let folded = observers |> Map.tryFind set.Owner |> Option.defaultValue Set.empty
+                    let folded =
+                        observers
+                        |> Map.tryFind set.Owner
+                        |> Option.defaultValue Set.empty
 
                     if Set.ofArray live <> folded then
                         yield $"observers of {set.Owner}: live %A{live}, folded %A{folded}"
         ]
 
-    let private logOf (graph: Graph) = ((box graph) :?> ITraced).TraceLog
+    let private logOf (graph: Graph) =
+        ((box graph) :?> ITraced).TraceLog
 
     /// <summary>The state folded from every event in <c>graph</c>'s log.</summary>
-    let snapshot (graph: Graph) : TraceSnapshot = TraceModel.snapshot (events graph)
+    let snapshot (graph: Graph) : TraceSnapshot =
+        TraceModel.snapshot (events graph)
 
     /// <summary>The state folded from the events in <c>graph</c>'s log up to and including seq <c>seq</c>.</summary>
-    let snapshotAt (graph: Graph) (seq: int) : TraceSnapshot = TraceModel.snapshotAt (events graph) seq
+    let snapshotAt (graph: Graph) (seq: int) : TraceSnapshot =
+        TraceModel.snapshotAt (events graph) seq
 
     /// <summary>
     /// The node id at identity path <c>path</c> in <c>graph</c>'s log: the <c>@k</c>-th holder, else the live holder,
     /// else the latest.
     /// </summary>
-    let resolve (graph: Graph) (path: string) : int option = TraceModel.resolve (snapshot graph) path
+    let resolve (graph: Graph) (path: string) : int option =
+        TraceModel.resolve (snapshot graph) path
 
     /// <summary>
     /// <c>value</c> as text, with node ids shown as <c>graph</c>'s identity paths: a <c>Why</c>, a
@@ -180,18 +203,35 @@ module Trace =
         | :? TraceOrigin as o ->
             let site = if isNull o.Site then "?" else string o.Site
 
-            TraceModel.pathOf snap o.Node + " " + string o.Kind + " at " + site + " #" + string o.Seq
-        | other -> invalidArg (nameof value) ("Trace.render has no text form for " + other.GetType().Name + ".")
+            TraceModel.pathOf snap o.Node
+            + " "
+            + string o.Kind
+            + " at "
+            + site
+            + " #"
+            + string o.Seq
+        | other ->
+            invalidArg
+                (nameof value)
+                ("Trace.render has no text form for "
+                 + other.GetType().Name
+                 + ".")
 
     let private gate (graph: Graph) (operation: string) =
         if not graph.IsOnGraphThread then
-            invalidOp (operation + " ran off the graph's thread. Marshal it through Graph.Dispatch.")
+            invalidOp (
+                operation
+                + " ran off the graph's thread. Marshal it through Graph.Dispatch."
+            )
 
         if isNull (box graph.CurrentComputation) then
             Tracer.AbandonStale (logOf graph)
 
         if (logOf graph).Busy then
-            invalidOp (operation + " ran inside a flush, a discharge or a computation's run. Call it between flushes.")
+            invalidOp (
+                operation
+                + " ran inside a flush, a discharge or a computation's run. Call it between flushes."
+            )
 
     /// <summary>The JSONL dump of <c>graph</c>'s log, schema 1.</summary>
     /// <exception cref="T:System.InvalidOperationException">

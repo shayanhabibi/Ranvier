@@ -71,7 +71,9 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun () -> (untrack (fun () -> createMemo (fun () -> s.Value))).Value)
+
+                let m =
+                    createMemo (fun () -> (untrack (fun () -> createMemo (fun () -> s.Value))).Value)
 
                 Expect.throwsT<InvalidOperationException> (fun () -> m.Value |> ignore) "untrack does not hide a creation"
             }
@@ -148,7 +150,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 let m =
                     Memo (

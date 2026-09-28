@@ -77,7 +77,11 @@ let tests =
                     createMemoWith (fun () ->
                         bodyRuns <- bodyRuns + 1
                         let n = s.Value
-                        onCleanup (fun () -> if n = 2 then s.Value <- 3)
+
+                        onCleanup (fun () ->
+                            if n = 2 then
+                                s.Value <- 3)
+
                         n)
 
                 m.Value |> ignore
@@ -122,19 +126,17 @@ let tests =
                 let mutable bodyRuns = 0
 
                 self <-
-                    createErrorBoundary
-                        (fun _ _ -> -1)
-                        (fun () ->
-                            bodyRuns <- bodyRuns + 1
-                            let n = s.Value
-                            createEffect (fun () -> tick.Value |> ignore)
+                    createErrorBoundary (fun _ _ -> -1) (fun () ->
+                        bodyRuns <- bodyRuns + 1
+                        let n = s.Value
+                        createEffect (fun () -> tick.Value |> ignore)
 
-                            onCleanup (fun () ->
-                                if n = 2 then
-                                    s.Value <- 3
-                                    self.Value |> ignore)
+                        onCleanup (fun () ->
+                            if n = 2 then
+                                s.Value <- 3
+                                self.Value |> ignore)
 
-                            n)
+                        n)
 
                 self.Value |> ignore
                 s.Value <- 2
@@ -156,19 +158,16 @@ let tests =
                 let mutable self: Projection<int, int> = Unchecked.defaultof<_>
 
                 self <-
-                    createProjection
-                        id
-                        (fun x -> x * 10)
-                        (fun () ->
-                            let n = s.Value
-                            createEffect (fun () -> tick.Value |> ignore)
+                    createProjection id (fun x -> x * 10) (fun () ->
+                        let n = s.Value
+                        createEffect (fun () -> tick.Value |> ignore)
 
-                            onCleanup (fun () ->
-                                if n = 2 then
-                                    s.Value <- 3
-                                    self.Keys |> ignore)
+                        onCleanup (fun () ->
+                            if n = 2 then
+                                s.Value <- 3
+                                self.Keys |> ignore)
 
-                            [ n ])
+                        [ n ])
 
                 self.Keys |> ignore
                 s.Value <- 2
@@ -272,7 +271,12 @@ let tests =
                 use _ = g.Activate ()
                 let trigger = createSignal 0
                 let other = createSignal 0
-                let root = createRoot (fun o -> onCleanup (fun () -> other.Value |> ignore); o)
+
+                let root =
+                    createRoot (fun o ->
+                        onCleanup (fun () -> other.Value |> ignore)
+                        o)
+
                 let mutable runs = 0
 
                 let m =
@@ -297,7 +301,11 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let trigger = createSignal 0
-                let root = createRoot (fun o -> onCleanup (fun () -> createEffect ignore); o)
+
+                let root =
+                    createRoot (fun o ->
+                        onCleanup (fun () -> createEffect ignore)
+                        o)
 
                 let m =
                     createMemo (fun () ->
@@ -315,7 +323,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 0
-                let weak = ResizeArray<WeakReference> ()
+                let weak = ResizeArray<WeakReference>()
 
                 let m =
                     createMemoWith (fun () ->
@@ -344,7 +352,7 @@ let tests =
                 use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let cleaned = ResizeArray<int> ()
+                let cleaned = ResizeArray<int>()
 
                 createEffect (fun () ->
                     let n = s.Value
@@ -446,7 +454,10 @@ let tests =
                         fun () ->
                             runs <- runs + 1
                             let n = s.Value
-                            onCleanup (fun () -> if n = 0 then self.Dispose ())
+
+                            onCleanup (fun () ->
+                                if n = 0 then
+                                    self.Dispose ())
                     )
 
                 Expect.equal runs 1 "the first run"
@@ -465,7 +476,10 @@ let tests =
                     createEffect (fun () ->
                         runs <- runs + 1
                         let n = s.Value
-                        onCleanup (fun () -> if n = 0 then owner.Dispose ())))
+
+                        onCleanup (fun () ->
+                            if n = 0 then
+                                owner.Dispose ())))
 
                 Expect.equal runs 1 "the first run"
                 s.Value <- 1
@@ -740,4 +754,3 @@ let tests =
                 Expect.equal u.ObserverCount 0 "the disposed projection holds no edge to u"
             }
         ]
-

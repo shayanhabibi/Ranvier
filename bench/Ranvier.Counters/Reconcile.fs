@@ -7,11 +7,17 @@ open Ranvier
 
 /// <summary>The library counters as the events of <c>logs</c> account for them, in <c>Counters.Snapshot</c> order.</summary>
 let private fromLogs (logs: TraceEvent[] seq) : (string * int64)[] =
-    let counts = Dictionary<string, int64> ()
-    let add name = counts[name] <- (match counts.TryGetValue name with | true, n -> n | _ -> 0L) + 1L
+    let counts = Dictionary<string, int64>()
+
+    let add name =
+        counts[name] <-
+            (match counts.TryGetValue name with
+             | true, n -> n
+             | _ -> 0L)
+            + 1L
 
     for events in logs do
-        let kinds = Dictionary<int, TraceNodeKind> ()
+        let kinds = Dictionary<int, TraceNodeKind>()
 
         for e in events do
             match e.Kind with
@@ -38,7 +44,13 @@ let private fromLogs (logs: TraceEvent[] seq) : (string * int64)[] =
             | TraceEventKind.FlushStart -> add "Flushes"
             | _ -> ()
 
-    [| for name, _ in Counters.Snapshot () -> name, (match counts.TryGetValue name with | true, n -> n | _ -> 0L) |]
+    [|
+        for name, _ in Counters.Snapshot () ->
+            name,
+            (match counts.TryGetValue name with
+             | true, n -> n
+             | _ -> 0L)
+    |]
 
 /// <summary>
 /// Runs every Ranvier case of <c>Scenarios.all scale</c> on its own graph, prints one PASS or FAIL line per
@@ -51,7 +63,9 @@ let private fromLogs (logs: TraceEvent[] seq) : (string * int64)[] =
 let run (scale: int) : int =
     let mutable failures = 0
 
-    for case in Scenarios.all scale |> List.filter (fun c -> c.Engine = "Ranvier") do
+    for case in
+        Scenarios.all scale
+        |> List.filter (fun c -> c.Engine = "Ranvier") do
         Workloads.takeGraphs () |> ignore
         Counters.Reset ()
         let prepared = case.Prepare case.Ops

@@ -208,7 +208,16 @@ let tests =
             test "a memo that swallows a pending read is still pending" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> try a.Value with _ -> -1))
+
+                let m =
+                    Memo (
+                        g,
+                        (fun () ->
+                            try
+                                a.Value
+                            with _ ->
+                                -1)
+                    )
 
                 Expect.equal m.TryValue Pending "the placeholder is not published"
 
@@ -232,7 +241,16 @@ let tests =
                 let a = AsyncSource<int> g
 
                 let boundary =
-                    Boundary<int>.Suspense(g, (fun () -> try a.Value with _ -> -1), (fun _ -> -2))
+                    Boundary<int>
+                        .Suspense(
+                            g,
+                            (fun () ->
+                                try
+                                    a.Value
+                                with _ ->
+                                    -1),
+                            (fun _ -> -2)
+                        )
 
                 Expect.equal boundary.TryValue (Ready -2) "the fallback, not the placeholder"
 
@@ -246,7 +264,16 @@ let tests =
                 let b = AsyncSource<int> g
 
                 let boundary =
-                    Boundary<int>.Suspense(g, (fun () -> a.Value), (fun _ -> try b.Value with _ -> -1))
+                    Boundary<int>
+                        .Suspense(
+                            g,
+                            (fun () -> a.Value),
+                            (fun _ ->
+                                try
+                                    b.Value
+                                with _ ->
+                                    -1)
+                        )
 
                 Expect.equal boundary.TryValue Pending "the fallback's placeholder is not shown"
 
@@ -259,7 +286,16 @@ let tests =
                 let a = AsyncSource<int> g
 
                 let boundary =
-                    Boundary<int>.Errors(g, (fun () -> failwith "boom"), (fun _ _ -> try a.Value with _ -> -1))
+                    Boundary<int>
+                        .Errors(
+                            g,
+                            (fun () -> failwith "boom"),
+                            (fun _ _ ->
+                                try
+                                    a.Value
+                                with _ ->
+                                    -1)
+                        )
 
                 Expect.equal boundary.TryValue Pending "the recovery's placeholder is not shown"
 
@@ -271,7 +307,15 @@ let tests =
                 let g = new Graph ()
                 let a = AsyncSource<int> g
 
-                let e = new Effect (g, (fun () -> try a.Value |> ignore with _ -> ()))
+                let e =
+                    new Effect (
+                        g,
+                        (fun () ->
+                            try
+                                a.Value |> ignore
+                            with _ ->
+                                ())
+                    )
 
                 Expect.isTrue (e.Status.HasFlag Status.Pending) "the run is pending"
                 Expect.isFalse (e.Status.HasFlag Status.Error) "and not an error"
@@ -280,7 +324,17 @@ let tests =
             test "a pending read swallowed inside untrack is a value" {
                 let g = new Graph ()
                 let a = AsyncSource<int> g
-                let m = Memo (g, (fun () -> g.Untrack (fun () -> try a.Value with _ -> -1)))
+
+                let m =
+                    Memo (
+                        g,
+                        (fun () ->
+                            g.Untrack (fun () ->
+                                try
+                                    a.Value
+                                with _ ->
+                                    -1))
+                    )
 
                 Expect.equal m.TryValue (Ready -1) "an untracked read is the body's business"
             }
@@ -289,23 +343,19 @@ let tests =
                 let g = new Graph ()
                 let a = AsyncSource<int> g
                 let b = AsyncSource<int> g
-                let suspended = Boundary<int>.Suspense (g, (fun () -> a.Value), (fun _ -> b.Value))
+                let suspended = Boundary<int>.Suspense(g, (fun () -> a.Value), (fun _ -> b.Value))
 
                 let rethrown =
-                    Boundary<int>.Errors (g, (fun () -> failwith "body"), (fun _ _ -> invalidOp "recover"))
+                    Boundary<int>.Errors(g, (fun () -> failwith "body"), (fun _ _ -> invalidOp "recover"))
 
                 let failedFallback =
-                    Boundary<int>.Suspense (g, (fun () -> a.Value), (fun _ -> failwith "fallback"))
+                    Boundary<int>.Suspense(g, (fun () -> a.Value), (fun _ -> failwith "fallback"))
 
                 Expect.throwsT<NotReadyException> (fun () -> suspended.Value |> ignore) "a suspended fallback"
 
-                Expect.throwsC
-                    (fun () -> failedFallback.Value |> ignore)
-                    (fun ex -> Expect.equal ex.Message "fallback" "the fallback's exception")
+                Expect.throwsC (fun () -> failedFallback.Value |> ignore) (fun ex -> Expect.equal ex.Message "fallback" "the fallback's exception")
 
-                Expect.throwsC
-                    (fun () -> rethrown.Value |> ignore)
-                    (fun ex -> Expect.equal ex.Message "recover" "the recover's exception")
+                Expect.throwsC (fun () -> rethrown.Value |> ignore) (fun ex -> Expect.equal ex.Message "recover" "the recover's exception")
             }
 
             test "a body that catches two pending reads lists only the last in PendingSources" {
@@ -317,17 +367,24 @@ let tests =
                     Memo (
                         g,
                         fun () ->
-                            let x = try a.Value with NotReadyException _ -> 0
-                            let y = try b.Value with NotReadyException _ -> 0
+                            let x =
+                                try
+                                    a.Value
+                                with NotReadyException _ ->
+                                    0
+
+                            let y =
+                                try
+                                    b.Value
+                                with NotReadyException _ ->
+                                    0
+
                             x + y
                     )
 
                 Expect.equal m.TryValue Pending "the caught reads still suspend the memo"
 
-                Expect.sequenceEqual
-                    (m.PendingSources |> Seq.map (fun n -> n.Id))
-                    [ (b :> INode).Id ]
-                    "the last pending read is the one recorded"
+                Expect.sequenceEqual (m.PendingSources |> Seq.map (fun n -> n.Id)) [ (b :> INode).Id ] "the last pending read is the one recorded"
             }
 
             test "an uncaught pending read inside untrack stays pending after the source settles" {

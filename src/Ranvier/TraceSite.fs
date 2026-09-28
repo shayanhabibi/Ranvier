@@ -38,7 +38,7 @@ module internal TraceSite =
     /// </summary>
     let capture () : string =
         try
-            let frames = StackTrace(1, true).GetFrames ()
+            let frames = StackTrace(1, true).GetFrames()
             let mutable site = "?"
             let mutable i = 0
 
@@ -47,11 +47,23 @@ module internal TraceSite =
                 let file = frame.GetFileName ()
                 let name = assemblyOf frame
 
-                if not (isNull name) && name.StartsWith "FSI-ASSEMBLY" then
-                    let script = if String.IsNullOrEmpty file then "stdin" else Path.GetFileName file
+                if
+                    not (isNull name)
+                    && name.StartsWith "FSI-ASSEMBLY"
+                then
+                    let script =
+                        if String.IsNullOrEmpty file then
+                            "stdin"
+                        else
+                            Path.GetFileName file
+
                     site <- String.Concat (script, ":", string (frame.GetFileLineNumber ()))
                     i <- frames.Length
-                elif not (String.IsNullOrEmpty file) && not (excluded name) && not (inLibrarySource file) then
+                elif
+                    not (String.IsNullOrEmpty file)
+                    && not (excluded name)
+                    && not (inLibrarySource file)
+                then
                     site <- String.Concat (Path.GetFileName file, ":", string (frame.GetFileLineNumber ()))
                     i <- frames.Length
                 else

@@ -123,15 +123,18 @@ module internal Platform =
     /// <summary>The exception a cancelled task throws when awaited.</summary>
     let private cancellation (t: Task) : exn =
         try
-            t.GetAwaiter().GetResult ()
+            t.GetAwaiter().GetResult()
             OperationCanceledException () :> exn
         with ex ->
             ex
 
     let private settled (t: Task<'T>) =
-        if t.IsCanceled then FlightOutcome.Canceled (cancellation t)
-        elif t.IsFaulted then FlightOutcome.Faulted (t.Exception.GetBaseException ())
-        else FlightOutcome.Completed t.Result
+        if t.IsCanceled then
+            FlightOutcome.Canceled (cancellation t)
+        elif t.IsFaulted then
+            FlightOutcome.Faulted (t.Exception.GetBaseException ())
+        else
+            FlightOutcome.Completed t.Result
 #endif
 
     /// <summary>
@@ -166,9 +169,7 @@ module internal Platform =
 #if FABLE_COMPILER
         thenValue outcome settle
 #else
-        outcome
-            .ContinueWith(Func<Task<FlightOutcome<'T>>, Task>(fun t -> settle t.Result), TaskContinuationOptions.ExecuteSynchronously)
-            .Unwrap ()
+        outcome.ContinueWith(Func<Task<FlightOutcome<'T>>, Task>(fun t -> settle t.Result), TaskContinuationOptions.ExecuteSynchronously).Unwrap()
 #endif
 
     /// <summary>
@@ -179,7 +180,7 @@ module internal Platform =
 #if FABLE_COMPILER
         thenEither tail next
 #else
-        tail.ContinueWith(Func<Task, Task>(fun _ -> next ()), TaskContinuationOptions.ExecuteSynchronously).Unwrap ()
+        tail.ContinueWith(Func<Task, Task>(fun _ -> next ()), TaskContinuationOptions.ExecuteSynchronously).Unwrap()
 #endif
 
 #if !FABLE_COMPILER
@@ -187,8 +188,12 @@ module internal Platform =
     [<AllowNullLiteral>]
     type private FlightFrame(enter: obj -> bool, leave: obj -> unit) =
         member val Live = true with get, set
-        member this.Enter() = enter this
-        member this.Leave() = leave this
+
+        member this.Enter() =
+            enter this
+
+        member this.Leave() =
+            leave this
 
     /// <summary>
     /// Flows with the execution context into every continuation of a flight
@@ -200,12 +205,15 @@ module internal Platform =
     /// frame stays entered.
     /// </remarks>
     let private flightFrame =
-        AsyncLocal<FlightFrame> (fun args ->
+        AsyncLocal<FlightFrame>(fun args ->
             if args.ThreadContextChanged then
                 let left = args.PreviousValue
                 let entered = args.CurrentValue
 
-                let nested = not (isNull entered) && not entered.Live && entered.Enter ()
+                let nested =
+                    not (isNull entered)
+                    && not entered.Live
+                    && entered.Enter ()
 
                 if not nested && not (isNull left) && not left.Live then
                     left.Leave ())
@@ -411,7 +419,7 @@ module internal Platform =
     type RefIndex<'K> = Dictionary<'K, int>
 
     let inline createRefIndex<'K when 'K: not struct> (capacity: int) : RefIndex<'K> =
-        Dictionary<'K, int> (capacity, HashIdentity.Reference)
+        Dictionary<'K, int>(capacity, HashIdentity.Reference)
 
     /// <summary>
     /// The position of <c>key</c>, or -1.
@@ -459,8 +467,8 @@ module internal Platform =
     [<Sealed>]
     type KeyMap<'K, 'V when 'K: equality>() =
 #if FABLE_COMPILER
-        let prims = newJsMap<'K, 'V> ()
-        let objs = Dictionary<'K, 'V> (HashIdentity.Structural)
+        let prims = newJsMap<'K, 'V>()
+        let objs = Dictionary<'K, 'V>(HashIdentity.Structural)
 
         member _.Prims = prims
         member _.Objs = objs
@@ -514,7 +522,7 @@ module internal Platform =
 
             found
 #else
-        let table = Dictionary<'K, 'V> (HashIdentity.Structural)
+        let table = Dictionary<'K, 'V>(HashIdentity.Structural)
         let mutable hasNull = false
         let mutable nullValue = Unchecked.defaultof<'V>
 
@@ -583,15 +591,18 @@ module internal Platform =
     [<Sealed>]
     type KeySet<'K when 'K: equality>() =
 #if FABLE_COMPILER
-        let prims = newJsSet<'K> ()
-        let objs = HashSet<'K> (HashIdentity.Structural)
+        let prims = newJsSet<'K>()
+        let objs = HashSet<'K>(HashIdentity.Structural)
 
         member _.Prims = prims
         member _.Objs = objs
         member _.Count = prims.size + objs.Count
 
         member _.Contains(key: 'K) =
-            if primitiveKey key then prims.has key else objs.Contains key
+            if primitiveKey key then
+                prims.has key
+            else
+                objs.Contains key
 
         /// <summary>
         /// Adds <c>key</c>. Returns false if it was already present.
@@ -625,7 +636,7 @@ module internal Platform =
             for key in this.Objs do
                 f key
 #else
-        let table = HashSet<'K> (HashIdentity.Structural)
+        let table = HashSet<'K>(HashIdentity.Structural)
         let mutable hasNull = false
 
         member _.Table = table

@@ -17,12 +17,14 @@ module MarkerIds =
 /// </summary>
 [<Sealed; EventSource(Name = "Ranvier-Counters")>]
 type Markers private () =
-    inherit EventSource ()
+    inherit EventSource()
 
     static member val Log = new Markers ()
 
     [<Event(MarkerIds.Begin)>]
-    member this.Begin(region: int) = this.WriteEvent (MarkerIds.Begin, region)
+    member this.Begin(region: int) =
+        this.WriteEvent (MarkerIds.Begin, region)
 
     [<Event(MarkerIds.End)>]
-    member this.End(region: int) = this.WriteEvent (MarkerIds.End, region)
+    member this.End(region: int) =
+        this.WriteEvent (MarkerIds.End, region)

@@ -100,13 +100,14 @@ let tests =
                 let seen = ResizeArray ()
 
                 let b =
-                    Boundary<int>.Suspense(
-                        g,
-                        (fun () -> if useSecond.Value then second.Value else first.Value),
-                        (fun last ->
-                            seen.Add last
-                            last |> ValueOption.defaultValue -1)
-                    )
+                    Boundary<int>
+                        .Suspense(
+                            g,
+                            (fun () -> if useSecond.Value then second.Value else first.Value),
+                            (fun last ->
+                                seen.Add last
+                                last |> ValueOption.defaultValue -1)
+                        )
 
                 Expect.equal b.TryValue (Ready -1) "the first fallback has no previous value"
                 first.Settle 5
@@ -122,13 +123,14 @@ let tests =
                 let seen = ResizeArray ()
 
                 let b =
-                    Boundary<int>.Errors(
-                        g,
-                        (fun () -> a.Value),
-                        (fun _ last ->
-                            seen.Add last
-                            -1)
-                    )
+                    Boundary<int>
+                        .Errors(
+                            g,
+                            (fun () -> a.Value),
+                            (fun _ last ->
+                                seen.Add last
+                                -1)
+                        )
 
                 Expect.equal b.TryValue Pending "the uncaught wait shows nothing"
                 a.Fail (exn "boom")
@@ -150,7 +152,8 @@ let tests =
                 let g = new Graph ()
                 let a = AsyncSource<int>(g)
 
-                let b = Boundary<int>.Catching(g, (fun () -> a.Value), (fun _ -> 0), (fun _ _ -> -1))
+                let b =
+                    Boundary<int>.Catching(g, (fun () -> a.Value), (fun _ -> 0), (fun _ _ -> -1))
 
                 Expect.equal b.TryValue (Ready 0) "pending caught"
                 a.Fail (exn "boom")
@@ -238,8 +241,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
 
-                let b =
-                    Boundary<int>.Suspense(g, (fun () -> failwithf "e%d" s.Value), (fun _ -> 0))
+                let b = Boundary<int>.Suspense(g, (fun () -> failwithf "e%d" s.Value), (fun _ -> 0))
 
                 let m = Memo (g, (fun () -> b.Value))
 
@@ -266,7 +268,10 @@ let tests =
             test "a reader of Caught sees a new exception recovered to the same value" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let b = Boundary<int>.Errors(g, (fun () -> failwithf "e%d" s.Value), (fun _ _ -> -1))
+
+                let b =
+                    Boundary<int>.Errors(g, (fun () -> failwithf "e%d" s.Value), (fun _ _ -> -1))
+
                 let m = Memo (g, (fun () -> sprintf "%d %s" b.Value b.Caught.Message))
 
                 Expect.equal m.TryValue (Ready "-1 e1") "first recovery"
@@ -304,7 +309,8 @@ let tests =
                 let b = Boundary<int>.Suspense(g, (fun () -> a.Value), (fun _ -> -1))
                 let seen = ResizeArray ()
 
-                new Effect (g, (fun () -> seen.Add b.IsWaiting)) |> ignore
+                new Effect (g, (fun () -> seen.Add b.IsWaiting))
+                |> ignore
 
                 Expect.sequenceEqual seen [ true ] "the first run sees the fallback"
                 a.Settle 1

@@ -155,7 +155,8 @@ type internal DoubleIeeeComparer() =
     interface IEqualityComparer<float> with
         member _.Equals(x, y) = x = y
 
-        member _.GetHashCode(x) = x.GetHashCode ()
+        member _.GetHashCode(x) =
+            x.GetHashCode ()
 
 /// <summary>
 /// <c>DoubleIeeeComparer</c> at single precision.
@@ -164,7 +165,8 @@ type internal SingleIeeeComparer() =
     interface IEqualityComparer<float32> with
         member _.Equals(x, y) = x = y
 
-        member _.GetHashCode(x) = x.GetHashCode ()
+        member _.GetHashCode(x) =
+            x.GetHashCode ()
 
 /// <summary>
 /// Which comparer <c>JsIdentityPolicy</c> hands out, chosen once per closed type.

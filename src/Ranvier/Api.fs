@@ -8,26 +8,29 @@ open System.Threading.Tasks
 module internal Identity =
 #if FABLE_COMPILER
     /// <summary>True when <c>a</c> and <c>b</c> are <c>===</c>.</summary>
-    let inline same (a: 'A) (b: 'A) : bool = obj.ReferenceEquals (a, b)
+    let inline same (a: 'A) (b: 'A) : bool =
+        obj.ReferenceEquals (a, b)
 
     /// <summary>True when <c>a</c> and <c>b</c> are <c>===</c> or both NaN.</summary>
     [<Fable.Core.Emit("($0 === $1 || ($0 !== $0 && $1 !== $1))")>]
-    let unchanged (a: 'A) (b: 'A) : bool = obj.ReferenceEquals (a, b)
+    let unchanged (a: 'A) (b: 'A) : bool =
+        obj.ReferenceEquals (a, b)
 #else
     /// <summary>
     /// True when <c>a</c> and <c>b</c> are the same object. Always false for a value type, and allocates no box for one.
     /// </summary>
     let inline same (a: 'A) (b: 'A) : bool =
-        not typeof<'A>.IsValueType && obj.ReferenceEquals (a, b)
+        not typeof<'A>.IsValueType
+        && obj.ReferenceEquals (a, b)
 
     /// <summary>
     /// True when <c>b</c> is <c>a</c>: the same object, or an equal value for a value type or a string. NaN equals NaN.
     /// </summary>
     let inline unchanged (a: 'A) (b: 'A) : bool =
         if typeof<'A>.IsValueType then
-            Collections.Generic.EqualityComparer<'A>.Default.Equals (a, b)
+            Collections.Generic.EqualityComparer<'A>.Default.Equals(a, b)
         else
-            JsComparer<'A>.Instance.Equals (a, b)
+            JsComparer<'A>.Instance.Equals(a, b)
 #endif
 
 /// <summary>
@@ -111,7 +114,8 @@ module Api =
     /// failure in <c>compute</c> leaves the previous action in place.
     /// </remarks>
     let createEffectOn (compute: unit -> 'T) (act: 'T -> unit) =
-        EffectOn<'T>.Create (Graph.Current, compute, act) |> ignore
+        EffectOn<'T>.Create(Graph.Current, compute, act)
+        |> ignore
 
     /// <summary>
     /// A derived value computed asynchronously. Reads of it raise <c>NotReadyException</c>, which a boundary catches, until
@@ -123,7 +127,7 @@ module Api =
     /// <c>await</c> on an already-completed task does not suspend.
     /// </remarks>
     let createAsync (compute: CancellationToken -> Task<'T>) =
-        AsyncMemo<'T>.Create (Graph.Current, compute, ScopeMode.PureAsync)
+        AsyncMemo<'T>.Create(Graph.Current, compute, ScopeMode.PureAsync)
 
     /// <summary>
     /// An async value that owns the nodes <c>compute</c> creates up to its first <c>await</c> that suspends, disposed before
@@ -135,7 +139,7 @@ module Api =
     /// created and read in <c>compute</c> before that <c>await</c> restarts its flight on every settle and never settles.
     /// </remarks>
     let createAsyncWith (compute: CancellationToken -> Task<'T>) =
-        AsyncMemo<'T>.Create (Graph.Current, compute, ScopeMode.Owning)
+        AsyncMemo<'T>.Create(Graph.Current, compute, ScopeMode.Owning)
 
     /// <summary>
     /// A source whose value arrives later, settled by hand rather than computed.
@@ -274,13 +278,8 @@ module Api =
     /// create: they are disposed before the next pass and with the projection.
     /// </para>
     /// </remarks>
-    let createProjectionWith
-        (keyOf: 'T -> 'K)
-        (factory: (unit -> 'T) -> (unit -> 'V))
-        (source: unit -> 'T seq)
-        : Projection<'K, 'V> =
-        new KeyedProjection<'T, 'K, 'V> (Graph.Current, keyOf, Unchecked.defaultof<'T -> 'V>, factory, source)
-        :> Projection<'K, 'V>
+    let createProjectionWith (keyOf: 'T -> 'K) (factory: (unit -> 'T) -> (unit -> 'V)) (source: unit -> 'T seq) : Projection<'K, 'V> =
+        new KeyedProjection<'T, 'K, 'V> (Graph.Current, keyOf, Unchecked.defaultof<'T -> 'V>, factory, source) :> Projection<'K, 'V>
 
     /// <summary>
     /// <c>createProjectionWith keyOf (fun item -> fun () -> map (item ())) source</c>,
@@ -290,28 +289,22 @@ module Api =
     /// factory.
     /// </summary>
     let createProjection (keyOf: 'T -> 'K) (map: 'T -> 'V) (source: unit -> 'T seq) : Projection<'K, 'V> =
-        new KeyedProjection<'T, 'K, 'V> (Graph.Current, keyOf, map, Unchecked.defaultof<_>, source)
-        :> Projection<'K, 'V>
+        new KeyedProjection<'T, 'K, 'V> (Graph.Current, keyOf, map, Unchecked.defaultof<_>, source) :> Projection<'K, 'V>
 
     /// <summary>
     /// <c>createProjectionWith</c> keyed by position: Solid's <c>indexArray</c>. The
     /// factory runs once per slot, and the accessor returns the slot's current
     /// item.
     /// </summary>
-    let createIndexProjectionWith
-        (factory: (unit -> 'T) -> (unit -> 'V))
-        (source: unit -> 'T seq)
-        : Projection<int, 'V> =
-        new IndexProjection<'T, 'V> (Graph.Current, Unchecked.defaultof<'T -> 'V>, factory, source)
-        :> Projection<int, 'V>
+    let createIndexProjectionWith (factory: (unit -> 'T) -> (unit -> 'V)) (source: unit -> 'T seq) : Projection<int, 'V> =
+        new IndexProjection<'T, 'V> (Graph.Current, Unchecked.defaultof<'T -> 'V>, factory, source) :> Projection<int, 'V>
 
     /// <summary>
     /// <c>createProjection</c> keyed by position: the row at a slot survives its
     /// item changing.
     /// </summary>
     let createIndexProjection (map: 'T -> 'V) (source: unit -> 'T seq) : Projection<int, 'V> =
-        new IndexProjection<'T, 'V> (Graph.Current, map, Unchecked.defaultof<_>, source)
-        :> Projection<int, 'V>
+        new IndexProjection<'T, 'V> (Graph.Current, map, Unchecked.defaultof<_>, source) :> Projection<int, 'V>
 
     /// <summary>
     /// A pointwise derived collection over an open key domain: a cell is built
@@ -373,7 +366,10 @@ module Api =
             let next = select ()
 
             match last.Value, next with
-            | Some previous, Some current when Identity.same previous current || equal.Equals (previous, current) ->
+            | Some previous, Some current when
+                Identity.same previous current
+                || equal.Equals (previous, current)
+                ->
                 last.Value
             | _ ->
                 last.Value <- next
@@ -422,7 +418,8 @@ module List =
         let mutable rest = xs
         let mutable index = 0
 
-        while not rest.IsEmpty && not (keys.Equals (keyOf rest.Head, key)) do
+        while not rest.IsEmpty
+              && not (keys.Equals (keyOf rest.Head, key)) do
             rest <- rest.Tail
             index <- index + 1
 
@@ -467,7 +464,8 @@ module Array =
         let keys = HashIdentity.Structural<'K>
         let mutable index = 0
 
-        while index < xs.Length && not (keys.Equals (keyOf xs[index], key)) do
+        while index < xs.Length
+              && not (keys.Equals (keyOf xs[index], key)) do
             index <- index + 1
 
         if index = xs.Length then
