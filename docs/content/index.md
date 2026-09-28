@@ -146,6 +146,42 @@ StateDial ()
 <div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--recovered"></span><strong>Recovered</strong><p>A boundary shows <code>recover ex</code>. <code>Caught</code> holds the error until a re-run succeeds.</p></div>
 </div>
 
+## Watch the graph think
+
+A traced build records every write, mark, run and flight, with the source line that caused it. This is the example from the top of the page, running on the real engine compiled to JavaScript with tracing on. Press a button and follow the event along the edges; hover a node for its state, click it for why it last ran.
+
+```fsharp map timeline
+let price = createAsyncSource<decimal> ()
+let total = createMemo (fun () -> price.Value * 3m)
+
+let view =
+    createBoundary
+        (fun _ -> "Loading…")
+        (fun ex _ -> "Unavailable: " + ex.Message)
+        (fun () -> sprintf "Total %M" total.Value)
+
+createEffect (fun () -> printfn "%s" view.Value)
+
+controls [
+    "Settle 4", fun () -> price.Settle 4m
+    "Fail", fun () -> price.Fail (exn "feed offline")
+    "Settle 5", fun () -> price.Settle 5m
+]
+```
+
+<div class="rv-trace">
+<p class="rv-trace__lead">The same log answers questions a call stack cannot. An untraced build compiles it out, IL for IL.</p>
+<div class="rv-trace__grid">
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#why-did-it-run"><span>Why did this run?</span><code>Trace.why</code></a>
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#why-did-it-not-run"><span>Why did this not run?</span><code>Trace.whyNot</code></a>
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#what-did-each-run-do"><span>What did each run do?</span><code>Trace.history</code></a>
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#what-is-it-waiting-on"><span>What is it waiting on?</span><code>Trace.waitingOn</code></a>
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#where-did-it-come-from"><span>Where did this node come from?</span><code>Trace.origin</code></a>
+<a class="rv-trace__q" href="/Ranvier/guide/tracing/#what-the-graph-looks-like"><span>What does the graph look like?</span><code>Trace.snapshot</code></a>
+</div>
+<a class="rv-trace__more" href="/Ranvier/guide/tracing/">Read the tracing guide <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+</div>
+
 ## What it provides
 
 A dependency graph with explicit ownership, plus a second channel for values that have not arrived yet.

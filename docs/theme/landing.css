@@ -1,5 +1,5 @@
 /* Landing page (content/index.md, layout: splash). Layer nacara.landing, after nacara.brand.
-   Scoped to the splash layout or to .rv-hero / .rv-demo / .rv-statelist / .rv-cards.
+   Scoped to the splash layout or to .rv-hero / .rv-demo / .rv-statelist / .rv-trace / .rv-cards.
    The accent gradient appears once: on the primary action. */
 
 body:has(.nacara-layout--splash) { overflow-x: clip; }
@@ -104,6 +104,40 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
 .rv-statelist__row strong { font-family: var(--rv-font-display); font-weight: 600; color: var(--nacara-heading); }
 .nacara-content .rv-statelist__row p { margin: .125rem 0 0; font-size: .875rem; line-height: 1.55; color: var(--nacara-text-muted); }
 
+/* ---- Trace showcase: the live map on a glow, then the questions the log answers ---- */
+.nacara-layout--splash .partas-solid-card--map {
+  margin: 0 0 2.5rem;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--rv-contour) 22%, transparent),
+    -2.5rem 1.5rem 5rem -2.5rem color-mix(in oklab, var(--rv-contour) 35%, transparent),
+    2.5rem 2rem 5rem -2.5rem color-mix(in oklab, var(--rv-violet) 30%, transparent),
+    var(--nacara-shadow-floating); }
+.nacara-layout--splash .rv-map__svg { max-width: 46rem; margin: 0 auto; }
+
+.rv-trace { display: grid; gap: 1.25rem; }
+.nacara-content .rv-trace__lead { margin: 0; color: var(--nacara-text-muted); max-width: 40rem; }
+.rv-trace__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.nacara-content .rv-trace__q {
+  position: relative; display: flex; flex-direction: column; gap: .375rem; padding: 1rem 1.125rem;
+  border: 1px solid var(--nacara-border); border-radius: var(--nacara-radius);
+  background: var(--nacara-bg-subtle); color: var(--nacara-heading); text-decoration: none; overflow: hidden;
+  transition: border-color .2s, transform .2s ease-out, box-shadow .2s; }
+.rv-trace__q::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: linear-gradient(90deg, var(--rv-contour), var(--rv-violet));
+  transform: scaleX(0); transform-origin: left; transition: transform .35s ease-out; }
+.rv-trace__q span { font-family: var(--rv-font-display); font-weight: 600; }
+.nacara-content .rv-trace__q code { align-self: start; font-size: .8125rem; color: var(--rv-contour); background: none; border: 0; padding: 0; }
+.nacara-content a.rv-trace__q:hover {
+  border-color: var(--rv-border-strong); transform: translateY(-2px);
+  box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--rv-contour) 45%, transparent); }
+.rv-trace__q:hover::after { transform: scaleX(1); }
+.nacara-content .rv-trace__more {
+  display: inline-flex; align-items: center; gap: .375rem; justify-self: start;
+  font-weight: 600; color: var(--rv-contour); text-decoration: none; }
+.nacara-content .rv-trace__more:hover svg { transform: translateX(3px); }
+.rv-trace__more svg { transition: transform .2s ease-out; }
+
 /* ---- Cards: text only, contour on hover ---- */
 .rv-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 0 0 3rem; }
 .nacara-content .rv-card {
@@ -121,14 +155,16 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
 @media (max-width: 60rem) {
   .rv-hero { grid-template-columns: 1fr; gap: 2.5rem; padding-top: 2.5rem; }
   .rv-hero::before { inset: -4rem 0 -2rem; }
+  .rv-trace__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 40rem) {
   .nacara-layout--splash .nacara-content h2 { margin-top: 4rem; }
   .rv-demo__code pre { font-size: .75rem; }
+  .rv-trace__grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rv-demo__frames > li, .rv-demo__step { transition: none; }
+  .rv-demo__frames > li, .rv-demo__step, .rv-trace__q, .rv-trace__q::after, .rv-trace__more svg { transition: none; }
 }
 
 /* ---- State dial: the animated state mark above the state list ---- */
