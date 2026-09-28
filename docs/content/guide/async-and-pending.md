@@ -280,6 +280,59 @@ before its first `await` fails in its turn, after the flights started before it.
 run waits on a pending source, an earlier flight's value becomes the `Peek` value and the memo stays
 pending.
 
+### The previous value
+
+The body's first argument is a `Previous<'T>`: a handle on the value the memo last published. Its
+one member, `Settled`, is a `Task<'T voption>` that returns `ValueNone` before the first value. As
+on a [memo](getting-started.md#the-previous-value), a run that suspends on a pending source or fails
+leaves the previous value unchanged.
+
+Read every input, then await `previous.Settled`. Under `CancelPrevious` and `KeepLatest`, `Settled`
+is complete when the body runs, and only the newest flight's result becomes a previous value.
+Under `Queue`, `Settled` completes when the flight started before this one is applied, so the
+flights fold in start order. An await on it suspends, and reads after it are untracked. If the
+earlier flight fails or is dropped, `Settled` returns the value published before it. Disposing the
+memo completes a pending `Settled` with the value last published.
+
+Each page below appends to the list the previous flight produced. The second page answers first,
+and the second flight still waits for the first:
+
+```fsharp
+let queueGraph =
+    new Graph (
+        { GraphOptions.Default with
+            Dispatcher = Some (ManualDispatcher () :> IGraphDispatcher)
+            FlightPolicy = FlightPolicy.Queue }
+    )
+
+let page = queueGraph.Run (fun () -> createSignal 1)
+let replies = Array.init 2 (fun _ -> TaskCompletionSource<string list> ())
+
+let feed =
+    queueGraph.Run (fun () ->
+        createAsync (fun previous _ ->
+            let n = page.Value // tracked: read before the first await
+
+            task {
+                let! items = replies[n - 1].Task
+                let! earlier = previous.Settled
+                return ValueOption.defaultValue [] earlier @ items
+            }))
+
+let pages = ResizeArray<string list> ()
+queueGraph.Run (fun () -> createEffect (fun () -> pages.Add feed.Value))
+
+page.Value <- 2
+replies[1].SetResult [ "c"; "d" ]
+replies[0].SetResult [ "a"; "b" ]
+pumpUntil queueGraph (fun () -> pages.Count = 2) (TimeSpan.FromSeconds 5.)
+List.ofSeq pages
+```
+
+```text
+[["a"; "b"]; ["a"; "b"; "c"; "d"]]
+```
+
 ### Bodies written with cancellableTask
 
 On .NET, the `cancellableTask` builder from [IcedTasks](https://github.com/TheAngryByrd/IcedTasks)
