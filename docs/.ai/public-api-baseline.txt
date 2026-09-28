@@ -15,9 +15,10 @@ member Ranvier.Api static batch<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.
 member Ranvier.Api static createAsync<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>) : Ranvier.AsyncMemo`1<!!0>
 member Ranvier.Api static createAsyncSource<1>() : Ranvier.AsyncSource`1<!!0>
 member Ranvier.Api static createAsyncWith<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>) : Ranvier.AsyncMemo`1<!!0>
-member Ranvier.Api static createBoundary<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
+member Ranvier.Api static createBoundary<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
 member Ranvier.Api static createEffect(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit>) : Void
-member Ranvier.Api static createErrorBoundary<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
+member Ranvier.Api static createEffectOn<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.Unit>) : Void
+member Ranvier.Api static createErrorBoundary<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
 member Ranvier.Api static createIndexProjection<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<Int32,!!1>
 member Ranvier.Api static createIndexProjectionWith<2>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!1>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<Int32,!!1>
 member Ranvier.Api static createLookup<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!2>>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!0,System.Collections.Generic.IEnumerable`1<!!1>>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Lookup`2<!!1,!!2>
@@ -29,7 +30,7 @@ member Ranvier.Api static createProjectionWith<3>(Microsoft.FSharp.Core.FSharpFu
 member Ranvier.Api static createRoot<1>(Microsoft.FSharp.Core.FSharpFunc`2<Ranvier.Owner,!!0>) : !!0
 member Ranvier.Api static createSelector<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Lookup`2<!!0,Boolean>
 member Ranvier.Api static createSignal<1>(!!0) : Ranvier.Signal`1<!!0>
-member Ranvier.Api static createSuspense<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
+member Ranvier.Api static createSuspense<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
 member Ranvier.Api static flush() : Void
 member Ranvier.Api static getOwner() : Ranvier.Owner
 member Ranvier.Api static onCleanup(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit>) : Void
@@ -60,9 +61,9 @@ member Ranvier.Boundary`1 get_Runs() : Int32
 member Ranvier.Boundary`1 get_Status() : Ranvier.Status
 member Ranvier.Boundary`1 get_TryValue() : Ranvier.Reading`1<!0>
 member Ranvier.Boundary`1 get_Value() : !0
-member Ranvier.Boundary`1 static Catching(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,!0>) : Ranvier.Boundary`1<!0>
-member Ranvier.Boundary`1 static Errors(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,!0>) : Ranvier.Boundary`1<!0>
-member Ranvier.Boundary`1 static Suspense(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>) : Ranvier.Boundary`1<!0>
+member Ranvier.Boundary`1 static Catching(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>>) : Ranvier.Boundary`1<!0>
+member Ranvier.Boundary`1 static Errors(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>>) : Ranvier.Boundary`1<!0>
+member Ranvier.Boundary`1 static Suspense(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>) : Ranvier.Boundary`1<!0>
 member Ranvier.Effect .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit>) : Void
 member Ranvier.Effect Dispose() : Void
 member Ranvier.Effect get_Error() : System.Exception
@@ -170,11 +171,22 @@ member Ranvier.Owner OnCleanup(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSha
 member Ranvier.Owner RecordError(System.Exception) : Void
 member Ranvier.Owner get_Errors() : System.Collections.Generic.IEnumerable`1<System.Exception>
 member Ranvier.Owner get_IsDisposed() : Boolean
+member Ranvier.ProjectionModule static choose<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpOption`1<!!1>>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Projection`2<!!2,!!1>
+member Ranvier.ProjectionModule static countBy<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Memo`1<Int32>
+member Ranvier.ProjectionModule static exists<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Memo`1<Boolean>
 member Ranvier.ProjectionModule static filter<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Projection`2<!!1,!!0>
+member Ranvier.ProjectionModule static fold<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!0>>,!!0,Ranvier.Projection`2<!!2,!!1>) : Ranvier.Memo`1<!!0>
+member Ranvier.ProjectionModule static foldGroup<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!0>>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!0>>,!!0,Ranvier.Projection`2<!!2,!!1>) : Ranvier.Memo`1<!!0>
+member Ranvier.ProjectionModule static forall<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Memo`1<Boolean>
 member Ranvier.ProjectionModule static groupBy<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Grouping`3<!!1,!!2,!!0>
 member Ranvier.ProjectionModule static map<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Projection`2<!!2,!!1>
 member Ranvier.ProjectionModule static mapWith<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!2>>>,Ranvier.Projection`2<!!0,!!1>) : Ranvier.Projection`2<!!0,!!2>
+member Ranvier.ProjectionModule static skip<2>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Int32>,Ranvier.Projection`2<!!0,!!1>) : Ranvier.Projection`2<!!0,!!1>
 member Ranvier.ProjectionModule static sortBy<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Projection`2<!!2,!!0>
+member Ranvier.ProjectionModule static sub<2>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Int32>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Int32>,Ranvier.Projection`2<!!0,!!1>) : Ranvier.Projection`2<!!0,!!1>
+member Ranvier.ProjectionModule static sumBy$W<3>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<!!1,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!1>>,Microsoft.FSharp.Core.FSharpFunc`2<!!1,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!1>>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Memo`1<!!1>
+member Ranvier.ProjectionModule static sumBy<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Memo`1<!!1>
+member Ranvier.ProjectionModule static take<2>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Int32>,Ranvier.Projection`2<!!0,!!1>) : Ranvier.Projection`2<!!0,!!1>
 member Ranvier.Projection`2 AsObservableCollection() : System.Collections.ObjectModel.ObservableCollection`1<!1>
 member Ranvier.Projection`2 Dispose() : Void
 member Ranvier.Projection`2 Get(!0) : !1

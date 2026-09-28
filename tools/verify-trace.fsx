@@ -742,7 +742,7 @@ let methodBodies (dll: string) : Map<string, string list> =
 /// HEAD lacks.
 /// </summary>
 let mergeBaseIlGate () =
-    let mergeBase = git [ "merge-base"; "HEAD"; "main" ]
+    let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
     let baseTree = Path.Combine (work, "il-base")
     let out = Path.Combine (work, "il-base-out")
     git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
@@ -1003,7 +1003,7 @@ let countersGate () =
     if not (isElevated ()) then
         fail "gate 1: counters, merge-base vs HEAD" [ "processor counters need an elevated shell; run again as administrator or pass --no-counters" ]
     else
-        let mergeBase = git [ "merge-base"; "HEAD"; "main" ]
+        let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
         let baseTree = Path.Combine (work, "base")
         git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
 
@@ -1041,7 +1041,7 @@ let step (name: string) (f: unit -> unit) =
 Directory.CreateDirectory work |> ignore
 
 if args.Contains "--baseline" then
-    let mergeBase = git [ "merge-base"; "HEAD"; "main" ]
+    let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
     let baseTree = Path.Combine (work, "base")
     git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
     let out = Path.Combine (work, "baseline")
