@@ -12,9 +12,9 @@ field Ranvier.Status value__ : Byte
 field Ranvier.ThreadAffinity+Tags Guarded : Int32
 field Ranvier.ThreadAffinity+Tags Unchecked : Int32
 member Ranvier.Api static batch<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0
-member Ranvier.Api static createAsync<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>) : Ranvier.AsyncMemo`1<!!0>
+member Ranvier.Api static createAsync<1>(Microsoft.FSharp.Core.FSharpFunc`2<Ranvier.Previous`1<!!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>>) : Ranvier.AsyncMemo`1<!!0>
 member Ranvier.Api static createAsyncSource<1>() : Ranvier.AsyncSource`1<!!0>
-member Ranvier.Api static createAsyncWith<1>(Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>) : Ranvier.AsyncMemo`1<!!0>
+member Ranvier.Api static createAsyncWith<1>(Microsoft.FSharp.Core.FSharpFunc`2<Ranvier.Previous`1<!!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!!0>>>) : Ranvier.AsyncMemo`1<!!0>
 member Ranvier.Api static createBoundary<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Exception,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Boundary`1<!!0>
 member Ranvier.Api static createEffect(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit>) : Void
 member Ranvier.Api static createEffectOn<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.Unit>) : Void
@@ -22,8 +22,8 @@ member Ranvier.Api static createErrorBoundary<1>(Microsoft.FSharp.Core.FSharpFun
 member Ranvier.Api static createIndexProjection<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<Int32,!!1>
 member Ranvier.Api static createIndexProjectionWith<2>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!1>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<Int32,!!1>
 member Ranvier.Api static createLookup<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!1,!!2>>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpFunc`2<!!0,System.Collections.Generic.IEnumerable`1<!!1>>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Lookup`2<!!1,!!2>
-member Ranvier.Api static createMemo<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Memo`1<!!0>
-member Ranvier.Api static createMemoWith<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : Ranvier.Memo`1<!!0>
+member Ranvier.Api static createMemo<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>) : Ranvier.Memo`1<!!0>
+member Ranvier.Api static createMemoWith<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!!0>,!!0>) : Ranvier.Memo`1<!!0>
 member Ranvier.Api static createOptionMemo<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.FSharpOption`1<!!0>>) : Ranvier.Memo`1<Microsoft.FSharp.Core.FSharpOption`1<!!0>>
 member Ranvier.Api static createProjection<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!2>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<!!1,!!2>
 member Ranvier.Api static createProjectionWith<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!2>>,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,System.Collections.Generic.IEnumerable`1<!!0>>) : Ranvier.Projection`2<!!1,!!2>
@@ -37,8 +37,8 @@ member Ranvier.Api static onCleanup(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft
 member Ranvier.Api static runWithOwner<1>(Ranvier.Owner,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0
 member Ranvier.Api static untrack<1>(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0
 member Ranvier.ArrayModule static updateBy<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!1>,!!1,Microsoft.FSharp.Core.FSharpFunc`2<!!0,!!0>,!!0[]) : !!0[]
-member Ranvier.AsyncMemo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!0>>) : Void
-member Ranvier.AsyncMemo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!0>>,Boolean) : Void
+member Ranvier.AsyncMemo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Ranvier.Previous`1<!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!0>>>) : Void
+member Ranvier.AsyncMemo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Ranvier.Previous`1<!0>,Microsoft.FSharp.Core.FSharpFunc`2<System.Threading.CancellationToken,System.Threading.Tasks.Task`1<!0>>>,Boolean) : Void
 member Ranvier.AsyncMemo`1 Dispose() : Void
 member Ranvier.AsyncMemo`1 get_Peek() : !0
 member Ranvier.AsyncMemo`1 get_PendingSources() : System.Collections.Generic.IEnumerable`1<Ranvier.INode>
@@ -141,8 +141,8 @@ member Ranvier.Lookup`2 Get(!0) : !1
 member Ranvier.Lookup`2 TryGet(!0) : Microsoft.FSharp.Core.FSharpOption`1<!1>
 member Ranvier.Lookup`2 get_CellCount() : Int32
 member Ranvier.ManualDispatcher .ctor() : Void
-member Ranvier.Memo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>) : Void
-member Ranvier.Memo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!0>,Boolean) : Void
+member Ranvier.Memo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>) : Void
+member Ranvier.Memo`1 .ctor(Ranvier.Graph,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.FSharpValueOption`1<!0>,!0>,Boolean) : Void
 member Ranvier.Memo`1 Dispose() : Void
 member Ranvier.Memo`1 get_ObserverCount() : Int32
 member Ranvier.Memo`1 get_Peek() : !0
@@ -171,6 +171,7 @@ member Ranvier.Owner OnCleanup(Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSha
 member Ranvier.Owner RecordError(System.Exception) : Void
 member Ranvier.Owner get_Errors() : System.Collections.Generic.IEnumerable`1<System.Exception>
 member Ranvier.Owner get_IsDisposed() : Boolean
+member Ranvier.Previous`1 get_Settled() : System.Threading.Tasks.Task`1<Microsoft.FSharp.Core.FSharpValueOption`1<!0>>
 member Ranvier.ProjectionModule static choose<3>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Microsoft.FSharp.Core.FSharpOption`1<!!1>>,Ranvier.Projection`2<!!2,!!0>) : Ranvier.Projection`2<!!2,!!1>
 member Ranvier.ProjectionModule static countBy<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Memo`1<Int32>
 member Ranvier.ProjectionModule static exists<2>(Microsoft.FSharp.Core.FSharpFunc`2<!!0,Boolean>,Ranvier.Projection`2<!!1,!!0>) : Ranvier.Memo`1<Boolean>
@@ -240,12 +241,15 @@ member Ranvier.ThreadAffinity get_IsUnchecked() : Boolean
 member Ranvier.ThreadAffinity get_Tag() : Int32
 member Ranvier.ThreadAffinity static get_Guarded() : Ranvier.ThreadAffinity
 member Ranvier.ThreadAffinity static get_Unchecked() : Ranvier.ThreadAffinity
+member Ranvier.Trace static label(Ranvier.Graph,Ranvier.INode,String) : Void
+member Ranvier.TraceModule static named<1>(String,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>) : !!0
 type Ranvier.Api : System.Object
 type Ranvier.ArrayModule : System.Object
 type Ranvier.AsyncMemo`1 : System.Object
 type Ranvier.AsyncMemo`1 implements Ranvier.IComputation
 type Ranvier.AsyncMemo`1 implements Ranvier.INode
 type Ranvier.AsyncMemo`1 implements Ranvier.IOwned
+type Ranvier.AsyncMemo`1 implements Ranvier.IPreviousSource`1<!0>
 type Ranvier.AsyncMemo`1 implements Ranvier.IScopeHost
 type Ranvier.AsyncMemo`1 implements Ranvier.ISource
 type Ranvier.AsyncMemo`1 implements System.IDisposable
@@ -311,6 +315,7 @@ type Ranvier.NotReadyException implements System.Collections.IStructuralEquatabl
 type Ranvier.Owner : System.Object
 type Ranvier.Owner implements Ranvier.IOwned
 type Ranvier.Owner implements System.IDisposable
+type Ranvier.Previous`1 : System.ValueType
 type Ranvier.ProjectionModule : System.Object
 type Ranvier.Projection`2 : System.Object
 type Ranvier.Projection`2 implements Ranvier.IBeaconHost
@@ -340,3 +345,5 @@ type Ranvier.ThreadAffinity implements System.IComparable
 type Ranvier.ThreadAffinity implements System.IComparable`1<Ranvier.ThreadAffinity>
 type Ranvier.ThreadAffinity implements System.IEquatable`1<Ranvier.ThreadAffinity>
 type Ranvier.ThreadAffinity+Tags : System.Object
+type Ranvier.Trace : System.Object
+type Ranvier.TraceModule : System.Object

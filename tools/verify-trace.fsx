@@ -937,8 +937,8 @@ let labelGate = zeroCostGate "Trace.label" "label-zero-cost" "LabelZeroCost" "LA
 let fableGate () =
     let untraced = Path.Combine (work, "fable-untraced")
     let traced = Path.Combine (work, "fable-traced")
-    fable "fable/Ranvier.Fable" untraced [] []
-    fable "fable/Ranvier.Fable" traced [ ("RanvierTrace", "true") ] []
+    fable "src/Ranvier" untraced [] []
+    fable "src/Ranvier" traced [ ("RanvierTrace", "true") ] []
     check "gate 1: untraced Fable JS imports nothing from Trace.fs.js" (fableScan untraced) ""
 
     match fableScan traced with
