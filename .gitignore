@@ -23,3 +23,5 @@ node_modules/
 /BenchmarkDotNet.Artifacts/
 /fable/**/output/
 /fable/**/fable_modules/
+
+.superpowers/
