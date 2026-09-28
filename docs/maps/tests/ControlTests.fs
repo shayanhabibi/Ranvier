@@ -1,0 +1,103 @@
+module Ranvier.Docs.Maps.Tests.ControlTests
+
+open Expecto
+
+#if RANVIER_TRACE
+open System.Threading.Tasks
+open Ranvier.Docs.Maps
+
+let private outcome (t: Task<'T>) =
+    if t.IsCanceled then "cancelled"
+    elif t.IsFaulted then "failed: " + t.Exception.InnerException.Message
+    elif t.IsCompleted then $"settled: %A{t.Result}"
+    else "pending"
+
+[<Tests>]
+let tests =
+    testList
+        "Controls"
+        [
+            test "a button has one silent step that runs its action" {
+                let mutable pressed = 0
+                let c = button "Add" (fun () -> pressed <- pressed + 1)
+                Expect.equal c.Label "Add" "the label"
+                Expect.equal (c.Steps |> List.map _.Log) [ None ] "one step, no log line"
+                c.Steps |> List.iter (fun s -> s.Run ())
+                Expect.equal pressed 1 "the step presses the button"
+            }
+
+            test "a slider has a step per replay value, in order" {
+                let written = ResizeArray<int>()
+                let c = slider "Qty" (1, 10) 1 [ 3; 5 ] written.Add
+                Expect.equal (c.Steps |> List.map _.Log) [ Some "set Qty = 3"; Some "set Qty = 5" ] "one line per value"
+                c.Steps |> List.iter (fun s -> s.Run ())
+                Expect.equal (List.ofSeq written) [ 3; 5 ] "3 then 5"
+
+                match c.Widget with
+                | Slider (1, 10, 1, _) -> ()
+                | other -> failtestf "widget: %A" other
+            }
+
+            test "an input with no replay values has no steps" {
+                Expect.isEmpty (text "Name" "Ada" [] ignore).Steps "text"
+                Expect.isEmpty (toggle "Gift" false [] ignore).Steps "toggle"
+                Expect.isEmpty (number "Price" 4.0 [] ignore).Steps "number"
+            }
+
+            test "number, text and toggle steps pass their values" {
+                let seen = ResizeArray<string>()
+                let steps =
+                    (number "Price" 4.0 [ 6.5 ] (fun v -> seen.Add (string v))).Steps
+                    @ (text "Name" "Ada" [ "Grace" ] seen.Add).Steps
+                    @ (toggle "Gift" false [ true ] (fun b -> seen.Add (string b))).Steps
+
+                steps |> List.iter (fun s -> s.Run ())
+                Expect.equal (List.ofSeq seen) [ "6.5"; "Grace"; "True" ] "each value"
+                Expect.equal (steps |> List.map _.Log) [ Some "set Price = 6.5"; Some "set Name = Grace"; Some "set Gift = true" ] "each line"
+            }
+
+            test "a number field reads only numbers" {
+                Expect.equal (Controls.parseNumber "6.5") (Some 6.5) "a number"
+                Expect.equal (Controls.parseNumber " 7 ") (Some 7.0) "padded"
+                Expect.equal (Controls.parseNumber "") None "empty"
+                Expect.equal (Controls.parseNumber "abc") None "text"
+            }
+
+            test "a latest-wins desk cancels the older request" {
+                let desk = Desk<int>()
+                let first = desk.Quote ()
+                let second = desk.Quote ()
+                Expect.equal (outcome first) "cancelled" "the older request"
+                Expect.equal desk.Pending 1 "one waiting"
+                desk.SettleNewest 2
+                Expect.equal (outcome second) "settled: 2" "newest and pending are the same request"
+                Expect.equal desk.Pending 0 "none waiting"
+            }
+
+            test "a queued desk answers the oldest, or the newest on request" {
+                let desk = Desk<int>(queued = true)
+                let a = desk.Quote ()
+                let b = desk.Quote ()
+                let c = desk.Quote ()
+                Expect.equal desk.Pending 3 "three waiting"
+                desk.SettleNewest 3
+                Expect.equal (outcome c) "settled: 3" "the newest"
+                desk.Settle 1
+                Expect.equal (outcome a) "settled: 1" "the oldest"
+                desk.Fail "down"
+                Expect.equal (outcome b) "failed: down" "the one left"
+                Expect.equal desk.Pending 0 "none waiting"
+            }
+
+            test "answering an empty desk leaves it empty" {
+                for desk in [ Desk<int>(); Desk<int>(queued = true) ] do
+                    desk.Settle 1
+                    desk.Fail "x"
+                    desk.SettleNewest 1
+                    desk.FailNewest "x"
+                    Expect.equal desk.Pending 0 "still empty"
+                    let t = desk.Quote ()
+                    Expect.equal (outcome t) "pending" "a later request is unaffected"
+            }
+        ]
+#endif
