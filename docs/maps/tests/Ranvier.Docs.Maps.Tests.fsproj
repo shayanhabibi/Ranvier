@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <Compile Include="ModelTests.fs" />
+        <Compile Include="AuthoringTests.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
 
@@ -21,6 +22,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\model\Ranvier.Docs.MapModel.fsproj" />
+        <ProjectReference Include="..\authoring\Ranvier.Docs.MapAuthoring.fsproj" />
     </ItemGroup>
 
 </Project>
