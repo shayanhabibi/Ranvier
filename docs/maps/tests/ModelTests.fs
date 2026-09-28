@@ -167,6 +167,20 @@ let tests =
                 Expect.equal (MapModel.frames MapModel.start events).Length events.Length "one frame per event"
             }
 
+            test "an unlabelled node is named by its kind" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 1
+                createEffect (fun () -> a.Value |> ignore)
+                let snapshot = TraceModel.snapshot (Trace.events g)
+
+                let effect =
+                    snapshot.Nodes.Values
+                    |> Seq.find (fun n -> n.Kind = TraceNodeKind.Effect)
+
+                Expect.equal (MapModel.name snapshot effect.Id) "effect" "the kind, in lower case"
+            }
+
             test "frames played in two batches reach the same scene as one" {
                 let c = cart ()
                 c.Lines.Value <- [ { Sku = "tea"; Price = 4m; Qty = 2 } ]

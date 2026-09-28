@@ -31,7 +31,13 @@ type Desk<'T>() =
         pending <- Some request
 
         older
-        |> Option.iter (fun older -> older.TrySetCanceled () |> ignore)
+        |> Option.iter (fun older ->
+#if FABLE_COMPILER
+            // fable-library's TaskCompletionSource has no TrySetCanceled.
+            older.SetException (OperationCanceledException ()))
+#else
+            older.TrySetCanceled () |> ignore)
+#endif
 
         request.Task
 

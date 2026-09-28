@@ -196,7 +196,7 @@ module MapFence =
             |> String.concat "; "
 
         let timeline = if timeline then "true" else "false"
-        $"Partas.Solid.Ranvier.Maps.SignalMapComponent.SignalMap (%s{source}) [| %s{bindings} |] %s{timeline}"
+        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) [| %s{bindings} |] %s{timeline}"
 
     /// <summary>The F# for a <c>map</c> fence: a live scenario, or the recording when <c>flags.Replay</c>.</summary>
     /// <param name="cellId">The cell's id, which names the generated module.</param>

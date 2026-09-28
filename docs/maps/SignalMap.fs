@@ -1,4 +1,4 @@
-namespace Partas.Solid.Ranvier.Maps
+namespace Ranvier.Docs.Maps
 
 open System
 open System.Collections.Generic
@@ -457,7 +457,7 @@ module SignalMapComponent =
                         v.Shape
                         (createObj
                             [
-                                "scale" ==> [| 1.0; 1.35; 1.0 |]
+                                "scale" ==> [| box 1.0; box 1.35; box 1.0 |]
                                 "duration" ==> 420
                                 "ease" ==> "outQuad"
                             ])
@@ -694,7 +694,7 @@ module SignalMapComponent =
         with ex ->
             fail ("The map stopped: " + ex.Message)
 
-        onCleanup (fun () ->
+        Partas.Solid.Bindings.onCleanup (fun () ->
             disposed <- true
             window.clearTimeout timer
             graph |> Option.iter (fun g -> (g :> IDisposable).Dispose ()))

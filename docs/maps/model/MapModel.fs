@@ -56,11 +56,21 @@ module MapModel =
             Errors = Map.empty
         }
 
-    /// <summary>The node's label, else the last segment of its path.</summary>
+    /// <summary>The node's label, else its kind in lower case.</summary>
     let name (snapshot: TraceSnapshot) (node: int) : string =
         match snapshot.Nodes.TryFind node with
         | Some { Label = Some label } -> label
-        | Some n -> n.Path.Substring (n.Path.LastIndexOf '/' + 1)
+        | Some n ->
+            // Fable prints an enum as its number.
+            match n.Kind with
+            | TraceNodeKind.Signal -> "signal"
+            | TraceNodeKind.AsyncSource -> "async source"
+            | TraceNodeKind.Memo -> "memo"
+            | TraceNodeKind.Effect -> "effect"
+            | TraceNodeKind.AsyncMemo -> "async memo"
+            | TraceNodeKind.Boundary -> "boundary"
+            | TraceNodeKind.Projection -> "projection"
+            | _ -> "#" + string node
         | None -> "#" + string node
 
     /// <summary>True for the node kinds a map draws; projection internals stay hidden.</summary>
