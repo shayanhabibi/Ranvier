@@ -6,6 +6,7 @@
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="Maps.fs" />
         <Compile Include="Site.fs" />
         <Content Include="content\**" CopyToOutputDirectory="Never" />
         <Content Include="static\**" CopyToOutputDirectory="Never" />
@@ -23,6 +24,9 @@
         <PackageReference Include="Nacara.Plugin.Assets.Nuglify" Version="1.0.0-*" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="maps/authoring/Ranvier.Docs.MapAuthoring.fsproj" />
+    </ItemGroup>
+    <ItemGroup>
         <!-- The Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;
              without this, the implicit FSharp.Core of an older SDK wins and the site fails to start. -->
         <PackageReference Include="FSharp.Core" Version="11.0.101-rc1.26425.128" />
@@ -31,6 +35,6 @@
         <PackageReference Include="Partas.Nacara.Plugins.AgentFriendly" Version="0.1.0" />
         <PackageReference Include="Partas.Nacara.Plugins.OgImage" Version="0.1.0" />
         <!-- Unpublished; committed under feed/. -->
-        <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.951e0ff" />
+        <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.08bba7a" />
     </ItemGroup>
 </Project>
