@@ -33,7 +33,7 @@ let private recording (g: Graph) (trigger: Signal<int>) =
     let prevs = ResizeArray<Task<int voption>>()
 
     let a =
-        new AsyncMemo<int> (
+        Make.AsyncMemo<int> (
             g,
             fun prev _ ->
                 trigger.Value |> ignore
@@ -53,12 +53,17 @@ let private launch (a: AsyncMemo<int>) (trigger: Signal<int>) (count: int) =
 
         a.TryValue |> ignore
 
+#if !FABLE_COMPILER
+// .NET only: a promise exposes no synchronous completion state.
 let private settledWith (t: Task<'T>) =
     if t.IsCompletedSuccessfully then
         ValueSome t.Result
     else
         ValueNone
+#endif
 
+#if !FABLE_COMPILER
+// .NET only: blocks the test thread until a thread-pool continuation runs.
 /// <summary>Waits for <c>condition</c> to hold, failing the test after five seconds.</summary>
 let private waitUntil (what: string) (condition: unit -> bool) =
     let deadline = DateTime.UtcNow.AddSeconds 5.0
@@ -68,6 +73,7 @@ let private waitUntil (what: string) (condition: unit -> bool) =
             failtestf "timed out waiting for %s" what
 
         Thread.Sleep 1
+#endif
 
 /// <summary>
 /// A memo's compute receives the value the memo last published: <c>ValueNone</c>
@@ -83,7 +89,7 @@ let tests =
                 let seen = ResizeArray ()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             seen.Add prev
@@ -100,7 +106,7 @@ let tests =
                 let seen = ResizeArray ()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             seen.Add prev
@@ -117,7 +123,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let total = Memo (g, (fun prev -> ValueOption.defaultValue 0 prev + s.Value))
+                let total = Make.Memo (g, (fun prev -> ValueOption.defaultValue 0 prev + s.Value))
 
                 new Effect (g, (fun () -> total.Value |> ignore))
                 |> ignore
@@ -132,7 +138,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let total = Memo (g, (fun prev -> ValueOption.defaultValue 0 prev + s.Value))
+                let total = Make.Memo (g, (fun prev -> ValueOption.defaultValue 0 prev + s.Value))
 
                 new Effect (g, (fun () -> total.Value |> ignore))
                 |> ignore
@@ -154,7 +160,7 @@ let tests =
                 let seen = ResizeArray ()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             seen.Add prev
@@ -181,7 +187,7 @@ let tests =
                 let seen = ResizeArray ()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             seen.Add prev
@@ -207,7 +213,7 @@ let tests =
                 let seen = ResizeArray ()
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             seen.Add prev
@@ -231,7 +237,7 @@ let tests =
                 let observed = ref 0
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun prev ->
                             let v = s.Value
@@ -265,6 +271,8 @@ let asyncTests =
     testList
         "PreviousValues.AsyncMemo"
         [
+#if !FABLE_COMPILER
+            // .NET only: reads the prev task's completion synchronously, and under Fable it is a promise.
             test "a default-policy prev is complete at launch" {
                 let g = new Graph ()
                 let trigger = Signal (g, 0)
@@ -299,6 +307,8 @@ let asyncTests =
                         }
                 ]
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "a read of Settled off the graph thread never caches a value older than the one published" {
                 let g = withPolicy KeepLatest
                 let trigger = Signal (g, 0)
@@ -306,7 +316,7 @@ let asyncTests =
                 let handles = Collections.Generic.List<Previous<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun prev _ ->
                             trigger.Value |> ignore
@@ -353,6 +363,7 @@ let asyncTests =
 
                 Expect.equal stale 0 "every flight sees the value published before it"
             }
+#endif
 
             test "Queue chains three or more overlapping flights in start order" {
                 let g = withPolicy FlightPolicy.Queue
@@ -408,13 +419,13 @@ let asyncTests =
                 let prevs = ResizeArray<Task<int voption>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun prev _ ->
                             trigger.Value |> ignore
 
                             if suspend.Value then
-                                Task.FromResult upstream.Value
+                                completed upstream.Value
                             else
                                 prevs.Add prev.Settled
                                 let f = Flight<int>()
@@ -445,7 +456,7 @@ let asyncTests =
                 let prevs = ResizeArray<Task<int voption>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun prev _ ->
                             if trigger.Value = 1 then
@@ -481,6 +492,8 @@ let asyncTests =
                 Expect.equal (settledWith prevs[2]) (ValueSome (ValueSome 10)) "the last settled value"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: blocks the test thread until a thread-pool continuation runs.
             test "Queue loses a read made after awaiting prev" {
                 let g = withPolicy FlightPolicy.Queue
                 let trigger = Signal (g, 0)
@@ -489,7 +502,7 @@ let asyncTests =
                 let bodies = ResizeArray<Task<int>>()
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun prev _ ->
                             let n = trigger.Value
@@ -521,7 +534,10 @@ let asyncTests =
                 a.TryValue |> ignore
                 Expect.equal a.Runs runs "the read after the await was not tracked"
             }
+#endif
 
+#if !FABLE_COMPILER
+            // .NET only: blocks the test thread until a thread-pool continuation runs.
             test "Queue resumes a body awaiting prev outside applyResult" {
                 let g = withPolicy FlightPolicy.Queue
                 let trigger = Signal (g, 0)
@@ -530,7 +546,7 @@ let asyncTests =
                 let resumedOn = ref 0
 
                 let a =
-                    new AsyncMemo<int> (
+                    Make.AsyncMemo<int> (
                         g,
                         fun prev _ ->
                             let n = trigger.Value
@@ -556,4 +572,6 @@ let asyncTests =
                 waitUntil "the second flight" (fun () -> bodies[1].IsCompleted)
                 Expect.notEqual resumedOn.Value Environment.CurrentManagedThreadId "the continuation left the settling thread"
             }
+#endif
+#endif
         ]

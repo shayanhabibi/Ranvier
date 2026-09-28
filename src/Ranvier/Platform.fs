@@ -117,6 +117,13 @@ module internal Platform =
     let hasMember (value: obj) (name: string) : bool = jsNative
 
     /// <summary>
+    /// Sets the <c>InnerException</c> of <c>error</c> to <c>inner</c>. Fable's exception types take no inner
+    /// exception in their constructors.
+    /// </summary>
+    [<Emit("$0.innerException = $1")>]
+    let setInner (error: exn) (inner: exn) : unit = jsNative
+
+    /// <summary>
     /// The outcome of a rejection. A reason that is not an exception fails with one whose
     /// message is the reason as a string.
     /// </summary>

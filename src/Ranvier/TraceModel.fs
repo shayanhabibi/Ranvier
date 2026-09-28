@@ -356,7 +356,7 @@ module TraceModel =
                 && (run = 0 || e.Arg = run))
 
         match start with
-        | None -> invalidArg (nameof run) $"The trace log holds no RunStart for node {node} run {run}."
+        | None -> raise (ArgumentException ($"The trace log holds no RunStart for node {node} run {run}.", nameof run))
         | Some start ->
             let steps = ResizeArray<WhyStep>()
 
@@ -811,7 +811,7 @@ module TraceModel =
                 let kind = enum<TraceNodeKind> e.Arg
                 let label = labelAt i e.Node
                 let site = siteOf e.Payload
-                let path = child (parentPath e.Other) (segment label site (string kind))
+                let path = child (parentPath e.Other) (segment label site (TraceNames.nodeKind kind))
 
                 let k =
                     (s.Incarnations.TryFind path
@@ -970,7 +970,7 @@ module TraceModel =
                 | Some n ->
                     let label = string e.Payload
                     let old = n.Path
-                    let path = child (parentPath n.Owner) (segment (Some label) n.Site (string n.Kind))
+                    let path = child (parentPath n.Owner) (segment (Some label) n.Site (TraceNames.nodeKind n.Kind))
 
                     let k =
                         (s.Incarnations.TryFind path
@@ -1105,7 +1105,7 @@ module TraceModel =
         "#"
         + string e.Seq
         + " "
-        + string e.Kind
+        + TraceNames.eventKind e.Kind
         + node
         + other
 
@@ -1224,7 +1224,7 @@ module TraceModel =
                 "  #"
                 + string step.Seq
                 + " "
-                + string step.Kind
+                + TraceNames.eventKind step.Kind
                 + " "
                 + pathOf snapshot step.Node
                 + other
@@ -1315,7 +1315,7 @@ module TraceModel =
                     "dropped #"
                     + string seq
                     + " "
-                    + (string reason).ToLowerInvariant()
+                    + (TraceNames.dropReason reason).ToLowerInvariant()
 
             lines.Add (
                 "  flight "
@@ -1379,7 +1379,7 @@ module TraceModel =
                     indent
                     + pathOf snapshot n.Id
                     + " "
-                    + string n.Kind
+                    + TraceNames.nodeKind n.Kind
                     + " "
                     + statusText n.Status
                     + " runs "
@@ -1484,7 +1484,7 @@ module TraceModel =
 
             first <- false
 
-            sb.Append("{\"id\":").Append(n.Id).Append(",\"kind\":\"").Append(string n.Kind).Append("\",\"owner\":").Append(n.Owner).Append
+            sb.Append("{\"id\":").Append(n.Id).Append(",\"kind\":\"").Append(TraceNames.nodeKind n.Kind).Append("\",\"owner\":").Append(n.Owner).Append
                 ",\"path\":"
             |> ignore
 
@@ -1611,7 +1611,7 @@ module TraceModel =
             .Append("{\"seq\":")
             .Append(e.Seq)
             .Append(",\"kind\":\"")
-            .Append(string e.Kind)
+            .Append(TraceNames.eventKind e.Kind)
             .Append("\",\"node\":")
             .Append(e.Node)
             .Append(",\"other\":")

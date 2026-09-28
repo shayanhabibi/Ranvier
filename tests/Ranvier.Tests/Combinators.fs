@@ -1943,7 +1943,7 @@ let foldTests =
                 let total = view |> Projection.foldGroup (+) (-) 0
                 let seen = ResizeArray<string>()
 
-                createEffect (fun () -> seen.Add $"{total.Value} {view.AnyPending}")
+                createEffect (fun () -> seen.Add $"%d{total.Value} %b{view.AnyPending}")
 
                 source.Value <- setN 1 11 source.Value
                 Expect.equal total.Value 5 "key 1 keeps its last settled value"
@@ -1951,8 +1951,8 @@ let foldTests =
                 flights[20].Settle 7
                 flights[11].Settle 9
                 Expect.equal total.Value 16 "both settled"
-                Expect.equal seen[0] "5 True" "the first run counts only the settled row"
-                Expect.equal (Seq.last seen) "16 False" "the reader sees the settled sum"
+                Expect.equal seen[0] "5 true" "the first run counts only the settled row"
+                Expect.equal (Seq.last seen) "16 false" "the reader sees the settled sum"
             }
 
             test "a failed row raises its error until it recovers" {
@@ -2132,6 +2132,8 @@ let foldTests =
                 Expect.equal sum.Value 0.0 "exactly zero"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: Fable wraps a null function argument in a closure, so it is never null.
             test "foldGroup rejects a null subtract" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -2144,6 +2146,7 @@ let foldTests =
                         |> ignore)
                     "nullArg"
             }
+#endif
 
             test "a throwing add recomputes from the cached values on the next read" {
                 use g = new Graph ()

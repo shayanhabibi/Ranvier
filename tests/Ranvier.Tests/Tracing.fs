@@ -6,10 +6,18 @@ open Expecto
 open Ranvier
 
 let private traced () =
+#if FABLE_COMPILER
+#if RANVIER_TRACE
+    true
+#else
+    false
+#endif
+#else
     typeof<Graph>.Assembly.GetCustomAttributes(typeof<AssemblyMetadataAttribute>, false)
     |> Array.exists (fun a ->
         let a = a :?> AssemblyMetadataAttribute
         a.Key = "RanvierTrace" && a.Value = "true")
+#endif
 
 exception private Boom
 
@@ -110,6 +118,8 @@ let tests =
                 Expect.equal labels [| 0, "inner"; 0, "outer" |] "each label must close once, innermost first"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an Unchecked graph creating nodes from two threads records every NodeNew" {
                 use g =
                     new Graph (
@@ -126,6 +136,7 @@ let tests =
 
                 Expect.equal (ofKind TraceEventKind.NodeNew g).Length 40000 "each construction must record one NodeNew"
             }
+#endif
 
             test "createRoot records OwnerNew Flag 1 under the graph root" {
                 use g = new Graph ()
@@ -205,7 +216,7 @@ let tests =
                 createAsyncSource<int>() |> ignore
                 let m = createMemo (fun _ -> s.Value)
                 createEffect (fun () -> m.Value |> ignore)
-                createAsync (fun _ _ -> Task.FromResult 1) |> ignore
+                createAsync (fun _ _ -> completed 1) |> ignore
                 let b = createSuspense (fun _ -> 0) (fun () -> s.Value)
                 b.Value |> ignore
                 let p = createProjection id (fun x -> x * 10) (fun () -> [ s.Value ])
@@ -501,7 +512,7 @@ let tests =
             test "an async memo and a projection record their runs" {
                 use g = new Graph ()
                 use _ = g.Activate ()
-                let a = createAsync (fun _ _ -> Task.FromResult 1)
+                let a = createAsync (fun _ _ -> completed 1)
                 let p = createProjection id id (fun () -> [ 1 ])
                 a.TryValue |> ignore
                 p.Keys |> ignore
@@ -927,7 +938,7 @@ let tests =
                 use _ = g.Activate ()
                 let s = createSignal 1
                 let a = createMemo (fun _ -> s.Value * 2)
-                let am = createAsync (fun _ _ -> Task.FromResult a.Value)
+                let am = createAsync (fun _ _ -> completed a.Value)
                 am.TryValue |> ignore
                 s.Value <- 2
                 am.TryValue |> ignore
@@ -1039,6 +1050,8 @@ let tests =
                 Expect.all pulled (fun e -> e.Other <> 0) "every pass pulled in the walk names its reader"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "an affinity violation inside a walk leaves an empty walker stack after the flush" {
                 let mutable foreign = Unchecked.defaultof<Signal<int>>
                 let thread = System.Threading.Thread (fun () -> foreign <- Signal (new Graph (), 0))
@@ -1099,6 +1112,7 @@ let tests =
                 s.Value <- 3
                 Expect.equal (pullerOf g (a :> INode).Id) effect "the next walk starts from an empty stack"
             }
+#endif
 
             test "a node reports the test's file:line" {
                 use g = new Graph ()

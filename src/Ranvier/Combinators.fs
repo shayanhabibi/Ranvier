@@ -1135,7 +1135,7 @@ module Projection =
     /// </example>
     let foldGroup (add: 'S -> 'V -> 'S) (subtract: 'S -> 'V -> 'S) (zero: 'S) (upstream: Projection<'K, 'V>) : Memo<'S> =
         if isNull (box subtract) then
-            nullArg (nameof subtract)
+            raise (System.ArgumentNullException (nameof subtract))
 
         let graph = upstream.Graph
         let aggregate = ProjectionFold<'K, 'V, 'S>(graph, upstream, add, subtract, zero)

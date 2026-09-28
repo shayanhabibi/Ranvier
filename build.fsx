@@ -221,6 +221,31 @@ module Stage =
         }
     }
 
+    let testFable = input {
+        let! quick = Options.quick
+        and! cleanInstall = Options.npmCleanInstall
+        return stage "test fable" {
+            workingDir Repo.FileSystem.``.``
+            stage "npm install" {
+                quiet
+                when' (not quick)
+                run (if cleanInstall then "npm ci" else "npm install")
+            }
+            stage "compile tests" {
+                quiet
+                run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests -c Release"
+            }
+            // Debug defaults RanvierTrace to true, which compiles in the trace log.
+            stage "compile traced tests" {
+                quiet
+                run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests-traced -c Debug"
+            }
+            stage "run and report" {
+                run "node fable/Ranvier.Tests.Fable/Report.mjs"
+            }
+        }
+    }
+
     let generateDocs = input {
         let! watch = Options.watch
         return stage "docs" {
@@ -278,6 +303,11 @@ exit <| rootCommandOfScript {
         Stage.fableClean
         Stage.format (InputSpec.ofInput Options.format) (InputSpec.ofInput Options.dryFormat)
         Stage.runTests
+    }
+    command "test-fable" {
+        description "Runs the test suite under Fable and Node.js, untraced and traced, and writes docs/.ai/fable-compat.md"
+        Stage.restore
+        Stage.testFable
     }
     command "format" {
         alias "apply-style"

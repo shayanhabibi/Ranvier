@@ -49,7 +49,7 @@ let tests =
                     // observer entry and adds two. Reading once per run is
                     // self-correcting and hides the bug entirely.
                     for _ in 1..width do
-                        memos.Add (Memo (g, (fun _ -> s.Value + s.Value)))
+                        memos.Add (Make.Memo (g, (fun _ -> s.Value + s.Value)))
 
                     for v in 1..50 do
                         s.Value <- v
@@ -146,7 +146,7 @@ let tests =
                     let memos = ResizeArray<Memo<int>>()
 
                     for _ in 1..width do
-                        memos.Add (Memo (g, (fun _ -> if useLeft.Value then left.Value else 0)))
+                        memos.Add (Make.Memo (g, (fun _ -> if useLeft.Value then left.Value else 0)))
 
                     for m in memos do
                         m.TryValue |> ignore
@@ -180,7 +180,7 @@ let sourceTests =
                 let g = new Graph ()
                 let useLeft = Signal (g, true)
                 let left = Signal (g, 1)
-                let m = Memo (g, (fun _ -> if useLeft.Value then left.Value else 0))
+                let m = Make.Memo (g, (fun _ -> if useLeft.Value then left.Value else 0))
 
                 m.Value |> ignore
                 useLeft.Value <- false
@@ -201,7 +201,7 @@ let sourceTests =
                 let s = Signal (g, 1)
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             let mutable total = 0
@@ -230,7 +230,7 @@ let sourceTests =
                 // cannot reuse: the first read mismatches its slot and the whole
                 // list is rebuilt. Both edges still have to be live afterwards.
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         (fun _ ->
                             if flip.Value then
@@ -260,7 +260,7 @@ let sourceTests =
                 // The first run records [second; a; b; a]. The second run
                 // matches [second; a], then trims b and the repeated a.
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         (fun _ ->
                             if second.Value then

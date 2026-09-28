@@ -104,7 +104,7 @@ type internal TraceLog(locked: bool) =
 
     let append kind node other arg flag cause (payload: obj) =
         if clock = Int32.MaxValue then
-            invalidOp "The graph's trace log is full: it records at most Int32.MaxValue events."
+            raise (InvalidOperationException "The graph's trace log is full: it records at most Int32.MaxValue events.")
 
         clock <- clock + 1
 

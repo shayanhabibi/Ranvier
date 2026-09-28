@@ -26,7 +26,7 @@ let tests =
             test "writing nan over nan propagates, because nan equals nothing" {
                 let g = new Graph ()
                 let s = Signal (g, nan)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 Expect.equal m.Runs 1 "precondition"
@@ -42,7 +42,7 @@ let tests =
             test "writing 0.0 over -0.0 is cut off, because === says they are equal" {
                 let g = new Graph ()
                 let s = Signal (g, -0.0)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 Expect.equal m.Runs 1 "precondition"
@@ -61,7 +61,7 @@ let tests =
             test "writing null over null is cut off" {
                 let g = new Graph ()
                 let s = Signal<string>(g, null)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- null
@@ -72,7 +72,7 @@ let tests =
             test "writing a value over null propagates" {
                 let g = new Graph ()
                 let s = Signal<string>(g, null)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- "x"
@@ -84,7 +84,7 @@ let tests =
                 let g = new Graph ()
                 let list = ResizeArray [ 1 ]
                 let s = Signal (g, list)
-                let m = Memo (g, (fun _ -> s.Value.Count))
+                let m = Make.Memo (g, (fun _ -> s.Value.Count))
 
                 Expect.equal m.Value 1 "precondition"
 
@@ -100,7 +100,7 @@ let tests =
             test "equal strings are cut off by value, not by reference" {
                 let g = new Graph ()
                 let s = Signal (g, "ab")
-                let m = Memo (g, (fun _ -> s.Value.Length))
+                let m = Make.Memo (g, (fun _ -> s.Value.Length))
 
                 m.Value |> ignore
                 // Built at runtime, so this is a different object with the same
@@ -113,7 +113,7 @@ let tests =
             test "an option is compared by reference, so Some 1 over Some 1 propagates" {
                 let g = new Graph ()
                 let s = Signal (g, Some 1)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- Some 1
@@ -128,7 +128,7 @@ let tests =
             test "None over None is cut off, because None is null" {
                 let g = new Graph ()
                 let s = Signal<int option>(g, None)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- None
@@ -145,7 +145,7 @@ let tests =
                     )
 
                 let s = Signal (g, Some 1)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- Some 1
@@ -162,7 +162,7 @@ let tests =
                     )
 
                 let s = Signal (g, nan)
-                let m = Memo (g, (fun _ -> s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value))
 
                 m.Value |> ignore
                 s.Value <- nan
@@ -197,8 +197,8 @@ let tests =
             test "a memo that fails with a new exception wakes its dependents" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let a = Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
-                let b = Memo (g, (fun _ -> a.Value + 1))
+                let a = Make.Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
+                let b = Make.Memo (g, (fun _ -> a.Value + 1))
 
                 Expect.equal (reason b.TryValue) "e1" "first failure"
                 s.Value <- 2
@@ -209,7 +209,7 @@ let tests =
             test "an effect re-runs when a memo it reads fails with a new exception" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let a = Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
+                let a = Make.Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
                 let seen = ResizeArray ()
 
                 new Effect (g, (fun () -> seen.Add (reason a.TryValue)))
@@ -222,7 +222,7 @@ let tests =
             test "an error boundary recovers from the new exception of a failed memo" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let a = Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
+                let a = Make.Memo<int>(g, (fun _ -> failwithf "e%d" s.Value))
 
                 let b =
                     Boundary<string>.Errors(g, (fun () -> string a.Value), (fun ex _ -> ex.Message))
@@ -238,7 +238,7 @@ let tests =
                 let cached = exn "same"
 
                 let a =
-                    Memo<int>(
+                    Make.Memo<int>(
                         g,
                         (fun _ ->
                             ignore s.Value
@@ -249,7 +249,7 @@ let tests =
                 let mutable effectRuns = 0
 
                 let b =
-                    Memo (
+                    Make.Memo (
                         g,
                         (fun _ ->
                             memoRuns <- memoRuns + 1
@@ -275,8 +275,8 @@ let tests =
             test "a second AsyncSource failure crosses two memos" {
                 let g = new Graph ()
                 let src = AsyncSource<int> g
-                let mid = Memo (g, (fun _ -> src.Value + 1))
-                let top = Memo (g, (fun _ -> mid.Value + 1))
+                let mid = Make.Memo (g, (fun _ -> src.Value + 1))
+                let top = Make.Memo (g, (fun _ -> mid.Value + 1))
 
                 src.Fail (exn "boom1")
                 Expect.equal (reason top.TryValue) "boom1" "first failure"

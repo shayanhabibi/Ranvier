@@ -4,6 +4,8 @@ open System.Threading
 open Expecto
 open Ranvier
 
+#if !FABLE_COMPILER
+// .NET only: JavaScript has one thread.
 /// <summary>
 /// Runs <c>body</c> on a different thread and waits for it. Same reasoning as
 /// <c>Threading.offThread</c>: a task blocked on with <c>.Result</c> can be inlined onto
@@ -31,6 +33,7 @@ let private offThread (body: unit -> 'T) : 'T =
         raise failure
 
     result
+#endif
 
 [<Tests>]
 let tests =
@@ -82,6 +85,8 @@ let tests =
                 Expect.isTrue Graph.TryCurrent.IsNone "and nothing is active once the outer one returns"
             }
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
             test "the active graph is per thread" {
                 use g = new Graph ()
 
@@ -94,6 +99,7 @@ let tests =
                     // threads would hand this thread a graph it may not touch.
                     Expect.isFalse seenElsewhere "and on no other")
             }
+#endif
 
             test "untrack reads without creating an edge" {
                 use g = new Graph ()

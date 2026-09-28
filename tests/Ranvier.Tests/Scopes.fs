@@ -81,7 +81,7 @@ let tests =
             test "a memo disposed while it is stale still reports its last value" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let m = Memo (g, (fun _ -> s.Value * 10))
+                let m = Make.Memo (g, (fun _ -> s.Value * 10))
 
                 Expect.equal m.Value 10 "precondition"
 

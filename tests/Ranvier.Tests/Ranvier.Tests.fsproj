@@ -8,45 +8,9 @@
         <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
 
+    <Import Project="TestFiles.props" />
+
     <ItemGroup>
-        <Compile Include="Support.fs" />
-        <Compile Include="Readings.fs" />
-        <Compile Include="Tests.fs" />
-        <Compile Include="Effects.fs" />
-        <Compile Include="EffectSplit.fs" />
-        <Compile Include="AmbientGraph.fs" />
-        <Compile Include="Owners.fs" />
-        <Compile Include="Equality.fs" />
-        <Compile Include="Async.fs" />
-        <Compile Include="Boundaries.fs" />
-        <Compile Include="Threading.fs" />
-        <Compile Include="Edges.fs" />
-        <Compile Include="Invalidation.fs" />
-        <Compile Include="Lifetime.fs" />
-        <Compile Include="Retention.fs" />
-        <Compile Include="Tracing.fs" />
-        <Compile Include="TraceModelTests.fs" />
-        <Compile Include="Observers.fs" />
-        <Compile Include="Api.fs" />
-        <Compile Include="FanOut.fs" />
-        <Compile Include="Reentrancy.fs" />
-        <Compile Include="Cutoff.fs" />
-        <Compile Include="SuspensionEdges.fs" />
-        <Compile Include="Scopes.fs" />
-        <Compile Include="Propagation.fs" />
-        <Compile Include="Reads.fs" />
-        <Compile Include="Batching.fs" />
-        <Compile Include="AsyncEdges.fs" />
-        <Compile Include="Projections.fs" />
-        <Compile Include="Lookups.fs" />
-        <Compile Include="MemoScopes.fs" />
-        <Compile Include="MemoPurity.fs" />
-        <Compile Include="ScopeContexts.fs" />
-        <Compile Include="DischargeReentry.fs" />
-        <Compile Include="MapSemantics.fs" />
-        <Compile Include="Lenses.fs" />
-        <Compile Include="Combinators.fs" />
-        <Compile Include="PreviousValues.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
 

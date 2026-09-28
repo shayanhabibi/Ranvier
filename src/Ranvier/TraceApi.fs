@@ -56,7 +56,7 @@ module Trace =
             events
             |> Array.tryFindIndex (fun e -> e.Kind = TraceEventKind.NodeNew && e.Node = id)
         with
-        | None -> invalidArg (nameof node) $"The graph's trace log holds no NodeNew for node {id}."
+        | None -> raise (System.ArgumentException ($"The graph's trace log holds no NodeNew for node {id}.", nameof node))
         | Some i ->
             let created = events[i]
 
@@ -109,7 +109,7 @@ module Trace =
     /// <exception cref="T:System.ArgumentException">The log holds no such run.</exception>
     let whyAt (graph: Graph) (node: INode) (run: int) : Why =
         if run < 1 then
-            invalidArg (nameof run) "A run number starts at 1."
+            raise (System.ArgumentException ("A run number starts at 1.", nameof run))
 
         TraceModel.why (events graph) null node.Id run
 
@@ -205,32 +205,29 @@ module Trace =
 
             TraceModel.pathOf snap o.Node
             + " "
-            + string o.Kind
+            + TraceNames.nodeKind o.Kind
             + " at "
             + site
             + " #"
             + string o.Seq
         | other ->
-            invalidArg
-                (nameof value)
-                ("Trace.render has no text form for "
-                 + other.GetType().Name
-                 + ".")
+            raise (
+                System.ArgumentException ("Trace.render has no text form for " + other.GetType().Name + ".", nameof value)
+            )
 
     let private gate (graph: Graph) (operation: string) =
         if not graph.IsOnGraphThread then
-            invalidOp (
-                operation
-                + " ran off the graph's thread. Marshal it through Graph.Dispatch."
-            )
+            raise (System.InvalidOperationException (operation + " ran off the graph's thread. Marshal it through Graph.Dispatch."))
 
         if isNull (box graph.CurrentComputation) then
             Tracer.AbandonStale (logOf graph)
 
         if (logOf graph).Busy then
-            invalidOp (
-                operation
-                + " ran inside a flush, a discharge or a computation's run. Call it between flushes."
+            raise (
+                System.InvalidOperationException (
+                    operation
+                    + " ran inside a flush, a discharge or a computation's run. Call it between flushes."
+                )
             )
 
     /// <summary>The JSONL dump of <c>graph</c>'s log, schema 1.</summary>

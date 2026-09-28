@@ -25,7 +25,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let memos = [ for _ in 1..20 -> Memo (g, (fun _ -> s.Value + 1)) ]
+                let memos = [ for _ in 1..20 -> Make.Memo (g, (fun _ -> s.Value + 1)) ]
 
                 // Nothing has read them, so nothing has linked yet.
                 Expect.equal s.ObserverCount 0 "a memo links on its first read, not at construction"
@@ -45,7 +45,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let memos = [ for _ in 1..12 -> Memo (g, (fun _ -> s.Value + 1)) ]
+                let memos = [ for _ in 1..12 -> Make.Memo (g, (fun _ -> s.Value + 1)) ]
 
                 for m in memos do
                     m.Value |> ignore
@@ -66,7 +66,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let memos = [| for _ in 1..10 -> Memo (g, (fun _ -> s.Value + 1)) |]
+                let memos = [| for _ in 1..10 -> Make.Memo (g, (fun _ -> s.Value + 1)) |]
 
                 for m in memos do
                     m.Value |> ignore
@@ -91,7 +91,7 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 0)
 
-                let memos = [| for _ in 1..16 -> Memo (g, (fun _ -> s.Value + 1)) |]
+                let memos = [| for _ in 1..16 -> Make.Memo (g, (fun _ -> s.Value + 1)) |]
 
                 for m in memos do
                     m.Value |> ignore
@@ -113,7 +113,7 @@ let tests =
             test "a body that reads the same source twice records one edge" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let m = Memo (g, (fun _ -> s.Value + s.Value + s.Value))
+                let m = Make.Memo (g, (fun _ -> s.Value + s.Value + s.Value))
 
                 Expect.equal m.Value 3 "precondition"
                 Expect.equal m.SourceCount 1 "three reads of one source is one dependency"
@@ -127,12 +127,14 @@ let tests =
                 let sources = [| for i in 1..8 -> Signal (g, i) |]
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             let mutable total = 0
+                            // Bound first: Fable re-evaluates a range bound on every iteration.
+                            let n = count.Value
 
-                            for i in 0 .. count.Value - 1 do
+                            for i in 0 .. n - 1 do
                                 total <- total + sources[i].Value
 
                             total
@@ -160,7 +162,7 @@ let tests =
                 let sources = [| for i in 1..12 -> Signal (g, i) |]
 
                 let m =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             let order = if forwards.Value then [ 0..11 ] else [ 11..-1..0 ]

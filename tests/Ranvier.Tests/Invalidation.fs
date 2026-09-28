@@ -19,7 +19,7 @@ let tests =
                 let s = Signal (g, 1)
 
                 let c =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             let v = s.Value
@@ -68,7 +68,7 @@ let tests =
                 let mutable self: Memo<int> option = None
 
                 let c =
-                    Memo (
+                    Make.Memo (
                         g,
                         fun _ ->
                             match self with
@@ -86,7 +86,7 @@ let tests =
             test "an unrelated write still invalidates normally" {
                 let g = new Graph ()
                 let s = Signal (g, 1)
-                let c = Memo (g, (fun _ -> s.Value * 2))
+                let c = Make.Memo (g, (fun _ -> s.Value * 2))
 
                 Expect.equal c.TryValue (Ready 2) "first"
                 Expect.equal c.Runs 1 "cached"

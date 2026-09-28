@@ -218,7 +218,7 @@ let tests =
                     createAsyncWith (fun _ _ ->
                         let n = s.Value
                         onCleanup (fun () -> cleaned.Add n)
-                        Task.FromResult n)
+                        completed n)
 
                 a.TryValue |> ignore
                 Expect.equal a.Peek 1 "first flight settled"
