@@ -262,8 +262,8 @@ module TraceModel =
                 for i in 0 .. parts.Length - 1 do
                     if i > 0 then
                         let prev = parts[i - 1]
-                        let opens = "[{(;,".IndexOf (prev[prev.Length - 1]) >= 0
-                        let closes = "]})|".IndexOf (parts[i][0]) >= 0
+                        let opens = "[{(;,".IndexOf(prev[prev.Length - 1]) >= 0
+                        let closes = "]})|".IndexOf(parts[i][0]) >= 0
 
                         joined.Append (if opens || closes then " " else "; ")
                         |> ignore
@@ -282,7 +282,7 @@ module TraceModel =
     /// fold to empty are left out.
     /// </summary>
     let sources (events: TraceEvent[]) : Map<int, int list> =
-        let lists = Dictionary<int, ResizeArray<int>> ()
+        let lists = Dictionary<int, ResizeArray<int>>()
 
         let listOf node =
             match lists.TryGetValue node with
@@ -318,7 +318,7 @@ module TraceModel =
     /// are left out.
     /// </summary>
     let observers (events: TraceEvent[]) : Map<int, Set<int>> =
-        let sets = Dictionary<int, HashSet<int>> ()
+        let sets = Dictionary<int, HashSet<int>>()
 
         for e in events do
             match e.Kind with
@@ -354,21 +354,23 @@ module TraceModel =
         match start with
         | None -> invalidArg (nameof run) $"The trace log holds no RunStart for node {node} run {run}."
         | Some start ->
-            let steps = ResizeArray<WhyStep> ()
+            let steps = ResizeArray<WhyStep>()
 
             let step (e: TraceEvent) =
                 steps.Add
-                    { Seq = e.Seq
-                      Kind = e.Kind
-                      Node = e.Node
-                      Other = e.Other
-                      Value =
-                        match e.Kind with
-                        | TraceEventKind.Write
-                        | TraceEventKind.Moved
-                        | TraceEventKind.Settle
-                        | TraceEventKind.Fail -> Option.ofObj e.Payload
-                        | _ -> None }
+                    {
+                        Seq = e.Seq
+                        Kind = e.Kind
+                        Node = e.Node
+                        Other = e.Other
+                        Value =
+                            match e.Kind with
+                            | TraceEventKind.Write
+                            | TraceEventKind.Moved
+                            | TraceEventKind.Settle
+                            | TraceEventKind.Fail -> Option.ofObj e.Payload
+                            | _ -> None
+                    }
 
             let rec walk (e: TraceEvent) : WhyRoot option =
                 if depth > 0 && steps.Count >= depth then
@@ -409,10 +411,12 @@ module TraceModel =
 
             let root = walk start
 
-            { Node = node
-              Run = start.Arg
-              Steps = List.ofSeq steps
-              Root = root }
+            {
+                Node = node
+                Run = start.Arg
+                Steps = List.ofSeq steps
+                Root = root
+            }
 
     /// <summary>The full cause chain of run number <c>run</c> of <c>node</c>, or of its last run when <c>run</c> is 0.</summary>
     let why (events: TraceEvent[]) (checkpoint: string) (node: int) (run: int) : Why =
@@ -444,10 +448,10 @@ module TraceModel =
     /// null.
     /// </summary>
     let history (events: TraceEvent[]) (checkpoint: string) (node: int) : TraceHistory =
-        let ends = Dictionary<int, RunStatus> ()
-        let moved = Dictionary<int, obj> ()
-        let flushes = ResizeArray<int> ()
-        let starts = ResizeArray<struct (TraceEvent * int)> ()
+        let ends = Dictionary<int, RunStatus>()
+        let moved = Dictionary<int, obj>()
+        let flushes = ResizeArray<int>()
+        let starts = ResizeArray<struct (TraceEvent * int)>()
 
         for e in events do
             match e.Kind with
@@ -463,23 +467,27 @@ module TraceModel =
         let mutable value = None
 
         let runs =
-            [ for struct (start, flush) in starts do
-                  match moved.TryGetValue start.Arg with
-                  | true, payload -> value <- Option.ofObj payload
-                  | _ -> ()
+            [
+                for struct (start, flush) in starts do
+                    match moved.TryGetValue start.Arg with
+                    | true, payload -> value <- Option.ofObj payload
+                    | _ -> ()
 
-                  { Run = start.Arg
-                    Start = start.Seq
-                    Status =
-                      match ends.TryGetValue start.Seq with
-                      | true, status -> Some status
-                      | _ -> None
-                    Moved = moved.ContainsKey start.Arg
-                    Root =
-                      (why events checkpoint node start.Arg).Root
-                      |> Option.defaultValue (Unrecorded start.Seq)
-                    Flush = flush
-                    Value = value } ]
+                    {
+                        Run = start.Arg
+                        Start = start.Seq
+                        Status =
+                            match ends.TryGetValue start.Seq with
+                            | true, status -> Some status
+                            | _ -> None
+                        Moved = moved.ContainsKey start.Arg
+                        Root =
+                            (why events checkpoint node start.Arg).Root
+                            |> Option.defaultValue (Unrecorded start.Seq)
+                        Flush = flush
+                        Value = value
+                    }
+            ]
 
         { Node = node; Runs = runs }
 
@@ -501,7 +509,7 @@ module TraceModel =
             |> Array.distinct
             |> List.ofArray
 
-        let states = Dictionary<int, TraceFlightState> ()
+        let states = Dictionary<int, TraceFlightState>()
 
         for e in events do
             if e.Node = node && e.Cause <> 0 then
@@ -512,25 +520,31 @@ module TraceModel =
                 | _ -> ()
 
         let flights =
-            [ for e in Array.rev events do
-                  if
-                      e.Kind = TraceEventKind.FlightStart
-                      && e.Node = node
-                  then
-                      { Flight = e.Arg
-                        Start = e.Seq
-                        Run =
-                          match find events e.Cause with
-                          | ValueSome start when start.Kind = TraceEventKind.RunStart -> start.Arg
-                          | _ -> 0
-                        State =
-                          match states.TryGetValue e.Seq with
-                          | true, state -> state
-                          | _ -> TraceFlightState.InFlight } ]
+            [
+                for e in Array.rev events do
+                    if
+                        e.Kind = TraceEventKind.FlightStart
+                        && e.Node = node
+                    then
+                        {
+                            Flight = e.Arg
+                            Start = e.Seq
+                            Run =
+                                match find events e.Cause with
+                                | ValueSome start when start.Kind = TraceEventKind.RunStart -> start.Arg
+                                | _ -> 0
+                            State =
+                                match states.TryGetValue e.Seq with
+                                | true, state -> state
+                                | _ -> TraceFlightState.InFlight
+                        }
+            ]
 
-        { Node = node
-          Sources = sources
-          Flights = flights }
+        {
+            Node = node
+            Sources = sources
+            Flights = flights
+        }
 
     /// <summary>
     /// The first <c>WhyNotReason</c> matching the events after <c>node</c>'s last <c>RunEnd</c>, or after its
@@ -616,8 +630,8 @@ module TraceModel =
 
         let notReached () =
             let lists = sources events
-            let seen = HashSet<int> ()
-            let upstream = ResizeArray<int> ()
+            let seen = HashSet<int>()
+            let upstream = ResizeArray<int>()
 
             let rec visit n =
                 for s in lists |> Map.tryFind n |> Option.defaultValue [] do
@@ -652,13 +666,15 @@ module TraceModel =
                 Some reason
             | _ -> None
 
-        [ disposed
-          queued
-          unobserved
-          skippedThenClean
-          checkedClean
-          skipped
-          notReached ]
+        [
+            disposed
+            queued
+            unobserved
+            skippedThenClean
+            checkedClean
+            skipped
+            notReached
+        ]
         |> List.tryPick (fun reason -> reason ())
 
     // -----------------------------------------------------------------------------------------------------------
@@ -666,14 +682,16 @@ module TraceModel =
 
     /// <summary>The fold state before any event.</summary>
     let emptySnapshot: TraceSnapshot =
-        { Seq = 0
-          Root = 0
-          Nodes = Map.empty
-          Owners = Map.empty
-          Sources = Map.empty
-          Observers = Map.empty
-          Siblings = Map.empty
-          Incarnations = Map.empty }
+        {
+            Seq = 0
+            Root = 0
+            Nodes = Map.empty
+            Owners = Map.empty
+            Sources = Map.empty
+            Observers = Map.empty
+            Siblings = Map.empty
+            Incarnations = Map.empty
+        }
 
     /// <summary><c>text</c> with each of <c>/ # [ ] @ \</c> prefixed by a backslash.</summary>
     let escape (text: string) : string =
@@ -724,7 +742,8 @@ module TraceModel =
 
             s <-
                 { s with
-                    Siblings = s.Siblings.Add (parent, perParent.Add (text, n + 1)) }
+                    Siblings = s.Siblings.Add (parent, perParent.Add (text, n + 1))
+                }
 
             n
 
@@ -769,18 +788,21 @@ module TraceModel =
             match e.Kind with
             | TraceEventKind.GraphNew ->
                 let root =
-                    { Id = e.Other
-                      Parent = 0
-                      Host = 0
-                      Root = false
-                      Path = ""
-                      Label = None
-                      Disposed = false }
+                    {
+                        Id = e.Other
+                        Parent = 0
+                        Host = 0
+                        Root = false
+                        Path = ""
+                        Label = None
+                        Disposed = false
+                    }
 
                 s <-
                     { s with
                         Root = e.Other
-                        Owners = s.Owners.Add (e.Other, root) }
+                        Owners = s.Owners.Add (e.Other, root)
+                    }
             | TraceEventKind.NodeNew ->
                 let kind = enum<TraceNodeKind> e.Arg
                 let label = labelAt i e.Node
@@ -793,24 +815,27 @@ module TraceModel =
                     + 1
 
                 let node =
-                    { Id = e.Node
-                      Kind = kind
-                      Owner = e.Other
-                      Path = path
-                      Incarnation = k
-                      Label = label
-                      Site = site
-                      Created = e.Seq
-                      Runs = 0
-                      LastRun = 0
-                      PendingMark = 0
-                      Status = TraceNodeStatus.Fresh
-                      Value = None }
+                    {
+                        Id = e.Node
+                        Kind = kind
+                        Owner = e.Other
+                        Path = path
+                        Incarnation = k
+                        Label = label
+                        Site = site
+                        Created = e.Seq
+                        Runs = 0
+                        LastRun = 0
+                        PendingMark = 0
+                        Status = TraceNodeStatus.Fresh
+                        Value = None
+                    }
 
                 s <-
                     { s with
                         Incarnations = s.Incarnations.Add (path, k)
-                        Nodes = s.Nodes.Add (e.Node, node) }
+                        Nodes = s.Nodes.Add (e.Node, node)
+                    }
             | TraceEventKind.OwnerNew ->
                 let parent = parentPath e.Other
                 let label = if e.Arg = 0 then labelAt i e.Node else None
@@ -829,27 +854,32 @@ module TraceModel =
                         child parent (segment label (siteOf e.Payload) "owner")
 
                 let owner =
-                    { Id = e.Node
-                      Parent = e.Other
-                      Host = e.Arg
-                      Root = (e.Flag = 1)
-                      Path = path
-                      Label = label
-                      Disposed = false }
+                    {
+                        Id = e.Node
+                        Parent = e.Other
+                        Host = e.Arg
+                        Root = (e.Flag = 1)
+                        Path = path
+                        Label = label
+                        Disposed = false
+                    }
 
                 s <-
                     { s with
-                        Owners = s.Owners.Add (e.Node, owner) }
+                        Owners = s.Owners.Add (e.Node, owner)
+                    }
             | TraceEventKind.Dispose ->
                 updateNode e.Node (fun n ->
                     { n with
-                        Status = TraceNodeStatus.Disposed })
+                        Status = TraceNodeStatus.Disposed
+                    })
             | TraceEventKind.OwnerDispose ->
                 match s.Owners.TryFind e.Node with
                 | Some o ->
                     s <-
                         { s with
-                            Owners = s.Owners.Add (e.Node, { o with Disposed = true }) }
+                            Owners = s.Owners.Add (e.Node, { o with Disposed = true })
+                        }
                 | None -> ()
             | TraceEventKind.Write when e.Flag = 1 -> updateNode e.Node (fun n -> { n with Value = valueOf e.Payload })
             | TraceEventKind.Moved when not (isNull e.Payload) -> updateNode e.Node (fun n -> { n with Value = valueOf e.Payload })
@@ -873,12 +903,14 @@ module TraceModel =
                                 (if n.Status = TraceNodeStatus.Disposed then
                                      TraceNodeStatus.Disposed
                                  else
-                                     TraceNodeStatus.Running) }
+                                     TraceNodeStatus.Running)
+                        }
 
                     s <-
                         { s with
                             Siblings = s.Siblings.Remove n.Path
-                            Nodes = s.Nodes.Add (e.Node, n) }
+                            Nodes = s.Nodes.Add (e.Node, n)
+                        }
                 | None -> ()
             | TraceEventKind.RunEnd ->
                 updateNode e.Node (fun n ->
@@ -886,7 +918,8 @@ module TraceModel =
                         n
                     else
                         { n with
-                            Status = TraceNodeStatus.Ended (enum<RunStatus> e.Arg) })
+                            Status = TraceNodeStatus.Ended (enum<RunStatus> e.Arg)
+                        })
             | TraceEventKind.EdgeAdd
             | TraceEventKind.EdgeRemove ->
                 let kept =
@@ -906,7 +939,8 @@ module TraceModel =
                             (if list.IsEmpty then
                                  s.Sources.Remove e.Node
                              else
-                                 s.Sources.Add (e.Node, list)) }
+                                 s.Sources.Add (e.Node, list))
+                    }
             | TraceEventKind.ObserverAdd
             | TraceEventKind.ObserverRemove ->
                 let set =
@@ -925,7 +959,8 @@ module TraceModel =
                             (if set.IsEmpty then
                                  s.Observers.Remove e.Node
                              else
-                                 s.Observers.Add (e.Node, set)) }
+                                 s.Observers.Add (e.Node, set))
+                    }
             | TraceEventKind.Label when e.Arg = 1 ->
                 match s.Nodes.TryFind e.Node with
                 | Some n ->
@@ -956,7 +991,8 @@ module TraceModel =
                                         { m with
                                             Path = path
                                             Label = Some label
-                                            Incarnation = k }
+                                            Incarnation = k
+                                        }
                                     else
                                         { m with Path = moved m.Path })
                             Owners =
@@ -966,7 +1002,8 @@ module TraceModel =
                                 s.Siblings
                                 |> Map.toSeq
                                 |> Seq.map (fun (p, m) -> moved p, m)
-                                |> Map.ofSeq }
+                                |> Map.ofSeq
+                        }
                 | None -> ()
             | _ -> ()
 
@@ -1073,7 +1110,7 @@ module TraceModel =
     /// marks sharing a cause, a mark kind, a node kind and a site fold into one line at the first of them.
     /// </summary>
     let renderEvents (snapshot: TraceSnapshot) (events: TraceEvent[]) : string =
-        let lines = ResizeArray<string> ()
+        let lines = ResizeArray<string>()
 
         let inBurst (e: TraceEvent) =
             e.Kind = TraceEventKind.Mark
@@ -1102,7 +1139,7 @@ module TraceModel =
                     |> Array.countBy keyOf
                     |> dict
 
-                let shown = HashSet<struct (int * int * TraceNodeKind * string)> ()
+                let shown = HashSet<struct (int * int * TraceNodeKind * string)>()
 
                 for e in burst do
                     if
@@ -1153,7 +1190,7 @@ module TraceModel =
 
     /// <summary>The cause chain as text: a heading, one line per step with its site, and the root.</summary>
     let renderWhy (snapshot: TraceSnapshot) (why: Why) : string =
-        let lines = ResizeArray<string> ()
+        let lines = ResizeArray<string>()
 
         lines.Add (
             "why "
@@ -1221,7 +1258,7 @@ module TraceModel =
 
     /// <summary>The runs as text: a heading, then one line per run with its status, flush and root.</summary>
     let renderHistory (snapshot: TraceSnapshot) (history: TraceHistory) : string =
-        let lines = ResizeArray<string> ()
+        let lines = ResizeArray<string>()
         lines.Add ("history " + pathOf snapshot history.Node)
 
         for r in history.Runs do
@@ -1256,7 +1293,7 @@ module TraceModel =
 
     /// <summary>The suspension sources and flights as text: a heading, then one line per source and per flight.</summary>
     let renderWaiting (snapshot: TraceSnapshot) (waiting: TraceWaiting) : string =
-        let lines = ResizeArray<string> ()
+        let lines = ResizeArray<string>()
         lines.Add ("waiting " + pathOf snapshot waiting.Node)
 
         for source in waiting.Sources do
@@ -1274,7 +1311,7 @@ module TraceModel =
                     "dropped #"
                     + string seq
                     + " "
-                    + (string reason).ToLowerInvariant ()
+                    + (string reason).ToLowerInvariant()
 
             lines.Add (
                 "  flight "
@@ -1307,7 +1344,7 @@ module TraceModel =
     /// The owner tree as indented text: each owner's nodes with path, kind, status, run count and sources.
     /// </summary>
     let renderSnapshot (snapshot: TraceSnapshot) : string =
-        let lines = ResizeArray<string> ()
+        let lines = ResizeArray<string>()
 
         let children =
             snapshot.Owners.Values
@@ -1384,7 +1421,7 @@ module TraceModel =
                 | '\r' -> sb.Append "\\r" |> ignore
                 | '\t' -> sb.Append "\\t" |> ignore
                 | c when c < ' ' ->
-                    sb.Append("\\u").Append ((int c).ToString "x4")
+                    sb.Append("\\u").Append((int c).ToString "x4")
                     |> ignore
                 | c -> sb.Append c |> ignore
 
@@ -1429,7 +1466,7 @@ module TraceModel =
         | "error" -> TraceNodeStatus.Ended RunStatus.Error
         | "abandoned" -> TraceNodeStatus.Ended RunStatus.Abandoned
         | "disposed" -> TraceNodeStatus.Disposed
-        | other -> TraceNodeStatus.Ended (enum<RunStatus> (int other))
+        | other -> TraceNodeStatus.Ended (enum<RunStatus>(int other))
 
     let private snapshotJson (sb: StringBuilder) (s: TraceSnapshot) =
         sb.Append("{\"snapshot\":{\"seq\":").Append(s.Seq).Append(",\"root\":").Append(s.Root).Append ",\"nodes\":["
@@ -1642,7 +1679,7 @@ module TraceModel =
         use header = Text.Json.JsonDocument.Parse lines[0]
         let h = header.RootElement
 
-        if h.GetProperty("schema").GetInt32 () <> 1 then
+        if h.GetProperty("schema").GetInt32() <> 1 then
             raise (FormatException "The trace dump is not schema 1.")
 
         let str (e: Text.Json.JsonElement) (name: string) =
@@ -1654,10 +1691,10 @@ module TraceModel =
                 p.GetString ()
 
         let int' (e: Text.Json.JsonElement) (name: string) =
-            e.GetProperty(name).GetInt32 ()
+            e.GetProperty(name).GetInt32()
 
         let bool' (e: Text.Json.JsonElement) (name: string) =
-            e.GetProperty(name).GetBoolean ()
+            e.GetProperty(name).GetBoolean()
 
         let ints (e: Text.Json.JsonElement) =
             [ for i in e.EnumerateArray () -> i.GetInt32 () ]
@@ -1666,83 +1703,99 @@ module TraceModel =
         let s = snap.RootElement.GetProperty "snapshot"
 
         let nodes =
-            [ for n in s.GetProperty("nodes").EnumerateArray () ->
-                  let id = int' n "id"
+            [
+                for n in s.GetProperty("nodes").EnumerateArray() ->
+                    let id = int' n "id"
 
-                  id,
-                  { Id = id
-                    Kind = Enum.Parse<TraceNodeKind> (str n "kind")
-                    Owner = int' n "owner"
-                    Path = str n "path"
-                    Incarnation = int' n "incarnation"
-                    Label = Option.ofObj (str n "label")
-                    Site = str n "site"
-                    Created = int' n "created"
-                    Runs = int' n "runs"
-                    LastRun = int' n "lastRun"
-                    PendingMark = int' n "pendingMark"
-                    Status = statusOf (str n "status")
-                    Value = Option.ofObj (str n "value") } ]
+                    id,
+                    {
+                        Id = id
+                        Kind = Enum.Parse<TraceNodeKind>(str n "kind")
+                        Owner = int' n "owner"
+                        Path = str n "path"
+                        Incarnation = int' n "incarnation"
+                        Label = Option.ofObj (str n "label")
+                        Site = str n "site"
+                        Created = int' n "created"
+                        Runs = int' n "runs"
+                        LastRun = int' n "lastRun"
+                        PendingMark = int' n "pendingMark"
+                        Status = statusOf (str n "status")
+                        Value = Option.ofObj (str n "value")
+                    }
+            ]
 
         let owners =
-            [ for o in s.GetProperty("owners").EnumerateArray () ->
-                  let id = int' o "id"
+            [
+                for o in s.GetProperty("owners").EnumerateArray() ->
+                    let id = int' o "id"
 
-                  id,
-                  { Id = id
-                    Parent = int' o "parent"
-                    Host = int' o "host"
-                    Root = bool' o "root"
-                    Path = str o "path"
-                    Label = Option.ofObj (str o "label")
-                    Disposed = bool' o "disposed" } ]
+                    id,
+                    {
+                        Id = id
+                        Parent = int' o "parent"
+                        Host = int' o "host"
+                        Root = bool' o "root"
+                        Path = str o "path"
+                        Label = Option.ofObj (str o "label")
+                        Disposed = bool' o "disposed"
+                    }
+            ]
 
         let pairs (name: string) =
-            [ for p in s.GetProperty(name).EnumerateArray () -> p[0], p[1] ]
+            [ for p in s.GetProperty(name).EnumerateArray() -> p[0], p[1] ]
 
         let snapshot =
-            { Seq = int' s "seq"
-              Root = int' s "root"
-              Nodes = Map.ofList nodes
-              Owners = Map.ofList owners
-              Sources =
-                pairs "sources"
-                |> List.map (fun (k, v) -> k.GetInt32 (), ints v)
-                |> Map.ofList
-              Observers =
-                pairs "observers"
-                |> List.map (fun (k, v) -> k.GetInt32 (), Set.ofList (ints v))
-                |> Map.ofList
-              Siblings =
-                pairs "siblings"
-                |> List.map (fun (k, v) ->
-                    k.GetString (),
-                    [ for c in v.EnumerateArray () -> c[0].GetString (), c[1].GetInt32 () ]
-                    |> Map.ofList)
-                |> Map.ofList
-              Incarnations =
-                pairs "incarnations"
-                |> List.map (fun (k, v) -> k.GetString (), v.GetInt32 ())
-                |> Map.ofList }
+            {
+                Seq = int' s "seq"
+                Root = int' s "root"
+                Nodes = Map.ofList nodes
+                Owners = Map.ofList owners
+                Sources =
+                    pairs "sources"
+                    |> List.map (fun (k, v) -> k.GetInt32 (), ints v)
+                    |> Map.ofList
+                Observers =
+                    pairs "observers"
+                    |> List.map (fun (k, v) -> k.GetInt32 (), Set.ofList (ints v))
+                    |> Map.ofList
+                Siblings =
+                    pairs "siblings"
+                    |> List.map (fun (k, v) ->
+                        k.GetString (),
+                        [ for c in v.EnumerateArray () -> c[0].GetString(), c[1].GetInt32() ]
+                        |> Map.ofList)
+                    |> Map.ofList
+                Incarnations =
+                    pairs "incarnations"
+                    |> List.map (fun (k, v) -> k.GetString (), v.GetInt32 ())
+                    |> Map.ofList
+            }
 
         let events =
-            [| for line in lines[2..] ->
-                   use doc = Text.Json.JsonDocument.Parse line
-                   let e = doc.RootElement
+            [|
+                for line in lines[2..] ->
+                    use doc = Text.Json.JsonDocument.Parse line
+                    let e = doc.RootElement
 
-                   { Seq = int' e "seq"
-                     Kind = Enum.Parse<TraceEventKind> (str e "kind")
-                     Node = int' e "node"
-                     Other = int' e "other"
-                     Arg = int' e "arg"
-                     Flag = int' e "flag"
-                     Cause = int' e "cause"
-                     Payload = box (str e "payload") } |]
+                    {
+                        Seq = int' e "seq"
+                        Kind = Enum.Parse<TraceEventKind>(str e "kind")
+                        Node = int' e "node"
+                        Other = int' e "other"
+                        Arg = int' e "arg"
+                        Flag = int' e "flag"
+                        Cause = int' e "cause"
+                        Payload = box (str e "payload")
+                    }
+            |]
 
-        { Target = str h "target"
-          Graph = int' h "graph"
-          Checkpoint = str h "checkpoint"
-          SeqFrom = int' h "seqFrom"
-          Snapshot = snapshot
-          Events = events }
+        {
+            Target = str h "target"
+            Graph = int' h "graph"
+            Checkpoint = str h "checkpoint"
+            SeqFrom = int' h "seqFrom"
+            Snapshot = snapshot
+            Events = events
+        }
 #endif

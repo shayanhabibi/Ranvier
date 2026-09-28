@@ -159,12 +159,12 @@ type internal ItemRow<'T, 'K, 'V>(key: 'K, item: Signal<'T>) =
 [<Sealed>]
 #endif
 type internal RowSnapshot<'K, 'V when 'K: equality>(capacity: int) =
-    let pairs = ResizeArray<KeyValuePair<'K, 'V>> (capacity)
+    let pairs = ResizeArray<KeyValuePair<'K, 'V>>(capacity)
 
     /// <summary>
     /// One past each key's index in <c>pairs</c>, and 0 for an absent key.
     /// </summary>
-    let slots = Platform.KeyMap<'K, int> ()
+    let slots = Platform.KeyMap<'K, int>()
 
     /// <summary>
     /// Appends a row for a key not yet in the snapshot.
@@ -203,10 +203,10 @@ type internal RowSnapshot<'K, 'V when 'K: equality>(capacity: int) =
             with get key = this.ValueAt key
 
         member _.GetEnumerator() : IEnumerator<KeyValuePair<'K, 'V>> =
-            (pairs :> seq<_>).GetEnumerator ()
+            (pairs :> seq<_>).GetEnumerator()
 
         member _.GetEnumerator() : Collections.IEnumerator =
-            (pairs :> Collections.IEnumerable).GetEnumerator ()
+            (pairs :> Collections.IEnumerable).GetEnumerator()
 
 #if FABLE_COMPILER
     // The read side of the JS `Map` API. The write members raise `NotSupportedException`.
@@ -289,7 +289,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// The beacons among <c>sources</c>: the sources that can be stale without marking the projection. Collected from
     /// <c>sources</c> by the first <c>Refresh</c> after each pass.
     /// </summary>
-    let upstreamBeacons = ResizeArray<ISource> ()
+    let upstreamBeacons = ResizeArray<ISource>()
     let mutable beaconsStale = true
 
     /// <summary>
@@ -306,9 +306,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>
     /// The key set. Written only when order or membership moved.
     /// </summary>
-    let keys = Signal<'K[]> (graph, Array.empty)
+    let keys = Signal<'K[]>(graph, Array.empty)
 
-    let entries = Platform.KeyMap<'K, RowEntry<'K, 'V>> ()
+    let entries = Platform.KeyMap<'K, RowEntry<'K, 'V>>()
 
     let beacon = ProjectionBeacon (graph, this)
 
@@ -356,13 +356,13 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>
     /// This pass's keys, in source order.
     /// </summary>
-    let passKeys = ResizeArray<'K> ()
-    let seen = Platform.KeySet<'K> ()
+    let passKeys = ResizeArray<'K>()
+    let seen = Platform.KeySet<'K>()
 
     /// <summary>
     /// Keys whose row is pending.
     /// </summary>
-    let inFlight = Platform.KeySet<'K> ()
+    let inFlight = Platform.KeySet<'K>()
 
     /// <summary>
     /// The computation reading the result of the pass in progress, left unmarked by the pass's writes and its beacon.
@@ -379,15 +379,15 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>
     /// Whether <c>inFlight</c> is non-empty. Read by <c>AnyPending</c>.
     /// </summary>
-    let anyPending = Signal<bool> (graph, false)
+    let anyPending = Signal<bool>(graph, false)
 
     /// <summary>
     /// Bumped on every change to <c>inFlight</c>. Read by <c>PendingKeys</c>.
     /// </summary>
-    let inFlightVersion = Signal<int> (graph, 0)
+    let inFlightVersion = Signal<int>(graph, 0)
 
-    let removed = ResizeArray<'K> ()
-    let refreshing = ResizeArray<RowEntry<'K, 'V>> ()
+    let removed = ResizeArray<'K>()
+    let refreshing = ResizeArray<RowEntry<'K, 'V>>()
 
     /// <summary>Marks the readers of the summary for a check, which brings the pending rows current.</summary>
     let touchSummary () =
@@ -422,7 +422,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let mutable i = 0
 
         while same && i < passKeys.Count do
-            if not (EqualityComparer<'K>.Default.Equals (current[i], passKeys[i])) then
+            if not (EqualityComparer<'K>.Default.Equals(current[i], passKeys[i])) then
                 same <- false
 
             i <- i + 1
@@ -513,7 +513,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             Tracer.Walk (graph, id)
 
             for entry in refreshing do
-                (entry.Row :> ISource).UpdateIfNecessary ()
+                (entry.Row :> ISource).UpdateIfNecessary()
 
             Tracer.Walked (graph, id)
             refreshing.Clear ()
@@ -712,14 +712,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         if deferredDirty then
             deferredDirty <- false
-            (this :> IComputation).MarkDirty ()
+            (this :> IComputation).MarkDirty()
 
     member private this.ResolveCheck() =
         Tracer.CheckStart (graph, id)
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
-            sources.SourceAt(i).UpdateIfNecessary ()
+            sources.SourceAt(i).UpdateIfNecessary()
             i <- i + 1
 
         Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -736,7 +736,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let mutable i = 0
 
         while not invalidated && i < sources.Count do
-            sources.SourceAt(i).UpdateIfNecessary ()
+            sources.SourceAt(i).UpdateIfNecessary()
             i <- i + 1
 
         Tracer.CheckResolved (graph, id, invalidated)
@@ -816,7 +816,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
                     while freshness = Freshness.Clean
                           && i < upstreamBeacons.Count do
-                        upstreamBeacons[i].UpdateIfNecessary ()
+                        upstreamBeacons[i].UpdateIfNecessary()
                         i <- i + 1
 
                     Tracer.Walked (graph, id)
@@ -1141,14 +1141,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             reraise ()
 
         graph.Untrack (fun () ->
-            let copy = RowSnapshot<'K, 'V> (entries.Count)
+            let copy = RowSnapshot<'K, 'V>(entries.Count)
             Tracer.Walk (graph, id)
 
             for key in keys.Peek do
                 let entry = entries.Find key
 
                 if not (isNull entry) then
-                    (entry.Row :> ISource).UpdateIfNecessary ()
+                    (entry.Row :> ISource).UpdateIfNecessary()
 
                     if entry.Settled then
                         copy.Add (key, entry.Row.Peek)
@@ -1174,14 +1174,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         if disposed then
             raise (ObjectDisposedException (this.GetType().Name))
 
-        let view = ObservableCollection<'V> ()
+        let view = ObservableCollection<'V>()
 
         Effect.Create (
             graph,
             fun () ->
                 if not disposed then
                     let current = this.Keys
-                    let values = ResizeArray<'V> (current.Length)
+                    let values = ResizeArray<'V>(current.Length)
 
                     for key in current do
                         let entry = entries.Find key
@@ -1283,8 +1283,8 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
         else
             ScopeMode.FactoryRow
 
-    let adds = ResizeArray<struct ('K * 'T)> ()
-    let writes = ResizeArray<struct (Signal<'T> * 'T)> ()
+    let adds = ResizeArray<struct ('K * 'T)>()
+    let writes = ResizeArray<struct (Signal<'T> * 'T)>()
 
     /// <summary>
     /// Stages one item of the pass: a write to a survivor's item source, or a
@@ -1306,7 +1306,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
             writes.Add (struct ((entry :?> ItemRow<'T, 'K, 'V>).Item, item))
 
     member private this.NewRow(key: 'K, item: 'T) =
-        let entry = ItemRow<'T, 'K, 'V> (key, Signal<'T> (graph, item))
+        let entry = ItemRow<'T, 'K, 'V>(key, Signal<'T>(graph, item))
         this.Entries.Set (key, entry)
         entry
 
@@ -1318,7 +1318,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
             let entry = this.NewRow (key, item)
             let source = entry.Item
             entry.Reader <- fun () -> map source.Value
-            entry.Row <- Memo<'V>.Create (graph, this.Compute entry, rowMode)
+            entry.Row <- Memo<'V>.Create(graph, this.Compute entry, rowMode)
 
     member private this.CreateFactored(key: 'K, item: 'T) =
         let entry = this.NewRow (key, item)
@@ -1350,7 +1350,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
                         fun () -> raise failure
                     | ex -> fun () -> raise ex
 
-                entry.Row <- Memo<'V>.Create (graph, this.Compute entry, rowMode)
+                entry.Row <- Memo<'V>.Create(graph, this.Compute entry, rowMode)
         )
 
     abstract Enumerate: unit -> unit
@@ -1544,18 +1544,18 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
 [<AbstractClass>]
 type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let scope = new Owner (graph.Root)
-    let equal = graph.Options.Equality.Comparer<'V> ()
-    let cells = Platform.KeyMap<'K, LookupCell<'V>> ()
+    let equal = graph.Options.Equality.Comparer<'V>()
+    let cells = Platform.KeyMap<'K, LookupCell<'V>>()
 
     /// <summary>
     /// Keys whose cell holds an exception or is suspended.
     /// </summary>
-    let failed = Platform.KeySet<'K> ()
+    let failed = Platform.KeySet<'K>()
 
     /// <summary>
     /// Keys whose cell has lost its last observer since the last eviction.
     /// </summary>
-    let orphans = Platform.KeySet<'K> ()
+    let orphans = Platform.KeySet<'K>()
 
     let mutable disposed = false
     let mutable link: OwnerLink = null
@@ -1580,7 +1580,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member internal _.IsDisposed = disposed
 
     member private _.NewCell(key: 'K) =
-        LookupCell<'V> (
+        LookupCell<'V>(
             graph,
             equal,
             (fun () ->
@@ -1689,7 +1689,7 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 for key in affectedKeys do
                     this.Revisit key
             else
-                let union = Platform.KeySet<'K> ()
+                let union = Platform.KeySet<'K>()
                 failed.Iterate (fun key -> union.Add key |> ignore)
 
                 for key in affectedKeys do
@@ -1827,10 +1827,10 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -> 'V, affected: 'S -> 'S -> 'K seq, source: unit -> 'S) as this =
     inherit Lookup<'K, 'V>(graph)
 
-    let stateEqual = graph.Options.Equality.Comparer<'S> ()
+    let stateEqual = graph.Options.Equality.Comparer<'S>()
 
     let state =
-        graph.RunOwned (this.Scope, (fun () -> Memo<'S>.Create (graph, source, ScopeMode.Owning)))
+        graph.RunOwned (this.Scope, (fun () -> Memo<'S>.Create(graph, source, ScopeMode.Owning)))
 
     /// <summary>
     /// The state the live cells were computed against. Meaningful once

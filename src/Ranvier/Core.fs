@@ -287,7 +287,7 @@ type internal ObserverSet() =
 
             if i >= 0 then
                 Tracer.Mark (this, (Platform.itemAt i items).Observer, true)
-                (Platform.itemAt i items).Observer.MarkDirty ()
+                (Platform.itemAt i items).Observer.MarkDirty()
                 i <- i - 1
 
     /// <summary>
@@ -333,7 +333,7 @@ type internal ObserverSet() =
 
             if i >= 0 then
                 Tracer.Mark (this, (Platform.itemAt i items).Observer, false)
-                (Platform.itemAt i items).Observer.MarkCheck ()
+                (Platform.itemAt i items).Observer.MarkCheck()
                 i <- i - 1
 
 #if RANVIER_TRACE
@@ -686,7 +686,8 @@ and Owner internal (sink: Owner) =
         this.AttachLinked
             { new IOwned with
                 member _.Release() =
-                    child.Dispose () }
+                    child.Dispose ()
+            }
         |> ignore
 
     member internal this.AttachLinked(child: IOwned) =
@@ -710,7 +711,7 @@ and Owner internal (sink: Owner) =
     /// </summary>
     member private this.RunLate(f: unit -> unit) =
         match box this with
-        | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached (this, f)
+        | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached(this, f)
         | _ ->
             try
                 f ()
@@ -766,7 +767,7 @@ and Owner internal (sink: Owner) =
     member _.RecordError(ex: exn) =
         if isNull (box sink) then
             if isNull errors then
-                errors <- ResizeArray<exn> ()
+                errors <- ResizeArray<exn>()
 
             errors.Add ex
         else
@@ -787,7 +788,7 @@ and Owner internal (sink: Owner) =
             this.RunLate f
         else
             if isNull cleanups then
-                cleanups <- ResizeArray<unit -> unit> ()
+                cleanups <- ResizeArray<unit -> unit>()
 
             cleanups.Add f
 
@@ -857,7 +858,7 @@ and Owner internal (sink: Owner) =
             Tracer.OwnerDispose this
 
             match box this with
-            | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached (this, this.DisposeScope)
+            | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached(this, this.DisposeScope)
             | _ -> this.DisposeScope ()
 
             if not (isNull parentLink) then
@@ -1098,7 +1099,7 @@ type Graph(options: GraphOptions) =
     /// for the price of one store.
     /// </para>
     /// </remarks>
-    let queue = ResizeArray<IScheduled> ()
+    let queue = ResizeArray<IScheduled>()
 
     /// <summary>
     /// Entries written. Slots at or past this are spent and reusable.
@@ -1186,7 +1187,7 @@ type Graph(options: GraphOptions) =
     /// Work that arrived from another thread, waiting for this one to come and
     /// run it. See <c>Platform.Inbox</c> for why it is the queue it is.
     /// </summary>
-    let inbox = Platform.Inbox<unit -> unit> ()
+    let inbox = Platform.Inbox<unit -> unit>()
 
     let dispatcher =
         match options.Dispatcher with
@@ -1245,7 +1246,8 @@ type Graph(options: GraphOptions) =
         { new IDisposable with
             member _.Dispose() =
                 cell.Activated <- activated
-                cell.Hosting <- hosting }
+                cell.Hosting <- hosting
+        }
 
     /// <summary>
     /// The calling thread's ambient graph, or null.
@@ -1907,7 +1909,7 @@ type Signal<'T>(graph: Graph, initial: 'T) =
     // Resolved once, here, rather than per write: the policy's generic member
     // is the only place the value type is known, and a typed comparer keeps the
     // cutoff test allocation-free.
-    let equal = graph.Options.Equality.Comparer<'T> ()
+    let equal = graph.Options.Equality.Comparer<'T>()
 
 #if RANVIER_COUNTERS
     do Counters.SignalCreated ()
@@ -2128,7 +2130,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// it once: the policy's generic member is the only place <c>'T</c> is known,
     /// and a typed comparer keeps the test allocation-free.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T> ()
+    let equal = graph.Options.Equality.Comparer<'T>()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -2161,7 +2163,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// A pure memo over <c>compute</c>.
     /// </summary>
     new(graph: Graph, compute: unit -> 'T) as this =
-        Memo<'T> (graph, compute, ScopeMode.Pure)
+        Memo<'T>(graph, compute, ScopeMode.Pure)
         then this.Attach ()
 
     /// <summary>
@@ -2169,7 +2171,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// otherwise.
     /// </summary>
     new(graph: Graph, compute: unit -> 'T, owning: bool) as this =
-        Memo<'T> (graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
+        Memo<'T>(graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
         then this.Attach ()
 #endif
 
@@ -2177,7 +2179,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
     /// A memo over <c>compute</c>, owned by the current owner.
     /// </summary>
     static member internal Create(graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
-        let memo = Memo<'T> (graph, compute, mode)
+        let memo = Memo<'T>(graph, compute, mode)
         memo.Attach ()
         memo
 
@@ -2277,7 +2279,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             status <- Status.Error
         | NotReadyException source ->
             if isNull pendingSources then
-                pendingSources <- HashSet<INode> (HashIdentity.Reference)
+                pendingSources <- HashSet<INode>(HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -2319,7 +2321,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
         let mutable i = 0
 
         while freshness = Freshness.Check && i < sources.Count do
-            sources.SourceAt(i).UpdateIfNecessary ()
+            sources.SourceAt(i).UpdateIfNecessary()
             i <- i + 1
 
         Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -2630,7 +2632,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         // remember to collect.
         link <- graph.CurrentOwner.AttachLinked this
         Tracer.EffectNew (graph, id, link.Owner)
-        (this :> IComputation).MarkDirty ()
+        (this :> IComputation).MarkDirty()
         graph.RequestFlush ()
 
     /// <summary>
@@ -2688,7 +2690,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
                     let mutable i = 0
 
                     while freshness = Freshness.Check && i < sources.Count do
-                        sources.SourceAt(i).UpdateIfNecessary ()
+                        sources.SourceAt(i).UpdateIfNecessary()
                         i <- i + 1
 
                     Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -2753,7 +2755,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
         with
         | NotReadyException source ->
             if isNull pendingSources then
-                pendingSources <- HashSet<INode> (HashIdentity.Reference)
+                pendingSources <- HashSet<INode>(HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -2842,7 +2844,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     let id = graph.NextId ()
     let sources = SourceList ()
     do Tracer.Bind (sources, graph, id)
-    let equal = graph.Options.Equality.Comparer<'T> ()
+    let equal = graph.Options.Equality.Comparer<'T>()
 
     /// <summary>
     /// The value <c>act</c> last ran with: the cutoff baseline once <c>hasActed</c>.
@@ -2880,7 +2882,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     member private this.Start() =
         link <- graph.CurrentOwner.AttachLinked this
         Tracer.EffectNew (graph, id, link.Owner)
-        (this :> IComputation).MarkDirty ()
+        (this :> IComputation).MarkDirty()
         graph.RequestFlush ()
 
     /// <summary>Runs <c>compute</c>, then <c>act</c> on the first settled value and on each one unequal to <c>last</c>.</summary>
@@ -3016,7 +3018,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
                     let mutable i = 0
 
                     while freshness = Freshness.Check && i < sources.Count do
-                        sources.SourceAt(i).UpdateIfNecessary ()
+                        sources.SourceAt(i).UpdateIfNecessary()
                         i <- i + 1
 
                     Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -3316,7 +3318,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // source that is itself pending. There is nothing to await, only
             // another source to wait on.
             if isNull pendingSources then
-                pendingSources <- HashSet<INode> (HashIdentity.Reference)
+                pendingSources <- HashSet<INode>(HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
         | ex -> fail ex
@@ -3361,7 +3363,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
-                    sources.SourceAt(i).UpdateIfNecessary ()
+                    sources.SourceAt(i).UpdateIfNecessary()
                     i <- i + 1
 
                 Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -3565,7 +3567,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// <summary>
     /// The cutoff comparer, resolved once — see <c>Memo</c>.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T> ()
+    let equal = graph.Options.Equality.Comparer<'T>()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -3592,7 +3594,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// A boundary over <c>body</c>, owned by the current owner.
     /// </summary>
     static member private Create(graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
-        let boundary = Boundary<'T> (graph, body, onPending, onError)
+        let boundary = Boundary<'T>(graph, body, onPending, onError)
         boundary.Attach ()
         boundary
 
@@ -3660,7 +3662,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
 
         let recordPending (source: INode) =
             if isNull pendingSources then
-                pendingSources <- HashSet<INode> (HashIdentity.Reference)
+                pendingSources <- HashSet<INode>(HashIdentity.Reference)
 
             pendingSources.Add source |> ignore
 
@@ -3782,7 +3784,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
                 let mutable i = 0
 
                 while freshness = Freshness.Check && i < sources.Count do
-                    sources.SourceAt(i).UpdateIfNecessary ()
+                    sources.SourceAt(i).UpdateIfNecessary()
                     i <- i + 1
 
                 Tracer.CheckResolved (graph, id, (freshness = Freshness.Dirty))
@@ -3820,7 +3822,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// spinner that never stops.
     /// </summary>
     static member Suspense(graph: Graph, body: unit -> 'T, fallback: 'T voption -> 'T) =
-        Boundary<'T>.Create (graph, body, ValueSome fallback, ValueNone)
+        Boundary<'T>.Create(graph, body, ValueSome fallback, ValueNone)
 
     /// <summary>
     /// Catches the error channel. Pending still propagates, so a boundary that
@@ -3828,13 +3830,13 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// flight.
     /// </summary>
     static member Errors(graph: Graph, body: unit -> 'T, recover: exn -> 'T voption -> 'T) =
-        Boundary<'T>.Create (graph, body, ValueNone, ValueSome recover)
+        Boundary<'T>.Create(graph, body, ValueNone, ValueSome recover)
 
     /// <summary>
     /// Catches both.
     /// </summary>
     static member Catching(graph: Graph, body: unit -> 'T, fallback: 'T voption -> 'T, recover: exn -> 'T voption -> 'T) =
-        Boundary<'T>.Create (graph, body, ValueSome fallback, ValueSome recover)
+        Boundary<'T>.Create(graph, body, ValueSome fallback, ValueSome recover)
 
     interface IOwned with
         member this.Release() =

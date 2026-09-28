@@ -23,51 +23,51 @@ type internal ITracedEdges =
 [<Sealed; AllowNullLiteral>]
 type internal TraceLog(locked: bool) =
     let gate = obj ()
-    let events = ResizeArray<TraceEvent> ()
+    let events = ResizeArray<TraceEvent>()
     let mutable clock = 0
     let mutable owners = 0
 
     // Node id to the owner id recorded by its `NodeNew`.
-    let nodeOwners = Dictionary<int, int> ()
+    let nodeOwners = Dictionary<int, int>()
 
     // Run-scope owner id to its host node id.
-    let scopeHosts = Dictionary<int, int> ()
+    let scopeHosts = Dictionary<int, int>()
 
     // Node id to the `RunStart` seq of its open run.
-    let openRuns = Dictionary<int, int> ()
+    let openRuns = Dictionary<int, int>()
 
     // Node id to the first dirty `Mark` seq since its last `RunStart`.
-    let firstDirty = Dictionary<int, int> ()
+    let firstDirty = Dictionary<int, int>()
 
     // Node ids of the running computations, innermost last.
-    let running = ResizeArray<int> ()
+    let running = ResizeArray<int>()
 
     // Node id to the label held for its `NodeNew`.
-    let reserved = Dictionary<int, string> ()
+    let reserved = Dictionary<int, string>()
 
     // Node ids of the walker frames, innermost last.
-    let walkers = ResizeArray<int> ()
+    let walkers = ResizeArray<int>()
 
     // The `CheckStart` seq of each walker frame, parallel to `walkers`.
-    let walkStarts = ResizeArray<int> ()
+    let walkStarts = ResizeArray<int>()
 
     // Seqs of the notifications in progress, innermost last: a `Write` or `Moved` seq, or 0 when unattributed.
-    let causes = ResizeArray<int> ()
+    let causes = ResizeArray<int>()
 
     // Node id to the run number of its open run.
-    let runNumbers = Dictionary<int, int> ()
+    let runNumbers = Dictionary<int, int>()
 
     // Node id to the number of runs recorded for it.
-    let runCounts = Dictionary<int, int> ()
+    let runCounts = Dictionary<int, int>()
 
     // Node ids whose open run recorded `Moved`.
-    let movedRuns = HashSet<int> ()
+    let movedRuns = HashSet<int>()
 
     // Node id and flight number to the flight's `FlightStart` seq.
-    let flights = Dictionary<struct (int * int), int> ()
+    let flights = Dictionary<struct (int * int), int>()
 
     // Node id to the `Settle` or `Fail` seq its next `Moved` takes as cause.
-    let settles = Dictionary<int, int> ()
+    let settles = Dictionary<int, int>()
 
     // The seq of the latest `Mark`.
     let mutable lastMark = 0
@@ -81,13 +81,13 @@ type internal TraceLog(locked: bool) =
     let mutable discharges = 0
 
     // Flush number and running-stack depth of each open flush, innermost last.
-    let flushFrames = ResizeArray<struct (int * int)> ()
+    let flushFrames = ResizeArray<struct (int * int)>()
 
     // Observer sets and source lists bound to the log. Fable holds them strongly.
 #if FABLE_COMPILER
-    let edgeSets = ResizeArray<ITracedEdges> ()
+    let edgeSets = ResizeArray<ITracedEdges>()
 #else
-    let edgeSets = ResizeArray<WeakReference<ITracedEdges>> ()
+    let edgeSets = ResizeArray<WeakReference<ITracedEdges>>()
 #endif
 
     // The index of the last `value` in `list`, or -1.
@@ -109,14 +109,16 @@ type internal TraceLog(locked: bool) =
         clock <- clock + 1
 
         events.Add
-            { Seq = clock
-              Kind = kind
-              Node = node
-              Other = other
-              Arg = arg
-              Flag = flag
-              Cause = cause
-              Payload = payload }
+            {
+                Seq = clock
+                Kind = kind
+                Node = node
+                Other = other
+                Arg = arg
+                Flag = flag
+                Cause = cause
+                Payload = payload
+            }
 
         clock
 
@@ -237,7 +239,9 @@ type internal TraceLog(locked: bool) =
             if i < 0 then
                 [||]
             else
-                [| for j in running.Count - 1 .. -1 .. (if including then i else i + 1) -> running[j] |])
+                [|
+                    for j in running.Count - 1 .. -1 .. (if including then i else i + 1) -> running[j]
+                |])
 
     /// <summary>
     /// Empties the running stack and the notification stack when no flush or discharge is open, and returns the node
@@ -400,10 +404,12 @@ type internal TraceLog(locked: bool) =
     /// <summary>The registered observer sets and source lists that are still alive.</summary>
     member _.EdgeSets: ITracedEdges[] =
         sync (fun () ->
-            [| for weak in edgeSets do
-                   match weak.TryGetTarget () with
-                   | true, set -> yield set
-                   | _ -> () |])
+            [|
+                for weak in edgeSets do
+                    match weak.TryGetTarget () with
+                    | true, set -> yield set
+                    | _ -> ()
+            |])
 #endif
 
     /// <summary>Runs <c>f</c> with no other thread's event appended in between, on a log built with <c>locked</c>.</summary>
@@ -448,7 +454,7 @@ type internal Tracer =
         labels.RemoveAt last
 
         if not (isNull label || isNull graph) then
-            (graph :?> ITraced).TraceLog.Append (TraceEventKind.Label, 0, 0, 0, 0, 0, label)
+            (graph :?> ITraced).TraceLog.Append(TraceEventKind.Label, 0, 0, 0, 0, 0, label)
             |> ignore
 
     /// <summary>Records a <c>Label</c> for <c>id</c> when the innermost pending label on this thread is unconsumed.</summary>
@@ -622,7 +628,7 @@ type internal Tracer =
 
             if not (isNull label) then
                 labels[last] <- null
-                (graph :?> ITraced).TraceLog.Reserve (id, label)
+                (graph :?> ITraced).TraceLog.Reserve(id, label)
 #else
         ()
 #endif
@@ -721,7 +727,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member NodeDispose(graph: obj, id: int) =
 #if RANVIER_TRACE
-        (graph :?> ITraced).TraceLog.Append (TraceEventKind.Dispose, id, 0, 0, 0, 0, null)
+        (graph :?> ITraced).TraceLog.Append(TraceEventKind.Dispose, id, 0, 0, 0, 0, null)
         |> ignore
 #else
         ()
@@ -1043,7 +1049,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member BatchEnter(graph: obj, depth: int) =
 #if RANVIER_TRACE
-        (Tracer.LogOf graph).Append (TraceEventKind.BatchEnter, 0, 0, depth, 0, 0, null)
+        (Tracer.LogOf graph).Append(TraceEventKind.BatchEnter, 0, 0, depth, 0, 0, null)
         |> ignore
 #else
         ()
@@ -1053,7 +1059,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member BatchExit(graph: obj, depth: int) =
 #if RANVIER_TRACE
-        (Tracer.LogOf graph).Append (TraceEventKind.BatchExit, 0, 0, depth, 0, 0, null)
+        (Tracer.LogOf graph).Append(TraceEventKind.BatchExit, 0, 0, depth, 0, 0, null)
         |> ignore
 #else
         ()
@@ -1122,7 +1128,7 @@ type internal Tracer =
     [<Conditional("RANVIER_TRACE")>]
     static member Walk(graph: obj, id: int) =
 #if RANVIER_TRACE
-        (Tracer.LogOf graph).Push (id, 0)
+        (Tracer.LogOf graph).Push(id, 0)
 #else
         ()
 #endif
