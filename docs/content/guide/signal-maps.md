@@ -102,8 +102,9 @@ controls [
 ]
 ```
 
-With `replay`, the page runs the scenario and presses every button once, in order. The map opens with
-the graph as the scenario built it; press **Play** or drag the bar to watch the presses.
+With `replay`, the page runs the scenario, then every control in order: a button once, an input once per
+replay value. The map opens with the graph as the scenario built it; press **Play** or drag the bar to watch
+them run.
 
 ```fsharp map replay
 let desk = Desk<decimal>()
