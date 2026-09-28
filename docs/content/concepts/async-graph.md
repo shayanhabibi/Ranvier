@@ -33,12 +33,12 @@ it:
 
 ```fsharp
 let profile =
-    createAsync (fun (ct: CancellationToken) ->
+    createAsync (fun _ (ct: CancellationToken) ->
         let id = userId.Value            // tracked: read before the first await
         fetchUserAsync (id, ct))         // Task<User>; the engine awaits it and marks the memo Pending
 ```
 
-- `createAsync (compute: CancellationToken -> Task<'T>)` returns an `AsyncMemo<'T>`. It is lazy: the first
+- `createAsync (compute: Previous<'T> -> CancellationToken -> Task<'T>)` returns an `AsyncMemo<'T>`. It is lazy: the first
   read starts a flight, and the memo is Pending until the task completes. When a source that the body read
   changes, the next read starts a new flight.
 - Dependencies are tracked only in the synchronous part of the body, before the first `await` that

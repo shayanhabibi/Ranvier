@@ -148,7 +148,7 @@ The examples in this section add an async shipping quote to the cart. A new subt
 quote, and `total` reads both:
 
 ```fsharp
-let shipping = Trace.named "shipping" (fun () -> createAsync (fun _ -> quote subtotal.Value))
+let shipping = Trace.named "shipping" (fun () -> createAsync (fun _ _ -> quote subtotal.Value))
 let total = Trace.named "total" (fun () -> createMemo (fun _ -> subtotal.Value + shipping.Value))
 ```
 

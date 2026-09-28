@@ -29,7 +29,7 @@ let subtotal =
     createMemo (fun _ ->
         lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
 
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 
@@ -75,7 +75,7 @@ settle.
 let desk = Desk<decimal>()
 let qty = createSignal 1
 let subtotal = createMemo (fun _ -> 4m * decimal qty.Value)
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 createEffect (fun () -> printfn $"shipping {shipping.Value}")
 
 controls [
@@ -97,7 +97,7 @@ let subtotal =
     createMemo (fun _ ->
         lines.Value |> List.sumBy (fun (_, price, qty) -> price * decimal qty))
 
-let shipping = createAsync (fun _ -> desk.Quote subtotal.Value)
+let shipping = createAsync (fun _ _ -> desk.Quote subtotal.Value)
 let total = createMemo (fun _ -> subtotal.Value + shipping.Value)
 createEffect (fun () -> printfn $"total {total.Value}")
 

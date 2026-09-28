@@ -432,7 +432,7 @@ let userId = Signal (queryGraph, 1)
 let profile =
     new AsyncMemo<string> (
         queryGraph,
-        fun _ ->
+        fun _ _ ->
             task {
                 let id = userId.Value // read before the first await: tracked
                 do! Task.Yield ()
@@ -469,7 +469,7 @@ let fetchGraph = new Graph ()
 let reportFlight = TaskCompletionSource<string> ()
 
 // Created once, outside the boundary.
-let report = new AsyncMemo<string> (fetchGraph, fun _ -> reportFlight.Task)
+let report = new AsyncMemo<string> (fetchGraph, fun _ _ -> reportFlight.Task)
 
 let reportView =
     Boundary<string>.Suspense (fetchGraph, (fun () -> "report: " + report.Value), (fun () -> "loading"))
