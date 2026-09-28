@@ -52,12 +52,12 @@ let run (scale: int) : int =
     let mutable failures = 0
 
     for case in Scenarios.all scale |> List.filter (fun c -> c.Engine = "Ranvier") do
-        Scenarios.takeGraphs () |> ignore
+        Workloads.takeGraphs () |> ignore
         Counters.Reset ()
         let prepared = case.Prepare case.Ops
         prepared.Run ()
         let counters = Counters.Snapshot ()
-        let graphs = Scenarios.takeGraphs ()
+        let graphs = Workloads.takeGraphs ()
         let logged = fromLogs [ for g in graphs -> Trace.events g ]
 
         let problems =

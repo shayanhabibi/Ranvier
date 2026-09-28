@@ -65,23 +65,6 @@ let private disposeAll (items: ResizeArray<IDisposable>) =
     for i in 0 .. items.Count - 1 do
         items[i].Dispose ()
 
-#if RANVIER_TRACE
-let private created = ResizeArray<Graph> ()
-
-/// <summary>The graphs created by Ranvier cases since the last call, oldest first.</summary>
-let takeGraphs () : Graph[] =
-    let graphs = created.ToArray ()
-    created.Clear ()
-    graphs
-
-let private newGraph () =
-    let graph = new Graph ()
-    created.Add graph
-    graph
-#else
-let inline private newGraph () = new Graph ()
-#endif
-
 module private Ranvier =
 
     /// <summary>
@@ -107,7 +90,7 @@ module private Ranvier =
             owner, rows)
 
     let create (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let roots = ResizeArray<Owner> n
 
         {
@@ -124,7 +107,7 @@ module private Ranvier =
         }
 
     let update (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let owner, rowSources = root split graph
 
         {
@@ -141,7 +124,7 @@ module private Ranvier =
         }
 
     let chain (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let source = Signal (graph, 0)
         let mutable tail = Memo (graph, (fun () -> source.Value + 1))
 
@@ -164,7 +147,7 @@ module private Ranvier =
         }
 
     let cutoff (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let source = Signal (graph, 1)
 
         let owner =
@@ -184,7 +167,7 @@ module private Ranvier =
         }
 
     let dispose (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let roots = Array.init n (fun _ -> fst (root split graph))
 
         {
@@ -201,7 +184,7 @@ module private Ranvier =
     /// <c>createEffectOn</c>'s compute; otherwise an <c>Effect</c> derives it in its body.
     /// </summary>
     let derivedCutoff (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let source = Signal (graph, 1)
 
         let owner =
@@ -234,7 +217,7 @@ module private Ranvier =
     /// <c>UpdateStride</c>th row. <c>split</c> builds the reaction with <c>createEffectOn</c>.
     /// </summary>
     let private labelled (derive: int -> int) (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
 
         let owner, rowSources =
             graph.CreateRoot (fun owner ->
@@ -283,7 +266,7 @@ module private Ranvier =
     /// field of every form. <c>split</c> builds the reaction with <c>createEffectOn</c>.
     /// </summary>
     let form (split: bool) (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let forms = RowCount / FormFields
 
         let owner, fieldSources =
@@ -353,7 +336,7 @@ module private Ranvier =
         source, owner
 
     let projectEdit (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let items = Array.init RowCount (fun i -> i, i)
         let source, owner = projection graph items
 
@@ -375,7 +358,7 @@ module private Ranvier =
         }
 
     let projectReorder (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let forward = Array.init RowCount (fun i -> i, i)
         let reversed = Array.rev forward
         let source, owner = projection graph forward
@@ -397,7 +380,7 @@ module private Ranvier =
     /// one effect reads each row the filter keeps.
     /// </summary>
     let projectChain (n: int) =
-        let graph = newGraph ()
+        let graph = Workloads.newGraph ()
         let items = Array.init RowCount (fun i -> i, i)
         use _ = graph.Activate ()
         let source = Signal (graph, items)
