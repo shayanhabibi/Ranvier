@@ -137,7 +137,12 @@ let theme =
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
-            Menu.section "Reference" [ Menu.page "guide/troubleshooting.md" ]
+            Menu.section
+                "Reference"
+                [
+                    Menu.page "guide/tracing.md"
+                    Menu.page "guide/troubleshooting.md"
+                ]
         ]
     |> Theme.menu
         "concepts"
