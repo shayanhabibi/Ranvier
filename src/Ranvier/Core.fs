@@ -1919,14 +1919,14 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 
             if not (equal.Equals (value, v)) then
                 value <- v
-                Tracer.Write (observers, true)
+                Tracer.Write (observers, true, box v)
 
                 observers.NotifyDirty ()
                 Tracer.Notified observers
 
                 graph.RequestFlush ()
             else
-                Tracer.Write (observers, false)
+                Tracer.Write (observers, false, box v)
 
     /// <summary>
     /// Writes <c>v</c> as the setter does, leaving <c>running</c> unmarked. For a computation that reads the new value
@@ -1937,12 +1937,12 @@ type Signal<'T>(graph: Graph, initial: 'T) =
 
         if not (equal.Equals (value, v)) then
             value <- v
-            Tracer.Write (observers, true)
+            Tracer.Write (observers, true, box v)
             observers.NotifyDirtyExcept running
             Tracer.Notified observers
             graph.RequestFlush ()
         else
-            Tracer.Write (observers, false)
+            Tracer.Write (observers, false, box v)
 
     /// <summary>Marks every reader for a check, leaving the value unchanged.</summary>
     member internal _.NotifyCheck() = observers.NotifyCheck ()
@@ -2013,7 +2013,7 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             value <- v
             status <- Status.None
-            Tracer.SourceSettled (observers, false)
+            Tracer.SourceSettled (observers, false, box v)
 
             observers.NotifyDirty ()
             Tracer.Notified observers
@@ -2031,7 +2031,7 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Dispatch (fun () ->
             error <- reason
             status <- Status.Error
-            Tracer.SourceSettled (observers, true)
+            Tracer.SourceSettled (observers, true, reason)
 
             observers.NotifyDirty ()
             Tracer.Notified observers
@@ -2264,7 +2264,7 @@ type Memo<'T> private (graph: Graph, compute: unit -> 'T, mode: ScopeMode) =
             || not (obj.ReferenceEquals (error, previousError))
             || not (equal.Equals (previous, value))
         then
-            Tracer.Moved (graph, id)
+            Tracer.Moved (graph, id, (if isNull error then box value else box error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)
@@ -3075,7 +3075,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
     let mutable launching = false
 
     let wake () =
-        Tracer.Moved (graph, id)
+        Tracer.Moved (graph, id, (if isNull error then box value else box error))
 
         if launching then
             observers.NotifyDirtyExcept graph.CurrentComputation
@@ -3107,14 +3107,14 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // older flight's value is the last settled one, and the node
             // stays pending.
             | Platform.FlightOutcome.Completed v when suspended ->
-                Tracer.FlightSettled (graph, id, gen, 0, true)
+                Tracer.FlightSettled (graph, id, gen, 0, true, box v)
                 value <- v
                 status <- Status.Pending
             | Platform.FlightOutcome.Faulted _
             | Platform.FlightOutcome.Canceled _ when suspended ->
                 Tracer.FlightDrop (graph, id, gen, 3)
             | Platform.FlightOutcome.Completed v ->
-                Tracer.FlightSettled (graph, id, gen, 0, false)
+                Tracer.FlightSettled (graph, id, gen, 0, false, box v)
                 value <- v
                 error <- null
                 status <- Status.None
@@ -3122,7 +3122,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: CancellationToken -> Task<'T>
             // A cancellation of the current flight is a failure.
             | Platform.FlightOutcome.Faulted ex
             | Platform.FlightOutcome.Canceled ex ->
-                Tracer.FlightSettled (graph, id, gen, (if outcome.IsCanceled then 2 else 1), false)
+                Tracer.FlightSettled (graph, id, gen, (if outcome.IsCanceled then 2 else 1), false, ex)
                 error <- ex
                 status <- Status.Error
                 wake ()
@@ -3713,7 +3713,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             || not (obj.ReferenceEquals (caught, previousCaught))
             || not (equal.Equals (previous, value))
         then
-            Tracer.Moved (graph, id)
+            Tracer.Moved (graph, id, (if isNull error then box value else box error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)

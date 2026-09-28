@@ -97,20 +97,21 @@ Trace.why graph banner |> Trace.render graph |> printfn "%s"
 why /banner run 2
   #49 RunStart /banner (Cart.fsx:13)
   #46 Mark /banner <- /total (Cart.fsx:13)
-  #45 Moved /total (Cart.fsx:12)
+  #45 Moved /total (Cart.fsx:12) = 8M
   #44 RunStart /total <- /banner (Cart.fsx:12)
   #41 Mark /total <- /subtotal (Cart.fsx:12)
-  #40 Moved /subtotal (Cart.fsx:11)
+  #40 Moved /subtotal (Cart.fsx:11) = 8M
   #39 RunStart /subtotal <- /total (Cart.fsx:11)
   #32 Mark /subtotal <- /lines (Cart.fsx:11)
-  #31 Write /lines (Cart.fsx:9)
+  #31 Write /lines (Cart.fsx:9) = [{ Sku = "tea"; Price = 4M; Qty = 2 }]
   root: user write #31
 ```
 
 Read it from the bottom: a write to `lines` marked `subtotal`; the banner's check pulled `total`,
 which pulled `subtotal`; each value moved, so the banner ran. `#n` is the event's position in the
-log. The chain ends at a root: a user write, the node's creation, a pull by a reader, an async
-source's settle, or a cause older than the log (`unrecorded after #n`).
+log, and `= value` is the value a write, move or settle recorded. The chain ends at a root: a user
+write, the node's creation, a pull by a reader, an async source's settle, or a cause older than the
+log (`unrecorded after #n`).
 
 `Trace.whyAt graph node run` explains an earlier run by number, and `Trace.whyDepth graph depth
 node` stops after `depth` steps.
@@ -161,12 +162,13 @@ Trace.history graph total |> Trace.render graph |> printfn "%s"
 history /total
   run 1 #15 pending moved flush 1 root: created #8
   run 2 #55 pending flush 2 root: user write #38
-  run 3 #71 ok moved flush 3 root: user write #38
+  run 3 #71 ok moved flush 3 = 11M root: user write #38
 ```
 
 Each line gives the run number, its `RunStart`, how it ended, whether it moved the value, the flush
-it started in and the root of its `why` chain. Run 2 read a quote still in flight and ended pending.
-Run 3 ran when the quote settled; its root is the write that started the quote.
+it started in, the value an ended run left, and the root of its `why` chain. Run 2 read a quote
+still in flight and ended pending. Run 3 ran when the quote settled; its root is the write that
+started the quote.
 
 ## What is it waiting on
 
@@ -198,8 +200,8 @@ waits on a pending source. A settle marked `held pending` kept its value while a
 `Trace.why` follows a settle back to the run that started the flight:
 
 ```text
-  #65 Moved /shipping (Cart.fsx:10)
-  #64 Settle /shipping (Cart.fsx:10)
+  #65 Moved /shipping (Cart.fsx:10) = 3M
+  #64 Settle /shipping (Cart.fsx:10) = 3M
   #57 FlightStart /shipping (Cart.fsx:10)
   #56 RunStart /shipping <- /banner (Cart.fsx:10)
 ```

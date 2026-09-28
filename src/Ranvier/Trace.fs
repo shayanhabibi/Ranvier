@@ -838,11 +838,11 @@ type internal Tracer =
 #endif
 
     /// <summary>
-    /// Records a <c>Write</c> to the node owning <c>observers</c>. A write that <c>moved</c> the value opens a
-    /// notification, closed by <c>Notified</c>.
+    /// Records a <c>Write</c> of <c>value</c> to the node owning <c>observers</c>. A write that <c>moved</c> the value
+    /// opens a notification, closed by <c>Notified</c>.
     /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member Write(observers: obj, moved: bool) =
+    static member Write(observers: obj, moved: bool, value: obj) =
 #if RANVIER_TRACE
         let traced = observers :?> ITraced
         let log = traced.TraceLog
@@ -850,7 +850,7 @@ type internal Tracer =
         if not (isNull log) then
             let current = log.Current
             let cause = if current = 0 then 0 else log.OpenRun current
-            let seq = log.Append (TraceEventKind.Write, traced.TraceId, current, 0, (if moved then 1 else 0), cause, null)
+            let seq = log.Append (TraceEventKind.Write, traced.TraceId, current, 0, (if moved then 1 else 0), cause, value)
 
             if moved then
                 log.PushCause seq
@@ -883,17 +883,17 @@ type internal Tracer =
 #endif
 
     /// <summary>
-    /// Records <c>Moved</c> for node <c>id</c> and opens a notification, closed by <c>Notified</c>. The cause is the
-    /// node's latest settle, else its open run.
+    /// Records <c>Moved</c> for node <c>id</c> with its new <c>value</c>, and opens a notification, closed by
+    /// <c>Notified</c>. The cause is the node's latest settle, else its open run.
     /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member Moved(graph: obj, id: int) =
+    static member Moved(graph: obj, id: int, value: obj) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
         let run = log.OpenRun id
         let settle = log.SettleOf id
         let number = if run <> 0 then log.RunNumber id else log.RunCount id
-        let seq = log.Append (TraceEventKind.Moved, id, 0, number, 0, (if settle <> 0 then settle else run), null)
+        let seq = log.Append (TraceEventKind.Moved, id, 0, number, 0, (if settle <> 0 then settle else run), value)
         log.NoteSettle (id, 0)
 
         if run <> 0 then
@@ -931,14 +931,15 @@ type internal Tracer =
     /// <summary>
     /// Records the result of flight number <c>flight</c> of node <c>id</c>: <c>Settle</c> for <c>outcome</c> 0,
     /// <c>Fail</c> for 1, a cancelled <c>Fail</c> for 2. <c>held</c> marks a <c>Settle</c> that leaves the node pending.
+    /// <c>payload</c> is the value or the exception.
     /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: bool) =
+    static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: bool, payload: obj) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
         let kind = if outcome = 0 then TraceEventKind.Settle else TraceEventKind.Fail
         let flag = if outcome = 2 || held then 1 else 0
-        let seq = log.Append (kind, id, 0, flight, flag, log.FlightOf (id, flight), null)
+        let seq = log.Append (kind, id, 0, flight, flag, log.FlightOf (id, flight), payload)
         log.NoteSettle (id, seq)
 #else
         ()
@@ -958,17 +959,18 @@ type internal Tracer =
 
     /// <summary>
     /// Records <c>Settle</c>, or <c>Fail</c> when <c>failed</c> is true, for the async source of <c>observers</c>, a
-    /// bound observer set, and opens a notification, closed by <c>Notified</c>.
+    /// bound observer set, and opens a notification, closed by <c>Notified</c>. <c>payload</c> is the value or the
+    /// exception.
     /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member SourceSettled(observers: obj, failed: bool) =
+    static member SourceSettled(observers: obj, failed: bool, payload: obj) =
 #if RANVIER_TRACE
         let traced = observers :?> ITraced
         let log = traced.TraceLog
 
         if not (isNull log) then
             let kind = if failed then TraceEventKind.Fail else TraceEventKind.Settle
-            let seq = log.Append (kind, traced.TraceId, 0, 0, 0, 0, null)
+            let seq = log.Append (kind, traced.TraceId, 0, 0, 0, 0, payload)
             log.PushCause seq
 #else
         ()

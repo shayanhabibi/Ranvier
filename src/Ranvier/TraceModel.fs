@@ -26,6 +26,8 @@ type WhyStep =
         Kind: TraceEventKind
         Node: int
         Other: int
+        /// <summary>The value or exception recorded by a <c>Write</c>, <c>Moved</c>, <c>Settle</c> or <c>Fail</c>.</summary>
+        Value: obj option
     }
 
 /// <summary>The cause chain of one run, from its <c>RunStart</c> back to a <c>WhyRoot</c>.</summary>
@@ -73,6 +75,8 @@ type TraceRun =
         Root: WhyRoot
         /// <summary>The number of the flush the run started in, or 0 outside every flush.</summary>
         Flush: int
+        /// <summary>The value recorded by the run's <c>Moved</c>, else by the latest earlier run's.</summary>
+        Value: obj option
     }
 
 /// <summary>A node's recorded runs, in <c>Trace.history</c>.</summary>
@@ -151,6 +155,11 @@ type TraceSnapshotNode =
         /// <summary>The first dirty <c>Mark</c> seq since the last <c>RunStart</c>, or 0.</summary>
         PendingMark: int
         Status: TraceNodeStatus
+        /// <summary>
+        /// The <c>valueText</c> of the latest value or exception recorded by a moving <c>Write</c>, a <c>Moved</c>, or
+        /// an async source's <c>Settle</c> or <c>Fail</c>.
+        /// </summary>
+        Value: string option
     }
 
 /// <summary>An owner in a <c>TraceSnapshot</c>.</summary>
@@ -225,6 +234,43 @@ module TraceModel =
                 match events |> Array.tryFind (fun e -> e.Seq = seq) with
                 | Some e -> ValueSome e
                 | None -> ValueNone
+
+    /// <summary>
+    /// A value as one line of at most 60 characters: an exception as its type name and message, a string as itself,
+    /// and any other value as its <c>%A</c> text.
+    /// </summary>
+    let valueText (value: obj) : string =
+        let lines (text: string) =
+            text.Split ([| '\r'; '\n' |], StringSplitOptions.RemoveEmptyEntries)
+            |> Array.map _.Trim()
+            |> Array.filter (fun p -> p.Length > 0)
+
+        let line =
+            match value with
+            | :? exn as ex -> String.Join (" ", lines (ex.GetType().Name + ": " + ex.Message))
+            | :? string as s -> String.Join (" ", lines s)
+#if FABLE_COMPILER
+            | :? float as f -> string f
+#else
+            | :? float as f -> f.ToString ("R", Globalization.CultureInfo.InvariantCulture)
+#endif
+            | v ->
+                // %A puts each record field on its own line; the join restores the "; " separator.
+                let parts = lines (sprintf "%A" v)
+                let joined = StringBuilder ()
+
+                for i in 0 .. parts.Length - 1 do
+                    if i > 0 then
+                        let prev = parts[i - 1]
+                        let opens = "[{(;,".IndexOf (prev[prev.Length - 1]) >= 0
+                        let closes = "]})|".IndexOf (parts[i][0]) >= 0
+                        joined.Append (if opens || closes then " " else "; ") |> ignore
+
+                    joined.Append parts[i] |> ignore
+
+                joined.ToString ()
+
+        if line.Length > 60 then line.Substring (0, 59) + "…" else line
 
     /// <summary>
     /// The source lists folded from <c>EdgeAdd</c>/<c>EdgeRemove</c>, by computation id, in slot order. Lists that
@@ -312,6 +358,13 @@ module TraceModel =
                         Kind = e.Kind
                         Node = e.Node
                         Other = e.Other
+                        Value =
+                            match e.Kind with
+                            | TraceEventKind.Write
+                            | TraceEventKind.Moved
+                            | TraceEventKind.Settle
+                            | TraceEventKind.Fail -> Option.ofObj e.Payload
+                            | _ -> None
                     }
 
             let rec walk (e: TraceEvent) : WhyRoot option =
@@ -388,7 +441,7 @@ module TraceModel =
     /// </summary>
     let history (events: TraceEvent[]) (checkpoint: string) (node: int) : TraceHistory =
         let ends = Dictionary<int, RunStatus>()
-        let moved = HashSet<int>()
+        let moved = Dictionary<int, obj>()
         let flushes = ResizeArray<int>()
         let starts = ResizeArray<struct (TraceEvent * int)>()
 
@@ -400,12 +453,18 @@ module TraceModel =
                 let flush = if flushes.Count = 0 then 0 else flushes[flushes.Count - 1]
                 starts.Add (struct (e, flush))
             | TraceEventKind.RunEnd when e.Node = node -> ends[e.Cause] <- enum<RunStatus> e.Arg
-            | TraceEventKind.Moved when e.Node = node -> moved.Add (movedRun events e) |> ignore
+            | TraceEventKind.Moved when e.Node = node -> moved[movedRun events e] <- e.Payload
             | _ -> ()
+
+        let mutable value = None
 
         let runs =
             [
                 for struct (start, flush) in starts do
+                    match moved.TryGetValue start.Arg with
+                    | true, payload -> value <- Option.ofObj payload
+                    | _ -> ()
+
                     {
                         Run = start.Arg
                         Start = start.Seq
@@ -413,9 +472,10 @@ module TraceModel =
                             match ends.TryGetValue start.Seq with
                             | true, status -> Some status
                             | _ -> None
-                        Moved = moved.Contains start.Arg
+                        Moved = moved.ContainsKey start.Arg
                         Root = (why events checkpoint node start.Arg).Root |> Option.defaultValue (Unrecorded start.Seq)
                         Flush = flush
+                        Value = value
                     }
             ]
 
@@ -675,6 +735,8 @@ module TraceModel =
             | Some n -> s <- { s with Nodes = s.Nodes.Add (id, f n) }
             | None -> ()
 
+        let valueOf (payload: obj) = Option.ofObj payload |> Option.map valueText
+
         for i in 0 .. events.Length - 1 do
             let e = events[i]
 
@@ -717,6 +779,7 @@ module TraceModel =
                         LastRun = 0
                         PendingMark = 0
                         Status = TraceNodeStatus.Fresh
+                        Value = None
                     }
 
                 s <-
@@ -755,6 +818,10 @@ module TraceModel =
                 match s.Owners.TryFind e.Node with
                 | Some o -> s <- { s with Owners = s.Owners.Add (e.Node, { o with Disposed = true }) }
                 | None -> ()
+            | TraceEventKind.Write when e.Flag = 1 -> updateNode e.Node (fun n -> { n with Value = valueOf e.Payload })
+            | TraceEventKind.Moved when not (isNull e.Payload) -> updateNode e.Node (fun n -> { n with Value = valueOf e.Payload })
+            | TraceEventKind.Settle
+            | TraceEventKind.Fail when e.Arg = 0 -> updateNode e.Node (fun n -> { n with Value = valueOf e.Payload })
             | TraceEventKind.Mark when e.Arg = 2 ->
                 updateNode e.Node (fun n -> if n.PendingMark = 0 then { n with PendingMark = e.Seq } else n)
             | TraceEventKind.RunStart ->
@@ -997,7 +1064,14 @@ module TraceModel =
                 | Some n when n.Site <> "?" -> " (" + n.Site + ")"
                 | _ -> ""
 
-            lines.Add ("  #" + string step.Seq + " " + string step.Kind + " " + pathOf snapshot step.Node + other + site)
+            let value =
+                match step.Value with
+                | Some v -> " = " + valueText v
+                | None -> ""
+
+            lines.Add (
+                "  #" + string step.Seq + " " + string step.Kind + " " + pathOf snapshot step.Node + other + site + value
+            )
 
         lines.Add ("  root: " + rootText snapshot why.Root)
         String.Join ("\n", lines)
@@ -1036,8 +1110,13 @@ module TraceModel =
             let moved = if r.Moved then " moved" else ""
             let flush = if r.Flush = 0 then "" else " flush " + string r.Flush
 
+            let value =
+                match r.Status, r.Value with
+                | Some (RunStatus.Ok | RunStatus.Error), Some v -> " = " + valueText v
+                | _ -> ""
+
             lines.Add (
-                "  run " + string r.Run + " #" + string r.Start + " " + status + moved + flush + " root: "
+                "  run " + string r.Run + " #" + string r.Start + " " + status + moved + flush + value + " root: "
                 + rootText snapshot (Some r.Root)
             )
 
@@ -1162,7 +1241,7 @@ module TraceModel =
 
     /// <summary>
     /// A payload's canonical text: an <c>int</c>, <c>string</c>, <c>bool</c> or <c>float</c> (round-trip) as its
-    /// value, null as null, and any other value as its type name.
+    /// value, null as null, and any other value as its <c>valueText</c>.
     /// </summary>
     let payloadText (payload: obj) : string =
         match payload with
@@ -1175,7 +1254,7 @@ module TraceModel =
 #else
         | :? float as f -> f.ToString ("R", Globalization.CultureInfo.InvariantCulture)
 #endif
-        | p -> p.GetType().FullName
+        | p -> valueText p
 
     let private statusOf (text: string) =
         match text with
@@ -1220,8 +1299,11 @@ module TraceModel =
                 .Append(n.PendingMark)
                 .Append(",\"status\":\"")
                 .Append(statusText n.Status)
-                .Append "\"}"
+                .Append "\",\"value\":"
             |> ignore
+
+            jsonString sb (Option.toObj n.Value)
+            sb.Append '}' |> ignore
 
         sb.Append "],\"owners\":[" |> ignore
         first <- true
@@ -1401,6 +1483,7 @@ module TraceModel =
                         LastRun = int' n "lastRun"
                         PendingMark = int' n "pendingMark"
                         Status = statusOf (str n "status")
+                        Value = Option.ofObj (str n "value")
                     }
             ]
 

@@ -978,6 +978,11 @@ let tests =
                 Expect.equal (history.Runs |> List.map _.Moved) [ true; false; true ] "only the sign change moved"
 
                 Expect.equal
+                    (history.Runs |> List.map (fun r -> r.Value |> Option.map unbox<bool>))
+                    [ Some true; Some true; Some false ]
+                    "a run that did not move keeps the earlier value"
+
+                Expect.equal
                     (history.Runs |> List.map _.Root)
                     [ Created (Trace.origin g positive).Seq; UserWrite writes[0].Seq; UserWrite writes[1].Seq ]
                     "each run's root"
@@ -1028,6 +1033,39 @@ let tests =
                 Expect.contains kinds TraceEventKind.FlightStart "and the flight's start"
                 Expect.equal why.Root (Some (Created (Trace.origin g a).Seq)) "and ends at the memo's first run"
                 Expect.isTrue (Trace.history g a).Runs.Head.Moved "the settle moved the flight's run"
+            }
+
+            test "why steps, history runs and snapshot nodes carry recorded values" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let a = createSignal 1
+                let source = createAsyncSource<int> ()
+                let m = createMemo (fun () -> a.Value + source.Value)
+                createEffect (fun () -> m.TryValue |> ignore)
+                source.Settle 10
+                a.Value <- 2
+                Expect.equal m.TryValue (Ready 12) "the memo read both sources"
+
+                let values = (Trace.why g m).Steps |> List.choose (fun s -> s.Value |> Option.map (fun v -> s.Kind, unbox<int> v))
+                Expect.contains values (TraceEventKind.Write, 2) "the write step carries the written value"
+                Expect.equal (List.last (Trace.history g m).Runs).Value (Some (box 12)) "the last run carries its value"
+
+                let nodes = (Trace.snapshot g).Nodes
+                Expect.equal nodes[(a :> INode).Id].Value (Some "2") "the signal holds its last write"
+                Expect.equal nodes[(source :> INode).Id].Value (Some "10") "the source holds its settle"
+                Expect.equal nodes[(m :> INode).Id].Value (Some "12") "the memo holds its last move"
+
+                source.Fail (System.InvalidOperationException "quote down")
+                let failed = (Trace.snapshot g).Nodes[(source :> INode).Id].Value
+                Expect.equal failed (Some "InvalidOperationException: quote down") "a failure holds its exception"
+            }
+
+            test "valueText renders a value as one line" {
+                Expect.equal (TraceModel.valueText (box {| Sku = "tea"; Qty = 2 |})) "{| Qty = 2; Sku = \"tea\" |}" "a record joins its fields"
+                Expect.equal (TraceModel.valueText (box "a\nb")) "a b" "a string collapses its lines"
+                let long = TraceModel.valueText (box [ 1..100 ])
+                Expect.equal long.Length 60 "a long value is truncated"
+                Expect.isTrue (long.EndsWith "…") "with an ellipsis"
             }
 
             test "waitingOn reports superseded, settled and failed flights" {

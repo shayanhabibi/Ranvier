@@ -410,7 +410,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             i <- i + 1
 
         if not same then
-            Tracer.Moved (graph, id)
+            Tracer.Moved (graph, id, null)
             keys.WriteExcept (passKeys.ToArray (), puller)
             Tracer.Notified graph
 
@@ -580,7 +580,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
                 if previousStatus <> Status.None then
-                    Tracer.Moved (graph, id)
+                    Tracer.Moved (graph, id, null)
                     beacon.NotifyFailure this.Running
                     Tracer.Notified graph
                     Tracer.RunEnd (graph, id, status)
@@ -599,7 +599,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             status <- Status.Pending
 
             if not (previousStatus.HasFlag Status.Pending) then
-                Tracer.Moved (graph, id)
+                Tracer.Moved (graph, id, null)
                 beacon.NotifyFailure this.Running
                 Tracer.Notified graph
 
@@ -619,7 +619,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 not (previousStatus.HasFlag Status.Error)
                 || (not retry && not (obj.ReferenceEquals (ex, previousError)))
             then
-                Tracer.Moved (graph, id)
+                Tracer.Moved (graph, id, null)
                 beacon.NotifyFailure this.Running
                 Tracer.Notified graph
 
@@ -1445,14 +1445,14 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
             pending <- false
             error <- null
             value <- v
-            Tracer.Moved (graph, id)
+            Tracer.Moved (graph, id, box v)
             observers.NotifyDirty ()
             Tracer.Notified graph
 
     member _.Fail(ex: exn) =
         pending <- false
         error <- ex
-        Tracer.Moved (graph, id)
+        Tracer.Moved (graph, id, ex)
         observers.NotifyDirty ()
         Tracer.Notified graph
 
@@ -1464,7 +1464,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
         if not pending then
             pending <- true
             error <- null
-            Tracer.Moved (graph, id)
+            Tracer.Moved (graph, id, null)
             observers.NotifyDirty ()
             Tracer.Notified graph
 
