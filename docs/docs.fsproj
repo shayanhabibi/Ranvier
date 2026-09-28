@@ -31,6 +31,6 @@
         <PackageReference Include="Partas.Nacara.Plugins.AgentFriendly" Version="0.1.0" />
         <PackageReference Include="Partas.Nacara.Plugins.OgImage" Version="0.1.0" />
         <!-- Unpublished; committed under feed/. -->
-        <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.44d0693" />
+        <PackageReference Include="Partas.Nacara.Plugins.Solid" Version="0.1.0-local.951e0ff" />
     </ItemGroup>
 </Project>
