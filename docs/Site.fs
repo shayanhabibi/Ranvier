@@ -130,7 +130,13 @@ let theme =
                     Menu.page "guide/installation.md"
                     Menu.page "guide/getting-started.md"
                 ]
-            Menu.section "Core concepts" [ Menu.page "guide/async-and-pending.md"; Menu.page "guide/collections.md" ]
+            Menu.section
+                "Core concepts"
+                [
+                    Menu.page "guide/async-and-pending.md"
+                    Menu.page "guide/collections.md"
+                    Menu.page "guide/aggregates.fsx"
+                ]
             Menu.section "Reference" [ Menu.page "guide/troubleshooting.md" ]
         ]
     |> Theme.menu
@@ -241,6 +247,7 @@ let site =
     |> Site.output "output"
     |> Site.staticFiles "static"
     |> Markdown.register
+    |> Literate.registerWith (fun options -> { options with Extensions = [ ".fsx" ] })
     |> TreeSitter.register
     |> Directives.register []
     |> Sitemap.register

@@ -564,6 +564,8 @@ Pinned by `take, skip and sub select positions and clamp counts as List.truncate
 stays in a shifted window keeps its row` and `a write outside the window wakes no reader`
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
 
+To fold the values of a projection into one value, such as a total or a count, see [Aggregates](aggregates.fsx).
+
 ## Planned and out of scope
 
 Reusable lens
