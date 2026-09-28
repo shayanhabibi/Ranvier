@@ -215,6 +215,7 @@ let private solidExamples (options: SolidExamplesOptions) =
 let private ogCards =
     [
         "async-and-pending", "async", "Async and pending: boundary states along a nerve fibre"
+        "tracing", "tracing", "Tracing: a cause chain traced back along a nerve fibre"
         "guide", "guide", "Ranvier guide: build with signals"
         "concepts", "concepts", "Ranvier concepts: how the graph works"
         "fable", "fable", "Ranvier on Fable: the JavaScript target"

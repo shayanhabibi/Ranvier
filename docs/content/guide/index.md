@@ -62,6 +62,7 @@ doubled = 10
 - [Getting started](getting-started.md): graphs, signals, memos, effects, batching and scopes.
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
 - [Collections](collections.fsx): keyed and index projections, lookups and selectors.
+- [Tracing](tracing.md): why a node ran or did not run, where it was created, and the graph as it stands.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
 
 ## Status
