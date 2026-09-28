@@ -67,8 +67,8 @@ last run, as `Trace.why` renders it. The log beneath the buttons lists the lates
 ## Timelines and replays
 
 With `timeline`, the map records every event and adds play, step and a scrub bar; each tick on the
-bar is an animated event. The bar starts where the scenario's setup ends; the log keeps the setup's
-events. Two writes in quick succession start two flights here. The first is
+bar is an animated event. The bar starts where the scenario's setup ends; the log opens with the setup's
+latest events. Two writes in quick succession start two flights here. The first is
 superseded: its ring fades and the log reads `drop shipping (superseded)`. Only the newest flight can
 settle.
 
@@ -117,7 +117,7 @@ against a fresh traced graph.
 | Flag | Effect |
 | --- | --- |
 | `timeline` | Adds the play, step and scrub bar. |
-| `replay` | Presses every button once, in order, and plays the result; implies `timeline`. |
+| `replay` | Presses every button once, in order, for the timeline to play back; implies `timeline`. |
 | `id=`, `show=` | As on `solid` fences. |
 
 The helpers in scope:

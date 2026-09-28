@@ -273,8 +273,8 @@ module MapModel =
             frames[min index (frames.Length - 1)].After
 
     /// <summary>
-    /// The position on the timeline, from 0 to 1, of the frame at <c>index</c> among <c>count</c> frames whose first
-    /// <c>setup</c> build the scenario; <c>None</c> for a setup frame.
+    /// The timeline position, from 0 to 1, of frame <c>index</c> of <c>count</c>; <c>None</c> for one of the first
+    /// <c>setup</c> frames.
     /// </summary>
     let tickAt (setup: int) (count: int) (index: int) : float option =
         if index < setup then

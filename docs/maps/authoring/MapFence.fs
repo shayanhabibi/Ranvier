@@ -7,7 +7,7 @@ open System.Text.RegularExpressions
 type MapFlags =
     {
         Timeline: bool
-        /// <summary>Presses every control once, in order, and plays the result; implies <c>Timeline</c>.</summary>
+        /// <summary>Presses every control once, in order, for the timeline to play back; implies <c>Timeline</c>.</summary>
         Replay: bool
     }
 
@@ -67,7 +67,7 @@ module MapFence =
     let private opens (line: string) =
         line.Length > 0 && (Char.IsLetter line[0] || line[0] = '_')
 
-    /// <summary>The module holding a fence's scenario and recording.</summary>
+    /// <summary>The module holding a fence's scenario.</summary>
     let moduleName (cellId: string) =
         "Map_" + Regex.Replace(cellId, @"[^A-Za-z0-9_]", "_")
 
