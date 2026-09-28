@@ -178,7 +178,32 @@ module MapModel =
             { scene with
                 Waiting = scene.Waiting.Remove e.Node
             }
+        | TraceEventKind.RunEnd when enum<RunStatus> e.Arg = RunStatus.Error ->
+            let error =
+                scene.Snapshot.Nodes.TryFind e.Node
+                |> Option.bind _.Value
+                |> Option.defaultValue "failed"
+
+            { scene with
+                Errors = scene.Errors.Add (e.Node, error)
+            }
+        | TraceEventKind.RunEnd when enum<RunStatus> e.Arg <> RunStatus.Abandoned ->
+            { scene with
+                Errors = scene.Errors.Remove e.Node
+            }
         | _ -> scene
+
+    /// <summary>
+    /// True for a <c>Moved</c> whose run ends <c>Pending</c>: its value is a placeholder, and readers keep the value
+    /// from before the run.
+    /// </summary>
+    let private placeholder (events: TraceEvent[]) (i: int) =
+        let e = events[i]
+
+        e.Kind = TraceEventKind.Moved
+        && (events[i + 1 ..]
+            |> Array.tryFind (fun r -> r.Kind = TraceEventKind.RunEnd && r.Node = e.Node)
+            |> Option.exists (fun r -> enum<RunStatus> r.Arg = RunStatus.Pending))
 
     /// <summary>One frame per event, played on from <c>scene</c>.</summary>
     /// <remarks>
@@ -206,7 +231,13 @@ module MapModel =
                         [| e |]
 
                 let before = scene
-                let snapshot = TraceModel.fold before.Snapshot folded
+                let held = placeholder events i
+
+                let snapshot =
+                    if held then
+                        before.Snapshot
+                    else
+                        TraceModel.fold before.Snapshot folded
 
                 // The log names nodes as they stand after a creation or a label, and before a disposal.
                 let named =
@@ -219,11 +250,20 @@ module MapModel =
 
                 {
                     Event = e
-                    Cue = cueOf scene e
-                    Log = logOf named e
+                    Cue = if held then Quiet else cueOf scene e
+                    Log =
+                        if held then
+                            $"%s{name named.Snapshot e.Node} holds its value"
+                        else
+                            logOf named e
                     After = scene
                 }
         |]
+
+    /// <summary>True while the node has a flight in progress or waits on a pending source.</summary>
+    let pending (scene: Scene) (node: int) : bool =
+        scene.Flights.ContainsKey node
+        || scene.Waiting.ContainsKey node
 
     /// <summary>The scene after the frame at <c>index</c>; <c>scene</c> itself for an index before the first.</summary>
     let stateAt (scene: Scene) (frames: Frame[]) (index: int) : Scene =

@@ -65,6 +65,39 @@ let private framesOf (c: Cart) (act: unit -> unit) =
     let after = Trace.events c.Graph
     MapModel.frames scene after[before.Length ..]
 
+/// The landing page's example: an async price, a memo over it, and a boundary over the memo.
+type private Quote =
+    {
+        Graph: Graph
+        Price: AsyncSource<decimal>
+        Total: int
+        View: int
+    }
+
+let private quote () =
+    let g = new Graph ()
+    use _ = g.Activate ()
+    let price = createAsyncSource<decimal>()
+    let total = createMemo (fun () -> price.Value * 3m)
+    Trace.label (g, total, "total")
+
+    let view =
+        createBoundary (fun _ -> "Loading") (fun ex _ -> "Unavailable: " + ex.Message) (fun () -> sprintf "Total %M" total.Value)
+
+    createEffect (fun () -> view.Value |> ignore)
+
+    {
+        Graph = g
+        Price = price
+        Total = (total :> INode).Id
+        View = (view :> INode).Id
+    }
+
+let private sceneOf (g: Graph) =
+    (MapModel.frames MapModel.start (Trace.events g)
+     |> Array.last)
+        .After
+
 let private cues (frames: Frame[]) =
     frames |> Array.map _.Cue |> List.ofArray
 
@@ -122,6 +155,7 @@ let tests =
                 Expect.equal c.Desk.Pending 0 "the desk forgot the older request"
                 let last = (Array.last frames).After
                 Expect.isFalse (last.Flights.ContainsKey c.Shipping) "no flight in progress"
+                Expect.isFalse (MapModel.pending last c.Shipping) "the settled node is no longer pending"
                 Expect.equal last.Snapshot.Nodes[c.Total].Value (Some "17M") "the total takes the quote"
             }
 
@@ -134,6 +168,44 @@ let tests =
                 Expect.isFalse (last.Flights.ContainsKey c.Shipping) "no flight in progress"
             }
 
+            test "a memo whose run fails is failed, and a later run clears it" {
+                let q = quote ()
+                q.Price.Settle 4m
+                q.Price.Fail (exn "offline")
+                let failed = sceneOf q.Graph
+
+                Expect.stringContains
+                    (failed.Errors.TryFind q.Total
+                     |> Option.defaultValue "")
+                    "offline"
+                    "the memo carries the error"
+
+                Expect.isFalse (failed.Errors.ContainsKey q.View) "the boundary recovered"
+                q.Price.Settle 5m
+                let settled = sceneOf q.Graph
+                Expect.isFalse (settled.Errors.ContainsKey q.Total) "the memo recovered"
+                Expect.equal settled.Snapshot.Nodes[q.Total].Value (Some "15M") "with its new value"
+            }
+
+            test "a run that suspends keeps the value readers saw" {
+                let q = quote ()
+                let frames = MapModel.frames MapModel.start (Trace.events q.Graph)
+
+                Expect.all
+                    frames
+                    (fun f ->
+                        f.After.Snapshot.Nodes.TryFind q.Total
+                        |> Option.forall (fun n -> n.Value.IsNone))
+                    "no placeholder value"
+
+                Expect.isFalse
+                    (frames
+                     |> Array.exists (fun f -> f.Cue = Surge (q.Total, [ q.View ])))
+                    "nothing travels"
+
+                Expect.equal (sceneOf q.Graph).Snapshot.Nodes[q.View].Value (Some "Loading") "the boundary shows its fallback"
+            }
+
             test "a read of a pending source waits on it" {
                 let c = cart ()
                 let frames = MapModel.frames MapModel.start (Trace.events c.Graph)
@@ -141,6 +213,8 @@ let tests =
                 let last = (Array.last frames).After
                 Expect.equal (last.Waiting.TryFind c.Total) (Some c.Shipping) "the total waits on the shipping"
                 Expect.isTrue (last.Flights.ContainsKey c.Shipping) "the first flight is in progress"
+                Expect.isTrue (MapModel.pending last c.Shipping) "the node in flight is pending"
+                Expect.isTrue (MapModel.pending last c.Total) "the reader waiting on it is pending"
             }
 
             test "the last scene agrees with the snapshot, labels from Trace.named included" {

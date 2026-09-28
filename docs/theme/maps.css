@@ -60,6 +60,7 @@
 .rv-map-node.is-waiting .rv-map-node__shape { stroke-dasharray: 2 3; }
 .rv-map-node.is-flight .rv-map-node__flight { opacity: 1; animation: rv-map-spin 2.4s linear infinite; }
 .rv-map-node.is-failed .rv-map-node__shape { stroke: var(--rv-error); fill: color-mix(in oklab, var(--rv-error) 14%, var(--rv-raised)); }
+.rv-map-node.is-failed .rv-map-node__value { fill: var(--rv-error); }
 .rv-map-node.is-flash .rv-map-node__shape { fill: color-mix(in oklab, var(--rv-contour) 45%, var(--rv-raised)); }
 .rv-map-node.is-dropped .rv-map-node__flight { animation: rv-map-drop .7s ease-out; }
 .rv-map-node.is-settled .rv-map-node__shape { animation: rv-map-glow .8s ease-out; }

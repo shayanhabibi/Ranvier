@@ -236,7 +236,16 @@ module SignalMapComponent =
                 [
                     path
                     Look.kindName n.Kind
-                    Look.statusName n.Status
+                    match n.Status with
+                    | _ when MapModel.pending shown n.Id -> "pending"
+                    | _ when shown.Errors.ContainsKey n.Id -> "failed"
+                    | _ when
+                        n.Kind = TraceNodeKind.Signal
+                        || n.Kind = TraceNodeKind.AsyncSource
+                        ->
+                        "source"
+                    | TraceNodeStatus.Ended RunStatus.Pending -> "settled"
+                    | status -> Look.statusName status
                     match n.Value with
                     | Some v -> "= " + v
                     | None -> ()
@@ -245,7 +254,7 @@ module SignalMapComponent =
                     | Some s -> "waiting on " + TraceModel.pathOf shown.Snapshot s
                     | None -> ()
                     match shown.Errors.TryFind n.Id with
-                    | Some e -> "failed: " + e
+                    | Some e -> "error: " + e
                     | None -> ()
                 ]
 
@@ -262,7 +271,15 @@ module SignalMapComponent =
                 try
                     TraceModel.renderWhy shown.Snapshot (TraceModel.why events null id 0)
                 with _ ->
-                    MapModel.name shown.Snapshot id + " has not run."
+                    match
+                        shown.Snapshot.Nodes.TryFind id
+                        |> Option.map _.Kind
+                    with
+                    | Some TraceNodeKind.Signal
+                    | Some TraceNodeKind.AsyncSource ->
+                        MapModel.name shown.Snapshot id
+                        + " is a source: it changes when written or settled, and never runs."
+                    | _ -> MapModel.name shown.Snapshot id + " has not run."
 
         let viewOf (n: TraceSnapshotNode) =
             let shape = Look.shapeOf n.Kind
@@ -426,8 +443,15 @@ module SignalMapComponent =
                     |> Option.defaultValue ""
 
                 Dom.toggle view.Group "is-running" (n.Status = TraceNodeStatus.Running)
-                Dom.toggle view.Group "is-pending" (n.Status = TraceNodeStatus.Ended RunStatus.Pending)
-                Dom.toggle view.Group "is-fresh" (n.Status = TraceNodeStatus.Fresh)
+                Dom.toggle view.Group "is-pending" (MapModel.pending scene id)
+
+                Dom.toggle
+                    view.Group
+                    "is-fresh"
+                    (n.Status = TraceNodeStatus.Fresh
+                     && n.Kind <> TraceNodeKind.Signal
+                     && n.Kind <> TraceNodeKind.AsyncSource)
+
                 Dom.toggle view.Group "is-flight" (scene.Flights.ContainsKey id)
                 Dom.toggle view.Group "is-waiting" (scene.Waiting.ContainsKey id)
                 Dom.toggle view.Group "is-failed" (scene.Errors.ContainsKey id)
