@@ -1747,6 +1747,29 @@ type Graph(options: GraphOptions) =
             raisedPending <- previousRaised
 
     /// <summary>
+    /// Evaluates <c>body arg</c> as <c>RunHosted(host, body)</c> evaluates <c>body ()</c>.
+    /// </summary>
+    member internal _.RunHosted(host: IComputation, body: 'A -> 'T, arg: 'A) =
+        let previous = current
+        let previousOwner = currentOwner
+        let previousRaised = raisedPending
+        current <- host
+        currentOwner <- Unchecked.defaultof<Owner>
+        raisedPending <- Unchecked.defaultof<INode>
+
+        try
+            let result = body arg
+
+            if not (isNull (box raisedPending)) then
+                raise (NotReadyException raisedPending)
+
+            result
+        finally
+            current <- previous
+            currentOwner <- previousOwner
+            raisedPending <- previousRaised
+
+    /// <summary>
     /// Detaches a flight continuation starting on the graph thread from the
     /// computation it interrupts: reads in it are untracked, and nodes it
     /// creates belong to the root.
