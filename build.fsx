@@ -235,10 +235,11 @@ module Stage =
                 quiet
                 run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests -c Release"
             }
-            // Debug defaults RanvierTrace to true, which compiles in the trace log.
+            // RanvierTrace compiles the trace log into the Release build.
             stage "compile traced tests" {
                 quiet
-                run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests-traced -c Debug"
+                envVars [ "RanvierTrace", "true" ]
+                run "dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests-traced -c Release"
             }
             stage "run and report" {
                 run "node fable/Ranvier.Tests.Fable/Report.mjs"

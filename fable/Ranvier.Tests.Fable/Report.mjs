@@ -11,7 +11,7 @@ const root = join(import.meta.dirname, "..", "..");
 const suite = join(root, "tests", "Ranvier.Tests");
 const output = join(root, "docs", ".ai", "fable-compat.md");
 
-// The compiled builds: the Release build, and the Debug build, which compiles in the trace log.
+// The compiled builds: Release, and Release with the trace log compiled in.
 const builds = [
     { name: "untraced", dir: "dist/tests" },
     { name: "traced", dir: "dist/tests-traced" },
@@ -178,7 +178,7 @@ writeFileSync(output, [
     "The .NET suite in `tests/Ranvier.Tests`, compiled with Fable and run under Node.js with Mocha. Two builds:",
     "",
     "- **untraced**: the Release build.",
-    "- **traced**: the Debug build, with the trace log (`RANVIER_TRACE`) compiled in. Tests of the log run only here.",
+    "- **traced**: the Release build with the trace log (`RanvierTrace=true`) compiled in. Tests of the log run only here.",
     "",
     "Each build runs in two deliveries:",
     "",
