@@ -391,6 +391,10 @@ same previous value. Writes made while a source is pending are folded once, toge
 that completes. Under `createMemoWith`, the nodes created by the previous run are disposed before
 `compute` runs, including any held in its value.
 
+Passing the previous value allocates nothing. In the [counter bench](../benchmarks/counters.md) it
+adds about 10 instructions to a memo run under .NET and about 40 under Node.js: 2 % and 4.5 % of a
+write through a chain of four memos.
+
 Effects keep the signature `unit -> unit`. A fold an effect needs belongs in a memo the effect
 reads.
 

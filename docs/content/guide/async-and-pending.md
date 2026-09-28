@@ -294,6 +294,11 @@ flights fold in start order. An await on it suspends, and reads after it are unt
 earlier flight fails or is dropped, `Settled` returns the value published before it. Disposing the
 memo completes a pending `Settled` with the value last published.
 
+`Settled` creates its task when first read: one completed task, shared by every read until the memo
+next publishes, or under `Queue`, one pending task for a flight that waits on an earlier one. The
+async scenarios in the [counter bench](../benchmarks/counters.md) run within 0.1 % of their earlier
+instruction counts, with the same allocation.
+
 Each page below appends to the list the previous flight produced. The second page answers first,
 and the second flight still waits for the first:
 
