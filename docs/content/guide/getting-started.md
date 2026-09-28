@@ -356,8 +356,8 @@ totals seen: [5; 15; 17], runs: 3
 ```
 
 Returning the previous value unchanged is an [equality cutoff](#equality-cutoff): the memo's readers
-stay clean. The same applies to part of it: a new value that reuses unchanged parts of the previous
-one shares them.
+stay clean. A new value that reuses parts of the previous one wakes the memo's readers, and a memo
+that selects a reused part cuts off there.
 
 ```fsharp
 let highs, highestRuns =

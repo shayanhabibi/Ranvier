@@ -283,7 +283,7 @@ pending.
 ### The previous value
 
 The body's first argument is a `Previous<'T>`: a handle on the value the memo last published. Its
-one member, `Settled`, is a `Task<'T voption>` that returns `ValueNone` before the first value. As
+one member, `Settled`, is a `Task<'T voption>` that completes with `ValueNone` before the first value. As
 on a [memo](getting-started.md#the-previous-value), a run that suspends on a pending source or fails
 leaves the previous value unchanged.
 
@@ -336,7 +336,8 @@ List.ofSeq pages
 ### Bodies written with cancellableTask
 
 On .NET, the `cancellableTask` builder from [IcedTasks](https://github.com/TheAngryByrd/IcedTasks)
-builds a `CancellationToken -> Task<'T>`, the function `createAsync`'s body returns after its `Previous` argument. Its `let!` and `do!` pass
+builds a `CancellationToken -> Task<'T>`: write the body as `fun previous -> cancellableTask { ... }`, or
+apply it to the token as below. Its `let!` and `do!` pass
 the flight's token to any `CancellationToken -> Task` they bind, and each bind throws once the
 token is cancelled. Under `CancelPrevious`, a superseded flight stops at its next bind and settles
 as cancelled, so it publishes nothing.
@@ -361,8 +362,9 @@ let profile =
 Build the `cancellableTask` inside the function, once per flight. When the compiler cannot turn
 the builder into a static state machine, as in Debug builds, the invocations of a single
 `cancellableTask` value share their resumption state: a flight started while an earlier one is
-suspended resumes at the earlier flight's `await` and blocks on it. `createAsync (fun _ -> cancellableTask
-{ ... })` can pass every test in Release and hang in Debug.
+suspended resumes at the earlier flight's `await` and blocks on it. A body bound once, as in
+`let body = cancellableTask { ... }` then `createAsync (fun _ -> body)`, can pass every test in Release
+and hang in Debug.
 
 The tracking and purity rules of the body are unchanged: the builder runs synchronously up to its
 first bind that suspends. IcedTasks targets .NET only; a body shared with Fable stays a `task`.

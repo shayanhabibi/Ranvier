@@ -207,6 +207,7 @@ module internal Platform =
             Resolve = resolver.Value
         }
 
+    /// <summary>The task a <c>Deferred</c> completes.</summary>
     let deferredTask (d: Deferred<'T>) : Task<'T> = d.Task
 
     /// <summary>Completes <c>d</c> with <c>value</c>. A second call has no effect.</summary>
@@ -223,6 +224,7 @@ module internal Platform =
     let deferred<'T> () : Deferred<'T> =
         TaskCompletionSource<'T> TaskCreationOptions.RunContinuationsAsynchronously
 
+    /// <summary>The task a <c>Deferred</c> completes.</summary>
     let deferredTask (d: Deferred<'T>) : Task<'T> = d.Task
 
     /// <summary>Completes <c>d</c> with <c>value</c>. A second call has no effect.</summary>

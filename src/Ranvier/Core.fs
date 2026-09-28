@@ -2138,7 +2138,8 @@ type AsyncSource<'T>(graph: Graph) =
 /// <para>
 /// The body's argument is the value last published, <c>ValueNone</c> before the
 /// first. After a run that suspends or fails, the next run receives the same
-/// argument. A body that returns its argument keeps its dependents clean.
+/// argument. While the memo holds a value, a body that returns the value inside its
+/// argument keeps its dependents clean.
 /// </para>
 /// </remarks>
 type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode) =
@@ -3097,15 +3098,14 @@ type internal NothingPublished<'T> private () =
     static member val Task: Task<'T voption> = Platform.completedWith ValueNone
 
 /// <summary>
-/// The value an async memo published before a flight, handed to the flight's body. <c>ValueNone</c> means the memo has
-/// never published a value.
+/// The value an async memo published before a flight, handed to the flight's body.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Under <c>CancelPrevious</c> and <c>KeepLatest</c>, <c>Settled</c> is complete when the body runs. Under <c>Queue</c>,
 /// a flight that starts while an earlier flight's result is unapplied receives the value as it stands once that result is
 /// applied, so a chain of flights folds in start order. A faulted or dropped predecessor leaves the last settled value,
-/// and disposing the memo completes <c>Settled</c> with the value the memo keeps.
+/// and disposing the memo completes <c>Settled</c> with the value last published.
 /// </para>
 /// <para>
 /// Tracking stops at the body's first await that suspends. Read every input, then await <c>Settled</c>: under
@@ -3115,8 +3115,8 @@ type internal NothingPublished<'T> private () =
 [<Struct; NoComparison; NoEquality>]
 type Previous<'T> internal (source: IPreviousSource<'T>, position: int) =
     /// <summary>
-    /// The value published before the flight, or the value once the flight started before it is applied, under
-    /// <c>Queue</c>. Its awaiters resume outside the graph's apply.
+    /// Completes with the value last published, <c>ValueNone</c> before the first. Under <c>Queue</c> it completes after
+    /// the preceding flight's result is applied. Its awaiters resume outside the graph's apply.
     /// </summary>
     member _.Settled: Task<'T voption> =
         if isNull (box source) then

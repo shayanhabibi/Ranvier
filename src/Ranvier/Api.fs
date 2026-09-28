@@ -81,7 +81,8 @@ module Api =
     /// </para>
     /// <para>
     /// <c>compute</c> receives the value last published, <c>ValueNone</c> before the first. After a run that suspends or
-    /// fails, the next run receives the same value. Returning that value unchanged keeps dependents clean.
+    /// fails, the next run receives the same value. While the memo holds a value, returning the value inside
+    /// <c>prev</c> keeps dependents clean.
     /// </para>
     /// </remarks>
     /// <example>
@@ -139,9 +140,11 @@ module Api =
     /// the first result arrives; a change to something it read starts a new run.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// <c>compute</c> is a pure derivation, as <c>createMemo</c>'s is; an async value that creates nodes is
     /// <c>createAsyncWith</c>. The purity check covers <c>compute</c> up to its first <c>await</c> that suspends; an
     /// <c>await</c> on an already-completed task does not suspend.
+    /// </para>
     /// <para>
     /// <c>compute</c> receives the value last published as a <c>Previous</c>. Read every input, then await
     /// <c>Settled</c>: tracking stops at the first <c>await</c> that suspends, and under <c>FlightPolicy.Queue</c>
@@ -156,9 +159,11 @@ module Api =
     /// the next flight starts and with the async value. An <c>await</c> on an already-completed task does not suspend.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// A node created after that <c>await</c> by a continuation on the graph thread belongs to the graph's root; to keep it in
     /// the flight, create it inside <c>runWithOwner</c> with <c>getOwner ()</c> captured before the <c>await</c>. An async value
     /// created and read in <c>compute</c> before that <c>await</c> restarts its flight on every settle and never settles.
+    /// </para>
     /// <para>
     /// <c>compute</c> receives the value last published as a <c>Previous</c>, as <c>createAsync</c>'s does: read every
     /// input, then await <c>Settled</c>.
