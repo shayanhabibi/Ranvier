@@ -199,6 +199,45 @@ module Thermo =
     let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false
 ```
 
+## Edit a map
+
+This map runs in your browser: change the code and press **Run** to compile it again and redraw the
+graph. It is the example from the [home page](../index.md#watch-the-graph-think). Try adding a memo
+or a button.
+
+```fsharp live
+open Ranvier
+open Ranvier.Docs.Maps
+open Ranvier.Docs.Maps.SignalMapComponent
+
+let scenario (graph: Graph) =
+    use _ = graph.Activate ()
+    let price = Trace.named "price" (fun () -> createAsyncSource<decimal> ())
+    let total = Trace.named "total" (fun () -> createMemo (fun _ -> price.Value * 3m))
+
+    let view =
+        Trace.named "view" (fun () ->
+            createBoundary
+                (fun _ -> "Loading…")
+                (fun ex _ -> "Unavailable: " + ex.Message)
+                (fun () -> sprintf "Total %M" total.Value))
+
+    createEffect (fun () -> printfn "%s" view.Value)
+
+    controls [
+        button "Settle 4" (fun () -> price.Settle 4m)
+        button "Fail" (fun () -> price.Fail (exn "feed offline"))
+        button "Settle 5" (fun () -> price.Settle 5m)
+    ]
+
+let map = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] true
+Browser.Dom.document.body.appendChild (unbox map) |> ignore
+```
+
+An editable map spells out what a `map` fence adds when the site is built: `Trace.named` names each node, and
+the last two lines build the map and put it on the page. The compiler loads the first time you press **Run**,
+which takes a few seconds.
+
 ## Limits
 
 - **Small graphs.** Nodes are layered by longest path, with no crossing minimisation. Beyond about ten

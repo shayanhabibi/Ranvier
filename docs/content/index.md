@@ -169,6 +169,8 @@ controls [
 ]
 ```
 
+<p class="rv-map-edit"><a href="/Ranvier/guide/signal-maps/#edit-a-map">Edit this map in your browser</a></p>
+
 <div class="rv-trace">
 <p class="rv-trace__lead">The same log answers questions a call stack cannot. An untraced build compiles it out, IL for IL.</p>
 <div class="rv-trace__grid">
