@@ -9,7 +9,7 @@ layout: splash
 <span class="rv-hero__status"><span class="rv-badge">Preview</span> APIs may change.</span>
 <h1 class="rv-hero__title">ranvier</h1>
 <p class="rv-hero__line">Fine-grained reactive computation for .NET.</p>
-<p class="rv-hero__sub">Signals, memos and effects for F# and C#, with a second channel for values that have not arrived. A boundary shows a fallback while its inputs are in flight and a recovered value when one fails.</p>
+<p class="rv-hero__sub">Signals, memos and effects for .NET, glitch-free, native async and error handling/boundaries, inspired by <a href="https://www.solidjs.com/blog/solid-2-0-rc-the-big-reveal">solid</a>.<br/>Tracing let's <b>agents</b> immediately reason about the state of the graph without cost to production builds.<br/>Every decision benchmarked and evaluated for cost versus value.</p>
 <div class="rv-hero__actions">
 <a class="rv-btn rv-btn--primary" href="/Ranvier/guide/getting-started/">Get started <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
 <a class="rv-btn rv-btn--secondary" href="/Ranvier/guide/async-and-pending/">Async and pending</a>
