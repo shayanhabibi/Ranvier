@@ -39,7 +39,7 @@ type internal Freshness =
 /// <summary>
 /// A node that can be depended upon.
 /// </summary>
-type ISource =
+type internal ISource =
     inherit INode
     abstract AddObserver: IComputation -> unit
     abstract RemoveObserver: IComputation -> unit
@@ -60,7 +60,7 @@ type ISource =
 /// <summary>
 /// A node that depends on sources, and therefore can be invalidated.
 /// </summary>
-and IComputation =
+and internal IComputation =
     inherit INode
     abstract MarkDirty: unit -> unit
 
@@ -77,7 +77,7 @@ and IComputation =
 /// they recompute when read. Effects are the push side: nothing reads them, so
 /// something has to run them.
 /// </summary>
-and IScheduled =
+and internal IScheduled =
     abstract Execute: unit -> unit
 
 /// <summary>
@@ -764,7 +764,7 @@ and Owner internal (sink: Owner) =
     /// The scope of an effect, memo, async memo, boundary, projection key or pass, or lookup records into
     /// <c>Graph.Root</c>. A <c>createRoot</c> scope and a scope from <c>new Owner ()</c> keep their own errors.
     /// </remarks>
-    member _.RecordError(ex: exn) =
+    member internal _.RecordError(ex: exn) =
         if isNull (box sink) then
             if isNull errors then
                 errors <- ResizeArray<exn>()
@@ -783,7 +783,9 @@ and Owner internal (sink: Owner) =
     /// including <c>Graph.Root</c> and a scope constructed with <c>new Owner ()</c>,
     /// runs it inline in the caller's tracking context.
     /// </remarks>
-    member this.OnCleanup(f: unit -> unit) =
+    member this.OnCleanup(f: Action) = this.AddCleanup f.Invoke
+
+    member internal this.AddCleanup(f: unit -> unit) =
         if disposed then
             this.RunLate f
         else
@@ -810,7 +812,7 @@ and Owner internal (sink: Owner) =
     /// immediately, as <c>OnCleanup</c> describes.
     /// </para>
     /// </remarks>
-    member this.DisposeScope() =
+    member internal this.DisposeScope() =
         let detached = cleanups
         let mutable node = tail
         head <- null
@@ -1322,7 +1324,9 @@ type Graph(options: GraphOptions) =
     /// Creates a nested scope, runs <c>body</c> inside it, and hands back the owner
     /// so the caller can dispose the whole subtree at once.
     /// </summary>
-    member this.CreateRoot(body: Owner -> 'T) =
+    member this.CreateRoot(body: Func<Owner, 'T>) = this.RunRoot body.Invoke
+
+    member internal this.RunRoot(body: Owner -> 'T) =
         let owner = new RootScope (this) :> Owner
         owner.SetParent (this.CurrentOwner.AttachLinked owner)
         let previous = currentOwner
@@ -1340,14 +1344,16 @@ type Graph(options: GraphOptions) =
     /// On a disposed scope <c>f</c> runs immediately, untracked and with effects
     /// deferred, as a teardown runs it.
     /// </summary>
-    member this.OnCleanup(f: unit -> unit) =
+    member this.OnCleanup(f: Action) = this.AddCleanup f.Invoke
+
+    member internal this.AddCleanup(f: unit -> unit) =
         let owner = this.CurrentOwner
 
         if owner.IsDisposed then
-            this.Detached (owner, (fun () -> owner.OnCleanup f))
+            this.Detached (owner, (fun () -> owner.AddCleanup f))
             this.RequestFlush ()
         else
-            owner.OnCleanup f
+            owner.AddCleanup f
 
     member internal _.RunOwned(owner: Owner, body: unit -> 'T) =
         let previous = currentOwner
@@ -1399,7 +1405,9 @@ type Graph(options: GraphOptions) =
     /// job is to be skipped, not to be fast. See
     /// docs/.ai/RESEARCH-loony-synchronization.md §4.3.
     /// </remarks>
-    member this.Dispatch(work: unit -> unit) =
+    member this.Dispatch(work: Action) = this.Post work.Invoke
+
+    member internal this.Post(work: unit -> unit) =
         if this.IsOnGraphThread then
             work ()
         else
@@ -1408,7 +1416,7 @@ type Graph(options: GraphOptions) =
             // Unchecked the work runs here, and under Guarded the pump raises
             // and the work stays queued.
             inbox.Enqueue work
-            dispatcher.Post this.PumpFromDispatcher
+            dispatcher.Post (Action this.PumpFromDispatcher)
 
     /// <summary>
     /// Marshals <c>work</c> as <c>Dispatch</c> does. The returned task completes once
@@ -1416,7 +1424,7 @@ type Graph(options: GraphOptions) =
     /// </summary>
     member internal this.DispatchApplied(work: unit -> unit) : Task =
 #if FABLE_COMPILER
-        this.Dispatch work
+        this.Post work
         Platform.completedTask
 #else
         if this.IsOnGraphThread then
@@ -1425,7 +1433,7 @@ type Graph(options: GraphOptions) =
         else
             let applied = TaskCompletionSource ()
 
-            this.Dispatch (fun () ->
+            this.Post (fun () ->
                 try
                     work ()
                 finally
@@ -1607,14 +1615,16 @@ type Graph(options: GraphOptions) =
     /// returns the current value, it just does not create an edge, so the
     /// enclosing computation is not woken when that source changes.
     /// </remarks>
-    member this.Untrack(body: unit -> 'T) =
-        this.RunUntracked body
+    member this.Untrack(body: Func<'T>) =
+        this.RunUntracked body.Invoke
 
     /// <summary>
     /// Defers the flush until <c>body</c> returns, so a group of writes produces one
     /// effect run rather than one per write.
     /// </summary>
-    member this.Batch(body: unit -> 'T) =
+    member this.Batch(body: Func<'T>) = this.RunBatch body.Invoke
+
+    member internal this.RunBatch(body: unit -> 'T) =
         batchDepth <- batchDepth + 1
         Tracer.BatchEnter (this, batchDepth)
 
@@ -2019,7 +2029,7 @@ type Signal<'T>(graph: Graph, initial: 'T) =
     /// How many computations currently read this signal. Exposed for tests
     /// that need to assert an edge was dropped, or not duplicated.
     /// </summary>
-    member _.ObserverCount = observers.Count
+    member internal _.ObserverCount = observers.Count
 
 /// <summary>
 /// A source whose value arrives later.
@@ -2066,7 +2076,7 @@ type AsyncSource<'T>(graph: Graph) =
     /// is genuinely called from off-thread: it is what a completing <c>Task</c> runs.
     /// </remarks>
     member _.Settle(v: 'T) =
-        graph.Dispatch (fun () ->
+        graph.Post (fun () ->
             value <- v
             status <- Status.None
             Tracer.SourceSettled (observers, false, box v)
@@ -2084,7 +2094,7 @@ type AsyncSource<'T>(graph: Graph) =
         if isNull reason then
             raise (ArgumentNullException (nameof reason))
 
-        graph.Dispatch (fun () ->
+        graph.Post (fun () ->
             error <- reason
             status <- Status.Error
             Tracer.SourceSettled (observers, true, reason)
@@ -2199,16 +2209,16 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// <summary>
     /// A pure memo over <c>compute</c>.
     /// </summary>
-    new(graph: Graph, compute: 'T voption -> 'T) as this =
-        Memo<'T>(graph, compute, ScopeMode.Pure)
+    new(graph: Graph, compute: Func<'T voption, 'T>) as this =
+        Memo<'T>(graph, compute.Invoke, ScopeMode.Pure)
         then this.Attach ()
 
     /// <summary>
     /// An owning memo over <c>compute</c> when <c>owning</c> is true, a pure one
     /// otherwise.
     /// </summary>
-    new(graph: Graph, compute: 'T voption -> 'T, owning: bool) as this =
-        Memo<'T>(graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
+    new(graph: Graph, compute: Func<'T voption, 'T>, owning: bool) as this =
+        Memo<'T>(graph, compute.Invoke, (if owning then ScopeMode.Owning else ScopeMode.Pure))
         then this.Attach ()
 #endif
 
@@ -2553,14 +2563,14 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// How many computations currently read this memo. Exposed for tests that
     /// need to assert an edge was dropped, or not duplicated.
     /// </summary>
-    member _.ObserverCount = observers.Count
+    member internal _.ObserverCount = observers.Count
 
     /// <summary>
     /// How many sources this memo read on its last run. Exposed for the same
     /// reason: a dependency list that grows by one entry per run changes
     /// nothing the graph computes, so only a count can catch it.
     /// </summary>
-    member _.SourceCount = sources.Count
+    member internal _.SourceCount = sources.Count
 
 /// <summary>
 /// A side effect that re-runs when its dependencies change.
@@ -2647,8 +2657,8 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     /// An effect running <c>body</c>, owned by the current owner and queued for
     /// its first run.
     /// </summary>
-    new(graph: Graph, body: unit -> unit) as this =
-        new Effect (graph, body, ())
+    new(graph: Graph, body: Action) as this =
+        new Effect (graph, body.Invoke, ())
         then this.Start ()
 #endif
 
@@ -3307,7 +3317,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
         | KeepLatest -> ()
 
     let publish (gen: int) (outcome: Platform.FlightOutcome<'T>) =
-        graph.Dispatch (fun () -> applyResult gen outcome)
+        graph.Post (fun () -> applyResult gen outcome)
 
     /// <summary>
     /// Publishes a result chained under <c>Queue</c>. The returned task completes once the
@@ -3322,16 +3332,16 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// <summary>
     /// A pure async memo over <c>compute</c>.
     /// </summary>
-    new(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>) as this =
-        new AsyncMemo<'T> (graph, compute, ScopeMode.PureAsync)
+    new(graph: Graph, compute: Func<Previous<'T>, CancellationToken, Task<'T>>) as this =
+        new AsyncMemo<'T> (graph, (fun previous token -> compute.Invoke (previous, token)), ScopeMode.PureAsync)
         then this.Attach ()
 
     /// <summary>
     /// An owning async memo over <c>compute</c> when <c>owning</c> is true, a pure one
     /// otherwise.
     /// </summary>
-    new(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, owning: bool) as this =
-        new AsyncMemo<'T> (graph, compute, (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
+    new(graph: Graph, compute: Func<Previous<'T>, CancellationToken, Task<'T>>, owning: bool) as this =
+        new AsyncMemo<'T> (graph, (fun previous token -> compute.Invoke (previous, token)), (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
         then this.Attach ()
 #endif
 
@@ -3763,7 +3773,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// <summary>
     /// A boundary over <c>body</c>, owned by the current owner.
     /// </summary>
-    static member private Create(graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
+    static member internal Create(graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
         let boundary = Boundary<'T>(graph, body, onPending, onError)
         boundary.Attach ()
         boundary
@@ -3991,22 +4001,22 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// slow success, and conflating them is how a permanent error becomes a
     /// spinner that never stops.
     /// </summary>
-    static member Suspense(graph: Graph, body: unit -> 'T, fallback: 'T voption -> 'T) =
-        Boundary<'T>.Create(graph, body, ValueSome fallback, ValueNone)
+    static member Suspense(graph: Graph, body: Func<'T>, fallback: Func<'T voption, 'T>) =
+        Boundary<'T>.Create(graph, body.Invoke, ValueSome fallback.Invoke, ValueNone)
 
     /// <summary>
     /// Catches the error channel. Pending still propagates, so a boundary that
     /// reports failures does not also swallow the fact that something is in
     /// flight.
     /// </summary>
-    static member Errors(graph: Graph, body: unit -> 'T, recover: exn -> 'T voption -> 'T) =
-        Boundary<'T>.Create(graph, body, ValueNone, ValueSome recover)
+    static member Errors(graph: Graph, body: Func<'T>, recover: Func<exn, 'T voption, 'T>) =
+        Boundary<'T>.Create(graph, body.Invoke, ValueNone, ValueSome (fun ex previous -> recover.Invoke (ex, previous)))
 
     /// <summary>
     /// Catches both.
     /// </summary>
-    static member Catching(graph: Graph, body: unit -> 'T, fallback: 'T voption -> 'T, recover: exn -> 'T voption -> 'T) =
-        Boundary<'T>.Create(graph, body, ValueSome fallback, ValueSome recover)
+    static member Catching(graph: Graph, body: Func<'T>, fallback: Func<'T voption, 'T>, recover: Func<exn, 'T voption, 'T>) =
+        Boundary<'T>.Create(graph, body.Invoke, ValueSome fallback.Invoke, ValueSome (fun ex previous -> recover.Invoke (ex, previous)))
 
     interface IOwned with
         member this.Release() =

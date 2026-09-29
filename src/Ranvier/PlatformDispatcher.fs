@@ -24,5 +24,5 @@ type SynchronizationContextDispatcher(context: SynchronizationContext) =
 
     interface IGraphDispatcher with
         member _.Post drain =
-            context.Post ((fun _ -> drain ()), null)
+            context.Post ((fun _ -> drain.Invoke ()), null)
 #endif

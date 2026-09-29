@@ -533,7 +533,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>Writes each summary cell that moved.</summary>
     member private this.PublishSummary() =
         if anyMoved || versionMoved then
-            graph.Batch (fun () ->
+            graph.RunBatch (fun () ->
                 this.PublishAny Unchecked.defaultof<IComputation>
                 this.PublishVersion Unchecked.defaultof<IComputation>)
 
@@ -597,7 +597,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 beaconsStale <- true
 
             if not disposed then
-                graph.RunUntracked (fun () -> graph.Batch this.ApplyDiff)
+                graph.RunUntracked (fun () -> graph.RunBatch this.ApplyDiff)
 
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
@@ -1043,6 +1043,20 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         else
             Some (this.ReadRow entry)
 
+#if !FABLE_COMPILER
+    /// <summary>
+    /// <c>TryGet</c> in the <c>TryGetValue</c> shape: true with the value when <c>TryGet</c> returns one.
+    /// </summary>
+    member this.TryGetValue(key: 'K, [<System.Runtime.InteropServices.Out>] value: byref<'V>) : bool =
+        match this.TryGet key with
+        | Some found ->
+            value <- found
+            true
+        | None ->
+            value <- Unchecked.defaultof<'V>
+            false
+#endif
+
     /// <summary>
     /// Brings the projection and its pending rows current, then reads <c>summary</c> tracked. <c>publish</c> writes
     /// <c>summary</c>, leaving the reader unmarked.
@@ -1133,14 +1147,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let reader = graph.CurrentComputation
 
         try
-            graph.Untrack (fun () -> this.PullFor reader)
+            graph.RunUntracked (fun () -> this.PullFor reader)
         with ex ->
             // See `Keys`. Only the suspension edges are tracked.
             graph.Track (beacon :> ISource)
             linkAwaited ex
             reraise ()
 
-        graph.Untrack (fun () ->
+        graph.RunUntracked (fun () ->
             let copy = RowSnapshot<'K, 'V>(entries.Count)
             Tracer.Walk (graph, id)
 
@@ -1251,7 +1265,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 graph.Retire passScope
 
             if keys.Peek.Length > 0 then
-                graph.Batch (fun () -> keys.Value <- Array.empty)
+                graph.RunBatch (fun () -> keys.Value <- Array.empty)
 
     interface IDisposable with
         member this.Dispose() =
@@ -1792,6 +1806,20 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         finally
             graph.ExitPull ()
 
+#if !FABLE_COMPILER
+    /// <summary>
+    /// <c>TryGet</c> in the <c>TryGetValue</c> shape: true with the value when <c>TryGet</c> returns one.
+    /// </summary>
+    member this.TryGetValue(key: 'K, [<System.Runtime.InteropServices.Out>] value: byref<'V>) : bool =
+        match this.TryGet key with
+        | Some found ->
+            value <- found
+            true
+        | None ->
+            value <- Unchecked.defaultof<'V>
+            false
+#endif
+
     /// <summary>
     /// The number of live cells, read untracked.
     /// </summary>
@@ -1893,7 +1921,7 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
             let mutable pending = false
 
             try
-                next <- graph.Untrack (fun () -> state.Value)
+                next <- graph.RunUntracked (fun () -> state.Value)
             with
             | NotReadyException _ -> pending <- true
             | ex -> failure <- ex

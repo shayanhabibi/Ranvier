@@ -72,7 +72,7 @@ let tests =
                             (fun () ->
                                 s.Value |> ignore
                                 failwith "original"),
-                            fun _ -> raise (InvalidOperationException "rethrown")
+                            fun _ _ -> raise (InvalidOperationException "rethrown")
                         )
 
                 match boundary.TryValue with

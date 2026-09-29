@@ -91,7 +91,7 @@ exception NotReadyException of source: INode
 /// queued. Under <c>Unchecked</c>, a dispatcher that drains off-thread, such as <c>ImmediateDispatcher</c>, runs graph code there.
 /// </remarks>
 type IGraphDispatcher =
-    abstract Post: (unit -> unit) -> unit
+    abstract Post: drain: Action -> unit
 
 /// <summary>
 /// Drains the inbox on the thread that posted to it.
@@ -105,7 +105,8 @@ type IGraphDispatcher =
 /// </remarks>
 type ImmediateDispatcher() =
     interface IGraphDispatcher with
-        member _.Post drain = drain ()
+        member _.Post drain =
+            drain.Invoke ()
 
 /// <summary>
 /// Does nothing. The inbox fills, and is drained when the owning thread calls
@@ -270,6 +271,24 @@ type GraphOptions =
             Dispatcher = None
         }
 
+    /// <summary>These options, with <c>equality</c> deciding when a value has moved.</summary>
+    member this.WithEquality(equality: IEqualityPolicy) =
+        { this with Equality = equality }
+
+    /// <summary>These options, with <c>policy</c> deciding what a newer flight does to an older one.</summary>
+    member this.WithFlightPolicy(policy: FlightPolicy) =
+        { this with FlightPolicy = policy }
+
+    /// <summary>These options, with <c>affinity</c> deciding how a call off the graph's thread is treated.</summary>
+    member this.WithThreadAffinity(affinity: ThreadAffinity) =
+        { this with ThreadAffinity = affinity }
+
+    /// <summary>These options, with <c>dispatcher</c> draining the graph's inbox.</summary>
+    member this.WithDispatcher(dispatcher: IGraphDispatcher) =
+        { this with
+            Dispatcher = Some dispatcher
+        }
+
 /// <summary>
 /// Engine's internal read path and user's opt-in escape hatch.
 /// </summary>
@@ -280,9 +299,31 @@ type Reading<'T> =
     /// <summary>The node failed. <c>error</c> is a non-null exception on both targets.</summary>
     | Failed of error: exn
 
-#if FABLE_COMPILER
-// Fable drops the public Memo and AsyncMemo constructors; the Fable test run builds them through `Create`.
-module internal FableTestAccess =
-    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Tests.Fable")>]
-    do ()
+#if !FABLE_COMPILER
+    /// <summary>True with the value when the reading is <c>Ready</c>.</summary>
+    member this.TryGetValue([<System.Runtime.InteropServices.Out>] value: byref<'T>) : bool =
+        match this with
+        | Ready ready ->
+            value <- ready
+            true
+        | _ ->
+            value <- Unchecked.defaultof<'T>
+            false
+
+    /// <summary>True with the error when the reading is <c>Failed</c>.</summary>
+    member this.TryGetError([<System.Runtime.InteropServices.Out>] error: byref<exn>) : bool =
+        match this with
+        | Failed failed ->
+            error <- failed
+            true
+        | _ ->
+            error <- null
+            false
 #endif
+
+module internal TestAccess =
+    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Tests")>]
+    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Tests.Fable")>]
+    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Benchmarks")>]
+    [<assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Ranvier.Counters")>]
+    do ()

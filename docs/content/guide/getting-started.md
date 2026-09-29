@@ -135,7 +135,7 @@ printfn "inner active: %b, outer restored: %b, visible on another thread: %b" in
 inner active: true, outer restored: true, visible on another thread: false
 ```
 
-`Graph.Run` is an F# extension member. From C#, write `using (graph.Activate()) { ... }`.
+`Graph.Run` is an F# extension member. From C#, `Ranvier.CSharp` provides it as an extension method; see [C#](csharp.md).
 
 ## Signals
 
