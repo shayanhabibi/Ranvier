@@ -180,7 +180,7 @@ graph:
   builds on one target and not on the other.
 - **Threads.** JavaScript has one thread and ignores the dispatcher machinery.
 
-The Fable target is planned; see [Fable (JavaScript) target](../fable/index.md). On the browser, Solid's own signals (through Partas.Solid) are the natural choice for
+The Fable target is implemented; see [Fable (JavaScript) target](../fable/index.md). On the browser, Solid's own signals (through Partas.Solid) are the natural choice for
 rendering. A second graph is useful mainly for models that are shared with a .NET server. See
 [Ecosystem](ecosystem.md).
 

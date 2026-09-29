@@ -338,7 +338,7 @@ let site =
     )
     |> OgImage.registerWith ogImages
     |> AgentFriendly.registerWith (
-        AgentFriendly.summary "Fine-grained reactive computation for .NET, with a Fable target planned"
+        AgentFriendly.summary "Fine-grained reactive computation for .NET, with a Fable target"
         >> AgentFriendly.details "Start with the guide. Concepts explains the engine's model; Benchmarks holds measured results."
     )
     |> LightningCss.register
