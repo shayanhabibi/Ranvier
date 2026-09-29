@@ -317,6 +317,50 @@ module internal Platform =
 #endif
 
     /// <summary>
+    /// A stored failure, as accepted by <c>rethrowStored</c>: an <c>ExceptionDispatchInfo</c> on .NET, the exception
+    /// itself under Fable.
+    /// </summary>
+#if FABLE_COMPILER
+    type CapturedFailure = exn
+#else
+    type CapturedFailure = System.Runtime.ExceptionServices.ExceptionDispatchInfo
+#endif
+
+    /// <summary>
+    /// The capture of <c>error</c>: <c>held</c> when <c>held</c> already captures the same instance, otherwise a
+    /// new capture of <c>error</c> with its current stack trace.
+    /// </summary>
+    /// <remarks>
+    /// A rethrow of a capture will carry the captured frames followed by the rethrowing reader's frames only,
+    /// however many reads preceded it.
+    /// </remarks>
+    let captureFailure (held: CapturedFailure) (error: exn) : CapturedFailure =
+#if FABLE_COMPILER
+        ignore held
+        error
+#else
+        if
+            not (isNull held)
+            && obj.ReferenceEquals (held.SourceException, error)
+        then
+            held
+        else
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture error
+#endif
+
+    /// <summary>
+    /// Raises the captured exception instance. On .NET its <c>StackTrace</c> keeps the frames of the original
+    /// throw site, followed by the frames of this rethrow.
+    /// </summary>
+    let inline rethrowStored (captured: CapturedFailure) : 'T =
+#if FABLE_COMPILER
+        raise captured
+#else
+        captured.Throw ()
+        Unchecked.defaultof<'T>
+#endif
+
+    /// <summary>
     /// Work handed to the graph from another thread, waiting for the graph's
     /// own thread to come and run it.
     /// </summary>
