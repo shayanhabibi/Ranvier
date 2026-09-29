@@ -10,18 +10,18 @@ Preview — Ranvier is pre-release; its APIs may change.
 Ranvier targets `net10.0`, `net8.0` and `netstandard2.1`. The `netstandard2.1` build serves runtimes
 such as Unity and Mono.
 
-## From NuGet (once published)
+## From NuGet
 
-Ranvier will ship as the `Ranvier` NuGet package. It has not been published yet. Once it is:
+Ranvier ships as the `Ranvier` NuGet package. Its versions are previews, so pass `--prerelease`:
 
 ```bash
-dotnet add package Ranvier
+dotnet add package Ranvier --prerelease
 ```
 
 or, with central package management:
 
 ```xml
-<PackageReference Include="Ranvier" />
+<PackageReference Include="Ranvier" Version="0.1.0-preview.1" />
 ```
 
 Then open the namespace:
@@ -33,10 +33,10 @@ open Ranvier
 `open Ranvier` brings the `Api` module (`createSignal`, `createMemo`, `createEffect`, ...) and the
 `GraphExtensions` module (`Graph.Run`) into scope. Both are `AutoOpen`.
 
-## From source (today)
+## From source
 
-Until the first release, build from source and reference the library project directly. You need the
-.NET 10 SDK.
+To build against unreleased changes, build from source and reference the library project directly. You
+need the .NET 10 SDK.
 
 ```bash
 git clone https://github.com/shayanhabibi/Ranvier

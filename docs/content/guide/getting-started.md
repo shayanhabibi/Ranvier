@@ -15,11 +15,11 @@ The sections follow the order in which the concepts build on each other.
 
 ## Install
 
-Ranvier is not on NuGet yet; [Installation](installation.md) covers building it from source. Once
-published, reference the package from a project that targets `net8.0` or later, or `netstandard2.1`:
+Reference the `Ranvier` package from a project that targets `net8.0` or later, or `netstandard2.1`.
+Its versions are previews; [Installation](installation.md) covers building from source as well.
 
-```xml
-<PackageReference Include="Ranvier" />
+```bash
+dotnet add package Ranvier --prerelease
 ```
 
 `open Ranvier` brings the `Api` module (`createSignal`, `createMemo`, `createEffect`, ...)

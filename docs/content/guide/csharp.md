@@ -14,7 +14,13 @@ operators. The nodes it returns are the engine's own `Signal<T>`, `Memo<T>`, `As
 
 ## Setup
 
-Reference `Ranvier.CSharp`; it brings `Ranvier` with it. Built from source:
+Reference `Ranvier.CSharp`; it brings `Ranvier` with it:
+
+```bash
+dotnet add package Ranvier.CSharp --prerelease
+```
+
+Or, built from source:
 
 ```xml
 <ProjectReference Include="path/to/Ranvier/src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
