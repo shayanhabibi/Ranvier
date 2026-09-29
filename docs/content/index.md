@@ -18,10 +18,10 @@ layout: splash
 <figure class="rv-demo" data-rv-demo aria-label="A boundary moving through its states as its source settles, fails and settles again">
 <div class="rv-demo__code">
 <div class="rv-demo__tabs" role="tablist" aria-label="Language">
-<button type="button" role="tab" id="rv-demo-tab-fsharp" aria-controls="rv-demo-fsharp" aria-selected="true" data-lang="fsharp">F#</button>
-<button type="button" role="tab" id="rv-demo-tab-csharp" aria-controls="rv-demo-csharp" aria-selected="false" tabindex="-1" data-lang="csharp">C#</button>
+<button type="button" role="tab" id="rv-demo-tab-csharp" aria-controls="rv-demo-csharp" aria-selected="true" data-lang="csharp">C#</button>
+<button type="button" role="tab" id="rv-demo-tab-fsharp" aria-controls="rv-demo-fsharp" aria-selected="false" tabindex="-1" data-lang="fsharp">F#</button>
 </div>
-<pre id="rv-demo-fsharp" role="tabpanel" aria-labelledby="rv-demo-tab-fsharp" data-lang="fsharp"><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
+<pre id="rv-demo-fsharp" role="tabpanel" aria-labelledby="rv-demo-tab-fsharp" data-lang="fsharp" hidden><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
 <span class="k">use</span> _ = graph.Activate ()
 <span></span>
 <span class="k">let</span> price = createAsyncSource&lt;<span class="t">int</span>&gt; ()
@@ -36,7 +36,7 @@ layout: splash
 <span class="rv-demo__step" data-step="1">price.Settle <span class="n">4</span></span>
 <span class="rv-demo__step" data-step="2">price.Fail (exn <span class="s">"feed offline"</span>)</span>
 <span class="rv-demo__step" data-step="3">price.Settle <span class="n">5</span></span></code></pre>
-<pre id="rv-demo-csharp" role="tabpanel" aria-labelledby="rv-demo-tab-csharp" data-lang="csharp" hidden><code><span class="k">using var</span> graph = <span class="k">new</span> Graph();
+<pre id="rv-demo-csharp" role="tabpanel" aria-labelledby="rv-demo-tab-csharp" data-lang="csharp"><code><span class="k">using var</span> graph = <span class="k">new</span> Graph();
 <span class="k">using var</span> _ = graph.Activate();
 <span></span>
 <span class="k">var</span> price = AsyncSource&lt;<span class="t">int</span>&gt;();
@@ -232,7 +232,7 @@ A dependency graph with explicit ownership, plus a second channel for values tha
   const pick = (n, focus) => {
     lang = n;
     tabs.forEach((t, i) => {
-      t.setAttribute("aria-selected", i === n);
+      t.setAttribute("aria-selected", String(i === n));
       t.tabIndex = i === n ? 0 : -1;
       if (i === n && focus) t.focus();
     });
@@ -261,6 +261,7 @@ A dependency graph with explicit ownership, plus a second channel for values tha
       if (d) pick((i + d + tabs.length) % tabs.length, true);
     });
   });
+  pick(0);
   show(0);
   start();
 })();

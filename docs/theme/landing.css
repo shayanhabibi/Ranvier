@@ -62,6 +62,10 @@ body:has(.nacara-layout--splash) { overflow-x: clip; }
   margin: 0; padding: 1.25rem 0 1rem 1.25rem; overflow-x: auto; background: none; border: 0;
   font-family: var(--nacara-font-mono); font-size: .8125rem; line-height: 1.7; color: var(--nacara-text); }
 .rv-demo__code code { font: inherit; background: none; border: 0; padding: 0; }
+/* Both panels share one grid cell, so the taller F# panel sets the height in either language. */
+.rv-demo__code { display: grid; grid-template-columns: minmax(0, 1fr); }
+.rv-demo__code pre[role="tabpanel"] { grid-area: 2 / 1; }
+.rv-demo__code pre[hidden] { display: block; visibility: hidden; }
 .rv-demo__tabs { display: flex; padding: 0 .5rem; background: var(--rv-code-title-bg); border-bottom: 1px solid var(--nacara-border); }
 .rv-demo__tabs button {
   font: inherit; font-size: .8125rem; font-weight: 500; padding: .5rem .75rem;
