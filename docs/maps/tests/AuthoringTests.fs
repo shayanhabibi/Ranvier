@@ -115,7 +115,7 @@ let tests =
                         "SignalMap (Ranvier.Docs.Maps.Live Map_cart_live.scenario) Ranvier.FlightPolicy.CancelPrevious [| (\"lines\", 2, 2); (\"subtotal\", 4, 6);"
                         "the scenario and its bindings"
 
-                    Expect.stringEnds output.Render "|] false" "no timeline"
+                    Expect.stringEnds output.Render "|] false Ranvier.Docs.Maps.Grouping.Expand" "no timeline, collections expanded"
                 | Error problems -> failtestf "rejected: %A" problems
             }
         
@@ -124,7 +124,7 @@ let tests =
                 | Ok output ->
                     Expect.stringContains output.Code "let scenario (graph': Graph) : Control list =" "the scenario module"
                     Expect.stringContains output.Render "Ranvier.Docs.Maps.Replayed Map_cart.scenario" "a replayed source"
-                    Expect.stringEnds output.Render "|] true" "with the timeline"
+                    Expect.stringContains output.Render "|] true " "with the timeline"
                 | Error problems -> failtestf "rejected: %A" problems
             }
 
@@ -148,6 +148,16 @@ let tests =
                     | other -> failtestf "%s: %A" flag other
             }
 
+            test "groups=collapse renders collapsed collections, and an unknown grouping is rejected" {
+                match MapFence.compile "cart" [ "groups=collapse" ] cart with
+                | Ok output -> Expect.stringEnds output.Render " Ranvier.Docs.Maps.Grouping.Collapse" "collapsed"
+                | Error problems -> failtestf "rejected: %A" problems
+
+                match MapFence.compile "cart" [ "groups=nest" ] cart with
+                | Error [ 0, message ] -> Expect.stringContains message "expand or collapse" "the problem names the choices"
+                | other -> failtestf "%A" other
+            }
+
             test "a fence of buttons and inputs generates" {
                 let code =
                     String.concat
@@ -165,7 +175,7 @@ let tests =
                 match MapFence.compile "inputs" [ "timeline" ] code with
                 | Ok output ->
                     Expect.stringContains output.Code "        slider \"Qty\" (1, 10) 1 [ 3 ] (fun v -> qty.Value <- v)" "the controls as written"
-                    Expect.stringContains output.Render "[| (\"qty\", 1, 1); (\"total\", 2, 2) |] true" "bindings and timeline"
+                    Expect.stringContains output.Render "[| (\"qty\", 1, 1); (\"total\", 2, 2) |] true " "bindings and timeline"
                 | Error problems -> failtestf "rejected: %A" problems
             }
         ]

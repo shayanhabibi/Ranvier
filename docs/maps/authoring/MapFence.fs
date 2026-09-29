@@ -11,9 +11,11 @@ type MapFlags =
         Replay: bool
         /// <summary>The case name of the map graph's <c>FlightPolicy</c>.</summary>
         Policy: string
+        /// <summary>The case name of the map's <c>Grouping</c>.</summary>
+        Groups: string
     }
 
-    /// <summary>The flags of a fence, or the problem with its <c>policy=</c>.</summary>
+    /// <summary>The flags of a fence, or the problem with its <c>policy=</c> or <c>groups=</c>.</summary>
     static member parse(flags: string list) : Result<MapFlags, string> =
         let replay = List.contains "replay" flags
 
@@ -25,13 +27,24 @@ type MapFlags =
             | Some "policy=queue" -> Ok "Queue"
             | Some flag -> Error $"%s{flag}: the policy is cancel-previous, keep-latest or queue."
 
-        policy
-        |> Result.map (fun policy ->
-            {
-                Timeline = replay || List.contains "timeline" flags
-                Replay = replay
-                Policy = policy
-            })
+        let groups =
+            match flags |> List.tryFind (fun f -> f.StartsWith "groups=") with
+            | None
+            | Some "groups=expand" -> Ok "Expand"
+            | Some "groups=collapse" -> Ok "Collapse"
+            | Some flag -> Error $"%s{flag}: the groups are expand or collapse."
+
+        match policy, groups with
+        | Ok policy, Ok groups ->
+            Ok
+                {
+                    Timeline = replay || List.contains "timeline" flags
+                    Replay = replay
+                    Policy = policy
+                    Groups = groups
+                }
+        | Error e, _
+        | _, Error e -> Error e
 
 /// <summary>A run of generated lines and the fence line it came from.</summary>
 /// <remarks>
@@ -234,14 +247,15 @@ module MapFence =
             copy copied (lines.Length - 1)
             Ok(String.concat "\n" output, List.ofSeq spans, List.ofSeq bindings)
 
-    let private render (source: string) (policy: string) (bindings: (string * int * int) list) (timeline: bool) =
+    let private render (source: string) (flags: MapFlags) (bindings: (string * int * int) list) =
         let bindings =
             bindings
             |> List.map (fun (name, first, last) -> $"(\"%s{name}\", %d{first}, %d{last})")
             |> String.concat "; "
 
-        let timeline = if timeline then "true" else "false"
-        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) Ranvier.FlightPolicy.%s{policy} [| %s{bindings} |] %s{timeline}"
+        let timeline = if flags.Timeline then "true" else "false"
+
+        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) Ranvier.FlightPolicy.%s{flags.Policy} [| %s{bindings} |] %s{timeline} Ranvier.Docs.Maps.Grouping.%s{flags.Groups}"
 
     /// <summary>The F# for a <c>map</c> fence: its scenario, live or replayed when <c>flags.Replay</c>.</summary>
     /// <param name="cellId">The cell's id, which names the generated module.</param>
@@ -254,7 +268,7 @@ module MapFence =
 
             {
                 Code = live
-                Render = render $"Ranvier.Docs.Maps.%s{source} %s{moduleName cellId}.scenario" flags.Policy bindings flags.Timeline
+                Render = render $"Ranvier.Docs.Maps.%s{source} %s{moduleName cellId}.scenario" flags bindings
                 Spans = spans
                 Bindings = bindings
             })

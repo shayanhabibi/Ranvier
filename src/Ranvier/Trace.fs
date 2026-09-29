@@ -745,6 +745,19 @@ type internal Tracer =
         ()
 #endif
 
+    /// <summary>Records <c>Part</c> with <c>Flag</c> 1: the owner <c>owner</c> holds the nodes of <c>host</c>'s key <c>key</c>.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member PartScope(graph: obj, owner: obj, host: int, key: obj) =
+#if RANVIER_TRACE
+        let id = (owner :?> ITraced).TraceId
+
+        if id <> 0 then
+            (graph :?> ITraced).TraceLog.Append(TraceEventKind.Part, id, host, 0, 1, 0, key)
+            |> ignore
+#else
+        ()
+#endif
+
     /// <summary>Records <c>Dispose</c> for node <c>id</c>.</summary>
     [<Conditional("RANVIER_TRACE")>]
     static member NodeDispose(graph: obj, id: int) =

@@ -138,3 +138,6 @@
   .rv-map-node__value.is-swap { animation: none; }
   .rv-map-node__shape, .nacara-code__line.rv-map-line--run { transition: none; }
 }
+.rv-map-group {
+  fill: color-mix(in oklab, var(--rv-contour) 6%, transparent);
+  stroke: var(--rv-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }

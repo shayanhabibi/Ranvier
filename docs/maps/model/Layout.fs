@@ -8,11 +8,13 @@ module Layout =
     /// <summary>The (layer, row) of each node: layers run from sources to observers, rows top to bottom.</summary>
     /// <remarks>
     /// A node's layer is the longest path from a node without sources. Rows within a layer follow the mean row of
-    /// each node's sources in earlier layers, ties broken by id. The same graph always yields the same placement.
+    /// each node's sources in earlier layers, ties broken by id. A node takes <c>span</c> rows, and the next node in its
+    /// layer starts below them. The same graph always yields the same placement.
     /// </remarks>
+    /// <param name="span">The rows each node takes.</param>
     /// <param name="nodes">The nodes to place.</param>
     /// <param name="sources">Each node's sources; sources outside <c>nodes</c> are ignored.</param>
-    let place (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> =
+    let placeSpanned (span: int -> int) (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> =
         let known = Set.ofList nodes
 
         let sourcesOf id =
@@ -57,9 +59,17 @@ module Layout =
 
             members
             |> List.sortBy (fun id -> centre id, id)
-            |> List.iteri (fun row id -> rows[id] <- row)
+            |> List.fold
+                (fun row id ->
+                    rows[id] <- row
+                    row + max 1 (span id))
+                0
+            |> ignore
 
         known
         |> Seq.map (fun id -> id, (layers[id], rows[id]))
         |> Map.ofSeq
+
+    /// <summary><c>placeSpanned</c> with one row per node.</summary>
+    let place (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> = placeSpanned (fun _ -> 1) nodes sources
 #endif

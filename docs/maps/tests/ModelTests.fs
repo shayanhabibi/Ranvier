@@ -326,7 +326,8 @@ let tests =
                 Trace.label (g, total, "total")
                 createEffect (fun () -> total.Value |> ignore)
                 lines.Value <- [ "tea"; "jam"; "egg" ]
-                let frames = MapModel.frames MapModel.start (Trace.events g)
+                let collapse = { MapModel.start with Grouping = Collapse }
+                let frames = MapModel.frames collapse (Trace.events g)
                 let scene = (Array.last frames).After
                 let rowsId = (rows :> INode).Id
                 let totalId = (total :> INode).Id
@@ -359,6 +360,76 @@ let tests =
                     "a mark inside the collection plays no pulse"
             }
 
+            test "an expanded projection draws a row per key and its factory's nodes beside the row" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let desk = Desk<int>(true)
+                let lines = createSignal [ "tea"; "jam" ]
+                Trace.label (g, lines, "lines")
+
+                let rows =
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            let quote = createAsync (fun _ _ -> desk.Quote (String.length (item ())))
+                            Trace.label (g, quote, "quote")
+                            fun () -> quote.Value)
+                        (fun () -> lines.Value :> seq<_>)
+
+                Trace.label (g, rows, "rows")
+
+                for key in [ "tea"; "jam" ] do
+                    createEffect (fun () -> rows.Get key |> ignore)
+
+                let frames = MapModel.frames MapModel.start (Trace.events g)
+                let scene = (Array.last frames).After
+                let rowsId = (rows :> INode).Id
+                let boxed = MapModel.rows scene rowsId
+
+                Expect.equal (boxed |> List.map (fst >> MapModel.caption scene)) [ "tea"; "jam" ] "one row per key, captioned by its key"
+
+                for row, members in boxed do
+                    Expect.equal (members |> List.map (MapModel.caption scene)) [ "quote" ] "the key's quote sits beside its row"
+                    Expect.contains (MapModel.edges scene) (members.Head, row) "the quote feeds its row"
+                    Expect.isTrue (MapModel.pending scene row) "the row is pending while its quote is in flight"
+
+                Expect.isTrue (MapModel.pending scene rowsId) "the collection is pending while a row is"
+                Expect.equal (MapModel.name scene (snd boxed.Head).Head) "rows[tea] quote" "a member's name carries its key"
+                Expect.contains (MapModel.edges scene) (rowsId, (snd boxed.Head).Head) "the item feeds the key's quote from the collection"
+
+                desk.Settle 3
+                let scene = (MapModel.frames MapModel.start (Trace.events g) |> Array.last).After
+                let tea, jam = fst boxed.Head, fst boxed[1]
+                Expect.isFalse (MapModel.pending scene tea) "the settled row is idle"
+                Expect.isTrue (MapModel.pending scene jam) "the other row is still pending"
+            }
+
+            test "a collapsed projection draws its factory's nodes as the collection" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let lines = createSignal [ "tea" ]
+
+                let rows =
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            let size = createMemo (fun _ -> String.length (item ()))
+                            fun () -> size.Value)
+                        (fun () -> lines.Value :> seq<_>)
+
+                createEffect (fun () -> rows.Get "tea" |> ignore)
+                let collapse = { MapModel.start with Grouping = Collapse }
+                let scene = (MapModel.frames collapse (Trace.events g) |> Array.last).After
+
+                let drawn =
+                    scene.Snapshot.Nodes.Values
+                    |> Seq.filter (MapModel.visible scene)
+                    |> Seq.length
+
+                Expect.equal drawn 3 "lines, rows and the effect"
+                Expect.isEmpty (MapModel.rows scene (rows :> INode).Id) "a collapsed collection has no rows"
+            }
+
             test "a lookup's cells are drawn as the lookup's state" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -369,7 +440,8 @@ let tests =
                 Trace.label (g, row, "row")
                 createEffect (fun () -> row.Value |> ignore)
                 selected.Value <- 2
-                let scene = (MapModel.frames MapModel.start (Trace.events g) |> Array.last).After
+                let collapse = { MapModel.start with Grouping = Collapse }
+                let scene = (MapModel.frames collapse (Trace.events g) |> Array.last).After
                 let rowId = (row :> INode).Id
 
                 let sources =
@@ -382,6 +454,11 @@ let tests =
 
                 Expect.contains (MapModel.edges scene) ((selected :> INode).Id, state) "the state reads selected"
                 Expect.equal (MapModel.name scene state) "isSelected" "the state takes the lookup's name"
+            }
+
+            test "layout starts a node below the rows its layer's earlier nodes span" {
+                let placed = Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] Map.empty
+                Expect.equal placed (Map [ 1, (0, 0); 2, (0, 3); 3, (0, 4) ]) "the box of 1 takes three rows"
             }
 
             test "layout layers a chain by longest path" {
