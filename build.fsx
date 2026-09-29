@@ -233,7 +233,7 @@ module Stage =
             quiet
             failIfIgnored
             when' apiKey.IsSome
-            run (cmd $"dotnet nuget push {Repo.VirtualFileSystem.bin.ToString()}/*.nupkg -k {apiKey.Value} -s https://api.nuget.org/v3/index.json --skip-duplicate")
+            run (cmd $"dotnet nuget push {System.IO.Path.Combine (Repo.VirtualFileSystem.bin.ToString (), "*.nupkg")} -k {apiKey.Value} -s https://api.nuget.org/v3/index.json --skip-duplicate")
         }
     }
 

@@ -16,7 +16,8 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <!-- Packed projects only: a CI build maps source paths to /_/, which breaks the docs site's __SOURCE_DIRECTORY__. -->
+    <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true' and $(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src'))">
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
