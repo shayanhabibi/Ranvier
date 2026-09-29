@@ -198,6 +198,35 @@ module Stage =
         }
     }
 
+    /// Packs each source project again as its `.Traced` package: the same assemblies built with RanvierTrace=true.
+    /// Runs after `pack`, since both builds share one output directory.
+    let packTraced = input {
+        let! projects = Options.projects
+        and! config = Options.config
+        and! skipTests = Options.skipTests
+        return stage "pack traced" {
+            quiet
+            stage "test traced" {
+                when' (not skipTests)
+                for { Name = name; Path = path } in Spec.testProjects do
+                stage $"test traced {name}" {
+                    run (cmd $"dotnet test {path} -c {config} -p:RanvierTrace=true -v q")
+                }
+            }
+            projects
+            |> function
+                | [] ->
+                    Spec.sourceProjects
+                    |> List.map _.Path
+                | projects ->
+                    projects
+            |> List.map (fun project ->
+                stage $"pack traced {project}" {
+                    run (cmd $"dotnet pack {project} -c {config} -p:RanvierTrace=true -v q -o {Repo.VirtualFileSystem.bin.ToString()}")
+                })
+        }
+    }
+
     let publish = input {
         let! apiKey = Options.apiKey
         return stage "publish" {
@@ -285,6 +314,7 @@ exit <| rootCommandOfScript {
         Stage.runTests
         Stage.fableClean
         Stage.pack
+        Stage.packTraced
         Stage.publish
     }
     command "bump" {

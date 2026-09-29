@@ -55,8 +55,9 @@ type Reactive =
         Api.createMemoWith (fun _ -> compute.Invoke ())
 
     /// <summary>An effect: <c>body</c> runs after the current flush and again when a value it read changes.</summary>
-    static member Effect(body: Action) : unit =
-        Api.createEffect body.Invoke
+    /// <remarks>The enclosing scope disposes the effect; dispose the returned handle to stop it earlier.</remarks>
+    static member Effect(body: Action) : Effect =
+        new Effect (Graph.Current, body)
 
     /// <summary>
     /// An effect split in two: <c>compute</c> tracks, and <c>act</c> runs untracked with its result.

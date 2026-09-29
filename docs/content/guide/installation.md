@@ -56,6 +56,9 @@ dotnet pack src/Ranvier -c Release -o ./local-feed
 dotnet nuget add source ./local-feed --name local
 ```
 
+`dotnet pack src/Ranvier -c Release -p:RanvierTrace=true -o ./local-feed` packs the traced build as
+`Ranvier.Traced`; see [Tracing](tracing.md#from-nuget) for switching between the two.
+
 ## Next
 
 Continue with [Getting started](getting-started.md).

@@ -9,6 +9,9 @@
         <RootNamespace>Ranvier</RootNamespace>
         <AssemblyName>Ranvier</AssemblyName>
         <PackageId>Ranvier</PackageId>
+        <!-- An explicit `-p:RanvierTrace=true` packs the traced build under its own id. The Debug
+             default is not visible here, so a default traced build keeps `Ranvier` and cannot pack. -->
+        <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Traced</PackageId>
         <Title>Ranvier</Title>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
@@ -44,14 +47,10 @@
         <None Include="../../README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
-    <!-- `RanvierTrace` defaults and its define live in Directory.Build.targets.
-         A traced assembly says so in its metadata, and never reaches a package. -->
+    <!-- `RanvierTrace` defaults, its define and the traced-pack guard live in Directory.Build.targets.
+         A traced assembly says so in its metadata. -->
     <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
         <AssemblyMetadata Include="RanvierTrace" Value="true" />
     </ItemGroup>
-
-    <Target Name="RefuseTracedPack" BeforeTargets="GenerateNuspec" Condition="'$(RanvierTrace)' == 'true'">
-        <Error Text="Ranvier is built with RanvierTrace=true, and a traced build is not packable. Pack with -c Release, or pass -p:RanvierTrace=false." />
-    </Target>
 
 </Project>

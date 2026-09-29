@@ -8,6 +8,12 @@
         <GenerateProgramFile>false</GenerateProgramFile>
     </PropertyGroup>
 
+    <!-- A traced run builds the tests as a traced consumer does: optimised Ranvier, unoptimised caller.
+         An optimised caller inlines and merges sequence points, so its creation sites drift or read `?`. -->
+    <PropertyGroup Condition="'$(RanvierTrace)' == 'true'">
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+
     <Import Project="TestFiles.props" />
 
     <ItemGroup>

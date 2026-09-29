@@ -25,6 +25,8 @@
 
 Ranvier builds a graph of signals (settable sources), memos (derived values, recomputed on read once something they read has changed) and effects (side effects the scheduler runs after a change). Async sources carry an explicit Pending state, and boundaries decide where a pending or failed read stops.
 
+From F#, through `Ranvier`:
+
 ```fsharp
 open Ranvier
 
@@ -35,6 +37,24 @@ graph.Run (fun () ->
     let doubled = createMemo (fun _ -> count.Value * 2)
     createEffect (fun () -> printfn "doubled = %d" doubled.Value)
     count.Value <- 5)
+```
+
+From C#, through `Ranvier.CSharp`:
+
+```csharp
+using Ranvier;
+using Ranvier.CSharp;
+using static Ranvier.CSharp.Reactive;
+
+using var graph = new Graph();
+
+graph.Run(() =>
+{
+    var count = Signal(1);
+    var doubled = Memo(() => count.Value * 2);
+    Effect(() => Console.WriteLine($"doubled = {doubled.Value}"));
+    count.Value = 5;
+});
 ```
 
 Read the full documentation at **https://shayanhabibi.github.io/Ranvier/**.
@@ -55,7 +75,7 @@ dotnet fsi build.fsx -- --help
 | Command | What it does |
 |---------|--------------|
 | `build` | Restores and builds the source projects |
-| `test` | Cleans, then runs the Expecto suite (`--skip-tests` to skip it) |
+| `test` | Cleans, then runs the F# (Expecto) and C# (xUnit) suites (`--skip-tests` to skip them) |
 | `format` | Formats every source file with Fantomas (`--dry-format` checks instead) |
 | `compile` | Compiles the Fable projects to JavaScript (`--watch` to stay resident) |
 | `publish` | Builds, tests, packs and pushes to NuGet (`--api-key`, or the `NUGET_API_KEY` env var) |
@@ -70,8 +90,10 @@ Global flags: `--quick` skips restores and cleaning,
 
 ```
 build.fsx                      the build CLI
-src/Ranvier/           the library
-tests/Ranvier.Tests/   the Expecto suite
+src/Ranvier/                   the library
+src/Ranvier.CSharp/            the C# façade
+tests/Ranvier.Tests/           the Expecto suite
+tests/Ranvier.CSharp.Tests/    the xUnit suite, written in C#
 docs/docs.fsproj               the Nacara site (net10.0)
 docs/content/                  the pages
 ```

@@ -23,16 +23,18 @@ module internal TraceSite =
     let private excluded (name: string) =
         isNull name
         || name = "Ranvier"
+        || name = "Ranvier.CSharp"
         || name = "FSharp.Core"
         || name = "System"
         || name.StartsWith "System."
 
     let private inLibrarySource (file: string) =
-        file.Replace(Path.DirectorySeparatorChar, '/').Contains "/src/Ranvier/"
+        let file = file.Replace (Path.DirectorySeparatorChar, '/')
+        file.Contains "/src/Ranvier/" || file.Contains "/src/Ranvier.CSharp/"
 
     /// <summary>
-    /// The <c>file:line</c> of the innermost frame with file info outside Ranvier, FSharp.Core and
-    /// <c>System.*</c> and outside <c>src/Ranvier</c>. An FSI submission frame gives the script's
+    /// The <c>file:line</c> of the innermost frame with file info outside Ranvier, Ranvier.CSharp, FSharp.Core and
+    /// <c>System.*</c> and outside <c>src/Ranvier</c> and <c>src/Ranvier.CSharp</c>. An FSI submission frame gives the script's
     /// <c>file:line</c>, or <c>stdin:line</c>, with line 0 when the submission carries no line info. <c>"?"</c> when
     /// no frame qualifies or the capture fails.
     /// </summary>
