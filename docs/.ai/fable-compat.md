@@ -27,7 +27,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Equality.fs | 6 | 5 | 5 | 6 | 5 | 5 | 8 | 0 |
 | Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
-| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 14 | 0 |
+| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 681 | 663 | 625 | 755 | 733 | 692 | 59 | 1 |
+| **Total** | 681 | 663 | 625 | 755 | 733 | 692 | 64 | 1 |
 
 ## Tests.fs
 
@@ -311,6 +311,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a write from another thread raises even under the graph's synchronisation context | JavaScript has one thread. |
 | an ImmediateDispatcher under Guarded raises on an off-thread settle and keeps the work queued | JavaScript has one thread. |
 | during a flush an off-thread write raises, and Dispatch and Settle return without waiting | JavaScript has one thread. |
+| an off-thread read of a stale memo raises and leaves it stale | JavaScript has one thread. |
+| every off-thread entry point raises on a guarded graph | JavaScript has one thread. |
+| Unchecked affinity lets an off-thread stale read through | JavaScript has one thread. |
+| an activation inside an async body is invisible to the starting thread while suspended | JavaScript has one thread. |
+| graphs owned by separate threads update in parallel | JavaScript has one thread. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
