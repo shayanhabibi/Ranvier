@@ -173,6 +173,47 @@ The helpers in scope:
 A fence compiles with Fable, so its code must compile to JavaScript. A fence that does not end with
 `controls` is reported at its last line.
 
+## Collections
+
+A projection is drawn as one node, between its source and the nodes that read its rows. Its keys, rows and item
+sources run inside that node: the log names a row by its key, as `rows[tea] = 4`, and the item it reads as
+`rows[tea] item`. Move **Tea**, then add an egg: one row runs for the quantity, and a new row joins for the egg.
+
+```fsharp map timeline
+let lines = createSignal [ "tea", 1; "jam", 2 ]
+let rows = createProjection fst (fun (_, qty) -> 4 * qty) (fun () -> lines.Value)
+let total = createMemo (fun _ -> rows.Keys |> Array.sumBy rows.Get)
+createEffect (fun () -> printfn $"total {total.Value}")
+
+controls [
+    slider "Tea" (1, 5) 1 [ 3 ] (fun qty ->
+        lines.Value <- lines.Value |> List.map (fun (sku, q) -> sku, (if sku = "tea" then qty else q)))
+    toggle "Egg" false [ true ] (fun on ->
+        lines.Value <-
+            if on then lines.Value @ [ "egg", 1 ]
+            else lines.Value |> List.filter (fun (sku, _) -> sku <> "egg"))
+]
+```
+
+A lookup is drawn as the memo of its state, and its cells run inside that node. Moving the selection marks only
+the readers of the two keys whose answer changed; the third reader stays quiet.
+
+```fsharp map timeline
+let selected = createSignal 1
+let isSelected = createSelector (fun () -> selected.Value)
+let first = createMemo (fun _ -> isSelected.Get 1)
+let second = createMemo (fun _ -> isSelected.Get 2)
+let third = createMemo (fun _ -> isSelected.Get 3)
+createEffect (fun () -> printfn $"{first.Value} {second.Value} {third.Value}")
+
+controls [
+    slider "Selected" (1, 3) 1 [ 2; 3 ] (fun v -> selected.Value <- v)
+]
+```
+
+A lookup has no node of its own for `Trace.label` to name, so a `map` fence names a one-line `createLookup` or
+`createSelector` binding with `Trace.named`. Write a lookup on one line to see its name on the map.
+
 ## A bespoke map
 
 `SignalMap` is an ordinary component. A `solid` fence can call it with any scenario: here the names

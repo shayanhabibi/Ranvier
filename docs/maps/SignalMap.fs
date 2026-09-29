@@ -207,7 +207,7 @@ module SignalMapComponent =
                 unlight node
 
         let light (node: int) =
-            let name = MapModel.name shown.Snapshot node
+            let name = MapModel.name shown node
 
             match
                 bindings
@@ -288,9 +288,9 @@ module SignalMapComponent =
                     with
                     | Some TraceNodeKind.Signal
                     | Some TraceNodeKind.AsyncSource ->
-                        MapModel.name shown.Snapshot id
+                        MapModel.name shown id
                         + " is a source: it changes when written or settled, and never runs."
-                    | _ -> MapModel.name shown.Snapshot id + " has not run."
+                    | _ -> MapModel.name shown id + " has not run."
 
         let viewOf (n: TraceSnapshotNode) =
             let shape = Look.shapeOf n.Kind
@@ -390,13 +390,13 @@ module SignalMapComponent =
             let live =
                 snapshot.Nodes.Values
                 |> Seq.filter (fun n ->
-                    MapModel.visible n
+                    MapModel.visible scene n
                     && n.Status <> TraceNodeStatus.Disposed)
                 |> Seq.map _.Id
                 |> Set.ofSeq
 
             let links =
-                MapModel.edges snapshot
+                MapModel.edges scene
                 |> List.filter (fun (s, o) -> live.Contains s && live.Contains o)
 
             for id in List.ofSeq nodes.Keys do
@@ -446,7 +446,7 @@ module SignalMapComponent =
 
             for KeyValue (id, view) in nodes do
                 let n = snapshot.Nodes[id]
-                view.Name.textContent <- MapModel.name snapshot id
+                view.Name.textContent <- MapModel.name scene id
 
                 view.Value.textContent <-
                     n.Value

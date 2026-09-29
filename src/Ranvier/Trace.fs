@@ -735,6 +735,16 @@ type internal Tracer =
         ()
 #endif
 
+    /// <summary>Records <c>Part</c>: node <c>id</c> belongs to the collection node <c>host</c>, under <c>key</c>.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member Part(graph: obj, id: int, host: int, key: obj) =
+#if RANVIER_TRACE
+        (graph :?> ITraced).TraceLog.Append(TraceEventKind.Part, id, host, 0, 0, 0, key)
+        |> ignore
+#else
+        ()
+#endif
+
     /// <summary>Records <c>Dispose</c> for node <c>id</c>.</summary>
     [<Conditional("RANVIER_TRACE")>]
     static member NodeDispose(graph: obj, id: int) =

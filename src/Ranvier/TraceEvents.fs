@@ -23,6 +23,11 @@ type TraceEventKind =
     /// thunk created neither. <c>Arg</c>: 1 from <c>Trace.label</c>, else 0. <c>Payload</c>: the label.
     /// </summary>
     | Label = 6
+    /// <summary>
+    /// A node joined a collection as one of its parts. <c>Other</c>: the collection's node id. <c>Payload</c>: the
+    /// part's key, or null for a part shared by every key.
+    /// </summary>
+    | Part = 7
     /// <summary>A signal was written. <c>Other</c>: the running computation, or 0. <c>Flag</c>: 1 when the value moved.</summary>
     | Write = 10
     /// <summary>A reader was marked. <c>Other</c>: the source. <c>Arg</c>: 1 check, 2 dirty.</summary>
@@ -132,6 +137,7 @@ module internal TraceNames =
         | TraceEventKind.Dispose -> "Dispose"
         | TraceEventKind.OwnerDispose -> "OwnerDispose"
         | TraceEventKind.Label -> "Label"
+        | TraceEventKind.Part -> "Part"
         | TraceEventKind.Write -> "Write"
         | TraceEventKind.Mark -> "Mark"
         | TraceEventKind.MarkSkip -> "MarkSkip"
