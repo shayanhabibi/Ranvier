@@ -66,87 +66,233 @@ layout: splash
 
 ## States you can name
 
-Every reader observes one of six states. The docs, the marks and the API use the same names.
+Every reader observes one of six states. The docs, the marks and the API use the same names. Hover a state to hold the map in it.
 
 ```fsharp solid setup
 open Browser
 open Browser.Types
 open Partas.Solid.Svg
 
-[<Import("createTimeline", "animejs")>]
-let createTimeline (parameters: obj) : obj = jsNative
+[<Import("animate", "animejs")>]
+let animate (targets: obj) (parameters: obj) : obj = jsNative
 
 [<Import("utils", "animejs")>]
 let animeUtils: obj = jsNative
 
-/// A state's key, label, caption and the glyphs of its mark, in the order a flight moves through them.
-let stateFlow =
+let tween (target: Element) (parameters: obj) = animate target parameters |> ignore
+
+/// A state as a signal map draws it: the values and map classes of an async source and the boundary reading it.
+type DialState =
+    {
+        Source: string
+        SourceClass: string
+        View: string
+        ViewClass: string
+        Flight: bool
+    }
+
+/// The six states, in the order a flight moves through them and the state list presents them.
+let dialStates =
     [|
-        "pending", "Pending", "An async source starts a flight.", ".rv-arc__ring"
-        "fallback", "Fallback", "A boundary shows its fallback while its body waits.", ".rv-arc__ring, .rv-arc__bar"
-        "ready", "Ready", "The flight settles and readers get the value.", ".rv-arc__pulse"
-        "retained", "Retained value", "A new flight starts. Peek still returns the last value.", ".rv-arc__ring, .rv-arc__value"
-        "failed", "Failed", "The flight fails and the read raises.", ".rv-arc__x"
-        "recovered", "Recovered", "A boundary shows its recovered value.", ".rv-arc__x, .rv-arc__value"
+        { Source = ""; SourceClass = "is-pending"; View = ""; ViewClass = "is-pending"; Flight = true }
+        { Source = ""; SourceClass = "is-pending"; View = "Loading…"; ViewClass = "is-waiting"; Flight = true }
+        { Source = "4"; SourceClass = ""; View = "Total 12"; ViewClass = ""; Flight = false }
+        { Source = "4"; SourceClass = "is-pending"; View = "Total 12"; ViewClass = "is-pending"; Flight = true }
+        { Source = "error"; SourceClass = "is-failed"; View = "Total 12"; ViewClass = "is-failed"; Flight = false }
+        { Source = "error"; SourceClass = "is-failed"; View = "Unavailable"; ViewClass = ""; Flight = false }
     |]
 
-/// The state mark, turning a sixth of a revolution clockwise at each transition.
+/// A two-node signal map, an async source and the boundary reading it, beside the list of states. The map steps
+/// through the states in turn; hovering, focusing or clicking a row holds the map in that row's state.
 [<SolidComponent>]
 let StateDial () =
-    let step, setStep = createSignal 0
     let mutable root: HTMLDivElement = JS.undefined
+    let mutable step = 0
     let mutable timer = 0.0
+    let interval = 2400
+    let reduced () : bool = window?matchMedia("(prefers-reduced-motion: reduce)")?matches
+    let find (selector: string) : Element = root.querySelector selector
 
-    let entry () = stateFlow[step () % stateFlow.Length]
-    let name () = let _, name, _, _ = entry () in name
-    let note () = let _, _, note, _ = entry () in note
+    /// Sets a node's state class and value. A changed value drops into place unless instant.
+    let paint (node: Element) (state: string) (value: string) (instant: bool) =
+        for c in [| "is-pending"; "is-waiting"; "is-failed" |] do
+            node.classList.toggle (c, (c = state)) |> ignore
+
+        let label = node.querySelector ".rv-map-node__value"
+
+        if label.textContent <> value then
+            label.textContent <- value
+
+            if not instant then
+                tween label {| translateY = {| from = -6; ``to`` = 0 |}; scale = {| from = 0.7; ``to`` = 1 |}; duration = 420; ease = "outBack(2)" |}
+
+    let pulse (shape: Element) (delay: int) =
+        tween shape {| scale = 1.14; duration = 220; delay = delay; alternate = true; loop = 1; ease = "outQuad" |}
+
+    let shake (shape: Element) (delay: int) =
+        tween shape {| translateX = [| box -3; 3; -2; 2; 0 |]; duration = 400; delay = delay; ease = "inOutSine" |}
+
+    /// Carries a dot along the edge from the source to the boundary.
+    let travel (tone: string) =
+        let edge = find ".rv-map-edge"
+        let dot = find ".rv-dial__dot"
+        let length: float = edge?getTotalLength ()
+        let at = createObj [ "t" ==> 0.0 ]
+
+        let move () =
+            let p = edge?getPointAtLength (at?t * length)
+            dot.setAttribute ("cx", string p?x)
+            dot.setAttribute ("cy", string p?y)
+
+        dot.setAttribute ("class", $"rv-dial__dot is-moving {tone}")
+        move ()
+
+        animate
+            at
+            (createObj
+                [
+                    "t" ==> 1.0
+                    "duration" ==> 460
+                    "ease" ==> "inOutSine"
+                    "onUpdate" ==> move
+                    "onComplete" ==> fun () -> dot.setAttribute ("class", "rv-dial__dot")
+                ])
+        |> ignore
 
     let show (n: int) (instant: bool) =
-        let _, _, _, on = stateFlow[n % stateFlow.Length]
-        let turn = root.querySelector ".rv-arc__turn"
-        let term = root.querySelector ".rv-arc__term"
-        let incoming = root.querySelectorAll on
-        let outgoing = root.querySelectorAll $".rv-arc__g:not({on})"
-        let degrees = n * 60
-        setStep n
+        let state = dialStates[n]
+        let source = find ".rv-dial__source"
+        let view = find ".rv-dial__view"
+        let ring = find ".rv-dial__source .rv-map-node__flight"
+        let rows = root.querySelectorAll ".rv-statelist__row"
+        step <- n
+
+        for i in 0 .. rows.length - 1 do
+            (rows.item i :?> Element).classList.toggle ("is-active", (i = n)) |> ignore
+
+        paint source state.SourceClass state.Source instant
+        ring?style?stroke <- (if n = 4 then "var(--rv-error)" else "")
+
         if instant then
-            animeUtils?set (turn, {| rotate = degrees |})
-            animeUtils?set (term, {| rotate = -degrees |})
-            animeUtils?set (outgoing, {| opacity = 0 |})
-            animeUtils?set (incoming, {| opacity = 1 |})
+            paint view state.ViewClass state.View true
+            animeUtils?set (ring, {| opacity = (if state.Flight then 1 else 0); scale = 1 |})
         else
-            let timeline = createTimeline {| defaults = {| ease = "inOutQuart" |} |}
-            timeline?add (outgoing, {| opacity = 0; duration = 200 |}, 0)
-            timeline?add (turn, {| rotate = degrees; duration = 700 |}, 0)
-            timeline?add (term, {| rotate = -degrees; duration = 700 |}, 0)
-            timeline?add (incoming, {| opacity = {| from = 0; ``to`` = 1 |}; scale = {| from = 0.6; ``to`` = 1 |}; duration = 350; ease = "outBack(2)" |}, 560)
+            let sourceShape = find ".rv-dial__source .rv-map-node__shape"
+            let viewShape = find ".rv-dial__view .rv-map-node__shape"
+            // A write reaches the boundary as its dot arrives; a boundary's own change is immediate.
+            let arrives = if n = 1 || n = 5 then 0 else 460
+            window.setTimeout ((fun () -> if step = n then paint view state.ViewClass state.View false), arrives) |> ignore
+
+            if n = 4 then
+                tween ring {| opacity = {| from = 1; ``to`` = 0 |}; scale = {| from = 1; ``to`` = 1.5 |}; duration = 700; ease = "outQuad" |}
+            elif state.Flight then
+                animeUtils?set (ring, {| scale = 1 |})
+                tween ring {| opacity = 1; duration = 250 |}
+            else
+                tween ring {| opacity = 0; duration = 250 |}
+
+            match n with
+            | 0 | 3 -> travel "rv-map-dot"
+            | 2 ->
+                pulse sourceShape 0
+                travel "rv-map-dot rv-map-dot--bright"
+                pulse viewShape 460
+            | 4 ->
+                shake sourceShape 0
+                travel "rv-dial__dot--error"
+                shake viewShape 460
+            | 5 -> pulse viewShape 0
+            | _ -> ()
+
+    /// Resumes the cycle. While it runs, the active row's bar fills over the time to the next state.
+    let play () =
+        window.clearInterval timer
+
+        if not (reduced ()) then
+            (find ".rv-statelist").classList.add "is-cycling"
+            timer <- window.setInterval ((fun () -> show ((step + 1) % dialStates.Length) false), interval)
+
+    /// Holds the map in the state of the row containing the target.
+    let hold (target: obj) =
+        let row: Element = target?closest (".rv-statelist__row")
+
+        if not (isNull row) then
+            let rows = root.querySelectorAll ".rv-statelist__row"
+            window.clearInterval timer
+            (find ".rv-statelist").classList.remove "is-cycling"
+
+            for i in 0 .. rows.length - 1 do
+                if obj.ReferenceEquals (rows.item i, row) && i <> step then
+                    show i (reduced ())
+
+    /// Resumes the cycle when the pointer or focus moves to a target outside the list.
+    let release (next: Node) =
+        let list = find ".rv-statelist"
+
+        if isNull next || not (list.contains next) then
+            play ()
 
     onSettled (fun () ->
-        root.setAttribute ("aria-hidden", "true")
-        if window?matchMedia("(prefers-reduced-motion: reduce)")?matches then
+        (find ".rv-dial__map").setAttribute ("aria-hidden", "true")
+        root?style?setProperty ("--rv-dial-step", $"{interval}ms")
+
+        if reduced () then
             show 2 true
         else
+            tween (find ".rv-dial__source .rv-map-node__flight") {| rotate = 360; duration = interval; loop = true; ease = "linear" |}
             show 0 true
-            timer <- window.setInterval ((fun () -> show (step () + 1) false), 2400))
+            play ())
 
     onCleanup (fun () -> window.clearInterval timer)
 
     div(class' = "rv-dial").ref (root) {
-        svg (class' = "rv-arc", viewBox = "0 0 96 96") {
-            g (class' = "rv-arc__turn") {
-                path (class' = "rv-arc__frame", d = "M35 18A31 31 0 1 1 24 71")
-                g (class' = "rv-arc__term") {
-                    circle (class' = "rv-arc__g rv-arc__pulse", cx = 16.0, cy = 45.0, r = 7.0)
-                    circle (class' = "rv-arc__g rv-arc__ring", cx = 16.0, cy = 45.0, r = 8.0)
-                    path (class' = "rv-arc__g rv-arc__x", d = "m10 39 12 12m0-12L10 51")
-                }
+        svg (class' = "rv-dial__map", viewBox = "0 0 200 92") {
+            path (class' = "rv-map-edge", d = "M62 48L136 48")
+            g (class' = "rv-map-node rv-map-node--async rv-dial__source") {
+                circle (class' = "rv-map-node__flight", cx = 40.0, cy = 48.0, r = 25.0)
+                circle (class' = "rv-map-node__shape", cx = 40.0, cy = 48.0, r = 17.0)
+                text (class' = "rv-map-node__name", x = 40.0, y = 88.0) { "price" }
+                text (class' = "rv-map-node__value", x = 40.0, y = 16.0)
             }
-            circle (class' = "rv-arc__g rv-arc__value", cx = 48.0, cy = 48.0, r = 5.0)
-            rect (class' = "rv-arc__g rv-arc__bar", x = 41.0, y = 45.0, width = 14.0, height = 6.0, rx = 3.0)
+            g (class' = "rv-map-node rv-map-node--memo rv-dial__view") {
+                rect (class' = "rv-map-node__shape", x = 137.0, y = 33.0, width = 46.0, height = 30.0, rx = 9.0)
+                text (class' = "rv-map-node__name", x = 160.0, y = 88.0) { "view" }
+                text (class' = "rv-map-node__value", x = 160.0, y = 22.0)
+            }
+            circle (class' = "rv-dial__dot", cx = 62.0, cy = 48.0, r = 4.5)
         }
-        div (class' = "rv-dial__label") {
-            strong () { name () }
-            span () { note () }
+        div (
+            class' = "rv-statelist",
+            onMouseOver = (fun e -> hold e?target),
+            onFocusIn = (fun e -> hold e?target),
+            onClick = (fun e -> hold e?target),
+            onMouseLeave = (fun e -> release e?relatedTarget),
+            onFocusOut = (fun e -> release e?relatedTarget)
+        ) {
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Pending" }
+                p (innerHTML = "No usable value yet. <code>TryValue</code> returns <code>Pending</code>, and the pending flag propagates to readers.")
+            }
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Fallback" }
+                p (innerHTML = "A boundary shows its fallback while its body is pending. <code>IsWaiting</code> is true.")
+            }
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Ready" }
+                p (innerHTML = "A settled value. <code>TryValue</code> returns <code>Ready</code>.")
+            }
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Retained value" }
+                p (innerHTML = "Pending, but <code>Peek</code> still returns the last settled value.")
+            }
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Failed" }
+                p (innerHTML = "A read raised. <code>TryValue</code> returns <code>Failed</code>.")
+            }
+            div (class' = "rv-statelist__row", tabindex = 0) {
+                strong () { "Recovered" }
+                p (innerHTML = "A boundary shows <code>recover ex</code>. <code>Caught</code> holds the error until a re-run succeeds.")
+            }
         }
     }
 ```
@@ -154,15 +300,6 @@ let StateDial () =
 ```fsharp solid show=inline
 StateDial ()
 ```
-
-<div class="rv-statelist">
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--ready"></span><strong>Ready</strong><p>A settled value. <code>TryValue</code> returns <code>Ready</code>.</p></div>
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--pending"></span><strong>Pending</strong><p>No usable value yet. <code>TryValue</code> returns <code>Pending</code>, and the pending flag propagates to readers.</p></div>
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--retained"></span><strong>Retained value</strong><p>Pending, but <code>Peek</code> still returns the last settled value.</p></div>
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--fallback"></span><strong>Fallback</strong><p>A boundary shows its fallback while its body is pending. <code>IsWaiting</code> is true.</p></div>
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--failed"></span><strong>Failed</strong><p>A read raised. <code>TryValue</code> returns <code>Failed</code>.</p></div>
-<div class="rv-statelist__row"><span class="rv-statelist__mark rv-state rv-state--plain rv-state--recovered"></span><strong>Recovered</strong><p>A boundary shows <code>recover ex</code>. <code>Caught</code> holds the error until a re-run succeeds.</p></div>
-</div>
 
 ## Watch the graph think
 
