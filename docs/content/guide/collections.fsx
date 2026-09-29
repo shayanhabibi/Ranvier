@@ -293,11 +293,16 @@ List.ofSeq view
 ["Write the guide"; "Review it twice"; "Celebrate"]
 ```
 
-<div class="alert alert-warning">
+The collection raises the fewest item events that turn its old contents into the new ones, so a bound
+list control keeps its unchanged items:
 
-**Every change resets the collection.** Each change raises one `Reset`, followed by one `Add` per value.
-A bound list control rebuilds its items on every change.
-</div>
+- The first population raises one `Reset`, followed by one `Add` per value.
+- A departed row raises `Remove`, and a new row raises `Add` at its position in key order.
+- A reorder raises `Move` only for the rows outside the longest run that kept its order. Swapping two
+  neighbours raises one `Move`.
+- A row whose value changed, under the graph's equality policy, raises one `Replace`.
+
+Each change costs O(N log N): the effect compares every row against a copy of the previous contents.
 
 The updates stop when the calling scope is disposed or re-runs, or when the projection is disposed.
 

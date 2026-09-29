@@ -45,6 +45,7 @@
         <Compile Include="Types.fs" />
         <Compile Include="PlatformDispatcher.fs" />
         <Compile Include="Platform.fs" />
+        <Compile Include="Positional.fs" />
         <Compile Include="TraceEvents.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="TraceSite.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="Trace.fs" />
