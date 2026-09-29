@@ -4,7 +4,7 @@ order: 4
 ---
 
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 How values that are not ready yet flow through the graph, how to wait for them with boundaries, and

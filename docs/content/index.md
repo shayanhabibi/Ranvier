@@ -6,7 +6,7 @@ layout: splash
 
 <section class="rv-hero">
 <div class="rv-hero__copy">
-<span class="rv-hero__status"><span class="rv-badge">Preview</span> APIs follow Partas.Signals and may change.</span>
+<span class="rv-hero__status"><span class="rv-badge">Preview</span> APIs may change.</span>
 <h1 class="rv-hero__title">ranvier</h1>
 <p class="rv-hero__line">Fine-grained reactive computation for .NET.</p>
 <p class="rv-hero__sub">Signals, memos and effects for F# and C#, with a second channel for values that have not arrived. A boundary shows a fallback while its inputs are in flight and a recovered value when one fails.</p>

@@ -4,7 +4,7 @@ order: 2
 ---
 
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 Ranvier targets `net10.0`.

@@ -3,7 +3,7 @@ title: Projections
 order: 6
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 Projections keep keyed, per-row reactive state over a collection source. Selectors (`Lookup`) track, per key, whether that key matches a source value. See [Benchmarks](index.md) for configuration, environment and caveats.
 

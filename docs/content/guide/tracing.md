@@ -4,7 +4,7 @@ order: 7
 ---
 
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change. Tracing is a research
+Preview — Ranvier is pre-release; its APIs may change. Tracing is a research
 feature: its queries and dump schema may change before the first release.
 :::
 

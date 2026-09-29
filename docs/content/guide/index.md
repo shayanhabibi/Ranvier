@@ -4,7 +4,7 @@ order: 1
 ---
 
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 Fine-grained reactive computation for .NET.
@@ -77,8 +77,6 @@ doubled = 10
 | Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
 
-## Provenance
+## Origin
 
-Ranvier continues [Partas.Signals](https://github.com/shayanhabibi/Partas.Signals). This guide is
-adapted from the Partas.Signals guide at commit `915f139`. Code samples use the `Ranvier` namespace;
-every other identifier is unchanged. See [Provenance](../about/provenance.md).
+Ranvier began as experiments in a repository called [Partas.Signals](https://github.com/shayanhabibi/Partas.Signals).

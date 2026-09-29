@@ -6,7 +6,6 @@ SECTIONS = [
     ("concepts", "CONCEPTS", "How the graph works", "Signals, memos, effects and the async graph behind them.", "end"),
     ("fable", "FABLE", "The JavaScript target", "The same reactive graph under Fable. Planned.", "side"),
     ("benchmarks", "BENCHMARKS", "Measured per commit", "BenchmarkDotNet suites and instruction counts.", "side"),
-    ("about", "ABOUT", "Provenance", "Where Ranvier came from and how it is maintained.", "end"),
 ]
 
 
