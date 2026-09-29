@@ -78,6 +78,63 @@ Height-ordered, cutoff-aware recomputation descends from Adapton, Jane Street's 
 FSharp.Data.Adaptive. The [Clef](https://clef-lang.com) language specification describes a Solid-style
 reactive surface over incremental nodes, and it leaves asynchronous suspension unspecified.
 
+## Diamonds without glitches
+
+A diamond is two derived values that read one source, and a third value that reads both. In Ranvier, one
+write to `a` runs `d` once, and `d` reads `b` and `c` from the same write.
+
+```fsharp
+let a = createSignal 1
+let b = createMemo (fun _ -> a.Value + 1)
+let c = createMemo (fun _ -> a.Value * 10)
+let d = createMemo (fun _ -> b.Value + c.Value)
+createEffect (fun () -> printfn "d = %d" d.Value)
+
+a.Value <- 2
+a.Value <- 3
+```
+
+```text
+d = 12
+d = 23
+d = 34
+```
+
+The same diamond in System.Reactive, with `CombineLatest`, emits once per leg. The first emission after each
+write combines the new `b` with the old `c`, a state the source never had.
+
+```fsharp
+let a = new BehaviorSubject<int> (1)
+let b = a.Select (fun x -> x + 1)
+let c = a.Select (fun x -> x * 10)
+Observable.CombineLatest(b, c, fun b c -> b + c).Subscribe (printfn "d = %d")
+
+a.OnNext 2
+a.OnNext 3
+```
+
+```text
+d = 12
+d = 13
+d = 23
+d = 24
+d = 34
+```
+
+ReactiveUI's multi-property `WhenAnyValue` behaves the same way: setting `A` and then `B` first emits the new
+`A` with the old `B`. The usual workarounds are `DelayChangeNotifications ()` or `Throttle (TimeSpan.Zero)`.
+Ranvier updates derived values in height order, and `d` runs after both of its inputs. Two writes that
+belong together go in one [`batch`](../guide/getting-started.md#batch).
+
+## Owners instead of hooks
+
+Ranvier has no rules of hooks. A node is an object held by reference, and its identity is independent of
+call order or line number, unlike React hooks or FuncUI's hook identity (FuncUI#212). A body may create
+nodes inside a branch or a loop, and each run may create a different set. Each node belongs to the
+[owner](contracts.md#ownership) that was current at its creation, and the next run of that owner disposes
+it. The cost is that state created in a body starts again on each run: state that has to survive a re-run
+lives outside the body.
+
 ## Where Ranvier may fit
 
 These are directions the design is aimed at. The XAML bridge ships in Ranvier.CSharp; the others have no integration yet.
@@ -94,6 +151,9 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
   reads Pending, Ready and Failed states as values, with no UI thread involved.
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
+- **Fluxor stores.** For Fluxor users, memos are memoised selectors: a memo over a signal holding the
+  store's state recomputes when that state changes, and an equal result stops at the memo
+  ([equality cutoff](../guide/getting-started.md#equality-cutoff)).
 
 ## Current gaps
 
