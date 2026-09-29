@@ -170,6 +170,67 @@ var firstPage = open.Take(() => pageSize.Value);
 `rows.TryGetValue(key, out var row)` reads a row that may be absent; `Lookup` has the same method.
 `AsObservableCollection` binds a projection to a WPF, Avalonia or MAUI list.
 
+## Binding to XAML
+
+`ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
+graph nodes. `Computed` registers a read-only property over a tracked `Func<T>`, and `Writable` a two-way property
+over a signal. A property raises `PropertyChanged` once per settled change: a write that leaves a derived value equal
+raises nothing for it, and a chain of derived properties needs no dependency declarations.
+
+It works inside an existing view model, whatever its base class. Construct it with the view model as the event
+sender and forward its events:
+
+```csharp
+public sealed class OrderViewModel : ObservableObject, INotifyDataErrorInfo, IDisposable
+{
+    readonly ReactiveBindings bindings;
+    readonly BoundSignal<int> quantity;
+    readonly BoundValue<decimal> price;
+    readonly BoundValue<decimal> total;
+
+    public OrderViewModel(Graph graph, IPriceService prices)
+    {
+        bindings = new ReactiveBindings(this, graph);
+        bindings.PropertyChanged += (_, e) => OnPropertyChanged(e);
+        bindings.ErrorsChanged += (_, e) => ErrorsChanged?.Invoke(this, e);
+
+        quantity = bindings.Writable(nameof(Quantity), 1);
+        var quote = bindings.Run(() => Async(token => prices.QuoteAsync(quantity.Value, token)));
+        price = bindings.Computed(nameof(Price), () => quote.Value);
+        total = bindings.Computed(nameof(Total), () => price.Memo.Value * quantity.Value);
+    }
+
+    public int Quantity { get => quantity.Value; set => quantity.Value = value; }
+    public decimal Price => price.Value;
+    public decimal Total => total.Value;
+    public bool IsLoading => bindings.IsLoading;
+
+    public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+    public bool HasErrors => bindings.HasErrors;
+    public IEnumerable GetErrors(string? propertyName) => bindings.GetErrors(propertyName!);
+    public void Dispose() => bindings.Dispose();
+}
+```
+
+A new view model can derive from `ReactiveObject` instead, which implements the three interfaces through its
+`Bindings`.
+
+- **Loading and errors.** While a `Computed` property reads a pending source it keeps its last settled value
+  (`default` before the first) and its `IsLoading` is true. While it fails, `GetErrors` returns the error's message,
+  and `Error` holds the exception. The bindings' `IsLoading` and `HasErrors` cover every property and raise
+  `PropertyChanged` as `"IsLoading"` and `"HasErrors"`. `Computed(name, compute, loadingName)` also raises
+  `loadingName` for a per-property loading flag.
+- **Reading.** On the graph's thread, `Value` reads the node, so a `Computed` body that reads another property through
+  the view model tracks it, but sees its last settled value while it loads or fails. Read `Memo.Value` instead, as
+  `Total` does, to make the property load and fail with its input. From any other thread `Value` returns the value
+  last notified.
+- **Threads.** The notifying effect runs on the graph's thread. Each handler runs on the `SynchronizationContext` that
+  was current when it subscribed, posted there when the raise happens elsewhere. Setting a `Writable` property from
+  another thread goes through `Graph.Dispatch`.
+- **Lifetime.** The bindings own a root scope under the scope current at construction. `Dispose`, or disposing that
+  scope, disposes the property memos and anything created through `bindings.Run`, and drops every handler. Signals
+  passed to `Writable` stay usable.
+
 ## Options and threads
 
 `GraphOptions` is built with `With` methods:
