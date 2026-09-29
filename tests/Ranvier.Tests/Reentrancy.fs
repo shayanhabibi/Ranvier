@@ -300,4 +300,33 @@ let tests =
                 // so the nested registration runs immediately.
                 Expect.sequenceEqual order [ "first"; "registered during teardown" ] "the nested cleanup ran inside the teardown"
             }
+
+            test "effects woken by a write in a memo body run after the body, before the read returns" {
+                let g = new Graph ()
+                let log = ResizeArray ()
+                let input = Signal (g, 0)
+                let output = Signal (g, 0)
+
+                new Effect (g, (fun () -> log.Add $"effect {output.Value}"))
+                |> ignore
+
+                let m =
+                    Make.Memo (
+                        g,
+                        fun _ ->
+                            log.Add "body start"
+                            output.Value <- input.Value + 1
+                            log.Add "body end"
+                            input.Value
+                    )
+
+                log.Add "read"
+                m.Value |> ignore
+                log.Add "returned"
+
+                Expect.sequenceEqual
+                    log
+                    [ "effect 0"; "read"; "body start"; "body end"; "effect 1"; "returned" ]
+                    "the effect ran once the body finished"
+            }
         ]

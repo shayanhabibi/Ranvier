@@ -45,6 +45,8 @@ graph marks it Pending until the source settles.
 - [The async graph on .NET](async-graph.md) covers tasks as computation results, superseded flights, thread
   ownership and dispatch, disposal, and what changes when the same core compiles to JavaScript through
   Fable.
+- [Contracts](contracts.md) states which threads may touch a graph, what a failure does to the nodes that
+  read it, and who owns a node created inside a computation.
 - [Ecosystem](ecosystem.md) covers where Ranvier sits beside FSharp.Data.Adaptive, SignalsDotnet, R3 and
   System.Reactive, Fable.Ripple and Solid, and when one of those is the better choice.
 

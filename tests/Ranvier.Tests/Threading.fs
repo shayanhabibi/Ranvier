@@ -310,4 +310,126 @@ let tests =
                 Expect.equal query.TryValue (Ready 11) "and was applied on the owning thread"
             }
 #endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "a write from another thread raises even under the graph's synchronisation context" {
+                let previous = SynchronizationContext.Current
+                let context = SynchronizationContext ()
+
+                try
+                    SynchronizationContext.SetSynchronizationContext context
+                    let g = new Graph ()
+                    let s = Signal (g, 0)
+
+                    let caught =
+                        offThread (fun () ->
+                            SynchronizationContext.SetSynchronizationContext context
+
+                            try
+                                s.Value <- 1
+                                None
+                            with ex ->
+                                Some ex)
+
+                    match caught with
+                    | Some ex -> Expect.stringContains ex.Message "owned by thread" "affinity is the thread id"
+                    | None -> failtest "a shared synchronisation context must not pass the affinity check"
+
+                    Expect.equal s.Peek 0 "and the write did not land"
+                finally
+                    SynchronizationContext.SetSynchronizationContext previous
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "an ImmediateDispatcher under Guarded raises on an off-thread settle and keeps the work queued" {
+                let g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Dispatcher = Some (ImmediateDispatcher ())
+                        }
+                    )
+
+                let a = AsyncSource<int>(g)
+
+                let caught =
+                    offThread (fun () ->
+                        try
+                            a.Settle 4
+                            None
+                        with ex ->
+                            Some ex)
+
+                match caught with
+                | Some ex -> Expect.stringContains ex.Message "Pump ran on thread" "the drain raised on the settling thread"
+                | None -> failtest "an off-thread drain must not run under Guarded"
+
+                Expect.equal g.PendingWork 1 "the settle is still queued"
+                g.Pump () |> ignore
+                Expect.equal a.TryValue (Ready 4) "and the owning thread applies it"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "during a flush an off-thread write raises, and Dispatch and Settle return without waiting" {
+                let g = new Graph ()
+                let trigger = Signal (g, 0)
+                let target = Signal (g, 0)
+                let a = AsyncSource<int>(g)
+                let seen = ResizeArray ()
+                let timeout = TimeSpan.FromSeconds 5.0
+                use inFlush = new ManualResetEventSlim (false)
+                use workerDone = new ManualResetEventSlim (false)
+                let writeError = ref null
+                let returned = ref false
+
+                let worker =
+                    Thread (
+                        (fun () ->
+                            if inFlush.Wait timeout then
+                                try
+                                    target.Value <- 1
+                                with ex ->
+                                    writeError.Value <- ex
+
+                                g.Dispatch (fun () -> target.Value <- 2)
+                                a.Settle 3
+                                returned.Value <- true
+
+                            workerDone.Set ()),
+                        IsBackground = true
+                    )
+
+                worker.Start ()
+
+                new Effect (
+                    g,
+                    fun () ->
+                        if trigger.Value = 1 then
+                            inFlush.Set ()
+                            workerDone.Wait timeout |> ignore
+                )
+                |> ignore
+
+                new Effect (g, (fun () -> seen.Add target.Value))
+                |> ignore
+
+                trigger.Value <- 1
+                worker.Join ()
+
+                Expect.isTrue returned.Value "Dispatch and Settle returned while the owning thread was inside an effect"
+                Expect.isNotNull writeError.Value "the direct write raised"
+                Expect.stringContains writeError.Value.Message "owned by thread" "with the affinity message"
+                Expect.equal g.PendingWork 2 "the dispatched write and the settle wait in the inbox"
+                Expect.equal target.Peek 0 "and the flush finished without them"
+
+                g.Pump () |> ignore
+                Expect.equal target.Peek 2 "the pump applies the dispatched write"
+                Expect.equal a.TryValue (Ready 3) "and the settle"
+                Expect.sequenceEqual seen [ 0; 2 ] "the effect sees the dispatched write after the pump"
+            }
+#endif
         ]

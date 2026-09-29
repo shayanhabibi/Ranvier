@@ -120,6 +120,8 @@ deterministic in tests: the test decides when each flight settles.
 A message queue belongs at this boundary, one message per drain. It does not belong between nodes. Inside the
 graph, a write settles synchronously before the next line runs.
 
+[Contracts](contracts.md#threading) lists which operations each thread may call and where each kind of work runs.
+
 ### Where tracking state lives
 
 Tracking must not follow an `await` into its continuation. Code that resumes after an `await` is outside the
@@ -148,6 +150,9 @@ deterministic:
 - Disposing an async memo cancels its flight's token.
 - A node that is Pending when it is disposed becomes Failed with `ObjectDisposedException`, so nothing waits
   on it indefinitely.
+
+[Contracts](contracts.md#ownership) gives the owner of each node an API returns, and of each node created inside a
+computation.
 
 ## One source, two targets
 
