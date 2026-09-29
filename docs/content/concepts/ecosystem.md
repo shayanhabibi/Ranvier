@@ -80,7 +80,7 @@ reactive surface over incremental nodes, and it leaves asynchronous suspension u
 
 ## Where Ranvier may fit
 
-These are directions the design is aimed at. None of them ships an integration yet.
+These are directions the design is aimed at. The XAML bridge ships in Ranvier.CSharp; the others have no integration yet.
 
 - **XAML view models (WPF, Avalonia, MAUI, Uno, WinUI).** `ReactiveBindings` in
   [Ranvier.CSharp](../guide/csharp.md#binding-to-xaml) is the `INotifyPropertyChanged` bridge, usable inside an
