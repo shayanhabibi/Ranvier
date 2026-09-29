@@ -2048,6 +2048,7 @@ type AsyncSource<'T>(graph: Graph) =
     do Tracer.Bind (observers, graph, id)
     let mutable value = Unchecked.defaultof<'T>
     let mutable error: exn = null
+    let mutable thrown: Platform.CapturedFailure = null
 
     let mutable status = Status.Pending ||| Status.Uninitialized
 
@@ -2117,7 +2118,8 @@ type AsyncSource<'T>(graph: Graph) =
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            raise error
+            thrown <- Platform.captureFailure thrown error
+            Platform.rethrowStored thrown
 
         value
 
@@ -2180,6 +2182,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     let mutable status = Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
     let mutable error: exn = null
+    let mutable thrown: Platform.CapturedFailure = null
     let mutable runs = 0
     let mutable disposed = false
 
@@ -2552,7 +2555,8 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            raise error
+            thrown <- Platform.captureFailure thrown error
+            Platform.rethrowStored thrown
 
         value
 
@@ -3178,6 +3182,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     let mutable status = Status.Pending ||| Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
     let mutable error: exn = null
+    let mutable thrown: Platform.CapturedFailure = null
     let mutable runs = 0
     let mutable disposed = false
     let mutable link: OwnerLink = null
@@ -3706,7 +3711,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            raise error
+            thrown <- Platform.captureFailure thrown error
+            Platform.rethrowStored thrown
 
         value
 
@@ -3773,6 +3779,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     let mutable status = Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
     let mutable error: exn = null
+    let mutable thrown: Platform.CapturedFailure = null
     let mutable caught: exn = null
     let mutable waiting = false
     let mutable runs = 0
@@ -4152,7 +4159,8 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            raise error
+            thrown <- Platform.captureFailure thrown error
+            Platform.rethrowStored thrown
 
         value
 

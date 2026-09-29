@@ -3,6 +3,22 @@ module Ranvier.Tests.Reads
 open Expecto
 open Ranvier
 
+#if !FABLE_COMPILER
+open System.Runtime.CompilerServices
+
+[<MethodImpl(MethodImplOptions.NoInlining)>]
+let private failInNamedHelper () : int =
+    raise (System.InvalidOperationException "the helper failed")
+
+[<MethodImpl(MethodImplOptions.NoInlining)>]
+let private readFailure (read: unit -> int) : exn =
+    try
+        read () |> ignore
+        failtest "the read did not raise"
+    with ex ->
+        ex
+#endif
+
 /// <summary>
 /// The three ways to read a node — <c>Value</c>, <c>TryValue</c>, <c>Peek</c> — differ in two
 /// independent respects: whether the read records an edge, and whether it is
@@ -190,4 +206,24 @@ let tests =
                 Expect.equal m.Runs 1 "the second read hit the cache"
                 Expect.equal m.ObserverCount 1 "and recorded one edge, not two"
             }
+#if !FABLE_COMPILER
+
+            // .NET only: a JavaScript rethrow keeps the stack of the original `Error`.
+            test "a stored failure keeps its throw site across repeated reads" {
+                let g = new Graph ()
+                let failing = Make.Memo (g, (fun _ -> failInNamedHelper ()))
+                let dependent = Make.Memo (g, (fun _ -> failing.Value + 1))
+
+                let read () =
+                    dependent.Value
+
+                let first = readFailure read
+                let firstTrace = first.StackTrace
+                let second = readFailure read
+
+                Expect.isTrue (obj.ReferenceEquals (first, second)) "both reads raise the stored instance"
+                Expect.stringContains second.StackTrace (nameof failInNamedHelper) "the trace names the throw site"
+                Expect.equal second.StackTrace firstTrace "a repeated read leaves the trace unchanged"
+            }
+#endif
         ]

@@ -1420,7 +1420,9 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
 #endif
 
                         fun () -> raise failure
-                    | ex -> fun () -> raise ex
+                    | ex ->
+                        let captured = Platform.captureFailure null ex
+                        fun () -> Platform.rethrowStored captured
 
                 entry.Row <- Memo<'V>.Create(graph, this.Compute entry, rowMode)
                 Tracer.Part (graph, (entry.Row :> INode).Id, (this :> INode).Id, box key)
@@ -1518,6 +1520,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
     do Tracer.LookupCellNew (graph, id)
     let mutable value = Unchecked.defaultof<'V>
     let mutable error: exn = null
+    let mutable thrown: Platform.CapturedFailure = null
     let mutable pending = false
 
     interface INode with
@@ -1551,7 +1554,8 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
             raise (graph.NotReady (this :> INode))
 
         if not (isNull error) then
-            raise error
+            thrown <- Platform.captureFailure thrown error
+            Platform.rethrowStored thrown
 
         value
 
