@@ -191,4 +191,31 @@ let tests =
                 inner.Value <- 3
                 Expect.equal memos[0].Runs 2 "and stopped recomputing when the run it belonged to ended"
             }
+
+            test "an effect body may create nodes conditionally and in a loop of varying length" {
+                let g = new Graph ()
+                use _ = g.Activate ()
+                let count = createSignal 2
+                let withExtra = createSignal false
+                let source = createSignal 1
+                let log = ResizeArray ()
+
+                createEffect (fun () ->
+                    let n = count.Value
+
+                    if withExtra.Value then
+                        let extra = createMemo (fun _ -> source.Value * 100)
+                        createEffect (fun () -> log.Add $"extra {extra.Value}")
+
+                    for i in 1..n do
+                        let m = createMemo (fun _ -> source.Value * i)
+                        createEffect (fun () -> log.Add $"item {i}: {m.Value}"))
+
+                withExtra.Value <- true
+                count.Value <- 1
+                log.Clear ()
+                source.Value <- 2
+
+                Expect.sequenceEqual (Seq.sort log) [ "extra 200"; "item 1: 2" ] "only the latest run's nodes react"
+            }
         ]
