@@ -141,3 +141,7 @@
 .rv-map-group {
   fill: color-mix(in oklab, var(--rv-contour) 6%, transparent);
   stroke: var(--rv-border-strong); stroke-width: 1; stroke-dasharray: 2 4; }
+.rv-map-group__column { fill: var(--rv-muted); font-size: 10px; }
+.rv-map-node--row .rv-map-node__name { font-size: 10.5px; }
+.rv-map-node--member .rv-map-node__name,
+.rv-map-node--member .rv-map-node__value { display: none; }

@@ -461,6 +461,12 @@ let tests =
                 Expect.equal placed (Map [ 1, (0, 0); 2, (0, 3); 3, (0, 4) ]) "the box of 1 takes three rows"
             }
 
+            test "layout orders observers by the row their edge leaves from" {
+                let sources = Map [ 2, [ 1, 2.0 ]; 3, [ 1, 1.0 ] ]
+                let placed = Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] sources
+                Expect.equal (placed[3], placed[2]) ((1, 1), (1, 2)) "each reader sits level with its row"
+            }
+
             test "layout layers a chain by longest path" {
                 let placed = Layout.place [ 1; 2; 3 ] (Map [ 2, [ 1 ]; 3, [ 2; 1 ] ])
                 Expect.equal placed (Map [ 1, (0, 0); 2, (1, 0); 3, (2, 0) ]) "one layer per step"
