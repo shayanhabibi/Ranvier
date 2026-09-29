@@ -24,7 +24,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | EffectSplit.fs | 26 | 26 | 21 | 26 | 26 | 21 | 0 | 0 |
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | Owners.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
-| Equality.fs | 6 | 5 | 5 | 6 | 5 | 5 | 8 | 0 |
+| Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
 | Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
 | Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 681 | 663 | 625 | 755 | 733 | 692 | 64 | 1 |
+| **Total** | 700 | 682 | 644 | 774 | 752 | 711 | 64 | 1 |
 
 ## Tests.fs
 
@@ -182,13 +182,32 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a throwing lookup comparer fails the key's cell | a custom comparer goes through GraphOptions. |
 | a throwing row comparer fails the projection row and a fold over it | a custom comparer goes through GraphOptions. |
 
-<details><summary>5 passed in every build and delivery that runs them</summary>
+<details><summary>24 passed in every build and delivery that runs them</summary>
 
 - the default policy compares primitives by value
 - the default policy compares strings by value
 - the default policy compares records by reference
 - the structural policy cuts off on equal records
+- a custom equality policy decides the cutoff for signals and memos
+- a custom equality policy cuts off a memo that recomputes to an equal value
 - a reference type with no structural equality is compared by identity
+- an equal write, by type / int
+- an equal write, by type / float
+- an equal write, by type / float nan
+- an equal write, by type / string
+- an equal write, by type / DateTime
+- an equal write, by type / DateTimeOffset
+- an equal write, by type / decimal
+- an equal write, by type / record
+- an equal write, by type / tuple
+- an equal write, by type / struct tuple
+- an equal write, by type / Some of int
+- an equal write, by type / Some of record
+- an equal write, by type / None
+- an equal write, by type / struct record
+- an equal write, by type / list
+- an equal write, by type / the same class instance
+- an equal write, by type / an equal class instance
 
 </details>
 

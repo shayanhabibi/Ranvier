@@ -38,7 +38,7 @@ These are the differences that exist today. Some may narrow; others follow from 
 
 **Equality of value types differs.** The default cutoff compares primitives by value and everything else by reference on both targets, but value types compile differently under Fable:
 
-- structs, struct tuples, `DateTime`, `decimal` and `KeyValuePair` become objects, so a write of an equal value that is cut off on .NET propagates under Fable;
+- structs, struct tuples, `DateTime`, `DateTimeOffset`, `decimal` and `KeyValuePair` become objects, so a write of an equal value that is cut off on .NET propagates under Fable;
 - `Some x` is erased to `x`, so writing `Some 1` over `Some 1` propagates on .NET and is cut off under Fable;
 - `StructuralPolicy` cuts off `nan` over `nan` on .NET and propagates it under Fable.
 
