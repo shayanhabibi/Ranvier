@@ -74,6 +74,9 @@ module private Look =
     let column = 150.0
     let row = 78.0
     let margin = 52.0
+    /// <summary>How far a row sits right of its collection, and a member left of it.</summary>
+    let inset = 30.0
+    let boxPad = 34.0
 
     let position (layer: int, row': int) =
         margin + float layer * column, margin + float row' * row
@@ -125,13 +128,13 @@ module SignalMapComponent =
 
     /// <summary>
     /// A live map of a traced graph: the stage, the example's controls, a log and, when <c>timeline</c> is true, a
-    /// scrubber over every frame. Its graph runs under <c>policy</c>.
+    /// scrubber over every frame. Its graph runs under <c>policy</c>, and its collections draw as <c>grouping</c>.
     /// </summary>
     /// <remarks>
     /// Placed in a <c>partas-solid-card</c>, it highlights the lines of the binding whose node runs. A binding is
     /// (label, first line, last line), with lines counted from 1 in the card's code block.
     /// </remarks>
-    let SignalMap (source: MapSource) (policy: FlightPolicy) (bindings: (string * int * int)[]) (timeline: bool) : HtmlElement =
+    let SignalMap (source: MapSource) (policy: FlightPolicy) (bindings: (string * int * int)[]) (timeline: bool) (grouping: Grouping) : HtmlElement =
         let reduced: bool = window?matchMedia("(prefers-reduced-motion: reduce)")?matches
 
         let timeline =
@@ -144,9 +147,17 @@ module SignalMapComponent =
         let stageBox = Dom.el "div" "rv-map__stage"
         let stage = Dom.svg "svg" "rv-map__svg"
         Dom.attrs stage [ "role", "img"; "aria-label", "Signal map" ]
+
+        let start =
+            { MapModel.start with
+                Grouping = grouping
+            }
+
+        let groupLayer = Dom.svg "g" "rv-map__groups"
         let edgeLayer = Dom.svg "g" "rv-map__edges"
         let dotLayer = Dom.svg "g" "rv-map__dots"
         let nodeLayer = Dom.svg "g" "rv-map__nodes"
+        stage.appendChild groupLayer |> ignore
         stage.appendChild edgeLayer |> ignore
         stage.appendChild dotLayer |> ignore
         stage.appendChild nodeLayer |> ignore
@@ -169,6 +180,7 @@ module SignalMapComponent =
 
         let nodes = Dictionary<int, NodeView>()
         let edges = Dictionary<string, Element>()
+        let boxes = Dictionary<int, Element>()
         let history = ResizeArray<Frame>()
         let lit = Dictionary<int, Element list>()
         let mutable cursor = -1
@@ -177,8 +189,8 @@ module SignalMapComponent =
         let mutable scheduled = false
         let mutable timer = 0.0
         let mutable layoutKey = ""
-        let mutable shown = MapModel.start
-        let mutable tail = MapModel.start
+        let mutable shown = start
+        let mutable tail = start
         let mutable read = 0
         let mutable graph: Graph option = None
         let mutable disposed = false
@@ -387,13 +399,27 @@ module SignalMapComponent =
             shown <- scene
             let snapshot = scene.Snapshot
 
-            let live =
+            let top =
                 snapshot.Nodes.Values
                 |> Seq.filter (fun n ->
                     MapModel.visible scene n
                     && n.Status <> TraceNodeStatus.Disposed)
                 |> Seq.map _.Id
                 |> Set.ofSeq
+
+            let boxed =
+                top
+                |> Seq.map (fun id -> id, MapModel.rows scene id)
+                |> Seq.filter (snd >> List.isEmpty >> not)
+                |> Map.ofSeq
+
+            let live =
+                boxed
+                |> Map.fold
+                    (fun live _ rows ->
+                        rows
+                        |> List.fold (fun live (row, members) -> Set.union (live.Add row) (Set.ofList members)) live)
+                    top
 
             let links =
                 MapModel.edges scene
@@ -419,19 +445,85 @@ module SignalMapComponent =
 
                 let sources =
                     links
+                    |> List.map (fun (s, o) -> MapModel.laidOutAs scene s, MapModel.laidOutAs scene o)
+                    |> List.filter (fun (s, o) -> s <> o)
+                    |> List.distinct
                     |> List.groupBy snd
                     |> List.map (fun (o, pairs) -> o, List.map fst pairs)
                     |> Map.ofList
 
-                let placed = Layout.place (Set.toList live) sources
+                let span id =
+                    boxed.TryFind id
+                    |> Option.map (List.length >> (+) 1)
+                    |> Option.defaultValue 1
+
+                let placed = Layout.placeSpanned span (Set.toList top) sources
+                let at = Dictionary<int, float * float>()
+
+                for KeyValue (id, cell) in placed do
+                    at[id] <- Look.position cell
+
+                for KeyValue (host, rows) in boxed do
+                    let x, y = at[host]
+
+                    rows
+                    |> List.iteri (fun i (row, members) ->
+                        let rowY = y + float (i + 1) * Look.row
+                        at[row] <- x + Look.inset, rowY
+
+                        members
+                        |> List.iteri (fun j m -> at[m] <- x - Look.inset - float j * Look.inset * 2.0, rowY))
+
                 let layers = placed.Values |> Seq.map fst |> Seq.fold max 0
-                let rows = placed.Values |> Seq.map snd |> Seq.fold max 0
+
+                let rows =
+                    placed
+                    |> Seq.map (fun (KeyValue (id, (_, r))) -> r + span id - 1)
+                    |> Seq.fold max 0
+
                 let width = Look.margin * 2.0 + float layers * Look.column
                 let height = Look.margin * 2.0 + float rows * Look.row
                 stage.setAttribute ("viewBox", $"0 0 {width} {height}")
 
-                for KeyValue (id, at) in placed do
-                    place nodes[id] (Look.position at) true
+                for KeyValue (id, xy) in at do
+                    place nodes[id] xy true
+
+                for b in boxes.Values do
+                    b.remove ()
+
+                boxes.Clear ()
+
+                for KeyValue (host, rows) in boxed do
+                    let x, y = at[host]
+
+                    let widest =
+                        rows
+                        |> List.map (snd >> List.length)
+                        |> List.fold max 1
+
+                    let left =
+                        x
+                        - Look.inset * float (2 * widest - 1)
+                        - Look.boxPad
+
+                    let box = Dom.svg "rect" "rv-map-group"
+
+                    Dom.attrs
+                        box
+                        [
+                            "x", string left
+                            "y", string (y - Look.boxPad)
+                            "width", string (x + Look.inset + Look.boxPad - left)
+                            "height",
+                            string (
+                                float (List.length rows) * Look.row
+                                + Look.boxPad * 2.0
+                            )
+                            "rx", "10"
+                        ]
+
+                    groupLayer.appendChild box |> ignore
+                    boxes[host] <- box
 
                 for e in edges.Values do
                     e.remove ()
@@ -440,13 +532,13 @@ module SignalMapComponent =
 
                 for s, o in links do
                     let path = Dom.svg "path" "rv-map-edge"
-                    path.setAttribute ("d", Look.edgePath (Look.position placed[s]) (Look.position placed[o]))
+                    path.setAttribute ("d", Look.edgePath at[s] at[o])
                     edgeLayer.appendChild path |> ignore
                     edges[$"{s}>{o}"] <- path
 
             for KeyValue (id, view) in nodes do
                 let n = snapshot.Nodes[id]
-                view.Name.textContent <- MapModel.name scene id
+                view.Name.textContent <- MapModel.caption scene id
 
                 view.Value.textContent <-
                     n.Value
@@ -631,7 +723,7 @@ module SignalMapComponent =
             playing <- false
             unlightAll ()
             cursor <- MapModel.clampCursor setup history.Count index
-            sync (MapModel.stateAt MapModel.start (history.ToArray ()) cursor)
+            sync (MapModel.stateAt start (history.ToArray ()) cursor)
             refresh ()
 
         let clear () =
@@ -640,7 +732,7 @@ module SignalMapComponent =
             history.Clear ()
             cursor <- -1
             setup <- 0
-            tail <- MapModel.start
+            tail <- start
             read <- 0
             layoutKey <- ""
             unlightAll ()
@@ -658,17 +750,17 @@ module SignalMapComponent =
             why.textContent <- ""
             error.textContent <- ""
             root.classList.remove "rv-map--failed"
-            sync MapModel.start
+            sync start
 
         /// <summary>Takes the frames recorded so far as setup: drawn at once, logged, and left off the timeline.</summary>
         let baseline (g: Graph) =
             let events = Trace.events g
             read <- events.Length
-            let frames = MapModel.frames MapModel.start events
+            let frames = MapModel.frames start events
             history.AddRange frames
             setup <- frames.Length
             cursor <- setup - 1
-            tail <- MapModel.stateAt MapModel.start frames cursor
+            tail <- MapModel.stateAt start frames cursor
             sync tail
 
             for frame in frames do

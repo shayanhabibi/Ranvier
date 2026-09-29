@@ -25,7 +25,7 @@ type TraceEventKind =
     | Label = 6
     /// <summary>
     /// A node joined a collection as one of its parts. <c>Other</c>: the collection's node id. <c>Payload</c>: the
-    /// part's key, or null for a part shared by every key.
+    /// part's key, or null for a part shared by every key. <c>Flag</c>: 1 when <c>Node</c> is the owner of a key's nodes.
     /// </summary>
     | Part = 7
     /// <summary>A signal was written. <c>Other</c>: the running computation, or 0. <c>Flag</c>: 1 when the value moved.</summary>

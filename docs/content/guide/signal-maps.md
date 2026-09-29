@@ -154,6 +154,7 @@ against a fresh traced graph.
 | `timeline` | Adds the play, step and scrub bar. |
 | `replay` | Runs every control in order, for the timeline to play back; implies `timeline`. |
 | `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest` or `queue`. |
+| `groups=` | How collections draw: `expand` (default), a box with a row per key, or `collapse`, one node. |
 | `id=`, `show=` | As on `solid` fences. |
 
 The helpers in scope:
@@ -175,9 +176,10 @@ A fence compiles with Fable, so its code must compile to JavaScript. A fence tha
 
 ## Collections
 
-A projection is drawn as one node, between its source and the nodes that read its rows. Its keys, rows and item
-sources run inside that node: the log names a row by its key, as `rows[tea] = 4`, and the item it reads as
-`rows[tea] item`. Move **Tea**, then add an egg: one row runs for the quantity, and a new row joins for the egg.
+A projection is drawn as a box: the projection's node on top, and a row beneath it for each key. A reader of one key
+draws its edge from that key's row; a reader of `Keys` draws it from the projection. The item a row reads runs inside
+the projection's node, and the log names it `rows[tea] item`. Move **Tea**, then add an egg: the tea row runs for the
+quantity, and a new row joins for the egg.
 
 ```fsharp map timeline
 let lines = createSignal [ "tea", 1; "jam", 2 ]
@@ -195,8 +197,28 @@ controls [
 ]
 ```
 
-A lookup is drawn as the memo of its state, and its cells run inside that node. Moving the selection marks only
-the readers of the two keys whose answer changed; the third reader stays quiet.
+A node created in `createProjectionWith`'s factory belongs to its key, and sits left of that key's row. Here each key
+quotes its own price. A row is pending while its quote is in flight, and the projection is pending while any row is:
+settle the quotes one at a time and watch the rows clear in turn.
+
+```fsharp map timeline
+let desk = Desk<int>(queued = true)
+let lines = createSignal [ "tea"; "jam" ]
+let prices =
+    createProjectionWith id (fun sku ->
+        let quote = Trace.named "quote" (fun () -> createAsync (fun _ _ -> desk.Quote (sku ())))
+        fun () -> quote.Value) (fun () -> lines.Value)
+createEffect (fun () -> printfn "tea %d" (prices.Get "tea"))
+createEffect (fun () -> printfn "jam %d" (prices.Get "jam"))
+
+controls [
+    button "Settle the oldest" (fun () -> desk.Settle 4)
+    button "Fail the oldest" (fun () -> desk.Fail "no stock")
+]
+```
+
+A lookup is drawn the same way: a row per key read, beneath the memo of its state. Moving the selection marks only the
+rows of the two keys whose answer changed; the third row stays quiet.
 
 ```fsharp map timeline
 let selected = createSignal 1
@@ -214,11 +236,25 @@ controls [
 A lookup has no node of its own for `Trace.label` to name, so a `map` fence names a one-line `createLookup` or
 `createSelector` binding with `Trace.named`. Write a lookup on one line to see its name on the map.
 
+`groups=collapse` draws each collection as one node, with its rows and their nodes inside it. The first map, collapsed:
+
+```fsharp map timeline groups=collapse
+let lines = createSignal [ "tea", 1; "jam", 2 ]
+let rows = createProjection fst (fun (_, qty) -> 4 * qty) (fun () -> lines.Value)
+let total = createMemo (fun _ -> rows.Keys |> Array.sumBy rows.Get)
+createEffect (fun () -> printfn $"total {total.Value}")
+
+controls [
+    slider "Tea" (1, 5) 1 [ 3 ] (fun qty ->
+        lines.Value <- lines.Value |> List.map (fun (sku, q) -> sku, (if sku = "tea" then qty else q)))
+]
+```
+
 ## A bespoke map
 
 `SignalMap` is an ordinary component. A `solid` fence can call it with any scenario: here the names
 come from `Trace.named` rather than from the `map` fence's labels. `SignalMap` takes the scenario, the graph's flight
-policy, the code bindings and whether to show the timeline.
+policy, the code bindings, whether to show the timeline and how to draw collections.
 
 ```fsharp solid render=Thermo.Thermometer
 module Thermo =
@@ -237,7 +273,7 @@ module Thermo =
             button "Cooler" (fun () -> celsius.Value <- celsius.Value - 5.0)
         ]
 
-    let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false
+    let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false Grouping.Expand
 ```
 
 ## Edit a map
@@ -273,7 +309,7 @@ let scenario (graph: Graph) =
         button "Settle 5" (fun () -> price.Settle 5)
     ]
 
-let map = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] true
+let map = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] true Grouping.Expand
 Browser.Dom.document.body.appendChild (unbox map) |> ignore
 ```
 

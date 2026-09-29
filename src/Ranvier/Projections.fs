@@ -1347,6 +1347,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
         let keyScope = new Owner (graph.Root)
         keyScope.SetParent (this.Scope.AttachLinked keyScope)
         entry.Scope <- keyScope
+        Tracer.PartScope (graph, keyScope, (this :> INode).Id, box key)
 
         graph.RunOwned (
             keyScope,
