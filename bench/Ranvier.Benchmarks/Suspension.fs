@@ -1,5 +1,6 @@
 module Ranvier.Benchmarks.Suspension
 
+open System.Threading.Tasks
 open BenchmarkDotNet.Attributes
 open Ranvier
 
@@ -133,3 +134,76 @@ type SettleBenchmarks() =
     member _.CreateAndRead() =
         let source = AsyncSource<int>(graph)
         source.TryValue
+
+/// <summary>
+/// The price of cancellation per async-memo flight. <c>CancelPrevious</c> cancels, disposes and replaces a
+/// <c>CancellationTokenSource</c> at every launch; <c>KeepLatest</c> publishes the same values from one source
+/// allocated at the memo's first flight.
+/// </summary>
+/// <remarks>
+/// Each iteration writes a trigger the body reads, then reads the memo, which launches one flight. The body
+/// ignores its token, so the cancellation runs no callbacks. <c>Completed</c> returns a completed task and the
+/// flight settles on launch; <c>Superseded</c> returns a task that never completes, so every launch supersedes
+/// a flight still in progress.
+/// </remarks>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FlightPolicyBenchmarks() =
+    let mutable cancelPrevious: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let mutable keepLatest: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let mutable cancelTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable keepTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable tick = 0
+
+    /// <summary>
+    /// <c>Completed</c> or <c>Superseded</c>: whether a launch finds the previous flight settled or in progress.
+    /// </summary>
+    [<Params("Completed", "Superseded")>]
+    member val Flight = "Completed" with get, set
+
+    member private this.Build(policy: FlightPolicy) =
+        let graph = new Graph (GraphOptions.Default.WithFlightPolicy policy)
+        let trigger = Signal (graph, 0)
+        let superseded = this.Flight = "Superseded"
+
+        let memo =
+            new AsyncMemo<int>(
+                graph,
+                fun _ _ ->
+                    let n = trigger.Value
+
+                    if superseded then
+                        TaskCompletionSource<int>().Task
+                    else
+                        Task.FromResult n
+            )
+
+        memo.TryValue |> ignore
+        trigger, memo
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        let t, m = this.Build CancelPrevious
+        cancelTrigger <- t
+        cancelPrevious <- m
+        let t, m = this.Build KeepLatest
+        keepTrigger <- t
+        keepLatest <- m
+
+    /// <summary>
+    /// Launches a flight under <c>KeepLatest</c>: the token source is shared by every flight.
+    /// </summary>
+    [<Benchmark(Baseline = true)>]
+    member _.KeepLatest() =
+        tick <- tick + 1
+        keepTrigger.Value <- tick
+        keepLatest.TryValue
+
+    /// <summary>
+    /// Launches a flight under <c>CancelPrevious</c>: the previous token source is cancelled and disposed, and a new one
+    /// is allocated.
+    /// </summary>
+    [<Benchmark>]
+    member _.CancelPrevious() =
+        tick <- tick + 1
+        cancelTrigger.Value <- tick
+        cancelPrevious.TryValue

@@ -14,7 +14,7 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 | [Effects](effects.md) | Write-and-flush with 1 to 64 effects, and a batch of ten writes. |
 | [Lifetimes](lifetimes.md) | Construction and disposal of nodes, fan-out on one source, and scopes with children. |
 | [Projections](projections.md) | Keyed projection reads, single-item edits, reorders, and selector (`Lookup`) reads. |
-| [Suspension](suspension.md) | The cost of the pending channel: throwing through a chain, boundaries, and settling a source. |
+| [Suspension](suspension.md) | The cost of the pending channel: throwing through a chain, boundaries, settling a source, and cancelling a flight. |
 | [Instruction counts](counters.md) | Whole scenarios by instructions per operation, against FSharp.Data.Adaptive, R3 and Fable.Ripple, on .NET and Node.js. |
 
 ## Results
