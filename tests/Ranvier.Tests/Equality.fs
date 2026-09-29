@@ -1,6 +1,7 @@
 module Ranvier.Tests.Equality
 
 open System
+open System.Collections.Generic
 open Expecto
 open Ranvier
 open Ranvier.Tests.Support
@@ -9,6 +10,54 @@ type Point = { X: int; Y: int }
 
 type Opaque(tag: string) =
     member _.Tag = tag
+
+#if !FABLE_COMPILER
+/// <summary>
+/// Structural equality whose <c>int</c> comparer throws while <c>Armed</c> is set. Comparers of every other type never throw.
+/// </summary>
+type ThrowingIntPolicy() =
+    member val Armed = false with get, set
+
+    interface IEqualityPolicy with
+        member this.Comparer<'T>() =
+            let inner = EqualityComparer<'T>.Default
+            let throws = typeof<'T> = typeof<int>
+
+            { new IEqualityComparer<'T> with
+                member _.Equals(a, b) =
+                    if throws && this.Armed then
+                        raise (InvalidOperationException "comparer")
+
+                    inner.Equals (a, b)
+
+                member _.GetHashCode a =
+                    inner.GetHashCode a
+            }
+
+let private throwingGraph () =
+    let policy = ThrowingIntPolicy ()
+
+    let g =
+        new Graph (
+            { GraphOptions.Default with
+                Equality = policy
+            }
+        )
+
+    g, policy
+
+let private message (reading: Reading<'T>) =
+    match reading with
+    | Ready v -> $"Ready %A{v}"
+    | Pending -> "Pending"
+    | Failed ex -> $"Failed %s{ex.Message}"
+
+let private attempt (read: unit -> 'T) =
+    try
+        $"Ready %A{read ()}"
+    with ex ->
+        $"Failed %s{ex.Message}"
+#endif
 
 [<Tests>]
 let tests =
@@ -160,6 +209,156 @@ let tests =
                 let allocated = GC.GetAllocatedBytesForCurrentThread () - before
 
                 Expect.isLessThan allocated 8_192L $"10,000 notifications over 3 observers allocated %d{allocated} bytes"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: a custom comparer goes through GraphOptions.
+            test "a throwing memo comparer fails the memo and its dependents" {
+                let g, policy = throwingGraph ()
+                let s = Signal (g, "1")
+                let source = Make.Memo (g, (fun _ -> int s.Value))
+                let dependent = Make.Memo (g, (fun _ -> string (source.Value + 1000)))
+                let seen = ResizeArray<string>()
+                let effect = new Effect (g, (fun () -> seen.Add dependent.Value))
+
+                Expect.sequenceEqual seen [ "1001" ] "precondition: the effect ran"
+                policy.Armed <- true
+                s.Value <- "99"
+
+                Expect.equal (message source.TryValue) "Failed comparer" "the comparer's exception fails the memo"
+                Expect.equal (message dependent.TryValue) "Failed comparer" "a dependent reads the failure, not \"1001\""
+                Expect.equal effect.Status Status.Error "the effect reran and read the failure"
+                Expect.sequenceEqual seen [ "1001" ] "the effect saw no stale value"
+
+                policy.Armed <- false
+                s.Value <- "100"
+
+                Expect.equal (message source.TryValue) "Ready 100" "the memo recovers on the next change"
+                Expect.equal (message dependent.TryValue) "Ready \"1100\"" "and so does its dependent"
+                Expect.sequenceEqual seen [ "1001"; "1100" ] "the effect saw the recovered value"
+            }
+
+            test "a memo failed by its comparer passes its previous value to the next run" {
+                let g, policy = throwingGraph ()
+                let s = Signal (g, "1")
+                let arguments = ResizeArray<int voption>()
+
+                let m =
+                    Make.Memo (
+                        g,
+                        fun last ->
+                            arguments.Add last
+                            int s.Value
+                    )
+
+                m.TryValue |> ignore
+                m.TryValue |> ignore
+                policy.Armed <- true
+                s.Value <- "2"
+                m.TryValue |> ignore
+                policy.Armed <- false
+                s.Value <- "3"
+
+                Expect.equal (message m.TryValue) "Ready 3" "the memo recovers"
+                Expect.sequenceEqual arguments [ ValueNone; ValueSome 1; ValueSome 1 ] "the failed run published nothing"
+            }
+
+            test "a throwing boundary comparer fails the boundary without calling recover" {
+                let g, policy = throwingGraph ()
+                let s = Signal (g, "1")
+                let recovered = ref 0
+
+                let b =
+                    Boundary<int>
+                        .Errors(
+                            g,
+                            (fun () -> int s.Value),
+                            fun _ _ ->
+                                recovered.Value <- recovered.Value + 1
+                                -1
+                        )
+
+                let dependent = Make.Memo (g, (fun _ -> string (b.Value + 1000)))
+                Expect.equal (message dependent.TryValue) "Ready \"1001\"" "precondition"
+
+                policy.Armed <- true
+                s.Value <- "99"
+
+                Expect.equal (attempt (fun () -> b.Value)) "Failed comparer" "the boundary fails"
+                Expect.equal (message dependent.TryValue) "Failed comparer" "its dependent reads the failure"
+                Expect.equal recovered.Value 0 "recover handles the body's exceptions only"
+
+                policy.Armed <- false
+                s.Value <- "100"
+                Expect.equal (message dependent.TryValue) "Ready \"1100\"" "the boundary recovers on the next change"
+            }
+
+            test "a throwing effectOn comparer fails the effect without acting" {
+                let g, policy = throwingGraph ()
+                use _ = g.Activate ()
+                let s = createSignal "1"
+                let acted = ResizeArray<int>()
+                let seen = ResizeArray<string>()
+
+                createEffectOn (fun () -> int s.Value) acted.Add
+                createEffect (fun () -> seen.Add s.Value)
+
+                policy.Armed <- true
+                s.Value <- "2"
+
+                Expect.sequenceEqual acted [ 1 ] "act does not run with a value the comparer could not test"
+                Expect.sequenceEqual seen [ "1"; "2" ] "the effect queued behind it still runs"
+
+                policy.Armed <- false
+                s.Value <- "3"
+                Expect.sequenceEqual acted [ 1; 3 ] "the next change acts"
+            }
+
+            test "a throwing lookup comparer fails the key's cell" {
+                let g, policy = throwingGraph ()
+                use _ = g.Activate ()
+                let selected = createSignal "a"
+
+                let lookup =
+                    createLookup (fun (s: string) (k: string) -> if s = k then 1 else 0) (fun prev next -> [ prev; next ]) (fun () -> selected.Value)
+
+                let seen = ResizeArray<string>()
+                createEffect (fun () -> seen.Add (attempt (fun () -> lookup.Get "a")))
+
+                policy.Armed <- true
+                selected.Value <- "b"
+
+                Expect.equal (attempt (fun () -> lookup.Get "a")) "Failed comparer" "the cell fails"
+                Expect.sequenceEqual seen [ "Ready 1"; "Failed comparer" ] "its reader wakes to the failure"
+
+                policy.Armed <- false
+                selected.Value <- "c"
+
+                Expect.equal (attempt (fun () -> lookup.Get "a")) "Ready 0" "the failed cell recomputes on the next change"
+                Expect.sequenceEqual seen [ "Ready 1"; "Failed comparer"; "Ready 0" ] "and its reader sees it"
+            }
+
+            test "a throwing row comparer fails the projection row and a fold over it" {
+                let g, policy = throwingGraph ()
+                use _ = g.Activate ()
+                let source = createSignal [ "a", 1; "b", 2 ]
+                let rows = createProjection fst snd (fun () -> source.Value)
+                let total = rows |> Projection.foldGroup (+) (-) 0
+                let seen = ResizeArray<string>()
+                createEffect (fun () -> seen.Add (attempt (fun () -> total.Value)))
+
+                policy.Armed <- true
+                source.Value <- [ "a", 1; "b", 20 ]
+
+                Expect.equal (attempt (fun () -> rows.Get "b")) "Failed comparer" "the row fails"
+                Expect.equal (attempt (fun () -> rows.Get "a")) "Ready 1" "the other row is unaffected"
+                Expect.sequenceEqual seen [ "Ready 3"; "Failed comparer" ] "the fold's reader wakes to the failure"
+
+                policy.Armed <- false
+                source.Value <- [ "a", 1; "b", 30 ]
+
+                Expect.sequenceEqual seen [ "Ready 3"; "Failed comparer"; "Ready 31" ] "the fold recovers on the next change"
             }
 #endif
         ]

@@ -626,7 +626,7 @@ let tests =
                 Expect.equal mark.Cause moved.Seq "the settle's Moved causes the mark"
             }
 
-            test "a run left open by a throwing comparer ends Abandoned" {
+            test "a throwing comparer closes its run with Error" {
                 use g =
                     new Graph (
                         { GraphOptions.Default with
@@ -639,9 +639,27 @@ let tests =
                 let m = createMemo (fun _ -> ThrowingEquals s.Value)
                 m.Value |> ignore
                 s.Value <- 2
-                Expect.throws (fun () -> m.Value |> ignore) "the comparer throws out of the run"
-                Trace.dumpText g |> ignore
+                Expect.throws (fun () -> m.Value |> ignore) "the memo fails with the comparer's exception"
                 let node = (m :> INode).Id
+
+                let ends =
+                    ofKind TraceEventKind.RunEnd g
+                    |> Array.filter (fun e -> e.Node = node)
+
+                Expect.equal ends.Length 2 "each run has its RunEnd"
+                Expect.equal (enum<RunStatus> (Array.last ends).Arg) RunStatus.Error "the run ends Error"
+            }
+
+            test "a run left open ends Abandoned" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let m = createMemo (fun _ -> s.Value)
+                m.Value |> ignore
+                let node = (m :> INode).Id
+                // A RunStart with no RunEnd, as an exception escaping the run leaves it.
+                Tracer.RunStart (g, node, 0)
+                Trace.dumpText g |> ignore
 
                 let starts =
                     ofKind TraceEventKind.RunStart g
@@ -656,25 +674,16 @@ let tests =
             }
 
             test "a run left open inside another run ends Abandoned" {
-                use g =
-                    new Graph (
-                        { GraphOptions.Default with
-                            Equality = StructuralPolicy ()
-                        }
-                    )
-
+                use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
-                let m = createMemo (fun _ -> ThrowingEquals s.Value)
+                let m = createMemo (fun _ -> s.Value)
                 m.Value |> ignore
-                s.Value <- 2
 
                 let reader =
                     createMemo (fun _ ->
-                        try
-                            m.Value |> ignore
-                        with Boom ->
-                            ())
+                        // A RunStart with no RunEnd, as an exception caught by the reader leaves it.
+                        Tracer.RunStart (g, (m :> INode).Id, 0))
 
                 reader.Value
                 let node = (m :> INode).Id
@@ -1050,69 +1059,38 @@ let tests =
                 Expect.all pulled (fun e -> e.Other <> 0) "every pass pulled in the walk names its reader"
             }
 
-#if !FABLE_COMPILER
-            // .NET only: JavaScript has one thread.
-            test "an affinity violation inside a walk leaves an empty walker stack after the flush" {
-                let mutable foreign = Unchecked.defaultof<Signal<int>>
-                let thread = System.Threading.Thread (fun () -> foreign <- Signal (new Graph (), 0))
-                thread.Start ()
-                thread.Join ()
-                let armed = ref false
-
-                // A comparer that writes to a graph owned by another thread, once armed.
-                let policy =
-                    { new IEqualityPolicy with
-                        member _.Comparer<'T>() =
-                            { new System.Collections.Generic.IEqualityComparer<'T> with
-                                member _.Equals(x, y) =
-                                    if armed.Value then
-                                        armed.Value <- false
-                                        foreign.Value <- 1
-
-                                    System.Collections.Generic.EqualityComparer<'T>.Default.Equals(x, y)
-
-                                member _.GetHashCode x =
-                                    System.Collections.Generic.EqualityComparer<'T>.Default.GetHashCode x
-                            }
-                    }
-
-                use g =
-                    new Graph (
-                        { GraphOptions.Default with
-                            Equality = policy
-                        }
-                    )
-
+            test "a walker frame left open leaves an empty walker stack after the flush" {
+                use g = new Graph ()
                 use _ = g.Activate ()
                 let s = createSignal 1
+                let a = createMemo (fun _ -> s.Value * 2)
+                let armed = ref false
 
-                let a =
-                    createMemo (fun _ ->
-                        let v = s.Value * 2
+                createEffect (fun () ->
+                    a.Value |> ignore
 
-                        if v = 4 then
-                            armed.Value <- true
+                    if armed.Value then
+                        armed.Value <- false
+                        // A walker frame with no pop, as an exception escaping a walk leaves it.
+                        Tracer.Walk (g, (s :> INode).Id))
 
-                        v)
-
-                createEffect (fun () -> a.Value |> ignore)
                 let effect = idsOf TraceNodeKind.Effect g |> Array.exactlyOne
-                Expect.throwsT<System.InvalidOperationException> (fun () -> s.Value <- 2) "the foreign write raises"
+                armed.Value <- true
+                s.Value <- 2
 
                 let kinds =
                     Trace.events g
                     |> Array.map (fun e -> e.Kind, e.Node)
 
                 let abandoned =
-                    Array.findIndexBack (fun k -> k = (TraceEventKind.WalkAbandoned, effect)) kinds
+                    Array.findIndexBack (fun k -> k = (TraceEventKind.WalkAbandoned, (s :> INode).Id)) kinds
 
                 let flushEnd = Array.findIndexBack (fun (k, _) -> k = TraceEventKind.FlushEnd) kinds
-                Expect.isLessThan abandoned flushEnd "the flush unwound the effect's walker frame"
+                Expect.isLessThan abandoned flushEnd "the flush unwound the open walker frame"
 
                 s.Value <- 3
                 Expect.equal (pullerOf g (a :> INode).Id) effect "the next walk starts from an empty stack"
             }
-#endif
 
             test "a node reports the test's file:line" {
                 use g = new Graph ()

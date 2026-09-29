@@ -54,11 +54,19 @@ type FlightPolicy =
 /// Supplies the cutoff comparer for a node's value type.
 /// </summary>
 /// <remarks>
+/// <para>
 /// A policy rather than a comparer, because the comparer has to be typed. An
 /// <c>IEqualityComparer&lt;obj></c> boxes on every write — 24 bytes of garbage per <c>int</c>
 /// written, on the hottest path in the library, and a heap allocation where a
 /// register comparison belongs. The generic member lets each node resolve its
 /// own <c>IEqualityComparer&lt;'T></c> once, at construction.
+/// </para>
+/// <para>
+/// A comparer that throws inside a computed node's cutoff fails the node with the comparer's exception, as a throwing body
+/// would: a memo, boundary, projection row, fold row or lookup cell keeps its previous value, and its readers wake to
+/// the failure. A boundary's <c>recover</c> does not see it. An effect split by <c>createEffectOn</c> records it and
+/// skips <c>act</c>. A signal write raises it to the writer and leaves the value unchanged.
+/// </para>
 /// </remarks>
 type IEqualityPolicy =
     abstract Comparer<'T> : unit -> IEqualityComparer<'T>
