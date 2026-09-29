@@ -157,6 +157,7 @@ let theme =
                 "Core concepts"
                 [
                     Menu.page "guide/async-and-pending.md"
+                    Menu.page "guide/testing.md"
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
