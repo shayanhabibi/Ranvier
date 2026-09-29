@@ -349,7 +349,7 @@ A dependency graph with explicit ownership, plus a second channel for values tha
 <a class="rv-card" href="/Ranvier/guide/getting-started/#memos"><strong class="rv-card__title">Signals, memos, effects</strong><p>Dependencies are tracked as computations run. Propagation is glitch-free (tested on the diamond case in the guide), and an equality cutoff stops it when a recomputed value is unchanged. Every memo and effect belongs to an owner that disposes it.</p></a>
 <a class="rv-card" href="/Ranvier/concepts/suspension/"><strong class="rv-card__title">Suspension and boundaries</strong><p>Async sources and async memos mark a node as in flight. Suspense and error boundaries catch the pending or failed state their body reads and substitute a value of the same type.</p></a>
 <a class="rv-card" href="/Ranvier/guide/collections/#selectors"><strong class="rv-card__title">Collections and projections</strong><p>Keyed and index projections give each row its own reactive value. Lookups derive a value per key, and a selection change wakes only the readers of the previous and new key.</p></a>
-<a class="rv-card" href="/Ranvier/fable/"><strong class="rv-card__title">Fable target <span class="rv-badge">Planned</span></strong><p>The library targets <code>net10.0</code>. A Fable/JavaScript target is planned; see the Fable page for its status.</p></a>
+<a class="rv-card" href="/Ranvier/fable/"><strong class="rv-card__title">Fable target <span class="rv-badge">Planned</span></strong><p>The library targets <code>net10.0</code>, <code>net8.0</code> and <code>netstandard2.1</code>. A Fable/JavaScript target is planned; see the Fable page for its status.</p></a>
 </div>
 
 <script>

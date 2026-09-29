@@ -16,7 +16,7 @@ The sections follow the order in which the concepts build on each other.
 ## Install
 
 Ranvier is not on NuGet yet; [Installation](installation.md) covers building it from source. Once
-published, reference the package from a project that targets `net10.0`:
+published, reference the package from a project that targets `net8.0` or later, or `netstandard2.1`:
 
 ```xml
 <PackageReference Include="Ranvier" />

@@ -692,7 +692,7 @@ let lint () =
 let buildLibrary (traced: bool) =
     let out = Path.Combine (work, (if traced then "traced" else "untraced"))
 
-    runChecked root [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; $"-p:RanvierTrace=%b{traced}"; "-o"; out; "-warnaserror" ]
+    runChecked root [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; $"-p:RanvierTrace=%b{traced}"; "-o"; out; "-warnaserror" ]
     |> ignore
 
     Path.Combine (out, "Ranvier.dll")
@@ -780,7 +780,7 @@ let packGate () =
         use zip = ZipFile.OpenRead nupkg
 
         let entry =
-            zip.Entries |> Seq.find (fun e -> e.FullName.EndsWith "/Ranvier.dll" && e.FullName.StartsWith "lib/")
+            zip.Entries |> Seq.find (fun e -> e.FullName = "lib/net10.0/Ranvier.dll")
 
         entry.ExtractToFile (dll, true)
 
