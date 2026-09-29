@@ -23,7 +23,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Effects.fs | 14 | 14 | 14 | 14 | 14 | 14 | 0 | 0 |
 | EffectSplit.fs | 26 | 26 | 21 | 26 | 26 | 21 | 0 | 0 |
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Owners.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Owners.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
 | Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
@@ -41,7 +41,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Cutoff.fs | 16 | 14 | 14 | 16 | 14 | 14 | 0 | 0 |
 | SuspensionEdges.fs | 21 | 20 | 20 | 21 | 20 | 20 | 0 | 0 |
 | Scopes.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
-| Propagation.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Propagation.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 700 | 682 | 644 | 774 | 752 | 711 | 64 | 1 |
+| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 64 | 1 |
 
 ## Tests.fs
 
@@ -148,7 +148,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Owners.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>12 passed in every build and delivery that runs them</summary>
 
 - disposing a root disposes the effects created inside it
 - a cleanup runs before the next run of the same effect
@@ -161,6 +161,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - disposal is idempotent
 - an effect created outside a root belongs to the graph root
 - a memo and an effect created in an effect body are disposed before the effect's next run
+- an effect body may create nodes conditionally and in a loop of varying length
 
 </details>
 
@@ -657,10 +658,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Propagation.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>12 passed in every build and delivery that runs them</summary>
 
 - an effect at the bottom of a diamond runs once per write
 - the bottom of a diamond never sees one leg updated and the other not
+- a memo at the bottom of a diamond runs once per write and sees only whole states
 - a memo shared by two effects is recomputed once, not once per reader
 - a write is carried the whole length of a deep chain
 - a cutoff partway down a chain stops everything below it

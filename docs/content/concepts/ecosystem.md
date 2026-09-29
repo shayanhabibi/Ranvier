@@ -163,7 +163,8 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   tests, desktop) and through Fable, with suspension that matches Solid 2.0. The Fable target is implemented
   and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
-  reads Pending, Ready and Failed states as values, with no UI thread involved.
+  reads Pending, Ready and Failed states as values, with no UI thread involved. See
+  [Testing async state](../guide/testing.md).
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
 - **Fluxor stores.** For Fluxor users, memos are memoised selectors: a memo over a signal holding the
   store's state recomputes when that state changes, and an equal result stops at the memo

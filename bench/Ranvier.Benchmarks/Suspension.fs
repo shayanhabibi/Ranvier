@@ -137,8 +137,8 @@ type SettleBenchmarks() =
 
 /// <summary>
 /// The price of cancellation per async-memo flight. <c>CancelPrevious</c> cancels, disposes and replaces a
-/// <c>CancellationTokenSource</c> at every launch; <c>KeepLatest</c> publishes the same values from one source
-/// allocated at the memo's first flight.
+/// <c>CancellationTokenSource</c> at every launch; <c>KeepLatest</c> shares one source, allocated at the
+/// memo's first flight.
 /// </summary>
 /// <remarks>
 /// Each iteration writes a trigger the body reads, then reads the memo, which launches one flight. The body

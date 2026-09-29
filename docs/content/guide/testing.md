@@ -197,4 +197,5 @@ resume on another thread, and the graph's thread guard raises on the next write.
 ## Time
 
 Ranvier has no time-based policies yet: debounce and throttle are not in the library, as a flight
-policy or as a combinator. A Ranvier graph reads no clock, so a test has no timer to fake.
+policy or as a combinator; the [roadmap](../concepts/roadmap.md) lists them under consideration. A
+Ranvier graph reads no clock, so a test has no timer to fake.

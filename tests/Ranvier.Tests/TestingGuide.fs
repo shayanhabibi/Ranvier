@@ -1,4 +1,4 @@
-/// The samples of docs/content/guide/testing.md, verbatim. A change here changes the page.
+/// The samples of docs/content/guide/testing.md. A change to a sample here belongs on the page too.
 module Ranvier.Tests.TestingGuide
 
 open System

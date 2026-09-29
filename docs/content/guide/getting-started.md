@@ -564,8 +564,8 @@ to objects under Fable. Writing the same instance back is cut off for every type
 | Class without custom equality | Propagates | Propagates | Propagates |
 
 The policy applies to every signal and memo in a graph. To override it, pass your own
-`IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` returns the comparer for each value
-type and is called once when a node is created. A node cannot take its own comparer.
+`IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` returns the comparer for each type
+of value and is called once when a node is created. A node cannot take its own comparer.
 
 ```fsharp
 type CaseInsensitivePolicy() =

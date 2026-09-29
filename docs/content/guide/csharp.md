@@ -50,7 +50,7 @@ public sealed class WeatherViewModel : ReactiveObject
 `ReactiveObject` implements `INotifyPropertyChanged`, `INotifyDataErrorInfo` and `IDisposable`, and adds
 `IsLoading` and `HasErrors`. Bound to a view, it behaves as follows:
 
-- **Loading.** While the temperature is in flight, `IsLoading` is true and `Forecast` keeps its last value. Setting
+- **Loading.** While the temperature is in flight, `IsLoading` is true and `Forecast` keeps its last value, or `null` before the first result. Setting
   `City` starts a new request.
 - **Value.** When the request completes, `Forecast` raises `PropertyChanged`, then `IsLoading` turns false.
 - **Error.** When the request fails, `HasErrors` turns true, `ErrorsChanged` is raised for `Forecast`, and
