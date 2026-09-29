@@ -133,6 +133,7 @@ let theme =
                     Menu.page "guide/index.md"
                     Menu.page "guide/installation.md"
                     Menu.page "guide/getting-started.md"
+                    Menu.page "guide/csharp.md"
                 ]
             Menu.section
                 "Core concepts"
