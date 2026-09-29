@@ -10,7 +10,11 @@
         <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.CSharp.Traced</PackageId>
         <Title>Ranvier.CSharp</Title>
         <Description>C# entry points for Ranvier: delegate-based factories and extension methods.</Description>
+        <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier.CSharp: C# entry points for Ranvier, with the tracing queries compiled in. Depends on Ranvier.Traced.</Description>
+        <PackageTags>reactive;reactivity;signals;memo;effects;fine-grained;csharp</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>0.1.0-preview.1</Version>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,6 +22,7 @@
         <Compile Include="Extensions.fs" />
         <Compile Include="Tracing.fs" />
         <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />
     </ItemGroup>
 
     <ItemGroup>

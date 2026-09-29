@@ -19,7 +19,8 @@
 > French anatomist Louis-Antoine Ranvier. A signal jumps from node to node and is regenerated at each
 > one, instead of flowing along every point of the fibre.
 
-> **Preview.** Ranvier is pre-release. Its APIs may change before the first release. No package has been published yet.
+> **Preview.** Ranvier is pre-release. Its APIs may change before the first release. Install the preview from NuGet as
+> [`Ranvier`](https://www.nuget.org/packages/Ranvier), or [`Ranvier.CSharp`](https://www.nuget.org/packages/Ranvier.CSharp) from C#.
 
 ## Overview
 

@@ -13,7 +13,12 @@
              default is not visible here, so a default traced build keeps `Ranvier` and cannot pack. -->
         <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Traced</PackageId>
         <Title>Ranvier</Title>
+        <Description>Fine-grained reactive computation for .NET: signals, memos and effects on an explicit graph, with async sources that carry a Pending state and boundaries that decide where a pending or failed read stops.</Description>
+        <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier: the same assembly, namespaces and version, with the per-graph event log and its queries compiled in.</Description>
+        <PackageTags>reactive;reactivity;signals;memo;effects;fine-grained;fsharp</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>0.1.0-preview.1</Version>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
     <!-- `-p:RanvierCounters=true` compiles in the operation counts in
@@ -49,7 +54,8 @@
         <Compile Include="Combinators.fs" />
         <Compile Include="TraceModel.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="TraceApi.fs" />
-        <None Include="../../README.md" Pack="true" PackagePath="\" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />
     </ItemGroup>
 
     <!-- `RanvierTrace` defaults, its define and the traced-pack guard live in Directory.Build.targets.

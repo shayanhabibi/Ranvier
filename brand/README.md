@@ -29,7 +29,8 @@ Do not reintroduce these:
 ## Current direction
 
 - **Name**: write **Ranvier** in running text. Until a new mark exists, the identity is the
-  lowercase word `ranvier` set in Geist 600. The favicon is an interim `r` lettermark.
+  lowercase word `ranvier` set in Geist 600. The favicon is an interim `r` lettermark. The NuGet package icon, `icon/ranvier-icon.png`, is the same lettermark in the dark scheme,
+  drawn by `icon/ranvier-icon.py`.
 - **Type**: Geist for headings, navigation and the wordmark; the system sans stack for body
   copy; Geist Mono for code.
 - **Motif**: a short contour line in `--rv-contour`, used for section rules, the active navigation
