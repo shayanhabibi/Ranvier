@@ -11,6 +11,65 @@ type Point = { X: int; Y: int }
 type Opaque(tag: string) =
     member _.Tag = tag
 
+[<Struct>]
+type StructPoint = { SX: int; SY: int }
+
+/// <summary>
+/// Compares every value by its <c>string</c> rendering, ignoring case.
+/// </summary>
+type CaseInsensitivePolicy() =
+    interface IEqualityPolicy with
+        member _.Comparer<'T>() =
+            { new IEqualityComparer<'T> with
+                member _.Equals(a, b) =
+                    String.Equals (string (box a), string (box b), StringComparison.OrdinalIgnoreCase)
+
+                member _.GetHashCode a =
+                    (string (box a)).ToLowerInvariant().GetHashCode ()
+            }
+
+let private structural =
+    { GraphOptions.Default with
+        Equality = StructuralPolicy ()
+    }
+
+/// <summary>
+/// The number of times an effect reading a signal holding <c>first</c> re-runs when <c>second</c> is written.
+/// </summary>
+let private wakes (options: GraphOptions) (first: 'T) (second: 'T) =
+    let g = new Graph (options)
+    let s = Signal (g, first)
+    let runs = ref 0
+
+    let _effect =
+        new Effect (
+            g,
+            fun () ->
+                s.Value |> ignore
+                runs.Value <- runs.Value + 1
+        )
+
+    s.Value <- second
+    runs.Value - 1
+
+/// <summary>
+/// <c>dotnet</c> on .NET, <c>fable</c> under Fable.
+/// </summary>
+let private onTarget (dotnet: int) (fable: int) =
+#if FABLE_COMPILER
+    fable
+#else
+    dotnet
+#endif
+
+let private date () =
+    DateTime (2024, 1, 2, 3, 4, 5, DateTimeKind.Utc)
+
+let private dateOffset () =
+    DateTimeOffset (2024, 1, 2, 3, 4, 5, TimeSpan.FromHours 2.0)
+
+let private money () = Decimal.Parse "1.5"
+
 #if !FABLE_COMPILER
 /// <summary>
 /// Structural equality whose <c>int</c> comparer throws while <c>Armed</c> is set. Comparers of every other type never throw.
@@ -131,6 +190,75 @@ let tests =
                 s.Value <- { X = 1; Y = 2 }
                 c.TryValue |> ignore
                 Expect.equal c.Runs 1 "structural equality is the whole point of the opt-in"
+            }
+
+            testList
+                "an equal write, by type"
+                [
+                    // Each case writes a value equal to the one held and counts the reader's re-runs:
+                    // 0 is a cutoff, 1 a propagation.
+                    let case name (defaultWakes: int) (structuralWakes: int) (measure: GraphOptions -> int) =
+                        test name {
+                            Expect.equal (measure GraphOptions.Default) defaultWakes "under JsIdentityPolicy"
+                            Expect.equal (measure structural) structuralWakes "under StructuralPolicy"
+                        }
+
+                    case "int" 0 0 (fun o -> wakes o 7 (3 + 4))
+                    case "float" 0 0 (fun o -> wakes o 1.5 (3.0 / 2.0))
+                    case "float nan" 1 (onTarget 0 1) (fun o -> wakes o nan (0.0 / 0.0))
+                    case "string" 0 0 (fun o -> wakes o (String ('a', 3)) (String ('a', 3)))
+                    case "DateTime" (onTarget 0 1) 0 (fun o -> wakes o (date ()) (date ()))
+                    case "DateTimeOffset" (onTarget 0 1) 0 (fun o -> wakes o (dateOffset ()) (dateOffset ()))
+                    case "decimal" (onTarget 0 1) 0 (fun o -> wakes o (money ()) (money ()))
+                    case "record" 1 0 (fun o -> wakes o { X = 1; Y = 2 } { X = 1; Y = 2 })
+                    case "tuple" 1 0 (fun o -> wakes o (1, "a") (1, "a"))
+                    case "struct tuple" (onTarget 0 1) 0 (fun o -> wakes o (struct (1, "a")) (struct (1, "a")))
+                    case "Some of int" (onTarget 1 0) 0 (fun o -> wakes o (Some 1) (Some 1))
+                    case "Some of record" 1 0 (fun o -> wakes o (Some { X = 1; Y = 2 }) (Some { X = 1; Y = 2 }))
+                    case "None" 0 0 (fun o -> wakes o (None: int option) None)
+                    case "struct record" (onTarget 0 1) 0 (fun o -> wakes o { SX = 1; SY = 2 } { SX = 1; SY = 2 })
+                    case "list" 1 0 (fun o -> wakes o [ 1; 2 ] (List.map id [ 1; 2 ]))
+                    case "the same class instance" 0 0 (fun o -> let a = Opaque "a" in wakes o a a)
+                    case "an equal class instance" 1 1 (fun o -> wakes o (Opaque "a") (Opaque "a"))
+                ]
+
+            test "a custom equality policy decides the cutoff for signals and memos" {
+                let g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Equality = CaseInsensitivePolicy ()
+                        }
+                    )
+
+                let s = Signal (g, "abc")
+                let exclaimed = Make.Memo (g, (fun _ -> s.Value + "!"))
+                let seen = ResizeArray<string>()
+                let _effect = new Effect (g, (fun () -> seen.Add exclaimed.Value))
+
+                s.Value <- "ABC"
+                Expect.sequenceEqual seen [ "abc!" ] "a write equal ignoring case is cut off"
+                Expect.equal s.Peek "abc" "a cut-off write leaves the value unchanged"
+
+                s.Value <- "abd"
+                Expect.sequenceEqual seen [ "abc!"; "abd!" ] "a write the policy calls different propagates"
+            }
+
+            test "a custom equality policy cuts off a memo that recomputes to an equal value" {
+                let g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Equality = CaseInsensitivePolicy ()
+                        }
+                    )
+
+                let s = Signal (g, 1)
+                let label = Make.Memo (g, (fun _ -> if s.Value = 1 then "one" else "ONE"))
+                let seen = ResizeArray<string>()
+                let _effect = new Effect (g, (fun () -> seen.Add label.Value))
+
+                s.Value <- 2
+                Expect.equal label.Runs 2 "the memo recomputed"
+                Expect.sequenceEqual seen [ "one" ] "its reader stays asleep: \"ONE\" equals \"one\" under the policy"
             }
 
             test "a reference type with no structural equality is compared by identity" {
