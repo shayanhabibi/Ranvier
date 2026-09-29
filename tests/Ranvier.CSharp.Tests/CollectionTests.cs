@@ -109,4 +109,25 @@ public class CollectionTests
         Assert.Equal(30, three);
         Assert.False(scaled.TryGetValue(7, out _));
     }
+
+    [Fact]
+    public void ObservableCollectionRaisesMinimalEvents()
+    {
+        using var active = new Graph().Activate();
+        var todos = Signal(Initial);
+        var rows = Projection(() => todos.Value, t => t.Id, t => t.Title);
+        var view = rows.AsObservableCollection();
+        var actions = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+        view.CollectionChanged += (_, e) => actions.Add(e.Action);
+
+        todos.Value = [Initial[0], Initial[2], Initial[1] with { Title = "retest" }];
+
+        Assert.Equal(["write", "ship", "retest"], view);
+        Assert.Equal(
+            [
+                System.Collections.Specialized.NotifyCollectionChangedAction.Move,
+                System.Collections.Specialized.NotifyCollectionChangedAction.Replace,
+            ],
+            actions);
+    }
 }
