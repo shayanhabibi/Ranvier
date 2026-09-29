@@ -20,6 +20,12 @@ graph.Run(() =>
 });
 ```
 
+## Binding to XAML
+
+`ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
+memos and signals, inside any existing view model; `ReactiveObject` is a base class over it. See the
+[C# guide](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/csharp.md#binding-to-xaml).
+
 ## Tracing
 
 `Tracing.Named` and `Tracing.Label` compile in every build. The queries (`Origin`, `Why`, `WhyDepth`, `WhyNot`,
