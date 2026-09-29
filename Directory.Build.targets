@@ -17,4 +17,14 @@
     <PropertyGroup Condition="'$(RanvierTrace)' == 'true'">
         <DefineConstants>$(DefineConstants);RANVIER_TRACE</DefineConstants>
     </PropertyGroup>
+
+    <!--
+    A traced build packs only under a `.Traced` package id, which a project
+    selects on an explicit `-p:RanvierTrace=true`. The traced and untraced
+    packages hold the same assembly names, namespaces and version.
+    -->
+    <Target Name="RefuseTracedPack" BeforeTargets="GenerateNuspec"
+            Condition="'$(RanvierTrace)' == 'true' and !$(PackageId.EndsWith('.Traced'))">
+        <Error Text="$(PackageId) is built with RanvierTrace=true, the Debug default. Pack with -c Release, or pass -p:RanvierTrace=true to pack $(PackageId).Traced." />
+    </Target>
 </Project>

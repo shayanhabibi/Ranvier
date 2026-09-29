@@ -22,7 +22,7 @@ Reference `Ranvier.CSharp`; it brings `Ranvier` with it. Built from source:
 
 Import the factories statically:
 
-```text
+```csharp
 using Ranvier;
 using Ranvier.CSharp;
 using static Ranvier.CSharp.Reactive;
@@ -30,7 +30,7 @@ using static Ranvier.CSharp.Reactive;
 
 ## A first graph
 
-```text
+```csharp
 var graph = new Graph();
 
 graph.Run(() =>
@@ -59,7 +59,7 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `Memo(() => …)` | `createMemo` |
 | `Memo(previous => …, seed)` | `createMemo`, with the previous value or `seed` |
 | `OwningMemo(() => …)` | `createMemoWith` |
-| `Effect(() => …)` | `createEffect` |
+| `Effect(() => …)` | `createEffect`, returning the `Effect`: dispose it to stop the effect early |
 | `EffectOn(() => …, value => …)` | `createEffectOn` |
 | `Async(token => …)`, `Async((previous, token) => …)` | `createAsync` |
 | `OwningAsync(token => …)` | `createAsyncWith` |
@@ -81,7 +81,7 @@ A boundary's `fallback` and `recover` receive no previous value in C#. Where the
 
 `Async` takes a task factory. The token is cancelled when a newer flight supersedes the one it was given.
 
-```text
+```csharp
 var userId = Signal(1);
 var user = Async(token => api.GetUserAsync(userId.Value, token));
 var shown = Suspense(() => user.Value.Name, () => "Loading…");
@@ -93,7 +93,7 @@ then read `Value`.
 
 `TryValue` reads a node without raising. `TryGetValue` and `TryGetError` take it apart:
 
-```text
+```csharp
 if (price.TryValue.TryGetValue(out var value)) Console.WriteLine(value);
 else if (price.TryValue.TryGetError(out var error)) Console.WriteLine(error.Message);
 else Console.WriteLine("pending");
@@ -103,7 +103,7 @@ else Console.WriteLine("pending");
 
 The projection operators carry LINQ names and return live nodes. Each updates per changed row.
 
-```text
+```csharp
 var rows = Projection(() => todos.Value, t => t.Id, t => t);
 
 var open = rows.Where(t => !t.Done).OrderBy(t => t.Title);
@@ -128,7 +128,7 @@ var firstPage = open.Take(() => pageSize.Value);
 
 `GraphOptions` is built with `With` methods:
 
-```text
+```csharp
 var graph = new Graph(GraphOptions.Default
     .WithFlightPolicy(FlightPolicy.Queue)
     .WithDispatcher(new ManualDispatcher()));
@@ -137,8 +137,44 @@ var graph = new Graph(GraphOptions.Default
 `graph.Dispatch(() => …)` marshals a write from another thread, as described in
 [Async and pending](async-and-pending.md#threading-and-dispatch).
 
+## Tracing
+
+`Tracing` wraps the [trace log](tracing.md) for C#. `Tracing.Named` and `Tracing.Label` compile in every
+build. The queries exist in a traced build only, from the `Ranvier.CSharp.Traced` package or a source build
+with `-p:RanvierTrace=true`, and return text:
+
+```csharp
+var graph = new Graph();
+
+graph.Run(() =>
+{
+    var count = Tracing.Named("count", () => Signal(1));
+    var log = Effect(() => Console.WriteLine(count.Value));
+    Tracing.Named("changes", () => EffectOn(() => count.Value, value => { }));
+    Flush();
+
+    count.Value = 2;
+    Flush();
+#if RANVIER_TRACE
+    Console.WriteLine(Tracing.Why(graph, log));
+    Console.WriteLine(Tracing.Why(graph, "/changes"));
+#endif
+});
+```
+
+| C# | F# |
+| --- | --- |
+| `Named(label, () => …)` | `Trace.named` |
+| `Label(graph, node, text)` | `Trace.label` |
+| `Origin`, `Why`, `WhyDepth`, `WhyNot`, `History`, `WaitingOn` | the same queries, passed to `Trace.render` |
+| `Snapshot(graph)`, `Snapshot(graph, seq)` | `Trace.snapshot`, `Trace.snapshotAt`, rendered |
+| `Resolve`, `Reconcile`, `Events`, `DumpText`, `Dump` | `Trace.resolve`, `reconcile`, `events`, `dumpText`, `dump` |
+
+Each per-node query takes the node, or its identity path such as `"/changes"`. The path form reaches nodes
+without a handle, such as an `EffectOn`. `Tracing.Label` is `[Conditional("RANVIER_TRACE")]`: the call
+stays only in a project that defines `RANVIER_TRACE` itself.
+
 ## Limits
 
-- **No tracing.** The trace log and its queries are F# only.
 - **`Graph.Current` everywhere.** The factories read the thread's active graph. The constructors, such as
   `new Memo<int>(graph, previous => …)`, take the graph explicitly.

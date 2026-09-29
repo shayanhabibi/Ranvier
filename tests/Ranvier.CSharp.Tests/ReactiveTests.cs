@@ -63,6 +63,26 @@ public class ReactiveTests
     }
 
     [Fact]
+    public void ADisposedEffectStopsRunning()
+    {
+        using var active = new Graph().Activate();
+        var count = Signal(1);
+        var runs = 0;
+        var effect = Effect(() =>
+        {
+            _ = count.Value;
+            runs++;
+        });
+        Flush();
+
+        effect.Dispose();
+        count.Value = 2;
+        Flush();
+
+        Assert.Equal(1, runs);
+    }
+
+    [Fact]
     public void UntrackedReadsDoNotWakeAMemo()
     {
         using var active = new Graph().Activate();

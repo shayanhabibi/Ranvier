@@ -6,6 +6,8 @@
         <RootNamespace>Ranvier.CSharp</RootNamespace>
         <AssemblyName>Ranvier.CSharp</AssemblyName>
         <PackageId>Ranvier.CSharp</PackageId>
+        <!-- As for Ranvier: the traced build packs as Ranvier.CSharp.Traced and depends on Ranvier.Traced. -->
+        <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.CSharp.Traced</PackageId>
         <Title>Ranvier.CSharp</Title>
         <Description>C# entry points for Ranvier: delegate-based factories and extension methods.</Description>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,11 +16,16 @@
     <ItemGroup>
         <Compile Include="Reactive.fs" />
         <Compile Include="Extensions.fs" />
+        <Compile Include="Tracing.fs" />
         <None Include="README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="../Ranvier/Ranvier.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+        <AssemblyMetadata Include="RanvierTrace" Value="true" />
     </ItemGroup>
 
 </Project>

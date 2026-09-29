@@ -9,7 +9,7 @@ layout: splash
 <span class="rv-hero__status"><span class="rv-badge">Preview</span> APIs follow Partas.Signals and may change.</span>
 <h1 class="rv-hero__title">ranvier</h1>
 <p class="rv-hero__line">Fine-grained reactive computation for .NET.</p>
-<p class="rv-hero__sub">Signals, memos and effects in F#, with a second channel for values that have not arrived. A boundary shows a fallback while its inputs are in flight and a recovered value when one fails.</p>
+<p class="rv-hero__sub">Signals, memos and effects for F# and C#, with a second channel for values that have not arrived. A boundary shows a fallback while its inputs are in flight and a recovered value when one fails.</p>
 <div class="rv-hero__actions">
 <a class="rv-btn rv-btn--primary" href="/Ranvier/guide/getting-started/">Get started <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
 <a class="rv-btn rv-btn--secondary" href="/Ranvier/guide/async-and-pending/">Async and pending</a>
@@ -17,7 +17,11 @@ layout: splash
 </div>
 <figure class="rv-demo" data-rv-demo aria-label="A boundary moving through its states as its source settles, fails and settles again">
 <div class="rv-demo__code">
-<pre><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
+<div class="rv-demo__tabs" role="tablist" aria-label="Language">
+<button type="button" role="tab" id="rv-demo-tab-fsharp" aria-controls="rv-demo-fsharp" aria-selected="true" data-lang="fsharp">F#</button>
+<button type="button" role="tab" id="rv-demo-tab-csharp" aria-controls="rv-demo-csharp" aria-selected="false" tabindex="-1" data-lang="csharp">C#</button>
+</div>
+<pre id="rv-demo-fsharp" role="tabpanel" aria-labelledby="rv-demo-tab-fsharp" data-lang="fsharp"><code><span class="k">use</span> graph = <span class="k">new</span> Graph ()
 <span class="k">use</span> _ = graph.Activate ()
 <span></span>
 <span class="k">let</span> price = createAsyncSource&lt;<span class="t">int</span>&gt; ()
@@ -32,6 +36,20 @@ layout: splash
 <span class="rv-demo__step" data-step="1">price.Settle <span class="n">4</span></span>
 <span class="rv-demo__step" data-step="2">price.Fail (exn <span class="s">"feed offline"</span>)</span>
 <span class="rv-demo__step" data-step="3">price.Settle <span class="n">5</span></span></code></pre>
+<pre id="rv-demo-csharp" role="tabpanel" aria-labelledby="rv-demo-tab-csharp" data-lang="csharp" hidden><code><span class="k">using var</span> graph = <span class="k">new</span> Graph();
+<span class="k">using var</span> _ = graph.Activate();
+<span></span>
+<span class="k">var</span> price = AsyncSource&lt;<span class="t">int</span>&gt;();
+<span class="k">var</span> total = Memo(() =&gt; price.Value * <span class="n">3</span>);
+<span class="k">var</span> view = Boundary(
+    () =&gt; <span class="s">$"Total {total.Value}"</span>,
+    () =&gt; <span class="s">"Loading…"</span>,
+    ex =&gt; <span class="s">$"Unavailable: {ex.Message}"</span>);
+<span></span>
+<span class="rv-demo__step" data-step="0"><span class="c">// view: Fallback</span></span>
+<span class="rv-demo__step" data-step="1">price.Settle(<span class="n">4</span>);</span>
+<span class="rv-demo__step" data-step="2">price.Fail(<span class="k">new</span> Exception(<span class="s">"feed offline"</span>));</span>
+<span class="rv-demo__step" data-step="3">price.Settle(<span class="n">5</span>);</span></code></pre>
 </div>
 <div class="rv-demo__out" aria-live="polite">
 <div class="rv-demo__label">view.TryValue</div>
@@ -203,19 +221,46 @@ A dependency graph with explicit ownership, plus a second channel for values tha
   if (!demo) return;
   const frames = demo.querySelectorAll(".rv-demo__frames > li");
   const steps = demo.querySelectorAll(".rv-demo__step");
-  let step = 0, timer = 0;
+  const tabs = [...demo.querySelectorAll("[role=tab]")];
+  const panels = demo.querySelectorAll("[role=tabpanel]");
+  let step = 0, lang = 0, timer = 0;
   const show = (n) => {
     step = n;
     for (const f of frames) f.classList.toggle("is-active", +f.dataset.step === n);
     for (const s of steps) s.classList.toggle("is-active", +s.dataset.step === n);
   };
+  const pick = (n, focus) => {
+    lang = n;
+    tabs.forEach((t, i) => {
+      t.setAttribute("aria-selected", i === n);
+      t.tabIndex = i === n ? 0 : -1;
+      if (i === n && focus) t.focus();
+    });
+    for (const p of panels) p.hidden = p.dataset.lang !== tabs[n].dataset.lang;
+  };
+  // Each wrap back to the first step also moves to the next language.
+  const tick = () => {
+    const next = (step + 1) % frames.length;
+    if (next === 0) pick((lang + 1) % tabs.length);
+    show(next);
+  };
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const start = () => { if (!reduce && !timer) timer = setInterval(() => show((step + 1) % frames.length), 2400); };
+  const start = () => { if (!reduce && !timer) timer = setInterval(tick, 2400); };
   const stop = () => { clearInterval(timer); timer = 0; };
   for (const el of [...frames, ...steps]) {
-    el.addEventListener("mouseenter", () => { stop(); show(+el.dataset.step); });
+    el.addEventListener("mouseenter", () => show(+el.dataset.step));
   }
-  demo.addEventListener("mouseleave", start);
+  demo.addEventListener("mouseenter", stop);
+  demo.addEventListener("focusin", stop);
+  demo.addEventListener("mouseleave", () => { if (!demo.contains(document.activeElement)) start(); });
+  demo.addEventListener("focusout", (e) => { if (!demo.contains(e.relatedTarget) && !demo.matches(":hover")) start(); });
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => pick(i));
+    t.addEventListener("keydown", (e) => {
+      const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (d) pick((i + d + tabs.length) % tabs.length, true);
+    });
+  });
   show(0);
   start();
 })();

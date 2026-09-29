@@ -21,6 +21,33 @@ public class AsyncTests
         Assert.Equal("Unavailable: feed offline", view.Value);
     }
 
+    // The C# code and frames of the home page's hero.
+    [Fact]
+    public void HeroBoundaryMovesThroughItsStates()
+    {
+        using var graph = new Graph();
+        using var _ = graph.Activate();
+
+        var price = AsyncSource<int>();
+        var total = Memo(() => price.Value * 3);
+        var view = Boundary(
+            () => $"Total {total.Value}",
+            () => "Loading…",
+            ex => $"Unavailable: {ex.Message}");
+
+        Assert.Equal("Ready \"Loading…\"", view.TryValue.ToString());
+        Assert.True(view.IsWaiting);
+        price.Settle(4);
+        Assert.Equal("Ready \"Total 12\"", view.TryValue.ToString());
+        Assert.False(view.IsWaiting);
+        price.Fail(new Exception("feed offline"));
+        Assert.Equal("Ready \"Unavailable: feed offline\"", view.TryValue.ToString());
+        Assert.NotNull(view.Caught);
+        price.Settle(5);
+        Assert.Equal("Ready \"Total 15\"", view.TryValue.ToString());
+        Assert.Null(view.Caught);
+    }
+
     [Fact]
     public void ReadingExposesValueAndError()
     {

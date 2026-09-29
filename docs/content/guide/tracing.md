@@ -38,8 +38,31 @@ dotnet build src/Ranvier -c Release -p:RanvierTrace=true
 ```
 
 A traced build defines `RANVIER_TRACE` for every project in the repository, so tests and samples see
-the same build as the library. A traced library cannot be packed: `dotnet pack` fails with an error
-naming the switch.
+the same build as the library.
+
+### From NuGet
+
+The traced build ships as `Ranvier.Traced`, and the C# façade's as `Ranvier.CSharp.Traced`. Each holds
+the same assembly, namespaces and version as its untraced package; only the package id differs. Reference
+one or the other behind a switch of your own, and define `RANVIER_TRACE` with it:
+
+```xml
+<PropertyGroup Condition="'$(RanvierTrace)' == 'true'">
+    <DefineConstants>$(DefineConstants);RANVIER_TRACE</DefineConstants>
+</PropertyGroup>
+<ItemGroup>
+    <PackageReference Include="Ranvier" Condition="'$(RanvierTrace)' != 'true'" />
+    <PackageReference Include="Ranvier.Traced" Condition="'$(RanvierTrace)' == 'true'" />
+</ItemGroup>
+```
+
+`dotnet build -p:RanvierTrace=true` then restores and builds against the traced package. Pass the same
+switch to a separate `dotnet restore`. Referencing both packages at once fails the build: they carry the
+same assembly.
+
+Packing the repository's traced build needs the explicit switch, `dotnet pack -c Release
+-p:RanvierTrace=true`, which sets the `.Traced` id. A Debug build is traced by default and keeps the
+untraced id, so `dotnet pack -c Debug` fails with an error naming the switch.
 
 The query functions exist only in a traced build. Code that calls them compiles in a traced build
 alone; guard it with `#if RANVIER_TRACE`, or keep it in scripts that load a traced `Ranvier.dll`.
@@ -277,8 +300,8 @@ The same program produces the same dump, byte for byte, on every run of a single
 
 - **Fable records, without dumps.** A Fable build records the log that [signal maps](signal-maps.md)
   draw; `Trace.dump` is absent there.
-- **Development builds only.** A traced build is slower and allocates per event, and cannot be
-  packed. Ship the untraced build.
+- **Development builds only.** A traced build is slower and allocates per event. Ship against the
+  untraced `Ranvier` package.
 - **The log is unbounded.** Every event stays in memory for the graph's lifetime. A long session
   grows without limit; a checkpoint to trim it is planned.
 - **No values.** The log records that a node moved, not its old or new value. `history` lists runs
