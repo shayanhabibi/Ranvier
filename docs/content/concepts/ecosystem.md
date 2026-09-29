@@ -35,21 +35,29 @@ API is designed for F#. Evaluate it with that in mind.
 
 ### FSharp.Data.Adaptive
 
-A mature F# incremental computation library, used by the Aardvark platform. It has adaptive collections
-(`aset`, `alist`, `amap`) that Ranvier does not match: collection combinators here are still in design.
-Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
-visible in the code. If you need incremental collections or a proven F# library today, use Adaptive.
+A mature F# incremental computation library, used by the Aardvark platform. Its adaptive collections
+(`aset`, `alist`, `amap`) pass deltas from one stage to the next. Ranvier's
+[projections](../guide/collections.fsx) are keyed collections with `filter`, `map`, `sortBy`, `groupBy` and
+fold views. Each view re-reads its upstream keys on a membership or order change, and delta readers are still
+in design. Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
+visible in the code. If you need delta-based incremental collections or a proven F# library today, use Adaptive.
 
 ### SignalsDotnet
 
 A published signals library for .NET MVVM, with integrations listed for WPF, Avalonia, MAUI, Uno, Blazor,
 Unity and Godot. It tracks automatically and exposes async computations through an `IsComputing` flag.
-Its cancellation strategies for concurrent async runs are a direct counterpart of Ranvier's
+It is built on R3, so every signal is also an `Observable<T>`, and every signal implements
+`INotifyPropertyChanged`. `CollectionSignal` wraps an `ObservableCollection` and reacts both to the
+collection being replaced and to its contents changing. The `SignalsDotnet.Blazor` package provides a
+`TrackedScope` component that re-renders only the region of markup whose signals changed.
+`SignalsDotnet.Query` and `SignalsDotnet.AspNetCore`, which streams projections as server-sent events, are
+in alpha. Its cancellation strategies for concurrent async runs are a direct counterpart of Ranvier's
 [flight policies](async-graph.md#superseded-flights). If you want signals in a C# view model now, it is
 available and documented.
 
 The two libraries differ mainly in how async state travels: as a flag that each consumer checks, or as a
-status that propagates to a boundary.
+status that propagates to a boundary. In SignalsDotnet, writes wrapped in an atomic operation run each effect
+once, at the end. Its documentation does not say whether derived values update in height order.
 
 ### R3 and System.Reactive
 
@@ -57,6 +65,12 @@ Push-based streams, familiar to most .NET developers, with a large operator voca
 over time. A derived value that must stay consistent across several inputs is a different shape of
 problem, and Ranvier addresses that shape. For event pipelines, throttling, windowing and time-based
 composition, a stream library is the right tool.
+
+Both are active. System.Reactive 7.0.0 was released in July 2026. R3 is a redesign by the author of
+ReactiveProperty, whose README now says "If you're developing a new application, consider using R3 instead
+of ReactiveProperty." ReactiveUI 25 runs on its own `ReactiveUI.Primitives` package
+([reactiveui/ReactiveUI#4382](https://github.com/reactiveui/ReactiveUI/pull/4382)) and no longer depends on
+System.Reactive by default. The `ReactiveUI.Reactive` package keeps System.Reactive interop.
 
 ### Fable.Ripple
 
@@ -94,15 +108,23 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
   reads Pending, Ready and Failed states as values, with no UI thread involved.
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
+- **Blazor.** A boundary maps onto a component. Blazor has no built-in signals, and
+  [dotnet/aspnetcore#67329](https://github.com/dotnet/aspnetcore/issues/67329), an open proposal, asks for
+  them. Blazor Server needs the serialised affinity mode listed under current gaps.
 
 ## Current gaps
 
 - No framework-specific UI packages yet. The .NET UI bindings are `ReactiveBindings` (`INotifyPropertyChanged` and
   `INotifyDataErrorInfo`) and `Projection.AsObservableCollection`; commands with a derived `CanExecute` are not covered.
-- The C# package, [Ranvier.CSharp](../guide/csharp.md), has no tracing, and a few of its types, such as
-  `Previous<T>.Settled`, still carry `ValueOption`.
+- The C# package, [Ranvier.CSharp](../guide/csharp.md), still exposes `ValueOption` in a few places, such as
+  `Previous<T>.Settled`.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
+- No debounce or throttle, and no flight policy that drops a new run while one is in progress.
+- Projections publish their current state only. Delta readers, which report the keys added, removed and
+  changed since a reader last looked, are in design.
 - The Fable target is implemented and not yet published; see [Fable (JavaScript) target](../fable/index.md).
+
+The [roadmap](roadmap.md) lists which of these are under consideration.
 
 ## Choosing
 

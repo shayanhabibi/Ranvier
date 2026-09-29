@@ -179,6 +179,7 @@ let theme =
                     Menu.page "concepts/async-graph.md"
                     Menu.page "concepts/contracts.md"
                     Menu.page "concepts/ecosystem.md"
+                    Menu.page "concepts/roadmap.md"
                 ]
         ]
     |> Theme.menu

@@ -49,6 +49,7 @@ graph marks it Pending until the source settles.
   read it, and who owns a node created inside a computation.
 - [Ecosystem](ecosystem.md) covers where Ranvier sits beside FSharp.Data.Adaptive, SignalsDotnet, R3 and
   System.Reactive, Fable.Ripple and Solid, and when one of those is the better choice.
+- [Roadmap](roadmap.md) lists what has shipped, what is in progress and what is under consideration.
 
 ## Implemented and exploratory material
 
