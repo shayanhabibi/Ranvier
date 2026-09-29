@@ -106,8 +106,8 @@ a task usually completes on the thread pool. Ranvier gives each graph an owning 
 completions back to it.
 
 - **Ownership.** A graph belongs to the thread that constructed it. Under `ThreadAffinity = Guarded` (the
-  default), a signal write from another thread raises `InvalidOperationException`, and the error message
-  names both threads. `Unchecked` removes the check. Use `Unchecked` for Fable, or when every write is known
+  default), a signal write, node creation, batch, flush, disposal or stale read from another thread raises
+  `InvalidOperationException`, and the error message names both threads. `Unchecked` removes the check. Use `Unchecked` for Fable, or when every write is known
   to arrive on one thread.
 - **Inbox.** Completions from other threads, such as `AsyncSource.Settle` and finished `AsyncMemo` flights,
   go into the graph's inbox. `Graph.Pump ()` applies them in arrival order on the owning thread and then
@@ -135,8 +135,10 @@ graph, a write settles synchronously before the next line runs.
 
 Tracking must not follow an `await` into its continuation. Code that resumes after an `await` is outside the
 synchronous window in which reads are recorded. For this reason, the tracking context is held by the graph
-and scoped to a single run. The ambient graph that the `create*` functions use is per thread, so code on
-another thread must activate a graph before it creates nodes.
+and scoped to a single run. The ambient graph that the `create*` functions use flows with the async context
+of `graph.Activate ()`. A guarded graph is ambient on the activating thread only, so code on another thread
+must activate a graph before it creates nodes. An activation inside an async body is invisible to other work
+on the activating thread while the body is suspended.
 
 ### Known limitation: hopping synchronisation contexts
 
@@ -178,7 +180,7 @@ graph:
   builds on one target and not on the other.
 - **Threads.** JavaScript has one thread and ignores the dispatcher machinery.
 
-The Fable target is planned; see [Fable (JavaScript) target](../fable/index.md). On the browser, Solid's own signals (through Partas.Solid) are the natural choice for
+The Fable target is implemented; see [Fable (JavaScript) target](../fable/index.md). On the browser, Solid's own signals (through Partas.Solid) are the natural choice for
 rendering. A second graph is useful mainly for models that are shared with a .NET server. See
 [Ecosystem](ecosystem.md).
 

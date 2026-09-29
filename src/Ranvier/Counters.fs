@@ -15,94 +15,87 @@ module internal Tallies =
     let one: Tally = LanguagePrimitives.GenericOne
     let zero: Tally = LanguagePrimitives.GenericZero
 
+    let names =
+        [|
+            "SignalsCreated"
+            "MemosCreated"
+            "EffectsCreated"
+            "OwnersCreated"
+            "EdgesAdded"
+            "EdgesRemoved"
+            "ObserverInserts"
+            "ObserverRemoves"
+            "MemoRecomputes"
+            "EffectRuns"
+            "Flushes"
+        |]
+
+    /// <summary>
+    /// One count per entry of <c>names</c>, at the same index.
+    /// </summary>
+    let counts: Tally[] = Array.create names.Length zero
+
+    let inline bump (index: int) =
+#if FABLE_COMPILER
+        counts[index] <- counts[index] + one
+#else
+        System.Threading.Interlocked.Increment &counts[index]
+        |> ignore
+#endif
+
+    let inline read (index: int) : int64 =
+#if FABLE_COMPILER
+        int64 counts[index]
+#else
+        System.Threading.Interlocked.Read &counts[index]
+#endif
+
 /// <summary>
 /// Process-wide counts of graph operations, compiled in by the MSBuild
-/// property <c>RanvierCounters=true</c>. Each count is a plain static increment:
-/// exact while a single thread mutates graphs, and undefined otherwise.
+/// property <c>RanvierCounters=true</c>. On .NET each count is an atomic increment,
+/// exact while several threads mutate their own graphs.
 /// </summary>
 [<AbstractClass; Sealed>]
 type Counters =
-    [<DefaultValue>]
-    static val mutable private signalsCreated: Tally
-
-    [<DefaultValue>]
-    static val mutable private memosCreated: Tally
-
-    [<DefaultValue>]
-    static val mutable private effectsCreated: Tally
-
-    [<DefaultValue>]
-    static val mutable private ownersCreated: Tally
-
-    [<DefaultValue>]
-    static val mutable private edgesAdded: Tally
-
-    [<DefaultValue>]
-    static val mutable private edgesRemoved: Tally
-
-    [<DefaultValue>]
-    static val mutable private observerInserts: Tally
-
-    [<DefaultValue>]
-    static val mutable private observerRemoves: Tally
-
-    [<DefaultValue>]
-    static val mutable private memoRecomputes: Tally
-
-    [<DefaultValue>]
-    static val mutable private effectRuns: Tally
-
-    [<DefaultValue>]
-    static val mutable private flushes: Tally
-
     static member internal SignalCreated() =
-        Counters.signalsCreated <- Counters.signalsCreated + Tallies.one
+        Tallies.bump 0
 
     static member internal MemoCreated() =
-        Counters.memosCreated <- Counters.memosCreated + Tallies.one
+        Tallies.bump 1
 
     static member internal EffectCreated() =
-        Counters.effectsCreated <- Counters.effectsCreated + Tallies.one
+        Tallies.bump 2
 
     static member internal OwnerCreated() =
-        Counters.ownersCreated <- Counters.ownersCreated + Tallies.one
+        Tallies.bump 3
 
     static member internal EdgeAdded() =
-        Counters.edgesAdded <- Counters.edgesAdded + Tallies.one
+        Tallies.bump 4
 
     static member internal EdgeRemoved() =
-        Counters.edgesRemoved <- Counters.edgesRemoved + Tallies.one
+        Tallies.bump 5
 
     static member internal ObserverInserted() =
-        Counters.observerInserts <- Counters.observerInserts + Tallies.one
+        Tallies.bump 6
 
     static member internal ObserverRemoved() =
-        Counters.observerRemoves <- Counters.observerRemoves + Tallies.one
+        Tallies.bump 7
 
     static member internal MemoRecomputed() =
-        Counters.memoRecomputes <- Counters.memoRecomputes + Tallies.one
+        Tallies.bump 8
 
     static member internal EffectRan() =
-        Counters.effectRuns <- Counters.effectRuns + Tallies.one
+        Tallies.bump 9
 
     static member internal Flushed() =
-        Counters.flushes <- Counters.flushes + Tallies.one
+        Tallies.bump 10
 
     /// <summary>
     /// Sets every count to zero.
     /// </summary>
     static member Reset() =
-        Counters.signalsCreated <- Tallies.zero
-        Counters.memosCreated <- Tallies.zero
-        Counters.effectsCreated <- Tallies.zero
-        Counters.ownersCreated <- Tallies.zero
-        Counters.edgesAdded <- Tallies.zero
-        Counters.edgesRemoved <- Tallies.zero
-        Counters.observerInserts <- Tallies.zero
-        Counters.observerRemoves <- Tallies.zero
-        Counters.memoRecomputes <- Tallies.zero
-        Counters.effectRuns <- Tallies.zero
-        Counters.flushes <- Tallies.zero
+        for i in 0 .. Tallies.counts.Length - 1 do
+            Tallies.counts[i] <- Tallies.zero
 
     /// <summary>
     /// Every count as a name-value pair, in a fixed order. <c>Owner</c> counts every
@@ -113,17 +106,5 @@ type Counters =
     /// leaves all four unchanged. <c>Flushes</c> counts drains of the effect queue.
     /// </summary>
     static member Snapshot() : (string * int64)[] =
-        [|
-            "SignalsCreated", int64 Counters.signalsCreated
-            "MemosCreated", int64 Counters.memosCreated
-            "EffectsCreated", int64 Counters.effectsCreated
-            "OwnersCreated", int64 Counters.ownersCreated
-            "EdgesAdded", int64 Counters.edgesAdded
-            "EdgesRemoved", int64 Counters.edgesRemoved
-            "ObserverInserts", int64 Counters.observerInserts
-            "ObserverRemoves", int64 Counters.observerRemoves
-            "MemoRecomputes", int64 Counters.memoRecomputes
-            "EffectRuns", int64 Counters.effectRuns
-            "Flushes", int64 Counters.flushes
-        |]
+        Array.init Tallies.names.Length (fun i -> Tallies.names[i], Tallies.read i)
 #endif

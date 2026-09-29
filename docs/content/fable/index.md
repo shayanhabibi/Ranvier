@@ -5,7 +5,7 @@ order: 1
 
 > **Preview** — Ranvier is pre-release; its APIs may change.
 
-**Status: Planned.** Ranvier intends to support a Fable target, so the same reactive graph can run in JavaScript as well as on .NET. This page describes where that work stands. It is not yet a supported or published target.
+**Status: Implemented.** Ranvier compiles with Fable, so the same reactive graph runs in JavaScript as well as on .NET. The .NET test suite runs against the compiled engine under Node.js. No package is published yet, for either target. This page lists where the two targets differ.
 
 ## Intent
 
@@ -84,4 +84,4 @@ The snippet uses only functions that exist on both targets, which is the style t
 
 ## What comes next
 
-Before the Fable target can be called supported, Ranvier needs a published package, the Fable test run in its release process, and documentation of each difference above next to the API it affects. Until then, treat anything on this page as subject to change.
+The Fable target still needs a published package, the Fable test run in Ranvier's release process, and documentation of each difference above next to the API it affects. Until then, treat anything on this page as subject to change.

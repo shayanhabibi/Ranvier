@@ -57,6 +57,46 @@ type private RecordingContext() =
 
     override this.Post(callback, state) =
         posted.Add (callback, state)
+
+/// <summary>
+/// What an async body that activates <c>graph</c> and awaits onto the thread pool observes.
+/// </summary>
+type private AcrossAwait =
+    {
+        /// <summary>The starting thread sees <c>graph</c> as ambient while the body is suspended.</summary>
+        LeakedToStarter: bool
+        /// <summary>The body sees <c>graph</c> as ambient after it resumes.</summary>
+        AmbientAfterAwait: bool
+    }
+
+let private isAmbient (graph: Graph) =
+    match Graph.TryCurrent with
+    | ValueSome current -> obj.ReferenceEquals (current, graph)
+    | ValueNone -> false
+
+let private activationAcrossAwait (graph: Graph) : AcrossAwait =
+    use resumed = new ManualResetEventSlim (false)
+    use release = new ManualResetEventSlim (false)
+    let ambientAfterAwait = ref false
+
+    let body =
+        task {
+            use _ = graph.Activate ()
+            do! Task.Yield ()
+            ambientAfterAwait.Value <- isAmbient graph
+            resumed.Set ()
+            release.Wait ()
+        }
+
+    resumed.Wait ()
+    let leaked = isAmbient graph
+    release.Set ()
+    body.Wait ()
+
+    {
+        LeakedToStarter = leaked
+        AmbientAfterAwait = ambientAfterAwait.Value
+    }
 #endif
 
 [<Tests>]
@@ -430,6 +470,171 @@ let tests =
                 Expect.equal target.Peek 2 "the pump applies the dispatched write"
                 Expect.equal a.TryValue (Ready 3) "and the settle"
                 Expect.sequenceEqual seen [ 0; 2 ] "the effect sees the dispatched write after the pump"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "an off-thread read of a stale memo raises and leaves it stale" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let m = Memo (g, (fun _ -> s.Value * 10))
+
+                Expect.equal m.Value 10 "first read"
+                s.Value <- 2
+
+                let caught =
+                    offThread (fun () ->
+                        try
+                            m.Value |> ignore
+                            None
+                        with ex ->
+                            Some ex)
+
+                match caught with
+                | Some ex -> Expect.stringContains ex.Message "A stale read ran on thread" "the recompute is guarded"
+                | None -> failtest "an off-thread recompute must not run"
+
+                Expect.equal m.Runs 1 "the memo did not recompute off-thread"
+                Expect.equal m.Value 20 "and recomputes on the owning thread"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "every off-thread entry point raises on a guarded graph" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let m = Memo (g, (fun _ -> s.Value))
+                let e = new Effect (g, (fun () -> s.Value |> ignore))
+
+                let entries: (string * (unit -> unit)) list =
+                    [
+                        "Creating a node", (fun () -> Signal (g, 0) |> ignore)
+                        "A batch", (fun () -> g.Batch (fun () -> ()) |> ignore)
+                        "A flush", (fun () -> g.Flush ())
+                        "An untracked read", (fun () -> g.Untrack (fun () -> s.Value) |> ignore)
+                        "Creating a root", (fun () -> g.CreateRoot (fun _ -> ()) |> ignore)
+                        "Registering a cleanup", (fun () -> g.OnCleanup (fun () -> ()))
+                        "Disposing a node", (fun () -> m.Dispose ())
+                        "Disposing a node", (fun () -> e.Dispose ())
+                        "Disposing a graph", (fun () -> g.Dispose ())
+                    ]
+
+                for (operation, entry) in entries do
+                    let message =
+                        offThread (fun () ->
+                            try
+                                entry ()
+                                None
+                            with ex ->
+                                Some ex.Message)
+
+                    match message with
+                    | Some text -> Expect.stringContains text $"%s{operation} ran on thread" $"%s{operation} is guarded"
+                    | None -> failtest $"%s{operation} ran off-thread without raising"
+
+                s.Value <- 2
+                Expect.equal m.Value 2 "the graph is intact after the rejected calls"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Unchecked affinity lets an off-thread stale read through" {
+                let g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            ThreadAffinity = Unchecked
+                        }
+                    )
+
+                let s = Signal (g, 1)
+                let m = Memo (g, (fun _ -> s.Value * 10))
+                m.Value |> ignore
+                s.Value <- 2
+                Expect.equal (offThread (fun () -> m.Value)) 20 "the caller took responsibility for affinity"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "an activation inside an async body is invisible to the starting thread while suspended" {
+                let guarded = activationAcrossAwait (new Graph ())
+
+                Expect.isFalse guarded.LeakedToStarter "a guarded graph stays out of the starting thread"
+                Expect.isFalse guarded.AmbientAfterAwait "and is ambient on its activating thread only"
+
+                let unchecked =
+                    activationAcrossAwait (
+                        new Graph (
+                            { GraphOptions.Default with
+                                ThreadAffinity = Unchecked
+                            }
+                        )
+                    )
+
+                Expect.isFalse unchecked.LeakedToStarter "an unchecked graph stays out of the starting thread"
+                Expect.isTrue unchecked.AmbientAfterAwait "and follows the body across the await"
+                Expect.isTrue Graph.TryCurrent.IsNone "nothing is ambient once the bodies end"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "graphs owned by separate threads update in parallel" {
+                let threads = max 4 Environment.ProcessorCount
+                let writes = 5000
+                use start = new Barrier (threads)
+                let results = Array.zeroCreate<int * int> threads
+                let failures = Array.zeroCreate<exn> threads
+
+                let workers =
+                    Array.init threads (fun i ->
+                        Thread (
+                            (fun () ->
+                                try
+                                    use g = new Graph ()
+                                    let s = Signal (g, 0)
+                                    let doubled = Memo (g, (fun _ -> s.Value * 2))
+                                    let settled = AsyncSource<int>(g)
+                                    let seen = ref 0
+                                    let total = ref 0
+
+                                    g.Run (fun () ->
+                                        createEffect (fun () -> seen.Value <- doubled.Value)
+                                        createEffect (fun () -> total.Value <- total.Value + settled.Value))
+
+                                    start.SignalAndWait ()
+
+                                    for k in 1..writes do
+                                        s.Value <- k
+
+                                        // An off-thread settle per hundred writes keeps every inbox busy
+                                        // while the other graphs flush.
+                                        if k % 100 = 0 then
+                                            offThread (fun () -> settled.Settle k)
+                                            g.Pump () |> ignore
+
+                                    results[i] <- (seen.Value, total.Value)
+                                with ex ->
+                                    failures[i] <- ex),
+                            IsBackground = true
+                        ))
+
+                for w in workers do
+                    w.Start ()
+
+                for w in workers do
+                    w.Join ()
+
+                let expectedTotal = [ 100..100..writes ] |> List.sum
+
+                for i in 0 .. threads - 1 do
+                    if not (isNull failures[i]) then
+                        raise failures[i]
+
+                    Expect.equal results[i] (writes * 2, expectedTotal) $"graph %d{i} saw every write and settle"
             }
 #endif
         ]

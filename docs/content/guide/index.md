@@ -54,7 +54,7 @@ doubled = 10
 
 ## Targets
 
-`net10.0`, `net8.0` and `netstandard2.1`. A Fable/JavaScript target is planned; see [Fable (JavaScript) target](../fable/index.md).
+`net10.0`, `net8.0` and `netstandard2.1`. The engine also compiles to JavaScript with Fable; see [Fable (JavaScript) target](../fable/index.md).
 
 ## Guide
 
@@ -73,7 +73,7 @@ doubled = 10
 | Core graph (signal, memo, effect, owners, batching) | Implemented and tested. |
 | Async and boundaries | Implemented. A pending `.Value` read throws `NotReadyException`; `TryValue` reads without throwing. |
 | Projections, lookups and selectors | Implemented, with factory map semantics. A node created inside a memo pulled by a projection row belongs to that memo. |
-| Fable/JavaScript | Planned; see [Fable (JavaScript) target](../fable/index.md). |
+| Fable/JavaScript | Implemented and tested under Node.js; no package published yet. See [Fable (JavaScript) target](../fable/index.md). |
 | Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
 

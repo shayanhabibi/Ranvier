@@ -1009,11 +1009,44 @@ type internal IScopeHost =
     abstract Scope: Owner
 
 /// <summary>
-/// Holds each thread's <c>AmbientCell</c>, which the module-level functions resolve
-/// their graph from. Thread-static rather than process-wide: a graph is already thread-affine
-/// — see <c>AssertOnGraphThread</c> — so one ambient slot for the process would
-/// hand a thread a graph it is not allowed to touch. Held apart from <c>Graph</c>,
-/// whose static initialisation check would otherwise guard every access.
+/// A <c>Graph.Activate</c> call: the graph, the activating thread, and whether the graph is ambient on other threads.
+/// </summary>
+[<Sealed; AllowNullLiteral>]
+type internal ActivationEntry(graph: obj, thread: int, anyThread: bool) =
+    /// <summary>
+    /// The graph, when ambient on the calling thread, otherwise null.
+    /// </summary>
+    member _.GraphOnCurrentThread =
+        if anyThread || thread = Platform.currentThreadId () then
+            graph
+        else
+            null
+
+/// <summary>
+/// The innermost <c>Graph.Activate</c> call. On .NET it flows with the execution context: an activation inside an
+/// async body follows that body across an <c>await</c> and is invisible to other work on the activating thread.
+/// </summary>
+module internal Activation =
+#if FABLE_COMPILER
+    let mutable private activated: ActivationEntry = null
+
+    let current () = activated
+
+    let set (entry: ActivationEntry) =
+        activated <- entry
+#else
+    let private activated = AsyncLocal<ActivationEntry>()
+
+    let current () =
+        activated.Value
+
+    let set (entry: ActivationEntry) =
+        activated.Value <- entry
+#endif
+
+/// <summary>
+/// Holds each thread's <c>AmbientCell</c>. Held apart from <c>Graph</c>, whose static initialisation check would
+/// otherwise guard every access.
 /// </summary>
 [<AbstractClass; Sealed>]
 type internal AmbientSlot =
@@ -1035,16 +1068,10 @@ type internal AmbientSlot =
     static member Existing = AmbientSlot.cell
 
 /// <summary>
-/// The ambient graph of one thread. A guarded graph holds its owner thread's
+/// The running graph of one thread. A guarded graph holds its owner thread's
 /// cell. Re-entering the graph already in <c>Hosting</c> writes nothing.
 /// </summary>
 and [<Sealed; AllowNullLiteral>] internal AmbientCell() =
-    /// <summary>
-    /// The graph made ambient by <c>Graph.Activate</c>.
-    /// </summary>
-    [<DefaultValue>]
-    val mutable Activated: obj
-
     /// <summary>
     /// The graph most recently running a body, a flush or a stale read.
     /// Ambient while that graph is still running one.
@@ -1236,33 +1263,36 @@ type Graph(options: GraphOptions) =
     /// </summary>
     /// <remarks>
     /// A stack rather than an assignment, so a library that activates its own
-    /// graph for the length of a call cannot strand its caller's.
+    /// graph for the length of a call cannot strand its caller's. On .NET the
+    /// activation flows with the execution context, so it may span an <c>await</c>. A guarded graph is ambient on the
+    /// activating thread only; an <c>Unchecked</c> graph is ambient on every thread its execution context reaches.
     /// </remarks>
     member this.Activate() =
         let cell = AmbientSlot.Cell
-        let activated = cell.Activated
+        let activated = Activation.current ()
         let hosting = cell.Hosting
-        cell.Activated <- this
+        Activation.set (ActivationEntry (this, Platform.currentThreadId (), not guarded))
         cell.Hosting <- null
 
         { new IDisposable with
             member _.Dispose() =
-                cell.Activated <- activated
-                cell.Hosting <- hosting
+                Activation.set activated
+
+                if obj.ReferenceEquals (AmbientSlot.Existing, cell) then
+                    cell.Hosting <- hosting
         }
 
     /// <summary>
-    /// The calling thread's ambient graph, or null.
+    /// The calling context's ambient graph, or null.
     /// </summary>
     static member private Ambient: obj =
         let cell = AmbientSlot.Existing
 
-        if isNull cell then
-            null
-        else
-            match cell.Hosting with
-            | :? Graph as g when g.Running -> g
-            | _ -> cell.Activated
+        match (if isNull cell then null else cell.Hosting) with
+        | :? Graph as g when g.Running -> g
+        | _ ->
+            let entry = Activation.current ()
+            if isNull entry then null else entry.GraphOnCurrentThread
 
     /// <summary>
     /// True while the graph runs a body, a flush, a stale read or a teardown.
@@ -1327,6 +1357,7 @@ type Graph(options: GraphOptions) =
     member this.CreateRoot(body: Func<Owner, 'T>) = this.RunRoot body.Invoke
 
     member internal this.RunRoot(body: Owner -> 'T) =
+        this.AssertOnGraphThread "Creating a root"
         let owner = new RootScope (this) :> Owner
         owner.SetParent (this.CurrentOwner.AttachLinked owner)
         let previous = currentOwner
@@ -1347,6 +1378,7 @@ type Graph(options: GraphOptions) =
     member this.OnCleanup(f: Action) = this.AddCleanup f.Invoke
 
     member internal this.AddCleanup(f: unit -> unit) =
+        this.AssertOnGraphThread "Registering a cleanup"
         let owner = this.CurrentOwner
 
         if owner.IsDisposed then
@@ -1368,6 +1400,7 @@ type Graph(options: GraphOptions) =
     /// Tears down every scope the graph owns.
     /// </summary>
     member this.Dispose() =
+        this.AssertOnGraphThread "Disposing a graph"
         root.Dispose ()
 
         if
@@ -1516,6 +1549,8 @@ type Graph(options: GraphOptions) =
     /// The graph is ambient while the loop runs.
     /// </remarks>
     member this.Flush() =
+        this.AssertOnGraphThread "A flush"
+
         if not flushing then
 #if RANVIER_COUNTERS
             Counters.Flushed ()
@@ -1587,6 +1622,8 @@ type Graph(options: GraphOptions) =
     /// ambient until it ends.
     /// </summary>
     member internal this.EnterPull() =
+        this.AssertOnGraphThread "A stale read"
+
         if pullDepth = 0 then
             let previous = this.EnterAmbient ()
 
@@ -1625,6 +1662,7 @@ type Graph(options: GraphOptions) =
     member this.Batch(body: Func<'T>) = this.RunBatch body.Invoke
 
     member internal this.RunBatch(body: unit -> 'T) =
+        this.AssertOnGraphThread "A batch"
         batchDepth <- batchDepth + 1
         Tracer.BatchEnter (this, batchDepth)
 
@@ -1704,7 +1742,8 @@ type Graph(options: GraphOptions) =
             currentOwner <- previousOwner
             this.LeaveAmbient previousAmbient
 
-    member internal _.NextId() =
+    member internal this.NextId() =
+        this.AssertOnGraphThread "Creating a node"
         nextId <- nextId + 1
         nextId
 
@@ -1862,7 +1901,8 @@ type Graph(options: GraphOptions) =
     /// <summary>
     /// Evaluates <c>body</c> with tracking suppressed.
     /// </summary>
-    member internal _.RunUntracked(body: unit -> 'T) =
+    member internal this.RunUntracked(body: unit -> 'T) =
+        this.AssertOnGraphThread "An untracked read"
         let previous = current
         let previousHost = untrackedHost
         let previousInBody = untrackedInBody
@@ -2436,6 +2476,8 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// goes on being marked dirty for the lifetime of the graph.
     /// </remarks>
     member this.Dispose() =
+        graph.AssertOnGraphThread "Disposing a node"
+
         if not disposed then
             disposed <- true
             Tracer.NodeDispose (graph, id)
@@ -2844,6 +2886,8 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     /// owner at construction, so disposing that owner disposes this.
     /// </remarks>
     member this.Dispose() =
+        graph.AssertOnGraphThread "Disposing a node"
+
         if not disposed then
             disposed <- true
             Tracer.NodeDispose (graph, id)
@@ -3031,6 +3075,8 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 
     /// <summary>Detaches from the sources and disposes the action's scope. Idempotent.</summary>
     member this.Dispose() =
+        graph.AssertOnGraphThread "Disposing a node"
+
         if not disposed then
             disposed <- true
             Tracer.NodeDispose (graph, id)
@@ -3621,6 +3667,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// <c>ObjectDisposedException</c> and wakes its readers once.
     /// </remarks>
     member this.Dispose() =
+        graph.AssertOnGraphThread "Disposing a node"
+
         if not disposed then
             disposed <- true
             Tracer.NodeDispose (graph, id)
@@ -4022,6 +4070,8 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// last value it produced — fallback included — and stops being woken.
     /// </summary>
     member this.Dispose() =
+        graph.AssertOnGraphThread "Disposing a node"
+
         if not disposed then
             disposed <- true
             Tracer.NodeDispose (graph, id)

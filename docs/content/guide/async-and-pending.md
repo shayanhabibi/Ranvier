@@ -596,8 +596,10 @@ A graph belongs to the thread that constructed it. The rules:
 | `Graph.Dispatch work` | Runs `work` inline on the graph thread. From another thread, queues it in the graph's inbox and asks the dispatcher to wake the graph thread. |
 | `Graph.Pump ()` | Guarded. Runs the inbox in arrival order, then flushes effects, and returns the number of items run. An item that throws is recorded in `graph.Root.Errors`, and the rest still run. |
 | `Graph.PendingWork` | The number of inbox items waiting for a pump. |
-| `.Value`, `TryValue`, `Peek` | Not guarded. |
-| `Graph.Current` | Thread-static. The `create*` functions on another thread raise `No ambient graph on this thread` unless that thread activated a graph. |
+| Creating a node, `Batch`, `Untrack`, `Flush`, `CreateRoot`, `OnCleanup`, `Dispose` | Guarded. From another thread each raises `InvalidOperationException` before it changes the graph. |
+| `.Value`, `TryValue` | Guarded when the read recomputes a stale memo or boundary. A read of a current value is not guarded. |
+| `Peek` | Not guarded. |
+| `Graph.Current` | Flows with the async context of `graph.Activate ()`. A guarded graph is current on the activating thread only; an `Unchecked` graph is current on every thread the activating context reaches. The `create*` functions elsewhere raise `No ambient graph on this thread`. |
 
 `ThreadAffinity = Unchecked` removes the guard. Use it only when every write is known to arrive on
 one thread.

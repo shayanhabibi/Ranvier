@@ -89,8 +89,8 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   dispatcher follows the UI thread's `SynchronizationContext`, and each handler runs on the context it subscribed
   from. No framework-specific package ships yet.
 - **Models shared between server and browser.** The same F# model code could run on .NET (server rendering,
-  tests, desktop) and through Fable, with suspension that matches Solid 2.0. The Fable target is planned and
-  not yet published; see [Fable (JavaScript) target](../fable/index.md).
+  tests, desktop) and through Fable, with suspension that matches Solid 2.0. The Fable target is implemented
+  and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
   reads Pending, Ready and Failed states as values, with no UI thread involved.
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
@@ -102,7 +102,7 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 - The C# package, [Ranvier.CSharp](../guide/csharp.md), has no tracing, and a few of its types, such as
   `Previous<T>.Settled`, still carry `ValueOption`.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
-- The Fable target is planned and not yet published; see [Fable (JavaScript) target](../fable/index.md).
+- The Fable target is implemented and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 
 ## Choosing
 
