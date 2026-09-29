@@ -277,6 +277,8 @@ clears its Error flag. An error boundary shows `recover ex` while its body fails
 again once a source the body read changes and the re-run succeeds. A throwing effect does not stop a flush:
 every effect queued behind it still runs, and the failure is recorded on that effect's `Status` and `Error`.
 
+[Contracts](contracts.md#error-recovery) lists where an exception from each kind of callback lands.
+
 ## State labels
 
 These docs use the following plain-text labels for what a reader can observe. Where the interface shows a

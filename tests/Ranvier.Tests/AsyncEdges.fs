@@ -722,3 +722,122 @@ let tests =
                 Expect.isTrue observed.Value.IsCancellationRequested "tearing down the owner cancelled the flight"
             }
         ]
+
+#if !FABLE_COMPILER
+// .NET only: JavaScript has no finalizer thread and no UnobservedTaskException.
+/// <summary>
+/// Runs <c>scenario</c>, forces collection and finalization, and returns the exceptions carrying <c>marker</c>
+/// reported to <c>TaskScheduler.UnobservedTaskException</c> during the run.
+/// </summary>
+/// <remarks>
+/// <c>scenario</c> must leave every faulted task unreachable. <c>marker</c> separates its reports from those of tests
+/// running in parallel.
+/// </remarks>
+let private unobservedDuring (marker: string) (scenario: unit -> unit) : exn list =
+    let seen = Collections.Concurrent.ConcurrentQueue<exn>()
+
+    let handler =
+        EventHandler<UnobservedTaskExceptionEventArgs>(fun _ args ->
+            for inner in args.Exception.Flatten().InnerExceptions do
+                if inner.Message.Contains marker then
+                    seen.Enqueue inner)
+
+    TaskScheduler.UnobservedTaskException.AddHandler handler
+
+    try
+        scenario ()
+
+        for _ in 1..3 do
+            GC.Collect ()
+            GC.WaitForPendingFinalizers ()
+
+        List.ofSeq seen
+    finally
+        TaskScheduler.UnobservedTaskException.RemoveHandler handler
+
+/// <summary>The event that precedes a flight's fault.</summary>
+type private LateFault =
+    /// <summary>A newer run supersedes the flight, which then faults on the graph thread.</summary>
+    | Superseded
+    /// <summary>A newer run supersedes the flight, which then faults on another thread and is never pumped.</summary>
+    | SupersededOffThread
+    /// <summary>The memo is disposed mid-flight, and the flight then faults.</summary>
+    | NodeDisposed
+    /// <summary>The graph is disposed mid-flight, and the flight then faults.</summary>
+    | GraphDisposed
+
+/// <summary>Faults every flight of an async memo with <c>marker</c> after the event <c>fault</c>, and returns no reference.</summary>
+[<Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.NoInlining)>]
+let private faultLate (policy: FlightPolicy) (fault: LateFault) (marker: string) () =
+    let g =
+        new Graph (
+            { GraphOptions.Default with
+                FlightPolicy = policy
+                Dispatcher = Some (ManualDispatcher () :> IGraphDispatcher)
+            }
+        )
+
+    let trigger = Signal (g, 0)
+    let flights = ResizeArray<TaskCompletionSource<int>>()
+
+    let a =
+        Make.AsyncMemo<int> (
+            g,
+            fun _ _ ->
+                trigger.Value |> ignore
+                let f = TaskCompletionSource<int>()
+                flights.Add f
+                f.Task
+        )
+
+    a.TryValue |> ignore
+
+    match fault with
+    | Superseded
+    | SupersededOffThread ->
+        trigger.Value <- 1
+        a.TryValue |> ignore
+    | NodeDisposed -> a.Dispose ()
+    | GraphDisposed -> g.Dispose ()
+
+    let fail () =
+        for f in flights do
+            f.SetException (InvalidOperationException marker)
+
+    match fault with
+    | SupersededOffThread -> onAnotherThread fail
+    | Superseded
+    | NodeDisposed
+    | GraphDisposed -> fail ()
+
+/// <summary>Faults a task that nothing observes, to prove <c>unobservedDuring</c> sees a leak.</summary>
+[<Runtime.CompilerServices.MethodImpl(Runtime.CompilerServices.MethodImplOptions.NoInlining)>]
+let private leak (marker: string) () =
+    let source = TaskCompletionSource<int>()
+    source.SetException (InvalidOperationException marker)
+
+/// <summary>
+/// A flight that faults after supersession or disposal has its exception observed under every policy
+/// (cf. dotnet/reactive#1256).
+/// </summary>
+[<Tests>]
+let unobserved =
+    testSequenced
+    <| testList
+        "AsyncEdges.Unobserved"
+        [
+            test "the harness reports a faulted task that nothing observes" {
+                let marker = $"leak-{Guid.NewGuid ()}"
+                let reported = unobservedDuring marker (leak marker)
+                Expect.hasLength reported 1 "the unobserved fault reached the event"
+            }
+
+            for policy in [ CancelPrevious; KeepLatest; FlightPolicy.Queue ] do
+                for fault in [ Superseded; SupersededOffThread; NodeDisposed; GraphDisposed ] do
+                    test $"a late fault is observed: %A{policy}, %A{fault}" {
+                        let marker = $"late-{Guid.NewGuid ()}"
+                        let reported = unobservedDuring marker (faultLate policy fault marker)
+                        Expect.isEmpty reported "no flight exception reached UnobservedTaskException"
+                    }
+        ]
+#endif

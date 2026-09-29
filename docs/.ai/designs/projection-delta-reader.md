@@ -1,5 +1,7 @@
 # Delta readers for `Projection<'K,'V>`: design
 
+**Status:** stage 1 of §10 has shipped. `Positional.diff` (internal, `src/Ranvier/Positional.fs`) computes the LIS-based edits, and `AsObservableCollection` diffs a mirror of its settled rows (option C) to raise `Remove`/`Add`/`Move`/`Replace` in place of `Reset`. Stages 2 to 4 are open.
+
 This is a design only; nothing in the repo was changed. I tested the parts that carry the risk in a SageFs session loaded with `src/Ranvier/Ranvier.fsproj` (session `0365ee1a`, since stopped):
 
 - **Today's baseline.** One move plus one value change on a 5-row projection gives `AsObservableCollection` a `Reset` followed by 5 `Add` events.

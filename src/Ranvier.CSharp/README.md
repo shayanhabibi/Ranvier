@@ -20,6 +20,42 @@ graph.Run(() =>
 });
 ```
 
+## Async values
+
+A derived value over an async source, with loading and failure surfaced by a boundary instead of a hand-written
+busy flag and `try`/`catch`:
+
+```csharp
+public sealed class SearchViewModel
+{
+    public SearchViewModel(ISearchService service)
+    {
+        Query = Signal("");
+        Results = Async(token => service.SearchAsync(Query.Value, token));
+        Summary = Boundary(
+            () => Results.Value.Count == 0 ? "No matches" : string.Join(", ", Results.Value),
+            () => "Searching…",
+            error => $"Search failed: {error.Message}");
+    }
+
+    public Signal<string> Query { get; }
+    public AsyncMemo<IReadOnlyList<string>> Results { get; }
+    public Boundary<string> Summary { get; }
+    public bool IsSearching => Summary.IsWaiting;
+    public Exception? Error => Summary.Caught;
+}
+```
+
+`ISearchService` declares one method, `Task<IReadOnlyList<string>> SearchAsync(string query, CancellationToken token)`.
+Construct the view model inside `graph.Run`. The first read of `Summary` after a write to `Query` starts a new search
+and cancels the token of the one in progress; `IsSearching` and `Error` follow the boundary.
+
+## Binding to XAML
+
+`ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
+memos and signals, inside any existing view model; `ReactiveObject` is a base class over it. See the
+[C# guide](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/csharp.md#binding-to-xaml).
+
 ## Tracing
 
 `Tracing.Named` and `Tracing.Label` compile in every build. The queries (`Origin`, `Why`, `WhyDepth`, `WhyNot`,

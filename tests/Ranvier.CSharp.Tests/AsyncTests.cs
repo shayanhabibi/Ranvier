@@ -5,8 +5,83 @@ using static Ranvier.CSharp.Reactive;
 
 namespace CSharpCallers;
 
+// The headline sample of guide/csharp.md "Async values" and the Ranvier.CSharp README, as published.
+public interface ISearchService
+{
+    Task<IReadOnlyList<string>> SearchAsync(string query, CancellationToken token);
+}
+
+public sealed class SearchViewModel
+{
+    public SearchViewModel(ISearchService service)
+    {
+        Query = Signal("");
+        Results = Async(token => service.SearchAsync(Query.Value, token));
+        Summary = Boundary(
+            () => Results.Value.Count == 0 ? "No matches" : string.Join(", ", Results.Value),
+            () => "Searching…",
+            error => $"Search failed: {error.Message}");
+    }
+
+    public Signal<string> Query { get; }
+    public AsyncMemo<IReadOnlyList<string>> Results { get; }
+    public Boundary<string> Summary { get; }
+    public bool IsSearching => Summary.IsWaiting;
+    public Exception? Error => Summary.Caught;
+}
+
+// A search service with replies completed by hand, on the graph thread.
+sealed class ScriptedSearch : ISearchService
+{
+    public List<(string Query, CancellationToken Token, TaskCompletionSource<IReadOnlyList<string>> Reply)> Calls { get; } = new();
+
+    public Task<IReadOnlyList<string>> SearchAsync(string query, CancellationToken token)
+    {
+        var reply = new TaskCompletionSource<IReadOnlyList<string>>();
+        Calls.Add((query, token, reply));
+        return reply.Task;
+    }
+}
+
 public class AsyncTests
 {
+    [Fact]
+    public void SearchViewModelMovesThroughLoadingValueErrorAndRecovery()
+    {
+        var service = new ScriptedSearch();
+        var graph = new Graph(GraphOptions.Default.WithDispatcher(new ManualDispatcher()));
+        var shown = new List<string>();
+
+        var search = graph.Run(() => new SearchViewModel(service));
+        graph.Run(() => Effect(() => shown.Add(search.Summary.Value)));
+
+        Assert.Equal(["Searching…"], shown);
+        Assert.True(search.IsSearching);
+
+        service.Calls[0].Reply.SetResult([]);
+        Assert.Equal("No matches", shown[^1]);
+        Assert.False(search.IsSearching);
+
+        search.Query.Value = "ada";
+        Assert.Equal("Searching…", shown[^1]);
+        service.Calls[1].Reply.SetException(new HttpRequestException("offline"));
+        Assert.Equal("Search failed: offline", shown[^1]);
+        Assert.IsType<HttpRequestException>(search.Error);
+
+        search.Query.Value = "ad";
+        Assert.True(search.IsSearching);
+        search.Query.Value = "adam";
+        Assert.True(service.Calls[2].Token.IsCancellationRequested);
+        service.Calls[3].Reply.SetResult(["Adam", "Adamant"]);
+
+        Assert.Equal("Adam, Adamant", shown[^1]);
+        Assert.Null(search.Error);
+        Assert.Equal(["", "ada", "ad", "adam"], service.Calls.Select(call => call.Query));
+        Assert.Equal(
+            ["Searching…", "No matches", "Searching…", "Search failed: offline", "Searching…", "Adam, Adamant"],
+            shown);
+    }
+
     [Fact]
     public void BoundariesShowFallbackAndRecovery()
     {

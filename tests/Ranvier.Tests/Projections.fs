@@ -11,6 +11,68 @@ type private Item(n: int) =
     member _.N = n
 
 /// <summary>
+/// A seeded pseudo-random sequence (MINSTD). Every intermediate is an exact double, so .NET and Fable produce the same
+/// values. <c>seed</c> must be positive.
+/// </summary>
+type private Lcg(seed: int) =
+    let mutable state = float seed
+
+    /// <summary>The next value in <c>[0, bound)</c>.</summary>
+    member _.Next(bound: int) =
+        state <- (state * 48271.0) % 2147483647.0
+        int (state % float bound)
+
+let private shuffle (rng: Lcg) (items: 'T[]) =
+    let copy = Array.copy items
+
+    for i = copy.Length - 1 downto 1 do
+        let j = rng.Next (i + 1)
+        let t = copy[i]
+        copy[i] <- copy[j]
+        copy[j] <- t
+
+    copy
+
+/// <summary>Swaps <c>count</c> random pairs, leaving most of the order in place.</summary>
+let private perturb (rng: Lcg) (count: int) (items: 'T[]) =
+    let copy = Array.copy items
+
+    if copy.Length > 1 then
+        for _ in 1..count do
+            let i = rng.Next copy.Length
+            let j = rng.Next copy.Length
+            let t = copy[i]
+            copy[i] <- copy[j]
+            copy[j] <- t
+
+    copy
+
+let private replay (previous: 'K[]) (edits: PositionalChange<'K> seq) =
+    let list = ResizeArray<'K>(previous)
+
+    for edit in edits do
+        match edit with
+        | PositionalChange.RemoveAt index -> list.RemoveAt index
+        | PositionalChange.InsertAt (index, key) -> list.Insert (index, key)
+        | PositionalChange.Move (oldIndex, newIndex) ->
+            let key = list[oldIndex]
+            list.RemoveAt oldIndex
+            list.Insert (newIndex, key)
+
+    List.ofSeq list
+
+/// <summary>The length of the longest strictly increasing subsequence, by the quadratic recurrence.</summary>
+let private increasingLength (values: int[]) =
+    let best = Array.create values.Length 1
+
+    for i in 0 .. values.Length - 1 do
+        for j in 0 .. i - 1 do
+            if values[j] < values[i] && best[j] + 1 > best[i] then
+                best[i] <- best[j] + 1
+
+    Array.fold max 0 best
+
+/// <summary>
 /// A projection is N+2 nodes, not one, because it splits a collection into two
 /// halves — the key set and the per-key values — each separately observable.
 /// These tests pin that separation, so a <c>Memo&lt;'T[]></c> that happened to pass
@@ -982,6 +1044,61 @@ let tests =
                 Expect.sequenceEqual (snapshot |> Seq.map (fun p -> p.Key, p.Value)) [ Some 2, 2; None, 0; Some 1, 1 ] "pairs in key order"
             }
 
+            test "a positional diff turns previous into next, moving at most the survivors outside the longest ordered run" {
+                let rng = Lcg 20260929
+
+                for case in 1..3000 do
+                    let size = rng.Next 16
+                    let previous = shuffle rng [| 0 .. size - 1 |]
+                    let survivors = previous |> Array.filter (fun _ -> rng.Next 4 > 0)
+                    let addedCount = rng.Next 5
+                    let added = [| for i in 0 .. addedCount - 1 -> 100 + i |]
+
+                    let next =
+                        if rng.Next 2 = 0 then
+                            shuffle rng (Array.append survivors added)
+                        else
+                            perturb rng (rng.Next 3) (Array.append survivors (shuffle rng added))
+
+                    let edits = Positional.diff previous next |> List.ofSeq
+                    Expect.sequenceEqual (replay previous edits) next $"case {case}: the edits replay previous into next"
+
+                    let removals =
+                        edits
+                        |> List.takeWhile (fun e ->
+                            match e with
+                            | PositionalChange.RemoveAt _ -> true
+                            | _ -> false)
+                        |> List.length
+
+                    let removed =
+                        previous
+                        |> Array.filter (fun k -> not (Array.contains k next))
+                        |> Array.length
+
+                    Expect.equal removals removed $"case {case}: one removal per departed key, all first"
+
+                    let targets =
+                        survivors
+                        |> Array.map (fun k -> Array.findIndex ((=) k) next)
+
+                    let moves =
+                        edits
+                        |> List.filter (fun e ->
+                            match e with
+                            | PositionalChange.Move _ -> true
+                            | _ -> false)
+                        |> List.length
+
+                    Expect.isLessThanOrEqual moves (survivors.Length - increasingLength targets) $"case {case}: moves"
+            }
+
+            test "a positional diff moves one key for one swap of neighbours" {
+                Expect.sequenceEqual (Positional.diff [| 1; 2; 3; 4; 5 |] [| 1; 2; 3; 5; 4 |]) [ PositionalChange.Move (3, 4) ] "one move"
+
+                Expect.isEmpty (Positional.diff [| 1; 2; 3 |] [| 1; 2; 3 |]) "no edits for an unchanged order"
+            }
+
 #if !FABLE_COMPILER
             // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
             test "AsObservableCollection follows the projection" {
@@ -995,6 +1112,116 @@ let tests =
 
                 items.Value <- [ 2; 1; 3 ]
                 Expect.sequenceEqual view [ 20; 10; 30 ] "and it follows, in key order"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
+            test "AsObservableCollection moves one row for one swap of neighbours" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1..5 ]
+                let proj = createProjection id (fun x -> x * 10) (fun () -> items.Value)
+                let view = proj.AsObservableCollection ()
+                let events = ResizeArray<Collections.Specialized.NotifyCollectionChangedAction>()
+                view.CollectionChanged.Add (fun e -> events.Add e.Action)
+
+                items.Value <- [ 1; 2; 3; 5; 4 ]
+
+                Expect.sequenceEqual view [ 10; 20; 30; 50; 40 ] "the view follows"
+                Expect.sequenceEqual events [ Collections.Specialized.NotifyCollectionChangedAction.Move ] "one move, no reset"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
+            test "AsObservableCollection replaces one row for one value change" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1, "a"; 2, "b"; 3, "c" ]
+                let proj = createProjection fst snd (fun () -> items.Value)
+                let view = proj.AsObservableCollection ()
+                let events = ResizeArray<Collections.Specialized.NotifyCollectionChangedEventArgs>()
+                view.CollectionChanged.Add events.Add
+
+                items.Value <- [ 1, "a"; 2, "B"; 3, "c" ]
+
+                Expect.sequenceEqual view [ "a"; "B"; "c" ] "the view follows"
+                Expect.equal events.Count 1 "one event"
+                Expect.equal events[0].Action Collections.Specialized.NotifyCollectionChangedAction.Replace "a replace"
+                Expect.equal events[0].NewStartingIndex 1 "at the row's index"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
+            test "AsObservableCollection follows random edits without a reset" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let rng = Lcg 4242
+                let items = createSignal [ for k in 0..7 -> k, 0 ]
+                let proj = createProjection fst snd (fun () -> items.Value)
+                let view = proj.AsObservableCollection ()
+                let resets = ref 0
+
+                view.CollectionChanged.Add (fun e ->
+                    if e.Action = Collections.Specialized.NotifyCollectionChangedAction.Reset then
+                        resets.Value <- resets.Value + 1)
+
+                let mutable fresh = 100
+
+                for step in 1..500 do
+                    let kept =
+                        items.Value
+                        |> List.filter (fun _ -> rng.Next 6 > 0)
+
+                    let addedCount = rng.Next 3
+
+                    let added =
+                        [
+                            for _ in 1..addedCount do
+                                fresh <- fresh + 1
+                                fresh, 0
+                        ]
+
+                    let edited =
+                        (kept @ added)
+                        |> List.map (fun (k, v) -> if rng.Next 4 = 0 then k, v + 1 else k, v)
+
+                    let reordered =
+                        if rng.Next 3 = 0 then
+                            shuffle rng (Array.ofList edited)
+                        else
+                            perturb rng 1 (Array.ofList edited)
+
+                    items.Value <- List.ofArray reordered
+
+                    Expect.sequenceEqual view (items.Value |> List.map snd) $"step {step}: the view holds the rows in key order"
+
+                Expect.equal resets.Value 0 "no reset after the first population"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: AsObservableCollection returns an ObservableCollection, which the library omits under Fable.
+            test "AsObservableCollection keeps its last contents while the pass is failed" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2 ]
+                let proj = createProjection id (fun x -> x * 10) (fun () -> items.Value)
+                let view = proj.AsObservableCollection ()
+                let events = ResizeArray<Collections.Specialized.NotifyCollectionChangedAction>()
+                view.CollectionChanged.Add (fun e -> events.Add e.Action)
+
+                items.Value <- [ 3; 3 ]
+                Expect.equal proj.Status Status.Error "precondition: the pass failed on a duplicate key"
+                Expect.sequenceEqual view [ 10; 20 ] "the view keeps its contents"
+                Expect.isEmpty events "and raised nothing"
+
+                items.Value <- [ 2; 4 ]
+                Expect.sequenceEqual view [ 20; 40 ] "and follows once a pass succeeds"
+
+                Expect.isFalse (events.Contains Collections.Specialized.NotifyCollectionChangedAction.Reset) "without a reset"
             }
 #endif
 

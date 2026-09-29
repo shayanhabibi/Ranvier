@@ -30,6 +30,32 @@ type private Flight<'T>() =
     member _.Fail(e: exn) =
         source.SetException e
 
+/// <summary>What a search view shows: nothing known yet, or a loaded list that may be empty.</summary>
+type private Results =
+    | NotYetKnown
+    | Loaded of string list
+
+/// <summary>
+/// A search view: a boundary with a fallback returning its last value, the idiom documented in the Async and pending
+/// guide. The returned list holds one reply per flight.
+/// </summary>
+let private searchView (g: Graph) =
+    g.Run (fun () ->
+        let query = createSignal "a"
+        let replies = ResizeArray<Flight<string list>>()
+
+        let hits =
+            createAsync (fun _ _ ->
+                query.Value |> ignore
+                let reply = Flight<string list>()
+                replies.Add reply
+                reply.Task)
+
+        let results =
+            createSuspense (fun last -> ValueOption.defaultValue NotYetKnown last) (fun () -> Loaded hits.Value)
+
+        query, replies, results)
+
 [<Tests>]
 let tests =
     testList
@@ -643,5 +669,30 @@ let tests =
                 flight.Settle 10
 
                 Expect.equal a.Peek unset "a disposed node must not be written to"
+            }
+
+            test "a boundary whose fallback returns its last value shows stale data while refreshing" {
+                let g = new Graph ()
+                let query, replies, results = searchView g
+
+                Expect.equal (results.Value, results.IsWaiting) (NotYetKnown, true) "the first read starts the flight"
+                replies[0].Settle [ "abc"; "abd" ]
+                Expect.equal (results.Value, results.IsWaiting) (Loaded [ "abc"; "abd" ], false) "settled"
+
+                query.Value <- "ab"
+                Expect.equal (results.Value, results.IsWaiting) (Loaded [ "abc"; "abd" ], true) "the old list, refreshing"
+
+                replies[1].Settle [ "abc" ]
+                Expect.equal (results.Value, results.IsWaiting) (Loaded [ "abc" ], false) "the new list"
+            }
+
+            test "a boundary tells a loaded empty list from a value not yet known" {
+                let g = new Graph ()
+                let _, replies, results = searchView g
+
+                Expect.equal (results.Value, results.IsWaiting) (NotYetKnown, true) "nothing settled yet"
+
+                replies[0].Settle []
+                Expect.equal (results.Value, results.IsWaiting) (Loaded [], false) "loaded, and empty"
             }
         ]
