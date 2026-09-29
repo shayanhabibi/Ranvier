@@ -76,6 +76,18 @@ then stops. Solid has no token to cancel, so this policy is a .NET addition.
 - an `Async<'T>` adapter for cold, restartable F# async workflows
 - a streaming memo over `IAsyncEnumerable<'T>`, matching Solid's async-iterable results
 
+A streaming memo will live as long as its owner scope, as every other node does. Losing its last reader
+will not pause or stop the stream. Disposing the owner cancels the stream's token and disposes its
+enumerator. Create a streaming memo in the same scope as its readers. A memo created in a longer-lived
+scope, such as the graph's root, keeps pulling from its producer after its readers are gone.
+
+A streaming memo will reject `FlightPolicy.Queue`. That policy applies every result in start order, so a
+new stream's values would apply only once every earlier stream completed, and an infinite stream never
+completes. `CancelPrevious` and `KeepLatest` will apply to streams as they do to tasks.
+
+A stream that completes without yielding a value will settle the memo as `Failed` with
+`InvalidOperationException`. A stream that completes after yielding keeps its last value.
+
 ## Threads and dispatch
 
 *Implemented.*
