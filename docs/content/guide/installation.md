@@ -7,7 +7,8 @@ order: 2
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-Ranvier targets `net10.0`.
+Ranvier targets `net10.0`, `net8.0` and `netstandard2.1`. The `netstandard2.1` build serves runtimes
+such as Unity and Mono.
 
 ## From NuGet (once published)
 

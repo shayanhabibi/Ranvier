@@ -54,7 +54,7 @@ doubled = 10
 
 ## Targets
 
-`net10.0`. A Fable/JavaScript target is planned; see [Fable (JavaScript) target](../fable/index.md).
+`net10.0`, `net8.0` and `netstandard2.1`. A Fable/JavaScript target is planned; see [Fable (JavaScript) target](../fable/index.md).
 
 ## Guide
 

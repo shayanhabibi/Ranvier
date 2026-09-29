@@ -19,7 +19,7 @@ knowledge of it, and a boundary decides what to show in the meantime. The rest o
 effects, owners, height-ordered updates and equality cutoff) is well established, and other libraries
 provide it too.
 
-It is early. The project is pre-release and has one maintainer. It targets `net10.0` only, and its public
+It is early. The project is pre-release and has one maintainer. It targets `net10.0`, `net8.0` and `netstandard2.1`, and its public
 API is designed for F#. Evaluate it with that in mind.
 
 ## Related libraries
@@ -98,7 +98,6 @@ These are directions the design is aimed at. None of them ships an integration y
 - No UI framework adapters yet. The only .NET UI binding is `Projection.AsObservableCollection`.
 - The C# package, [Ranvier.CSharp](../guide/csharp.md), has no tracing, and a few of its types, such as
   `Previous<T>.Settled`, still carry `ValueOption`.
-- `net10.0` only. That rules out Unity (`netstandard2.1`) and hosts that are still on .NET 8.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
 - The Fable target is planned and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 
