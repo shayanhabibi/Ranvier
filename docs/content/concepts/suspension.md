@@ -4,7 +4,7 @@ order: 2
 ---
 
 :::warning
-**Preview.** Ranvier is pre-release; APIs follow Partas.Signals and may change.
+**Preview.** Ranvier is pre-release; its APIs may change.
 :::
 
 This page describes how a computation handles a value that has not arrived: what the graph records, how

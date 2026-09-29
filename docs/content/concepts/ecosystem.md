@@ -4,7 +4,7 @@ order: 4
 ---
 
 :::warning
-**Preview.** Ranvier is pre-release; APIs follow Partas.Signals and may change.
+**Preview.** Ranvier is pre-release; its APIs may change.
 :::
 
 This page places Ranvier among related libraries in .NET and Fable. Where another library is the better fit,

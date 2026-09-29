@@ -3,7 +3,7 @@ title: Fable (JavaScript) target
 order: 1
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 **Status: Planned.** Ranvier intends to support a Fable target, so the same reactive graph can run in JavaScript as well as on .NET. This page describes where that work stands. It is not yet a supported or published target.
 
@@ -13,7 +13,7 @@ Ranvier is native .NET first and Fable second. The engine is written so that it 
 
 ## Current state
 
-The engine Ranvier is derived from (Partas.Signals, at commit `915f139`) already compiles under Fable, and a smoke check runs the compiled engine under Node.js and asserts the same behaviour as the .NET test suite. Verified by running it, not only by compiling it:
+The engine already compiles under Fable, and a smoke check runs the compiled engine under Node.js and asserts the same behaviour as the .NET test suite. Verified by running it, not only by compiling it:
 
 - signals, memos and effects;
 - `batch`, `untrack` and `onCleanup`;

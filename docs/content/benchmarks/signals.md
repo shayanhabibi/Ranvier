@@ -3,7 +3,7 @@ title: Signals
 order: 2
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 The write path is the most frequently executed path in the library. These benchmarks measure reads, writes and the equality cutoff on a single signal. See [Benchmarks](index.md) for configuration, environment and caveats.
 

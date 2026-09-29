@@ -4,7 +4,7 @@ order: 1
 ---
 
 :::warning
-**Preview.** Ranvier is pre-release; APIs follow Partas.Signals and may change.
+**Preview.** Ranvier is pre-release; its APIs may change.
 :::
 
 These pages cover the design behind Ranvier: the model it uses and the reasons for it, as well as the

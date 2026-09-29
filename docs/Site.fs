@@ -179,7 +179,6 @@ let theme =
                 ]
         ]
     |> Theme.menu "fable" [ Menu.section "Fable" [ Menu.page "fable/index.md" ] ]
-    |> Theme.menu "about" [ Menu.section "About" [ Menu.page "about/provenance.md" ] ]
     |> Theme.navbarEnd
         [
             NavbarIcon ("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
@@ -218,8 +217,6 @@ let theme =
             [
                 Html.text "Ranvier · Preview · "
                 Html.a [ prop.href "https://github.com/shayanhabibi/Ranvier"; prop.text "GitHub" ]
-                Html.text " · "
-                Html.a [ prop.href (baseUrl + "about/provenance/"); prop.text "Provenance" ]
                 Html.text " · Built with Nacara"
             ]
     )
@@ -246,7 +243,6 @@ let private ogCards =
         "concepts", "concepts", "Ranvier concepts: how the graph works"
         "fable", "fable", "Ranvier on Fable: the JavaScript target"
         "benchmarks", "benchmarks", "Ranvier benchmarks: measured per commit"
-        "about", "about", "About Ranvier: provenance"
     ]
 
 /// The card of the most specific section named by a page's path.

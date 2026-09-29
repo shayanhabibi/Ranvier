@@ -3,7 +3,7 @@ title: Lifetimes
 order: 5
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 Construction and teardown are not the hottest path, but they are the path a UI takes on every mount and unmount, and the one where an owner that only grows would show up as a leak rather than as a slowdown. See [Benchmarks](index.md) for configuration, environment and caveats.
 

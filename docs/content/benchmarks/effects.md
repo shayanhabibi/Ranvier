@@ -3,7 +3,7 @@ title: Effects
 order: 4
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 Effects are the push side of the graph: nothing reads them, so the scheduler runs them. A write that reaches an effect therefore pays for queueing and flushing on top of notification. See [Benchmarks](index.md) for configuration, environment and caveats.
 

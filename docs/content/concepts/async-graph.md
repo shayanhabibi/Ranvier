@@ -4,7 +4,7 @@ order: 3
 ---
 
 :::warning
-**Preview.** Ranvier is pre-release; APIs follow Partas.Signals and may change.
+**Preview.** Ranvier is pre-release; its APIs may change.
 :::
 
 This page covers how asynchronous work fits into a synchronous, re-runnable dependency graph on .NET. It

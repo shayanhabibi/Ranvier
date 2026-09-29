@@ -3,7 +3,7 @@ title: Benchmarks
 order: 1
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: signals, memos, effects, lifetimes, projections and suspension. Its purpose is **tracking**: a number here is meaningful against another number from the same machine and the same configuration, typically the previous commit. It is not a statement of how fast Ranvier will be on your hardware, and these pages make no comparison with other libraries.
 
@@ -17,9 +17,9 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 | [Suspension](suspension.md) | The cost of the pending channel: throwing through a chain, boundaries, and settling a source. |
 | [Instruction counts](counters.md) | Whole scenarios by instructions per operation, against FSharp.Data.Adaptive, R3 and Fable.Ripple, on .NET and Node.js. |
 
-## Provenance
+## Results
 
-The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`, ported from Partas.Signals at commit `915f139`. The results on these pages come from a full run of the Ranvier suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from. The Partas.Signals runs are kept in `docs/.ai/benchmarks/results/historical/`.
+The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages come from a full run of the suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from.
 
 The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 

@@ -6,7 +6,7 @@ order: 5
 *)
 (**
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 How to derive a keyed collection whose rows are separately observable, and a pointwise lookup over

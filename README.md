@@ -19,7 +19,7 @@
 > French anatomist Louis-Antoine Ranvier. A signal jumps from node to node and is regenerated at each
 > one, instead of flowing along every point of the fibre.
 
-> **Preview.** Ranvier is pre-release. Its APIs follow [Partas.Signals](https://github.com/shayanhabibi/Partas.Signals) and may change before the first release. No package has been published yet.
+> **Preview.** Ranvier is pre-release. Its APIs may change before the first release. No package has been published yet.
 
 ## Overview
 
@@ -59,9 +59,9 @@ graph.Run(() =>
 
 Read the full documentation at **https://shayanhabibi.github.io/Ranvier/**.
 
-## Provenance
+## Origin
 
-Ranvier began as a one-time copy of Partas.Signals: the docs at commit `915f139` on 2026-09-27, then the engine, tests and benchmarks on 2026-09-28. The code uses the `Ranvier` namespace; every API identifier is unchanged. See [Provenance](https://shayanhabibi.github.io/Ranvier/about/provenance/) in the docs.
+Ranvier began as experiments in a repository called [Partas.Signals](https://github.com/shayanhabibi/Partas.Signals).
 
 ## Build CLI
 

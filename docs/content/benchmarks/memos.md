@@ -3,7 +3,7 @@ title: Memos
 order: 3
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 Memos are pull-based: a read runs them, nothing else does. Two costs therefore matter: the cache hit, which every read pays, and a recomputation, which only a read after invalidation pays. See [Benchmarks](index.md) for configuration, environment and caveats.
 

@@ -4,7 +4,7 @@ order: 9
 ---
 
 :::info
-Preview — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 Each heading is an exception message or symptom as it appears at runtime; search this page for the

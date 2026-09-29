@@ -3,7 +3,7 @@ title: Suspension
 order: 7
 ---
 
-> **Preview** — Ranvier is pre-release; APIs follow Partas.Signals and may change.
+> **Preview** — Ranvier is pre-release; its APIs may change.
 
 The pending channel is what lets a computation read an async source that has no value yet. On .NET, a transparent read of a Pending source aborts the reading body by throwing, and an exception is the most expensive single operation in the design. These benchmarks measure what that costs and how a boundary limits it. See [Benchmarks](index.md) for configuration, environment and caveats.
 
