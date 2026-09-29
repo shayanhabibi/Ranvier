@@ -8,19 +8,28 @@ module Layout =
     /// <summary>The (layer, row) of each node: layers run from sources to observers, rows top to bottom.</summary>
     /// <remarks>
     /// A node's layer is the longest path from a node without sources. Rows within a layer follow the mean row of
-    /// each node's sources in earlier layers, ties broken by id. A node takes <c>span</c> rows, and the next node in its
-    /// layer starts below them. The same graph always yields the same placement.
+    /// each node's sources in earlier layers, ties broken by id; a node sits level with that mean when the rows above
+    /// leave room. A node takes <c>span</c> rows. The same graph always yields the same placement.
     /// </remarks>
     /// <param name="span">The rows each node takes.</param>
     /// <param name="nodes">The nodes to place.</param>
-    /// <param name="sources">Each node's sources; sources outside <c>nodes</c> are ignored.</param>
-    let placeSpanned (span: int -> int) (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> =
+    /// <param name="sources">
+    /// Each node's sources, with the rows below the source's own row its edge leaves from; sources outside
+    /// <c>nodes</c> are ignored.
+    /// </param>
+    let placeSpanned
+        (span: int -> int)
+        (nodes: int list)
+        (sources: Map<int, (int * float) list>)
+        : Map<int, int * int> =
         let known = Set.ofList nodes
 
-        let sourcesOf id =
+        let portsOf id =
             sources.TryFind id
             |> Option.defaultValue []
-            |> List.filter (fun s -> s <> id && known.Contains s)
+            |> List.filter (fun (s, _) -> s <> id && known.Contains s)
+
+        let sourcesOf id = portsOf id |> List.map fst |> List.distinct
 
         let layers = System.Collections.Generic.Dictionary<int, int>()
 
@@ -48,10 +57,10 @@ module Layout =
         for _, members in byLayer do
             let centre id =
                 match
-                    sourcesOf id
-                    |> List.choose (fun s ->
+                    portsOf id
+                    |> List.choose (fun (s, offset) ->
                         match rows.TryGetValue s with
-                        | true, r -> Some (float r)
+                        | true, r -> Some (float r + offset)
                         | _ -> None)
                 with
                 | [] -> infinity
@@ -60,7 +69,12 @@ module Layout =
             members
             |> List.sortBy (fun id -> centre id, id)
             |> List.fold
-                (fun row id ->
+                (fun next id ->
+                    let row =
+                        match centre id with
+                        | c when System.Double.IsInfinity c -> next
+                        | c -> max next (int (System.Math.Round c))
+
                     rows[id] <- row
                     row + max 1 (span id))
                 0
@@ -71,5 +85,6 @@ module Layout =
         |> Map.ofSeq
 
     /// <summary><c>placeSpanned</c> with one row per node.</summary>
-    let place (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> = placeSpanned (fun _ -> 1) nodes sources
+    let place (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> =
+        placeSpanned (fun _ -> 1) nodes (sources |> Map.map (fun _ -> List.map (fun s -> s, 0.0)))
 #endif

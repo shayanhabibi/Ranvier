@@ -74,9 +74,22 @@ module private Look =
     let column = 150.0
     let row = 78.0
     let margin = 52.0
-    /// <summary>How far a row sits right of its collection, and a member left of it.</summary>
-    let inset = 30.0
-    let boxPad = 34.0
+    /// <summary>The space between one layer's widest node and the next's.</summary>
+    let gap = 98.0
+    /// <summary>The distance from a collection's node to its first row, and between rows.</summary>
+    let firstSlot = 64.0
+    let slot = 50.0
+    /// <summary>Half a row's width, and the distance between a box's member columns.</summary>
+    let rowHalf = 38.0
+    let memberGap = 44.0
+    let boxPad = 14.0
+
+    /// <summary>The distance from a node's centre to where its edges attach.</summary>
+    let half (place: Place) =
+        match place with
+        | Row _ -> rowHalf
+        | Member _ -> 14.0
+        | _ -> 22.0
 
     let position (layer: int, row': int) =
         margin + float layer * column, margin + float row' * row
@@ -110,16 +123,18 @@ module private Look =
         | TraceNodeStatus.Ended RunStatus.Error -> "error"
         | TraceNodeStatus.Ended _ -> "abandoned"
 
-    let badge (text: string) =
-        if text.Length > 16 then
-            text.Substring (0, 15) + "…"
+    let badgeTo (length: int) (text: string) =
+        if text.Length > length then
+            text.Substring (0, length - 1) + "…"
         else
             text
 
-    /// <summary>A cubic edge from the right of a source to the left of an observer.</summary>
-    let edgePath (x1: float, y1: float) (x2: float, y2: float) =
-        let x1 = x1 + 22.0
-        let x2 = x2 - 22.0
+    let badge = badgeTo 16
+
+    /// <summary>A cubic edge from <c>h1</c> right of a source's centre to <c>h2</c> left of an observer's.</summary>
+    let edgePath (x1: float, y1: float) (h1: float) (x2: float, y2: float) (h2: float) =
+        let x1 = x1 + h1
+        let x2 = x2 - h2
         let mid = (x1 + x2) / 2.0
         $"M{x1} {y1} C{mid} {y1} {mid} {y2} {x2} {y2}"
 
@@ -180,7 +195,7 @@ module SignalMapComponent =
 
         let nodes = Dictionary<int, NodeView>()
         let edges = Dictionary<string, Element>()
-        let boxes = Dictionary<int, Element>()
+        let boxes = ResizeArray<Element>()
         let history = ResizeArray<Frame>()
         let lit = Dictionary<int, Element list>()
         let mutable cursor = -1
@@ -304,36 +319,68 @@ module SignalMapComponent =
                         + " is a source: it changes when written or settled, and never runs."
                     | _ -> MapModel.name shown id + " has not run."
 
-        let viewOf (n: TraceSnapshotNode) =
+        let viewOf (n: TraceSnapshotNode) (at: Place) =
             let shape = Look.shapeOf n.Kind
-            let group = Dom.svg "g" ("rv-map-node rv-map-node--" + shape)
+
+            let role =
+                match at with
+                | Row _ -> " rv-map-node--row"
+                | Member _ -> " rv-map-node--member"
+                | _ -> ""
+
+            let group = Dom.svg "g" ("rv-map-node rv-map-node--" + shape + role)
             group.setAttribute ("tabindex", "0")
+            let small = role <> ""
             let ring = Dom.svg "circle" "rv-map-node__flight"
-            Dom.attrs ring [ "r", "25" ]
+            Dom.attrs ring [ "r", (if small then "18" else "25") ]
 
             let body =
-                match shape with
-                | "signal" ->
+                match at, shape with
+                | Row _, _ ->
+                    let r = Dom.svg "rect" "rv-map-node__shape"
+                    Dom.attrs r [ "x", "-38"; "y", "-12"; "width", "76"; "height", "24"; "rx", "12" ]
+                    r
+                | _, "signal" ->
                     let c = Dom.svg "circle" "rv-map-node__shape"
-                    Dom.attrs c [ "r", "16" ]
+                    Dom.attrs c [ "r", (if small then "11" else "16") ]
                     c
-                | "async" ->
+                | _, "async" ->
                     let c = Dom.svg "circle" "rv-map-node__shape"
-                    Dom.attrs c [ "r", "17" ]
+                    Dom.attrs c [ "r", (if small then "12" else "17") ]
                     c
-                | "effect" ->
+                | _, "effect" ->
                     let p = Dom.svg "path" "rv-map-node__shape"
-                    Dom.attrs p [ "d", "M0 -19 L19 0 L0 19 L-19 0 Z" ]
+
+                    Dom.attrs
+                        p
+                        [
+                            "d",
+                            (if small then
+                                 "M0 -13 L13 0 L0 13 L-13 0 Z"
+                             else
+                                 "M0 -19 L19 0 L0 19 L-19 0 Z")
+                        ]
+
                     p
+                | _ when small ->
+                    let r = Dom.svg "rect" "rv-map-node__shape"
+                    Dom.attrs r [ "x", "-14"; "y", "-10"; "width", "28"; "height", "20"; "rx", "6" ]
+                    r
                 | _ ->
                     let r = Dom.svg "rect" "rv-map-node__shape"
                     Dom.attrs r [ "x", "-23"; "y", "-15"; "width", "46"; "height", "30"; "rx", "9" ]
                     r
 
             let name = Dom.svg "text" "rv-map-node__name"
-            Dom.attrs name [ "y", "36"; "text-anchor", "middle" ]
             let value = Dom.svg "text" "rv-map-node__value"
-            Dom.attrs value [ "y", "-26"; "text-anchor", "middle" ]
+
+            match at with
+            | Row _ ->
+                Dom.attrs name [ "x", "-30"; "y", "4"; "text-anchor", "start" ]
+                Dom.attrs value [ "x", "30"; "y", "4"; "text-anchor", "end" ]
+            | _ ->
+                Dom.attrs name [ "y", "36"; "text-anchor", "middle" ]
+                Dom.attrs value [ "y", "-26"; "text-anchor", "middle" ]
 
             for e in [ ring; body; name; value ] do
                 group.appendChild e |> ignore
@@ -421,9 +468,15 @@ module SignalMapComponent =
                         |> List.fold (fun live (row, members) -> Set.union (live.Add row) (Set.ofList members)) live)
                     top
 
+            let outer id =
+                MapModel.laidOutAs scene id
+
             let links =
                 MapModel.edges scene
-                |> List.filter (fun (s, o) -> live.Contains s && live.Contains o)
+                |> List.filter (fun (s, o) ->
+                    live.Contains s
+                    && live.Contains o
+                    && not (outer s = outer o && (s = outer s || o = outer o)))
 
             for id in List.ofSeq nodes.Keys do
                 if not (live.Contains id) then
@@ -433,7 +486,7 @@ module SignalMapComponent =
 
             for id in live do
                 if not (nodes.ContainsKey id) then
-                    nodes[id] <- viewOf snapshot.Nodes[id]
+                    nodes[id] <- viewOf snapshot.Nodes[id] (MapModel.placeOf scene id)
 
             let key =
                 String.Join (";", live)
@@ -443,87 +496,209 @@ module SignalMapComponent =
             if key <> layoutKey then
                 layoutKey <- key
 
+                let slotOf = Dictionary<int, int>()
+
+                for KeyValue (_, rows) in boxed do
+                    rows
+                    |> List.iteri (fun i (row, members) ->
+                        for id in row :: members do
+                            slotOf[id] <- i)
+
+                let slotY i =
+                    Look.firstSlot + float i * Look.slot
+
                 let sources =
                     links
-                    |> List.map (fun (s, o) -> MapModel.laidOutAs scene s, MapModel.laidOutAs scene o)
-                    |> List.filter (fun (s, o) -> s <> o)
+                    |> List.choose (fun (s, o) ->
+                        let offset =
+                            match slotOf.TryGetValue s with
+                            | true, i -> slotY i / Look.row
+                            | _ -> 0.0
+
+                        if outer s = outer o then
+                            None
+                        else
+                            Some (outer o, (outer s, offset)))
                     |> List.distinct
-                    |> List.groupBy snd
-                    |> List.map (fun (o, pairs) -> o, List.map fst pairs)
+                    |> List.groupBy fst
+                    |> List.map (fun (o, pairs) -> o, List.map snd pairs)
                     |> Map.ofList
 
                 let span id =
-                    boxed.TryFind id
-                    |> Option.map (List.length >> (+) 1)
-                    |> Option.defaultValue 1
+                    match boxed.TryFind id with
+                    | Some rows -> int (ceil ((68.0 + Look.slot * float rows.Length) / Look.row))
+                    | None -> 1
+
+                let memberReach rows =
+                    match
+                        rows
+                        |> List.map (snd >> List.length)
+                        |> List.fold max 0
+                    with
+                    | 0 -> 0.0
+                    | columns -> 48.0 + float (columns - 1) * Look.memberGap
+
+                let extent id =
+                    match boxed.TryFind id with
+                    | Some rows -> Look.rowHalf + memberReach rows + Look.boxPad, Look.rowHalf + Look.boxPad
+                    | None -> 26.0, 26.0
 
                 let placed = Layout.placeSpanned span (Set.toList top) sources
-                let at = Dictionary<int, float * float>()
-
-                for KeyValue (id, cell) in placed do
-                    at[id] <- Look.position cell
-
-                for KeyValue (host, rows) in boxed do
-                    let x, y = at[host]
-
-                    rows
-                    |> List.iteri (fun i (row, members) ->
-                        let rowY = y + float (i + 1) * Look.row
-                        at[row] <- x + Look.inset, rowY
-
-                        members
-                        |> List.iteri (fun j m -> at[m] <- x - Look.inset - float j * Look.inset * 2.0, rowY))
-
                 let layers = placed.Values |> Seq.map fst |> Seq.fold max 0
 
-                let rows =
+                let reach pick layer =
                     placed
-                    |> Seq.map (fun (KeyValue (id, (_, r))) -> r + span id - 1)
-                    |> Seq.fold max 0
+                    |> Seq.filter (fun (KeyValue (_, (l, _))) -> l = layer)
+                    |> Seq.map (fun (KeyValue (id, _)) -> pick (extent id))
+                    |> Seq.fold max 26.0
 
-                let width = Look.margin * 2.0 + float layers * Look.column
-                let height = Look.margin * 2.0 + float rows * Look.row
+                let xs = Array.zeroCreate (layers + 1)
+
+                for l in 0..layers do
+                    xs[l] <-
+                        if l = 0 then
+                            Look.margin - 26.0 + reach fst 0
+                        else
+                            xs[l - 1]
+                            + reach snd (l - 1)
+                            + Look.gap
+                            + reach fst l
+
+                let at = Dictionary<int, float * float>()
+
+                let memberX x j =
+                    x - Look.rowHalf - 30.0 - float j * Look.memberGap
+
+                let above id =
+                    if boxed.ContainsKey id then 44.0 else 30.0
+
+                let below id =
+                    match boxed.TryFind id with
+                    | Some rows -> slotY (rows.Length - 1) + 22.0
+                    | None -> 40.0
+
+                let inLayer layer =
+                    placed
+                    |> Seq.filter (fun p -> fst p.Value = layer)
+                    |> Seq.sortBy (fun p -> snd p.Value)
+                    |> Seq.map (fun p -> p.Key, snd p.Value)
+                    |> List.ofSeq
+
+                let sourcePorts id =
+                    sources.TryFind id
+                    |> Option.defaultValue []
+                    |> List.choose (fun (s, offset) ->
+                        match at.TryGetValue s with
+                        | true, (_, y) -> Some (y + offset * Look.row)
+                        | _ -> None)
+
+                let observerPorts id =
+                    links
+                    |> List.filter (fun (s, o) -> outer s = id && outer o <> id)
+                    |> List.map (fun (s, o) ->
+                        let offset =
+                            match slotOf.TryGetValue s with
+                            | true, i -> slotY i
+                            | _ -> 0.0
+
+                        snd at[o] - offset)
+
+                // A layer keeps the layout's order; each node sits level with the mean of its ports, lowered as far
+                // as the node above it requires.
+                let settle layer (ports: int -> float list) =
+                    let mutable floor = Look.margin - 30.0
+
+                    for id, row in inLayer layer do
+                        let wanted =
+                            match ports id with
+                            | [] -> Look.margin + float row * Look.row
+                            | ys -> List.average ys
+
+                        let y = max wanted (floor + above id)
+                        let x = xs[layer]
+                        at[id] <- x, y
+                        floor <- y + below id + 12.0
+
+                        match boxed.TryFind id with
+                        | Some rows ->
+                            rows
+                            |> List.iteri (fun i (row, members) ->
+                                let rowY = y + slotY i
+                                at[row] <- x, rowY
+
+                                members
+                                |> List.iteri (fun j m -> at[m] <- memberX x j, rowY))
+                        | None -> ()
+
+                for layer in 0..layers do
+                    settle layer sourcePorts
+
+                // A layer of roots centres on the nodes it feeds.
+                for layer in 0..layers do
+                    if
+                        inLayer layer
+                        |> List.forall (fst >> sourcePorts >> List.isEmpty)
+                    then
+                        settle layer observerPorts
+
+                let bottom =
+                    placed
+                    |> Seq.map (fun (KeyValue (id, _)) ->
+                        let _, y = at[id]
+
+                        match boxed.TryFind id with
+                        | Some rows -> y + slotY (rows.Length - 1)
+                        | None -> y)
+                    |> Seq.fold max 0.0
+
+                let width = xs[layers] + reach snd layers + Look.margin - 26.0
+                let height = bottom + Look.margin
                 stage.setAttribute ("viewBox", $"0 0 {width} {height}")
 
                 for KeyValue (id, xy) in at do
                     place nodes[id] xy true
 
-                for b in boxes.Values do
+                for b in boxes do
                     b.remove ()
 
                 boxes.Clear ()
 
                 for KeyValue (host, rows) in boxed do
                     let x, y = at[host]
-
-                    let widest =
-                        rows
-                        |> List.map (snd >> List.length)
-                        |> List.fold max 1
-
-                    let left =
-                        x
-                        - Look.inset * float (2 * widest - 1)
-                        - Look.boxPad
-
+                    let left, right = extent host
                     let box = Dom.svg "rect" "rv-map-group"
 
                     Dom.attrs
                         box
                         [
-                            "x", string left
-                            "y", string (y - Look.boxPad)
-                            "width", string (x + Look.inset + Look.boxPad - left)
-                            "height",
-                            string (
-                                float (List.length rows) * Look.row
-                                + Look.boxPad * 2.0
-                            )
-                            "rx", "10"
+                            "x", string (x - left)
+                            "y", string (y - 44.0)
+                            "width", string (left + right)
+                            "height", string (44.0 + slotY (rows.Length - 1) + 22.0)
+                            "rx", "12"
                         ]
 
                     groupLayer.appendChild box |> ignore
-                    boxes[host] <- box
+                    boxes.Add box
+
+                    match rows with
+                    | (_, members) :: _ ->
+                        members
+                        |> List.iteri (fun j m ->
+                            let column = Dom.svg "text" "rv-map-group__column"
+
+                            Dom.attrs
+                                column
+                                [
+                                    "x", string (memberX x j)
+                                    "y", string (y + slotY 0 - 22.0)
+                                    "text-anchor", "middle"
+                                ]
+
+                            column.textContent <- MapModel.caption scene m
+                            groupLayer.appendChild column |> ignore
+                            boxes.Add column)
+                    | [] -> ()
 
                 for e in edges.Values do
                     e.remove ()
@@ -532,7 +707,16 @@ module SignalMapComponent =
 
                 for s, o in links do
                     let path = Dom.svg "path" "rv-map-edge"
-                    path.setAttribute ("d", Look.edgePath at[s] at[o])
+
+                    // An edge leaving a box from a member starts at the member's row.
+                    let port =
+                        match MapModel.placeOf scene s with
+                        | Member (h, row) when outer o <> h -> row
+                        | _ -> s
+
+                    let hs = Look.half (MapModel.placeOf scene port)
+                    let ho = Look.half (MapModel.placeOf scene o)
+                    path.setAttribute ("d", Look.edgePath at[port] hs at[o] ho)
                     edgeLayer.appendChild path |> ignore
                     edges[$"{s}>{o}"] <- path
 
@@ -540,9 +724,14 @@ module SignalMapComponent =
                 let n = snapshot.Nodes[id]
                 view.Name.textContent <- MapModel.caption scene id
 
+                let badge =
+                    match MapModel.placeOf scene id with
+                    | Row _ -> Look.badgeTo 6
+                    | _ -> Look.badge
+
                 view.Value.textContent <-
                     n.Value
-                    |> Option.map Look.badge
+                    |> Option.map badge
                     |> Option.defaultValue ""
 
                 Dom.toggle view.Group "is-running" (n.Status = TraceNodeStatus.Running)
