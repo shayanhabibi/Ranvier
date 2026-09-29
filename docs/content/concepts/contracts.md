@@ -125,6 +125,7 @@ Recovery happens through re-runs alone.
 | The equality comparer of a memo, boundary, projection row, fold or lookup cell | The node fails with that exception and keeps its previous value, and its readers wake to see the failure. A boundary's `recover` does not see it. |
 | A `createEffectOn` comparer | Recorded on the effect as a failure of `compute`, and `act` does not run. |
 | Disposal of a pending async value | The async value fails with `ObjectDisposedException`, and its readers wake once to see it. |
+| A flight's task faulting after it was superseded, or after its async value or graph was disposed | Observed under every `FlightPolicy`. `TaskScheduler.UnobservedTaskException` does not receive it. |
 
 `createEffect` returns `unit`, so an effect's failure is visible through tracing or through an `Effect`
 constructed directly. See
