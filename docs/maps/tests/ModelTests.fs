@@ -246,7 +246,7 @@ let tests =
                     |> Map.map (fun _ n -> TraceModel.pathOf s n.Id, n.Label, n.Value, n.Status)
 
                 Expect.equal (view actual) (view expected) "paths, labels, values and statuses agree"
-                Expect.equal (MapModel.name actual (a :> INode).Id) "a" "the name is the label"
+                Expect.equal (MapModel.name { MapModel.start with Snapshot = actual } (a :> INode).Id) "a" "the name is the label"
                 Expect.equal (MapModel.frames MapModel.start events).Length events.Length "one frame per event"
             }
 
@@ -261,7 +261,7 @@ let tests =
                     snapshot.Nodes.Values
                     |> Seq.find (fun n -> n.Kind = TraceNodeKind.Effect)
 
-                Expect.equal (MapModel.name snapshot effect.Id) "effect" "the kind, in lower case"
+                Expect.equal (MapModel.name { MapModel.start with Snapshot = snapshot } effect.Id) "effect" "the kind, in lower case"
             }
 
             test "frames played in two batches reach the same scene as one" {
@@ -310,9 +310,78 @@ let tests =
                      |> Array.last)
                         .After
 
-                let edges = MapModel.edges scene.Snapshot
+                let edges = MapModel.edges scene
                 Expect.contains edges ((c.Lines :> INode).Id, c.Subtotal) "lines feeds the subtotal"
                 Expect.contains edges (c.Shipping, c.Total) "shipping feeds the total"
+            }
+
+            test "a projection is drawn as one node between its source and its readers" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let lines = createSignal [ "tea"; "jam" ]
+                Trace.label (g, lines, "lines")
+                let rows = createProjection id String.length (fun () -> lines.Value :> seq<_>)
+                Trace.label (g, rows, "rows")
+                let total = createMemo (fun _ -> rows.Keys |> Array.sumBy rows.Get)
+                Trace.label (g, total, "total")
+                createEffect (fun () -> total.Value |> ignore)
+                lines.Value <- [ "tea"; "jam"; "egg" ]
+                let frames = MapModel.frames MapModel.start (Trace.events g)
+                let scene = (Array.last frames).After
+                let rowsId = (rows :> INode).Id
+                let totalId = (total :> INode).Id
+
+                let drawn =
+                    scene.Snapshot.Nodes.Values
+                    |> Seq.filter (MapModel.visible scene)
+                    |> Seq.map (fun n -> MapModel.name scene n.Id)
+                    |> Set.ofSeq
+
+                Expect.equal drawn (Set [ "lines"; "rows"; "total"; "effect" ]) "the rows, items and keys are hidden"
+
+                let edges =
+                    MapModel.edges scene
+                    |> List.filter (fun (s, o) -> s = rowsId || o = rowsId)
+
+                Expect.equal edges [ ((lines :> INode).Id, rowsId); (rowsId, totalId) ] "lines feeds rows, and rows feeds total"
+
+                Expect.isTrue
+                    (frames
+                     |> Array.exists (fun f -> f.Log = "write rows[tea] item = tea"))
+                    "a part's log line names its collection and key"
+
+                Expect.isTrue
+                    (frames
+                     |> Array.forall (fun f ->
+                         match f.Cue with
+                         | Pulse (s, t) -> s <> t
+                         | _ -> true))
+                    "a mark inside the collection plays no pulse"
+            }
+
+            test "a lookup's cells are drawn as the lookup's state" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let selected = createSignal 1
+                Trace.label (g, selected, "selected")
+                let isSelected = Trace.named "isSelected" (fun () -> createSelector (fun () -> selected.Value))
+                let row = createMemo (fun _ -> isSelected.Get 2)
+                Trace.label (g, row, "row")
+                createEffect (fun () -> row.Value |> ignore)
+                selected.Value <- 2
+                let scene = (MapModel.frames MapModel.start (Trace.events g) |> Array.last).After
+                let rowId = (row :> INode).Id
+
+                let sources =
+                    MapModel.edges scene
+                    |> List.filter (fun (_, o) -> o = rowId)
+                    |> List.map fst
+
+                Expect.equal sources.Length 1 "the row reads one drawn node"
+                let state = sources.Head
+
+                Expect.contains (MapModel.edges scene) ((selected :> INode).Id, state) "the state reads selected"
+                Expect.equal (MapModel.name scene state) "isSelected" "the state takes the lookup's name"
             }
 
             test "layout layers a chain by longest path" {

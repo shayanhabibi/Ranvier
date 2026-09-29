@@ -23,6 +23,14 @@ type Cue =
     /// <summary>A replayed input's write, logged before the events it causes.</summary>
     | Said
 
+/// <summary>A node drawn as its collection: a projection's row, item, keys or summary, or a lookup's cell.</summary>
+type Part =
+    {
+        Host: int
+        /// <summary>The key's text, for a part that belongs to one key.</summary>
+        Key: string option
+    }
+
 /// <summary>The map's state between frames.</summary>
 type Scene =
     {
@@ -33,6 +41,7 @@ type Scene =
         Waiting: Map<int, int>
         /// <summary>The error text of each node whose last flight failed.</summary>
         Errors: Map<int, string>
+        Parts: Map<int, Part>
     }
 
 /// <summary>One event as the map plays it.</summary>
@@ -56,10 +65,16 @@ module MapModel =
             Flights = Map.empty
             Waiting = Map.empty
             Errors = Map.empty
+            Parts = Map.empty
         }
 
-    /// <summary>The node's label, else its kind in lower case.</summary>
-    let name (snapshot: TraceSnapshot) (node: int) : string =
+    /// <summary>The node a map draws in place of <c>node</c>: its collection for a part, else the node itself.</summary>
+    let host (scene: Scene) (node: int) : int =
+        match scene.Parts.TryFind node with
+        | Some part -> part.Host
+        | None -> node
+
+    let private ownName (snapshot: TraceSnapshot) (node: int) =
         match snapshot.Nodes.TryFind node with
         | Some { Label = Some label } -> label
         | Some n ->
@@ -75,26 +90,63 @@ module MapModel =
             | _ -> "#" + string node
         | None -> "#" + string node
 
-    /// <summary>True for the node kinds a map draws; projection internals stay hidden.</summary>
-    let visible (node: TraceSnapshotNode) : bool =
+    /// <summary>
+    /// The node's label, else its kind in lower case. A part takes its collection's name, and a keyed part adds its
+    /// key: <c>rows[tea]</c> for a row, <c>rows[tea] item</c> for the item it reads. A part created before its
+    /// collection takes its own name, and an unlabelled collection takes its owner's label.
+    /// </summary>
+    let rec name (scene: Scene) (node: int) : string =
+        let snapshot = scene.Snapshot
+
+        match scene.Parts.TryFind node with
+        | Some { Host = h } when not (snapshot.Nodes.ContainsKey h) -> ownName snapshot node
+        | Some { Host = h; Key = Some key } ->
+            let item =
+                match snapshot.Nodes.TryFind node with
+                | Some { Kind = TraceNodeKind.Signal } -> " item"
+                | _ -> ""
+
+            $"%s{name scene h}[%s{key}]%s{item}"
+        | Some { Host = h } -> name scene h
+        | None ->
+            match snapshot.Nodes.TryFind node with
+            | Some { Label = None; Owner = owner } when scene.Parts |> Map.exists (fun _ part -> part.Host = node) ->
+                snapshot.Owners.TryFind owner
+                |> Option.bind _.Label
+                |> Option.defaultWith (fun () -> ownName snapshot node)
+            | _ -> ownName snapshot node
+
+    /// <summary>True for a node the map draws. A part, beacon, row watch or lookup cell is drawn as its collection.</summary>
+    let visible (scene: Scene) (node: TraceSnapshotNode) : bool =
         match node.Kind with
         | TraceNodeKind.ProjectionBeacon
         | TraceNodeKind.RowWatch
         | TraceNodeKind.LookupCell -> false
-        | _ -> true
+        | _ -> not (scene.Parts.ContainsKey node.Id)
 
-    /// <summary>The (source, observer) pairs between visible nodes, in observer then slot order.</summary>
-    let edges (snapshot: TraceSnapshot) : (int * int) list =
+    /// <summary>
+    /// The (source, observer) pairs between visible nodes, in observer then slot order. An edge to or from a part is
+    /// drawn to or from its collection, once.
+    /// </summary>
+    let edges (scene: Scene) : (int * int) list =
+        let snapshot = scene.Snapshot
+
         let shown id =
-            snapshot.Nodes.TryFind id |> Option.exists visible
+            snapshot.Nodes.TryFind id
+            |> Option.exists (visible scene)
 
         [
             for KeyValue (observer, sources) in snapshot.Sources do
-                if shown observer then
-                    for source in List.distinct sources do
-                        if shown source then
-                            source, observer
+                let o = host scene observer
+
+                if shown o then
+                    for source in sources do
+                        let s = host scene source
+
+                        if s <> o && shown s then
+                            s, o
         ]
+        |> List.distinct
 
     let private dropReason (flag: int) =
         match enum<TraceDropReason> flag with
@@ -110,26 +162,29 @@ module MapModel =
             TraceModel.valueText e.Payload
 
     let private cueOf (scene: Scene) (e: TraceEvent) =
+        let node = host scene e.Node
+
         let observers () =
             scene.Snapshot.Observers.TryFind e.Node
-            |> Option.map Set.toList
+            |> Option.map (Set.toList >> List.map (host scene) >> List.filter ((<>) node) >> List.distinct)
             |> Option.defaultValue []
 
         match e.Kind with
-        | TraceEventKind.Write -> Flash e.Node
-        | TraceEventKind.Mark -> Pulse (e.Other, e.Node)
-        | TraceEventKind.RunStart -> Ring e.Node
-        | TraceEventKind.RunEnd -> Rest e.Node
-        | TraceEventKind.Moved -> Surge (e.Node, observers ())
-        | TraceEventKind.FlightStart -> Flight e.Node
-        | TraceEventKind.FlightDrop -> Drop e.Node
-        | TraceEventKind.Settle -> Settled e.Node
-        | TraceEventKind.Fail -> Failed e.Node
-        | TraceEventKind.Suspend -> Waits (e.Node, e.Other)
+        | TraceEventKind.Write -> Flash node
+        | TraceEventKind.Mark when host scene e.Other = node -> Quiet
+        | TraceEventKind.Mark -> Pulse (host scene e.Other, node)
+        | TraceEventKind.RunStart -> Ring node
+        | TraceEventKind.RunEnd -> Rest node
+        | TraceEventKind.Moved -> Surge (node, observers ())
+        | TraceEventKind.FlightStart -> Flight node
+        | TraceEventKind.FlightDrop -> Drop node
+        | TraceEventKind.Settle -> Settled node
+        | TraceEventKind.Fail -> Failed node
+        | TraceEventKind.Suspend -> Waits (node, host scene e.Other)
         | _ -> Quiet
 
     let private logOf (scene: Scene) (e: TraceEvent) =
-        let name = name scene.Snapshot
+        let name = name scene
         let node = name e.Node
 
         match e.Kind with
@@ -146,8 +201,19 @@ module MapModel =
         | TraceEventKind.Fail -> $"fail %s{node}: %s{payload e}"
         | TraceEventKind.Suspend -> $"%s{node} waits on %s{name e.Other}"
         | TraceEventKind.NodeNew -> $"new %s{node}"
+        | TraceEventKind.Part -> $"%s{node} joins %s{name e.Other}"
         | kind when e.Node = 0 -> (string kind).ToLowerInvariant()
         | kind -> $"%s{(string kind).ToLowerInvariant()} %s{node}"
+
+    let private partOf (e: TraceEvent) : Part =
+        {
+            Host = e.Other
+            Key =
+                if isNull e.Payload then
+                    None
+                else
+                    Some (TraceModel.valueText e.Payload)
+        }
 
     let private settle (scene: Scene) (e: TraceEvent) =
         let flights =
@@ -171,6 +237,10 @@ module MapModel =
         | TraceEventKind.Fail ->
             { settle scene e with
                 Errors = scene.Errors.Add (e.Node, payload e)
+            }
+        | TraceEventKind.Part ->
+            { scene with
+                Parts = scene.Parts.Add (e.Node, partOf e)
             }
         | TraceEventKind.Suspend ->
             { scene with
@@ -210,10 +280,16 @@ module MapModel =
     /// <summary>One frame per event, played on from <c>scene</c>.</summary>
     /// <remarks>
     /// A <c>NodeNew</c> or <c>OwnerNew</c> folds together with the <c>Trace.named</c> label that follows it, so the node takes its
-    /// name from its first frame.
+    /// name from its first frame. A part is drawn as its collection from its <c>NodeNew</c>.
     /// </remarks>
     let frames (scene: Scene) (events: TraceEvent[]) : Frame[] =
         let mutable scene = scene
+
+        let parts =
+            events
+            |> Array.filter (fun e -> e.Kind = TraceEventKind.Part)
+            |> Array.map (fun e -> e.Node, partOf e)
+            |> Map.ofArray
 
         [|
             for i in 0 .. events.Length - 1 do
@@ -232,7 +308,13 @@ module MapModel =
                     else
                         [| e |]
 
-                let before = scene
+                let before =
+                    match parts.TryFind e.Node with
+                    | Some part when e.Kind = TraceEventKind.NodeNew ->
+                        { scene with
+                            Parts = scene.Parts.Add (e.Node, part)
+                        }
+                    | _ -> scene
                 let held = placeholder events i
 
                 let snapshot =
@@ -255,17 +337,22 @@ module MapModel =
                     Cue = if held then Quiet else cueOf scene e
                     Log =
                         if held then
-                            $"%s{name named.Snapshot e.Node} holds its value"
+                            $"%s{name named e.Node} holds its value"
                         else
                             logOf named e
                     After = scene
                 }
         |]
 
-    /// <summary>True while the node has a flight in progress or waits on a pending source.</summary>
+    /// <summary>True while the node, or one of its parts, has a flight in progress or waits on a pending source.</summary>
     let pending (scene: Scene) (node: int) : bool =
-        scene.Flights.ContainsKey node
-        || scene.Waiting.ContainsKey node
+        let own id =
+            scene.Flights.ContainsKey id
+            || scene.Waiting.ContainsKey id
+
+        own node
+        || scene.Parts
+           |> Map.exists (fun id part -> part.Host = node && own id)
 
     /// <summary>The scene after the frame at <c>index</c>; <c>scene</c> itself for an index before the first.</summary>
     let stateAt (scene: Scene) (frames: Frame[]) (index: int) : Scene =

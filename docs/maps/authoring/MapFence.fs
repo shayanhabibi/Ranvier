@@ -67,9 +67,12 @@ module MapFence =
     let private binding =
         Regex(@"^let\s+(?:mutable\s+)?(?<name>[A-Za-z_][\w']*)\s*(?::[^=]*)?=\s*(?<rest>.*)$", RegexOptions.Compiled)
 
-    // Effects and roots return no node to label.
+    // Effects and roots return no node to label, and a lookup is labelled through its owner.
     let private node =
-        Regex(@"^create(?!Effect\b|Root\b)\w*\b", RegexOptions.Compiled)
+        Regex(@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b)\w*\b", RegexOptions.Compiled)
+
+    let private lookup =
+        Regex(@"^create(?:Lookup|Selector)\b", RegexOptions.Compiled)
 
     let private controls = Regex(@"^controls\b", RegexOptions.Compiled)
 
@@ -130,9 +133,21 @@ module MapFence =
             else
                 None
 
+    /// <summary>The item's line with its <c>create…</c> call run in <c>Trace.named</c>, for a one-line lookup binding.</summary>
+    let private namedLookup (lines: string[]) (first: int, last: int) =
+        let m = binding.Match lines[first]
+        let rest = m.Groups["rest"]
+
+        if first = last && m.Success && lookup.IsMatch rest.Value then
+            let name = m.Groups["name"].Value
+            Some(name, lines[first].Substring(0, rest.Index) + $"Trace.named \"%s{name}\" (fun () -> %s{rest.Value})")
+        else
+            None
+
     /// <summary>
     /// A module named by <c>moduleName cellId</c> whose <c>scenario</c> runs the fence's code against a graph and
-    /// returns its controls, with a <c>Trace.label</c> after each binding of a node.
+    /// returns its controls, with a <c>Trace.label</c> after each binding of a node and a one-line lookup binding run in
+    /// <c>Trace.named</c>.
     /// </summary>
     /// <returns>The module's code, its spans and the bindings, or problems at fence lines.</returns>
     let scenario (cellId: string) (code: string) : Result<string * MapSpan list * (string * int * int) list, (int * string) list> =
@@ -198,7 +213,23 @@ module MapFence =
 
                     output.Add $"%s{pad}Trace.label (graph', %s{name}, \"%s{name}\")"
                     bindings.Add(name, first + 1, last + 1)
-                | None -> ()
+                | None ->
+                    match namedLookup lines (first, last) with
+                    | Some(name, line) ->
+                        copy copied (first - 1)
+                        copied <- first + 1
+
+                        spans.Add
+                            {
+                                Generated = output.Count + 1
+                                Length = 1
+                                Body = first + 1
+                                Indent = indent
+                            }
+
+                        output.Add(pad + line)
+                        bindings.Add(name, first + 1, last + 1)
+                    | None -> ()
 
             copy copied (lines.Length - 1)
             Ok(String.concat "\n" output, List.ofSeq spans, List.ofSeq bindings)

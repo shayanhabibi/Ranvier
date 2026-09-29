@@ -401,6 +401,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     do link <- graph.CurrentOwner.AttachLinked this
     do Tracer.ProjectionNew (graph, id, link.Owner)
     do Tracer.ScopeNew (scope, graph, id)
+    do Tracer.Part (graph, (keys :> INode).Id, id, null)
+    do Tracer.Part (graph, (beacon :> INode).Id, id, null)
+    do Tracer.Part (graph, (watch :> INode).Id, id, null)
+    do Tracer.Part (graph, (anyPending :> INode).Id, id, null)
+    do Tracer.Part (graph, (inFlightVersion :> INode).Id, id, null)
 
     /// <summary>
     /// Links the source a suspended pass awaits into the running reader.
@@ -1321,6 +1326,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
 
     member private this.NewRow(key: 'K, item: 'T) =
         let entry = ItemRow<'T, 'K, 'V>(key, Signal<'T>(graph, item))
+        Tracer.Part (graph, (entry.Item :> INode).Id, (this :> INode).Id, box key)
         this.Entries.Set (key, entry)
         entry
 
@@ -1333,6 +1339,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
             let source = entry.Item
             entry.Reader <- fun () -> map source.Value
             entry.Row <- Memo<'V>.Create(graph, this.Compute entry, rowMode)
+            Tracer.Part (graph, (entry.Row :> INode).Id, (this :> INode).Id, box key)
 
     member private this.CreateFactored(key: 'K, item: 'T) =
         let entry = this.NewRow (key, item)
@@ -1368,6 +1375,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
                     | ex -> fun () -> raise ex
 
                 entry.Row <- Memo<'V>.Create(graph, this.Compute entry, rowMode)
+                Tracer.Part (graph, (entry.Row :> INode).Id, (this :> INode).Id, box key)
         )
 
     abstract Enumerate: unit -> unit
@@ -1587,6 +1595,10 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </summary>
     let mutable rule = ScopeMessages.lookup
 
+#if RANVIER_TRACE
+    let mutable traceHost = 0
+#endif
+
     do link <- graph.CurrentOwner.AttachLinked this
     do Tracer.OwnerAdopt (link.Owner, scope, false)
 
@@ -1596,14 +1608,27 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member internal _.Scope = scope
     member internal _.IsDisposed = disposed
 
+#if RANVIER_TRACE
+    /// <summary>The node id the lookup's cells are recorded as parts of.</summary>
+    member internal _.TraceHost
+        with get () = traceHost
+        and set value = traceHost <- value
+#endif
+
     member private _.NewCell(key: 'K) =
-        LookupCell<'V>(
-            graph,
-            equal,
-            (fun () ->
-                if not disposed then
-                    orphans.Add key |> ignore)
-        )
+        let cell =
+            LookupCell<'V>(
+                graph,
+                equal,
+                (fun () ->
+                    if not disposed then
+                        orphans.Add key |> ignore)
+            )
+
+#if RANVIER_TRACE
+        Tracer.Part (graph, (cell :> INode).Id, traceHost, box key)
+#endif
+        cell
 
     /// <summary>
     /// Removes the cells of orphaned keys that are still unobserved.
@@ -1886,17 +1911,23 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
     let mutable sourcePending = false
 
     do
-        graph.RunOwned (
-            this.Scope,
-            fun () ->
-                Effect.Create (
-                    graph,
-                    fun () ->
-                        graph.Track (state :> ISource)
-                        this.Refresh ()
-                )
-                |> ignore
-        )
+        let refresh =
+            graph.RunOwned (
+                this.Scope,
+                fun () ->
+                    Effect.Create (
+                        graph,
+                        fun () ->
+                            graph.Track (state :> ISource)
+                            this.Refresh ()
+                    )
+            )
+
+        Tracer.Part (graph, (refresh :> INode).Id, (state :> INode).Id, null)
+
+#if RANVIER_TRACE
+    do this.TraceHost <- (state :> INode).Id
+#endif
 
     interface ILookupSource<'K, 'V> with
         member this.Compute key =

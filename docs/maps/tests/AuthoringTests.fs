@@ -50,6 +50,28 @@ let tests =
                 Expect.contains bindings ("subtotal", 4, 6) "the binding spans its lines"
             }
 
+            test "a one-line lookup binding runs in Trace.named" {
+                let code, _, bindings =
+                    scenario (
+                        String.concat
+                            "
+"
+                            [
+                                "let selected = createSignal 1"
+                                "let isSelected = createSelector (fun () -> selected.Value)"
+                                "controls []"
+                            ]
+                    )
+
+                Expect.stringContains
+                    code
+                    "let isSelected = Trace.named \"isSelected\" (fun () -> createSelector (fun () -> selected.Value))"
+                    "the lookup is named through its owner"
+
+                Expect.isFalse (code.Contains "Trace.label (graph', isSelected") "a lookup is no node"
+                Expect.contains bindings ("isSelected", 2, 2) "the binding is still highlighted"
+            }
+
             test "bindings of nodes are labelled, effects and plain values are not" {
                 let code, _, bindings = scenario cart
                 let names = bindings |> List.map (fun (n, _, _) -> n)
