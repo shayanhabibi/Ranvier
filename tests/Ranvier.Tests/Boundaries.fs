@@ -402,4 +402,111 @@ let tests =
                 Expect.equal m.TryValue Pending "the settle re-ran the body, which started a new flight"
                 Expect.equal flights.Count 2 "a second flight"
             }
+
+            test "a failure reaches a boundary through two memos as the same exception, and a settle recovers every level" {
+                let g = new Graph ()
+                let price = AsyncSource<int>(g)
+                let doubled = Make.Memo (g, (fun _ -> price.Value * 2))
+                let shown = Make.Memo (g, (fun _ -> doubled.Value + 1))
+                let b = Boundary<int>.Errors(g, (fun () -> shown.Value), (fun _ _ -> -1))
+                let offline = exn "offline"
+
+                price.Fail offline
+
+                match doubled.TryValue, shown.TryValue with
+                | Failed first, Failed second ->
+                    Expect.isTrue (obj.ReferenceEquals (first, offline)) "the first memo holds the source's exception"
+                    Expect.isTrue (obj.ReferenceEquals (second, offline)) "and so does the second"
+                | other -> failtestf "expected both Failed, got %A" other
+
+                Expect.equal b.TryValue (Ready -1) "the boundary recovers"
+                Expect.isTrue (obj.ReferenceEquals (b.Caught, offline)) "with the source's exception"
+
+                price.Settle 5
+                Expect.equal doubled.TryValue (Ready 10) "the first memo recovers"
+                Expect.equal shown.TryValue (Ready 11) "and the second"
+                Expect.equal b.TryValue (Ready 11) "and the boundary shows the body again"
+                Expect.isNull b.Caught "with nothing caught"
+            }
+
+            test "re-reading a failed memo serves the failure without re-running it, and a source change re-runs it" {
+                let g = new Graph ()
+                let input = Signal (g, 0)
+
+                let m =
+                    Make.Memo (
+                        g,
+                        fun _ ->
+                            if input.Value = 0 then
+                                failwith "bad input"
+
+                            input.Value
+                    )
+
+                Expect.equal (reason m.TryValue) "bad input" "the first run fails"
+                Expect.equal (reason m.TryValue) "bad input" "a re-read still fails"
+                Expect.throws (fun () -> m.Value |> ignore) "Value raises the failure"
+                Expect.equal m.Runs 1 "and none of the reads re-ran the body"
+
+                input.Value <- 3
+                Expect.equal m.TryValue (Ready 3) "a source change re-runs it"
+                Expect.equal m.Runs 2 "once"
+            }
+
+            test "a failed effect runs again when a source it read changes, and the success clears its error" {
+                let g = new Graph ()
+                let input = Signal (g, 0)
+                let seen = ResizeArray ()
+
+                let e =
+                    new Effect (
+                        g,
+                        fun () ->
+                            if input.Value = 0 then
+                                failwith "bad input"
+
+                            seen.Add input.Value
+                    )
+
+                Expect.equal e.Status Status.Error "the first run failed"
+                Expect.equal e.Error.Message "bad input" "and the error is readable"
+
+                input.Value <- 4
+                Expect.sequenceEqual seen [ 4 ] "the write re-ran it"
+                Expect.equal e.Status Status.None "the success clears the status"
+                Expect.isNull e.Error "and the error"
+            }
+
+#if !FABLE_COMPILER
+            // .NET only: the policy is an object expression over a generic interface member.
+            test "a signal write whose comparer throws raises to the writer and leaves the value unchanged" {
+                let throwing =
+                    { new IEqualityPolicy with
+                        member _.Comparer<'T>() =
+                            { new System.Collections.Generic.IEqualityComparer<'T> with
+                                member _.Equals(_, _) =
+                                    failwith "comparer"
+
+                                member _.GetHashCode _ = 0
+                            }
+                    }
+
+                let g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            Equality = throwing
+                        }
+                    )
+
+                let s = Signal (g, 1)
+                let seen = ResizeArray ()
+
+                new Effect (g, (fun () -> seen.Add s.Value))
+                |> ignore
+
+                Expect.throws (fun () -> s.Value <- 2) "the write raised the comparer's exception"
+                Expect.equal s.Peek 1 "the value is unchanged"
+                Expect.sequenceEqual seen [ 1 ] "and no reader was woken"
+            }
+#endif
         ]

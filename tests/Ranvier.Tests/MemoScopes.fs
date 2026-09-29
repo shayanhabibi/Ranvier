@@ -534,4 +534,23 @@ let tests =
                 Expect.equal seenInRead 1 "the woken effect had not run inside the read"
                 Expect.sequenceEqual log [ (0, 0); (1, 2) ] "it ran once, after the memo's re-run"
             }
+
+            test "a signal created in a memo body starts from its initial value on every run" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let upstream = createSignal 0
+
+                let m =
+                    createMemo (fun _ ->
+                        let local = createSignal 0
+
+                        if upstream.Value = 0 then
+                            local.Value <- 5
+
+                        upstream.Value, local.Value)
+
+                Expect.equal m.Value (0, 5) "the first run wrote its own signal"
+                upstream.Value <- 1
+                Expect.equal m.Value (1, 0) "the re-run created a fresh signal"
+            }
         ]

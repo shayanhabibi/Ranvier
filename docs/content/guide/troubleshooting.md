@@ -8,7 +8,8 @@ Preview — Ranvier is pre-release; its APIs may change.
 :::
 
 Each heading is an exception message or symptom as it appears at runtime; search this page for the
-text you see. For the underlying contracts, see the guide pages linked from each entry.
+text you see. For the underlying contracts, see the guide pages linked from each entry, and
+[Contracts](../concepts/contracts.md) for threading, error recovery and ownership.
 
 Every exception entry was reproduced in F# Interactive, and its heading checked against the message
 the library throws.

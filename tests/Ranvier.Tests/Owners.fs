@@ -163,4 +163,32 @@ let tests =
                 s.Value <- 3
                 Expect.equal runs.Value 2 "disposing the graph disposes it"
             }
+
+            test "a memo and an effect created in an effect body are disposed before the effect's next run" {
+                let g = new Graph ()
+                use _ = g.Activate ()
+                let outer = createSignal 0
+                let inner = createSignal 0
+                let log = ResizeArray ()
+                let memos = ResizeArray<Memo<int>>()
+
+                createEffect (fun () ->
+                    let run = outer.Value
+                    let m = createMemo (fun _ -> inner.Value * 10)
+                    memos.Add m
+                    createEffect (fun () -> log.Add $"run {run} sees {m.Value}"))
+
+                inner.Value <- 1
+                outer.Value <- 1
+                inner.Value <- 2
+
+                Expect.sequenceEqual
+                    log
+                    [ "run 0 sees 0"; "run 0 sees 10"; "run 1 sees 10"; "run 1 sees 20" ]
+                    "only the latest run's inner effect runs"
+
+                Expect.equal memos[0].Peek 10 "the first run's memo keeps its last value"
+                inner.Value <- 3
+                Expect.equal memos[0].Runs 2 "and stopped recomputing when the run it belonged to ended"
+            }
         ]

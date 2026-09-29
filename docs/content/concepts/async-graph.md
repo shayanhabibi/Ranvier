@@ -69,12 +69,21 @@ the older flight:
 Pass the `CancellationToken` to the I/O that the flight performs. Under `CancelPrevious`, the superseded I/O
 then stops. Solid has no token to cancel, so this policy is a .NET addition.
 
+Every flight's exception is observed, including a superseded flight's and one raised after its memo or graph
+was disposed. `TaskScheduler.UnobservedTaskException` receives none of them.
+[Async and pending](../guide/async-and-pending.md#flight-policy) maps the policies to the names used by R3,
+SignalsDotnet and CommunityToolkit.Mvvm.
+
 ### Not implemented
 
 *Exploratory.* The following ideas from the design research have not been built:
 
 - an `Async<'T>` adapter for cold, restartable F# async workflows
 - a streaming memo over `IAsyncEnumerable<'T>`, matching Solid's async-iterable results
+- a drop-while-running policy, which ignores changes while a flight is in progress (R3 `Drop`)
+- a coalescing policy, which runs once more after the current flight completes (SignalsDotnet `ScheduleNext`,
+  R3 `ThrottleFirstLast`)
+- debounce and throttle, as a flight policy or as a combinator
 
 A streaming memo will live as long as its owner scope, as every other node does. Losing its last reader
 will not pause or stop the stream. Disposing the owner cancels the stream's token and disposes its
@@ -120,6 +129,8 @@ deterministic in tests: the test decides when each flight settles.
 A message queue belongs at this boundary, one message per drain. It does not belong between nodes. Inside the
 graph, a write settles synchronously before the next line runs.
 
+[Contracts](contracts.md#threading) lists which operations each thread may call and where each kind of work runs.
+
 ### Where tracking state lives
 
 Tracking must not follow an `await` into its continuation. Code that resumes after an `await` is outside the
@@ -148,6 +159,9 @@ deterministic:
 - Disposing an async memo cancels its flight's token.
 - A node that is Pending when it is disposed becomes Failed with `ObjectDisposedException`, so nothing waits
   on it indefinitely.
+
+[Contracts](contracts.md#ownership) gives the owner of each node an API returns, and of each node created inside a
+computation.
 
 ## One source, two targets
 

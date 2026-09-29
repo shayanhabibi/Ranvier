@@ -259,6 +259,31 @@ superseded flight:
 superseded flight's `CancellationToken` is cancelled. Pass the token to the IO the flight performs,
 so that `CancelPrevious` stops the superseded IO.
 
+Every policy starts a new flight as soon as a changed memo is read; the policy decides only the fate of
+the flights already in progress. The memo observes every flight's exception, including a superseded
+flight's and one raised after the memo or its graph was disposed, so `TaskScheduler.UnobservedTaskException`
+receives none of them.
+
+The same policies under the names other .NET libraries use:
+
+| Ranvier | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` | CommunityToolkit `AsyncRelayCommand` |
+|---------|---------------------|------------------------------------------|--------------------------------------|
+| `CancelPrevious` | `Switch` | `CancelCurrent` | — |
+| `KeepLatest` | — (`Switch` without the cancellation) | — | — |
+| `Queue` | `SequentialParallel` | — | — |
+| Not implemented | `Sequential` | `ScheduleNext` (runs once more after the current run, at most one queued) | — |
+| Not implemented | `Drop` | — | `AllowConcurrentExecutions = false` (the default: the command cannot execute while running) |
+| Not implemented | `Parallel` (every result, in completion order) | — | `AllowConcurrentExecutions = true` |
+| Not implemented | `ThrottleFirstLast` | — | — |
+
+Debounce and throttle are not implemented either, as a policy or as a combinator.
+
+Cancellation costs one `CancellationTokenSource` per flight under `CancelPrevious`: each launch cancels
+and disposes the superseded flight's source and allocates the next. `KeepLatest` and `Queue` allocate
+one source per memo, at its first flight, and cancel it only when the memo is disposed. A body that
+ignores its token pays that allocation and a `Cancel` with no registered callbacks. The token belongs
+to the async memo alone: signals, memos and effects carry none, and their reads take no token.
+
 In the map, `Desk` stands in for a remote service: its requests stay pending until a button answers them. **Next user** starts a flight; pressed twice, the second flight supersedes the first, which drops. **Answer** settles the newest flight and **Fail** fails it. The timeline steps through each event.
 
 ```fsharp map timeline
@@ -427,6 +452,53 @@ All three return a `Boundary<'T>`. `IsWaiting` is `true` while a fallback stands
 `Caught` holds the exception a `recover` handled on the current run, or `null`. Both are tracked reads that bring the
 boundary current, so an effect reading only `IsWaiting` wakes when the body settles.
 
+### Stale while refreshing, and empty versus not yet known
+
+A fallback receives the boundary's last value, `ValueNone` before the first. A fallback that returns it
+keeps the last result on screen while a new flight is in progress, and `IsWaiting` reports the refresh.
+Choose a value type that separates a result not known yet from a result that is empty:
+
+```fsharp
+type Results =
+    | NotYetKnown
+    | Loaded of string list
+
+let searchGraph = newGraph ()
+let query = searchGraph.Run (fun () -> createSignal "a")
+let replies = ResizeArray<TaskCompletionSource<string list>> ()
+
+let hits =
+    searchGraph.Run (fun () ->
+        createAsync (fun _ _ ->
+            query.Value |> ignore // tracked: read before the first await
+            let reply = TaskCompletionSource<string list> ()
+            replies.Add reply
+            reply.Task))
+
+let results =
+    searchGraph.Run (fun () ->
+        createSuspense (fun last -> ValueOption.defaultValue NotYetKnown last) (fun () -> Loaded hits.Value))
+
+let snapshot () = results.Value, results.IsWaiting
+
+let unknown = snapshot ()
+replies[0].SetResult []
+let empty = snapshot ()
+query.Value <- "ab"
+let refreshing = snapshot ()
+replies[1].SetResult [ "abc" ]
+unknown, empty, refreshing, snapshot ()
+```
+
+```text
+((NotYetKnown, true), (Loaded [], false), (Loaded [], true), (Loaded ["abc"], false))
+```
+
+The three states of Uno MVUX's `Option<T>` map to `NotYetKnown`, `Loaded []` and `Loaded items`, and its
+progress axis maps to `IsWaiting`. `createBoundary`'s `recover` receives the last value too, so a failed
+refresh can keep the stale list beside the error in `Caught`. Outside a boundary, `AsyncMemo.Peek` reads
+the last settled value, or the default before the first, untracked and without starting a flight.
+
 ### createSuspense
 
 The boundary shows the fallback while the body is pending, and shows the body's value once every
@@ -580,6 +652,8 @@ inFlight, beforePump, ran, answer.TryValue
 > `Pump ran on thread ...` on the settling thread and leaves the work queued until the graph thread
 > calls `graph.Pump ()`. Under `Unchecked`, the drain runs on the settling thread and mutates the
 > graph there, which is safe only when every write already arrives on one thread.
+> When the settle is an `AsyncMemo` flight completing on the thread pool, the exception is raised in
+> the flight's continuation and reaches `TaskScheduler.UnobservedTaskException`.
 
 ## Common mistakes
 

@@ -1177,29 +1177,40 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
 #if !FABLE_COMPILER
     /// <summary>
-    /// A new <c>ObservableCollection</c> holding the rows' values in key order,
-    /// kept current by an effect owned by the calling scope. Every change
-    /// clears the collection and adds each value again, raising one <c>Reset</c>
-    /// and one <c>Add</c> per value. Raises <c>InvalidOperationException</c> inside a
-    /// pure body, as creating an effect does.
+    /// A new <c>ObservableCollection</c> holding the rows' values in key order, kept current by an effect owned by the
+    /// calling scope. Raises <c>InvalidOperationException</c> inside a pure body, as creating an effect does.
     /// </summary>
     /// <remarks>
-    /// Rows follow the rule <c>Snapshot</c> gives for pending and failed rows.
-    /// While the pass is suspended, the collection keeps its last contents.
-    /// The updates stop when the calling scope is disposed or re-runs, or when
-    /// the projection is disposed.
+    /// <para>
+    /// The first population raises one <c>Reset</c> and one <c>Add</c> per value. Each later change raises a <c>Remove</c> per
+    /// departed row, an <c>Add</c> per new row, at most one <c>Move</c> per row outside the longest run of rows that kept their
+    /// order, and a <c>Replace</c> per row whose value differs under the graph's equality policy. O(N log N) per change.
+    /// </para>
+    /// <para>
+    /// Rows follow the rule <c>Snapshot</c> gives for pending and failed rows. While the pass is suspended, the collection
+    /// keeps its last contents. The updates stop when the calling scope is disposed or re-runs, or when the projection is
+    /// disposed.
+    /// </para>
     /// </remarks>
     member this.AsObservableCollection() : ObservableCollection<'V> =
         if disposed then
             raise (ObjectDisposedException (this.GetType().Name))
 
         let view = ObservableCollection<'V>()
+        let equal = graph.Options.Equality.Comparer<'V>()
+        // The keys and values the view shows, and one more than each shown key's index.
+        let shown = ref Array.empty<'K>
+        let shownValues = ref Array.empty<'V>
+        let shownIndex = ref (Platform.KeyMap<'K, int>())
+        let nextIndex = ref (Platform.KeyMap<'K, int>())
+        let populated = ref false
 
         Effect.Create (
             graph,
             fun () ->
                 if not disposed then
                     let current = this.Keys
+                    let visible = ResizeArray<'K>(current.Length)
                     let values = ResizeArray<'V>(current.Length)
 
                     for key in current do
@@ -1210,12 +1221,48 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                             entry.Row.TryValue |> ignore
 
                             if entry.Settled then
+                                visible.Add key
                                 values.Add entry.Row.Peek
 
-                    view.Clear ()
+                    let visible = visible.ToArray ()
+                    let values = values.ToArray ()
+                    let positions = nextIndex.Value
+                    positions.Clear ()
 
-                    for v in values do
-                        view.Add v
+                    for i in 0 .. visible.Length - 1 do
+                        positions.Set (visible[i], i + 1)
+
+                    try
+                        if not populated.Value then
+                            populated.Value <- true
+                            view.Clear ()
+
+                            for v in values do
+                                view.Add v
+                        else
+                            for edit in Positional.diff shown.Value visible do
+                                match edit with
+                                | PositionalChange.RemoveAt index -> view.RemoveAt index
+                                | PositionalChange.InsertAt (index, key) -> view.Insert (index, values[positions.Find key - 1])
+                                | PositionalChange.Move (oldIndex, newIndex) -> view.Move (oldIndex, newIndex)
+
+                            for i in 0 .. visible.Length - 1 do
+                                let previous = shownIndex.Value.Find visible[i]
+
+                                if
+                                    previous > 0
+                                    && not (equal.Equals (shownValues.Value[previous - 1], values[i]))
+                                then
+                                    view[i] <- values[i]
+                    with _ ->
+                        // A view left partway through the edits is rebuilt on the next run.
+                        populated.Value <- false
+                        reraise ()
+
+                    shown.Value <- visible
+                    shownValues.Value <- values
+                    nextIndex.Value <- shownIndex.Value
+                    shownIndex.Value <- positions
         )
         |> ignore
 

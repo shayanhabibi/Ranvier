@@ -87,11 +87,51 @@ A boundary's `fallback` and `recover` receive no previous value in C#. Where the
 
 `Async` takes a task factory. The token is cancelled when a newer flight supersedes the one it was given.
 
+A search view model: the results are derived from the query, and a boundary turns loading and failure into
+the text to show. `IsSearching` and `Error` read the boundary, so the view model holds no busy flag and no
+`try`/`catch`:
+
 ```csharp
-var userId = Signal(1);
-var user = Async(token => api.GetUserAsync(userId.Value, token));
-var shown = Suspense(() => user.Value.Name, () => "Loading…");
+public interface ISearchService
+{
+    Task<IReadOnlyList<string>> SearchAsync(string query, CancellationToken token);
+}
+
+public sealed class SearchViewModel
+{
+    public SearchViewModel(ISearchService service)
+    {
+        Query = Signal("");
+        Results = Async(token => service.SearchAsync(Query.Value, token));
+        Summary = Boundary(
+            () => Results.Value.Count == 0 ? "No matches" : string.Join(", ", Results.Value),
+            () => "Searching…",
+            error => $"Search failed: {error.Message}");
+    }
+
+    public Signal<string> Query { get; }
+    public AsyncMemo<IReadOnlyList<string>> Results { get; }
+    public Boundary<string> Summary { get; }
+    public bool IsSearching => Summary.IsWaiting;
+    public Exception? Error => Summary.Caught;
+}
 ```
+
+Construct it inside `graph.Run`, and bind the view with an effect:
+
+```csharp
+var graph = new Graph();
+var search = graph.Run(() => new SearchViewModel(service));
+graph.Run(() => Effect(() => Console.WriteLine(search.Summary.Value)));
+
+search.Query.Value = "ada";
+```
+
+With the effect reading `Summary`, each write to `Query` starts a new search and cancels the token of the one in
+progress. While a search is in flight the effect prints `Searching…` and `IsSearching` is `true`; a failed search
+prints `Search failed: …` and sets `Error`; the next search that succeeds prints its results and clears `Error`.
+A flight that completes on the thread pool reaches the graph through its dispatcher, as described in
+[Async and pending](async-and-pending.md#threading-and-dispatch).
 
 Read every input before the first `await`: a read after it is not tracked. The overload taking `Previous<T>`
 awaits the value last published through `previous.Settled`, whose result is a `ValueOption`: test `IsSome`,
