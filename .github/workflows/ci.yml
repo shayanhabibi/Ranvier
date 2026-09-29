@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The steps run the commands `build.fsx test` and `build.fsx test-fable` run. The build CLI itself exits
+# non-zero when its output is redirected: its timing summary raises "Console width must be greater than zero".
+
+jobs:
+  dotnet:
+    name: .NET tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # The test projects target net10.0 and net8.0; global.json pins the SDK.
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: 8.0.x
+      - name: Test Ranvier.Tests
+        run: dotnet test tests/Ranvier.Tests -c Release
+      - name: Test Ranvier.CSharp.Tests
+        run: dotnet test tests/Ranvier.CSharp.Tests -c Release
+
+  fable:
+    name: Fable tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install npm packages
+        run: npm ci
+      - name: Restore tools
+        run: dotnet tool restore
+      - name: Compile the tests
+        run: dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests -c Release
+      - name: Compile the traced tests
+        run: dotnet fable fable/Ranvier.Tests.Fable -e .fs.js -o dist/tests-traced -c Release
+        env:
+          RanvierTrace: 'true'
+      - name: Run the tests and report
+        run: node fable/Ranvier.Tests.Fable/Report.mjs
