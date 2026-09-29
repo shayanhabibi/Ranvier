@@ -15,6 +15,7 @@
         <PackageReference Include="Nacara.Core" Version="2.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Markdown" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Literate" Version="1.0.0-beta.1" />
+        <PackageReference Include="Nacara.Plugin.FSharpApi" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Highlight.TreeSitter" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.Sitemap" Version="1.0.0-*" />
         <PackageReference Include="Nacara.Plugin.LinkValidator" Version="1.0.0-*" />
@@ -26,6 +27,8 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="maps/authoring/Ranvier.Docs.MapAuthoring.fsproj" />
+        <!-- Builds the libraries beside the site, where the API reference reads them. -->
+        <ProjectReference Include="../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
     </ItemGroup>
     <ItemGroup>
         <!-- The Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;

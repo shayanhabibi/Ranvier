@@ -114,6 +114,22 @@ let private darkByDefault =
                 "(()=>{try{if(!localStorage.getItem(\"nacara-theme\")){var d=document.documentElement;d.dataset.theme=\"dark\";d.dataset.themeSetting=\"dark\";document.addEventListener(\"DOMContentLoaded\",()=>{for(const s of document.querySelectorAll(\"[data-nacara-theme]\"))s.value=d.dataset.themeSetting})}}catch{}})();"
         ]
 
+/// The public API of the Ranvier and Ranvier.CSharp assemblies, built beside the site.
+let apiOptions =
+    let beside =
+        System.Reflection.Assembly.GetExecutingAssembly().Location
+        |> Path.GetDirectoryName
+
+    { FSharpApi.defaults with
+        Root = "reference"
+        Title = "API reference"
+        Sources =
+            [
+                for name in [ "Ranvier"; "Ranvier.CSharp" ] ->
+                    FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
+            ]
+    }
+
 let theme =
     Theme.defaults
     |> Theme.favIcon "favicon.svg"
@@ -123,6 +139,8 @@ let theme =
             NavbarSection ("Concepts", "concepts", "/concepts/")
             NavbarSection ("Benchmarks", "benchmarks", "/benchmarks/")
             NavbarSection ("Fable", "fable", "/fable/")
+            NavbarDivider
+            NavbarSection ("Reference", "reference", "/reference/")
         ]
     |> Theme.menu
         "guide"
@@ -287,6 +305,11 @@ let private csharpGrammar (options: TreeSitterOptions) =
     options
     |> TreeSitter.grammars (TreeSitter.aliases [ "csharp"; "cs"; "c#" ] grammar :: options.Grammars)
 
+let reference =
+    FSharpApi.collection "reference" DocFrontMatter.decoder apiOptions
+    |> Collection.title _.Title
+    |> Collection.layout (Theme.layout theme)
+
 let site =
     Site.create "Ranvier"
     |> Site.baseUrl baseUrl
@@ -298,6 +321,7 @@ let site =
     |> TreeSitter.registerWith csharpGrammar
     |> Directives.register []
     |> Sitemap.register
+    |> FSharpApi.register apiOptions
     |> LinkValidator.register
     |> SolidExamples.registerWith solidExamples
     |> LiveExample.registerWith (
@@ -322,6 +346,7 @@ let site =
     |> Versions.register versions
     |> Theme.register theme
     |> Site.collection (Theme.docs theme "content")
+    |> Site.collection reference
 
 [<EntryPoint>]
 let main argv =
