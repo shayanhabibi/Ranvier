@@ -1935,22 +1935,25 @@ type Graph(options: GraphOptions) =
 /// <summary>
 /// A settable source.
 /// </summary>
-type Signal<'T>(graph: Graph, initial: 'T) =
+type Signal<'T> internal (graph: Graph, initial: 'T, equal: IEqualityComparer<'T>) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
     let mutable value = initial
-
-    // Resolved once, here, rather than per write: the policy's generic member
-    // is the only place the value type is known, and a typed comparer keeps the
-    // cutoff test allocation-free.
-    let equal = graph.Options.Equality.Comparer<'T>()
 
 #if RANVIER_COUNTERS
     do Counters.SignalCreated ()
 #endif
 
     do Tracer.SignalNew (graph, id)
+
+    // Resolved once, here, rather than per write: the policy's generic member
+    // is the only place the value type is known, and a typed comparer keeps the
+    // cutoff test allocation-free.
+    /// <summary>
+    /// A signal holding <c>initial</c>, compared by the comparer <c>graph</c>'s equality policy supplies for <c>'T</c>.
+    /// </summary>
+    new(graph: Graph, initial: 'T) = Signal<'T>(graph, initial, graph.Options.Equality.Comparer<'T>())
 
     interface INode with
         member _.Id = id
@@ -2340,12 +2343,22 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
         // The cutoff, and the whole point of `Check`. Status counts as part of
         // the published value: a memo that goes from a value to pending has
         // changed what its dependents see even when `value` is untouched, and
-        // so has a memo that fails with a different exception.
-        if
+        // so has a memo that fails with a different exception. A throwing
+        // comparer fails the run as a throwing body does.
+        let mutable moved =
             status <> previousStatus
             || not (obj.ReferenceEquals (error, previousError))
-            || not (equal.Equals (previous, value))
-        then
+
+        if not moved then
+            try
+                moved <- not (equal.Equals (previous, value))
+            with ex ->
+                value <- previous
+                error <- ex
+                status <- Status.Error
+                moved <- true
+
+        if moved then
             Tracer.Moved (graph, id, (if isNull error then box value else box error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
@@ -2969,12 +2982,19 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
             error <- ex
             status <- Status.Error
 
+        // A throwing comparer fails the run as a throwing `compute` does.
+        let mutable unchanged = false
+
+        if settled && hasActed then
+            try
+                unchanged <- equal.Equals (last, v)
+            with ex ->
+                settled <- false
+                error <- ex
+                status <- Status.Error
+
         // RunEnd in both branches keeps the untraced IL equal to the unhooked method (tools/verify-trace.fsx, gate 1).
-        if
-            settled
-            && not disposed
-            && not (hasActed && equal.Equals (last, v))
-        then
+        if settled && not disposed && not unchanged then
             this.Act v
             Tracer.RunEnd (graph, id, status)
         else
@@ -3926,17 +3946,29 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             else
                 sources.EndRun (this :> IComputation)
 
-        if status = Status.None then
-            shown <- true
-
-        // The cutoff. See `Memo.Recompute`.
-        if
+        // The cutoff. See `Memo.Run`. A throwing comparer fails the boundary
+        // without reaching `recover`.
+        let mutable moved =
             status <> previousStatus
             || waiting <> previousWaiting
             || not (obj.ReferenceEquals (error, previousError))
             || not (obj.ReferenceEquals (caught, previousCaught))
-            || not (equal.Equals (previous, value))
-        then
+
+        if not moved then
+            try
+                moved <- not (equal.Equals (previous, value))
+            with ex ->
+                value <- previous
+                error <- ex
+                caught <- null
+                waiting <- false
+                status <- Status.Error
+                moved <- true
+
+        if status = Status.None then
+            shown <- true
+
+        if moved then
             Tracer.Moved (graph, id, (if isNull error then box value else box error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph

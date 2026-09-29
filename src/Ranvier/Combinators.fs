@@ -629,14 +629,26 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
                     this.Step (fun s -> add s v)
                 else
                     full <- true
-            elif not (equal.Equals (row.Value, v)) then
-                let old = row.Value
-                row.Value <- v
+            else
+                // A throwing comparer fails the row as a throwing row does.
+                let mutable changed = false
+                let mutable comparerError: exn = null
 
-                if invertible then
-                    this.Step (fun s -> add (subtract s old) v)
-                else
-                    full <- true
+                try
+                    changed <- not (equal.Equals (row.Value, v))
+                with ex ->
+                    comparerError <- ex
+
+                if not (isNull comparerError) then
+                    this.Fail (row, comparerError)
+                elif changed then
+                    let old = row.Value
+                    row.Value <- v
+
+                    if invertible then
+                        this.Step (fun s -> add (subtract s old) v)
+                    else
+                        full <- true
         | Pending -> this.Unfail row
         | Failed ex -> this.Fail (row, ex)
 

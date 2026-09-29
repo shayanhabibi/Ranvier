@@ -122,10 +122,9 @@ Recovery happens through re-runs alone.
 | A cleanup | Recorded, and the remaining cleanups and disposals still run. A `createRoot` scope keeps the error in its own `Errors`; a computation's scope records it in `graph.Root.Errors`. |
 | Work drained from the inbox | Recorded in `graph.Root.Errors`, and the rest of the inbox still runs. |
 | A signal's equality comparer | The write raises to the writer. The value stays unchanged, and readers stay asleep. |
+| The equality comparer of a memo, boundary, projection row, fold or lookup cell | The node fails with that exception and keeps its previous value, and its readers wake to see the failure. A boundary's `recover` does not see it. |
+| A `createEffectOn` comparer | Recorded on the effect as a failure of `compute`, and `act` does not run. |
 | Disposal of a pending async value | The async value fails with `ObjectDisposedException`, and its readers wake once to see it. |
-
-Equality comparers must be total. A comparer that throws inside a memo's cutoff escapes to the read or flush
-that ran the memo, and the memo's dependents can keep their previous value until a source of the memo changes again.
 
 `createEffect` returns `unit`, so an effect's failure is visible through tracing or through an `Effect`
 constructed directly. See

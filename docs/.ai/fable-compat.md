@@ -23,31 +23,31 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Effects.fs | 14 | 14 | 14 | 14 | 14 | 14 | 0 | 0 |
 | EffectSplit.fs | 26 | 26 | 21 | 26 | 26 | 21 | 0 | 0 |
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Owners.fs | 10 | 10 | 10 | 10 | 10 | 10 | 0 | 0 |
-| Equality.fs | 6 | 5 | 5 | 6 | 5 | 5 | 2 | 0 |
-| Async.fs | 22 | 14 | 6 | 22 | 14 | 6 | 1 | 0 |
-| Boundaries.fs | 24 | 24 | 20 | 24 | 24 | 20 | 0 | 0 |
-| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 11 | 0 |
+| Owners.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Equality.fs | 6 | 5 | 5 | 6 | 5 | 5 | 8 | 0 |
+| Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
+| Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
+| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 14 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 4 | 0 |
-| Tracing.fs | 2 | 2 | 2 | 62 | 58 | 55 | 2 | 0 |
+| Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
 | Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
 | FanOut.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
-| Reentrancy.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Reentrancy.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Cutoff.fs | 16 | 14 | 14 | 16 | 14 | 14 | 0 | 0 |
 | SuspensionEdges.fs | 21 | 20 | 20 | 21 | 20 | 20 | 0 | 0 |
 | Scopes.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
 | Propagation.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
-| AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 2 | 0 |
-| Projections.fs | 76 | 76 | 76 | 76 | 76 | 76 | 6 | 0 |
+| AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
+| Projections.fs | 78 | 78 | 78 | 78 | 78 | 78 | 10 | 0 |
 | Lookups.fs | 31 | 31 | 31 | 31 | 31 | 31 | 0 | 0 |
-| MemoScopes.fs | 23 | 23 | 21 | 23 | 23 | 21 | 0 | 0 |
+| MemoScopes.fs | 24 | 24 | 22 | 24 | 24 | 22 | 0 | 0 |
 | MemoPurity.fs | 13 | 13 | 13 | 13 | 13 | 13 | 0 | 0 |
 | ScopeContexts.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | DischargeReentry.fs | 29 | 29 | 28 | 29 | 29 | 28 | 1 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 671 | 653 | 617 | 743 | 721 | 682 | 44 | 1 |
+| **Total** | 681 | 663 | 625 | 755 | 733 | 692 | 59 | 1 |
 
 ## Tests.fs
 
@@ -148,7 +148,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Owners.fs
 
-<details><summary>10 passed in every build and delivery that runs them</summary>
+<details><summary>11 passed in every build and delivery that runs them</summary>
 
 - disposing a root disposes the effects created inside it
 - a cleanup runs before the next run of the same effect
@@ -160,6 +160,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a throwing cleanup registered on a disposed owner is recorded
 - disposal is idempotent
 - an effect created outside a root belongs to the graph root
+- a memo and an effect created in an effect body are disposed before the effect's next run
 
 </details>
 
@@ -174,6 +175,12 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | --- | --- |
 | a cutoff test on a value type allocates nothing | JavaScript exposes no allocation counter. |
 | notifying observers allocates nothing | JavaScript exposes no allocation counter. |
+| a throwing memo comparer fails the memo and its dependents | a custom comparer goes through GraphOptions. |
+| a memo failed by its comparer passes its previous value to the next run | a custom comparer goes through GraphOptions. |
+| a throwing boundary comparer fails the boundary without calling recover | a custom comparer goes through GraphOptions. |
+| a throwing effectOn comparer fails the effect without acting | a custom comparer goes through GraphOptions. |
+| a throwing lookup comparer fails the key's cell | a custom comparer goes through GraphOptions. |
+| a throwing row comparer fails the projection row and a fold over it | a custom comparer goes through GraphOptions. |
 
 <details><summary>5 passed in every build and delivery that runs them</summary>
 
@@ -205,6 +212,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | untraced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | untraced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | untraced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
+| untraced | a boundary whose fallback returns its last value shows stale data while refreshing | passed | failed | Async results arrive on a later microtask |
+| untraced | a boundary tells a loaded empty list from a value not yet known | passed | failed | Async results arrive on a later microtask |
 | traced | reading an unsettled flight suspends | passed | failed | Async results arrive on a later microtask |
 | traced | dependencies read before the await are tracked | passed | failed | Async results arrive on a later microtask |
 | traced | a continuation run inside another computation's body leaves that computation's edges alone | failed | failed | Every `await` suspends |
@@ -221,6 +230,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | traced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | traced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
+| traced | a boundary whose fallback returns its last value shows stale data while refreshing | passed | failed | Async results arrive on a later microtask |
+| traced | a boundary tells a loaded empty list from a value not yet known | passed | failed | Async results arrive on a later microtask |
 
 | Excluded | Reason |
 | --- | --- |
@@ -250,7 +261,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | an async value created and read in an effect body restarts its flight on every settle | passed | failed | Async results arrive on a later microtask |
 | traced | an async value created and read in an owning memo body restarts its flight on every settle | passed | failed | Async results arrive on a later microtask |
 
-<details><summary>20 passed in every build and delivery that runs them</summary>
+| Excluded | Reason |
+| --- | --- |
+| a signal write whose comparer throws raises to the writer and leaves the value unchanged | the policy is an object expression over a generic interface member. |
+
+<details><summary>23 passed in every build and delivery that runs them</summary>
 
 - a suspense boundary substitutes the fallback
 - the caught wait still wakes on the settle
@@ -272,6 +287,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - IsWaiting before any read reflects the body
 - an effect reading only IsWaiting wakes when the body settles
 - Caught before any read reflects the body, and a reader of Caught alone wakes
+- a failure reaches a boundary through two memos as the same exception, and a settle recovers every level
+- re-reading a failed memo serves the failure without re-running it, and a source change re-runs it
+- a failed effect runs again when a source it read changes, and the success clears its error
 
 </details>
 
@@ -290,6 +308,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | pumping from the wrong thread raises | JavaScript has one thread. |
 | a graph built under a synchronisation context posts to it | JavaScript has one thread. |
 | an AsyncMemo settling on the pool lands after a pump | JavaScript has one thread. |
+| a write from another thread raises even under the graph's synchronisation context | JavaScript has one thread. |
+| an ImmediateDispatcher under Guarded raises on an off-thread settle and keeps the work queued | JavaScript has one thread. |
+| during a flush an off-thread write raises, and Dispatch and Settle return without waiting | JavaScript has one thread. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
@@ -365,9 +386,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | an Unchecked graph creating nodes from two threads records every NodeNew | JavaScript has one thread. |
-| an affinity violation inside a walk leaves an empty walker stack after the flush | JavaScript has one thread. |
 
-<details><summary>55 passed in every build and delivery that runs them</summary>
+<details><summary>57 passed in every build and delivery that runs them</summary>
 
 - the assembly is traced exactly when RANVIER_TRACE is defined
 - named returns the thunk's result
@@ -399,7 +419,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - RunStart Cause is the first dirty mark (traced only)
 - a re-run after a discharge write is two RunStarts in one flush (traced only)
 - a projection whose keys change ends its run with Flag 1 (traced only)
-- a run left open by a throwing comparer ends Abandoned (traced only)
+- a throwing comparer closes its run with Error (traced only)
+- a run left open ends Abandoned (traced only)
 - a run left open inside another run ends Abandoned (traced only)
 - why ends at UserWrite (traced only)
 - why ends at Created for a first run (traced only)
@@ -421,6 +442,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - RunStart.Other names the walking reader: beacon (traced only)
 - RunStart.Other names the walking reader: lookup (traced only)
 - the b820ad6 check-walk case names the reader (traced only)
+- a walker frame left open leaves an empty walker stack after the flush (traced only)
 - history lists each run with its status, movement, root and flush (traced only)
 - waitingOn names the pending source the last run read (traced only)
 - why through an async source ends at its settle (traced only)
@@ -517,7 +539,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Reentrancy.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>12 passed in every build and delivery that runs them</summary>
 
 - an effect that disposes itself mid-body does not run again
 - observers are notified in reverse subscription order
@@ -530,6 +552,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - an untracked body that throws does not leave tracking off
 - disposing a root from inside an effect it owns does not strand the flush
 - a cleanup registered during a root's teardown runs at once
+- effects woken by a write in a memo body run after the body, before the read returns
 
 </details>
 
@@ -707,6 +730,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | --- | --- |
 | the Queue policy applies a synchronous failure after a flight settled off the graph thread | JavaScript has one thread. |
 | the Queue policy applies flights in start order when the older settles off the graph thread | JavaScript has one thread. |
+| the harness reports a faulted task that nothing observes | JavaScript has no finalizer thread and no UnobservedTaskException. |
+| a late fault is observed: %A{policy}, %A{fault} | JavaScript has no finalizer thread and no UnobservedTaskException. |
 
 <details><summary>7 passed in every build and delivery that runs them</summary>
 
@@ -725,13 +750,17 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | AsObservableCollection follows the projection | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
+| AsObservableCollection moves one row for one swap of neighbours | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
+| AsObservableCollection replaces one row for one value change | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
+| AsObservableCollection follows random edits without a reset | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
+| AsObservableCollection keeps its last contents while the pass is failed | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | a pending row shows its last settled value, and a row that never settled is left out | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | Snapshot raises while the pass is suspended, and the view keeps its contents | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | the view stops following when the projection is disposed | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | a view stops following when the scope that created it re-runs | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | AsObservableCollection over a pending pass resets once when the pass settles | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 
-<details><summary>76 passed in every build and delivery that runs them</summary>
+<details><summary>78 passed in every build and delivery that runs them</summary>
 
 - the key order follows the source
 - a projection nothing reads is never recomputed
@@ -771,6 +800,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - Snapshot is untracked, so enumerating it subscribes to nothing
 - Snapshot lists the rows in key order
 - Snapshot holds a None key beside Some keys
+- a positional diff turns previous into next, moving at most the survivors outside the longest ordered run
+- a positional diff moves one key for one swap of neighbours
 - a Snapshot read under a boundary wakes when the suspended pass settles
 - a tracked TryGet of an absent key wakes when the key arrives
 - a tracked TryGet of a live key wakes when the key is removed
@@ -859,7 +890,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | an async memo's cleanup runs before the next flight starts and at its disposal | passed | failed | Async results arrive on a later microtask |
 | traced | an effect created after an await under runWithOwner is disposed with the flight | passed | failed | Async results arrive on a later microtask |
 
-<details><summary>21 passed in every build and delivery that runs them</summary>
+<details><summary>22 passed in every build and delivery that runs them</summary>
 
 - a memo's cleanup runs before its re-run and at its disposal
 - a node a memo returns is disposed when the memo re-runs
@@ -882,6 +913,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a throwing cleanup in an effect's scope reaches the graph root's errors
 - a throwing cleanup in a projection key's scope reaches the graph root's errors
 - an effect woken by a cleanup during a nested pull runs after the memo re-ran, exactly once
+- a signal created in a memo body starts from its initial value on every run
 
 </details>
 

@@ -379,12 +379,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>
     /// Whether <c>inFlight</c> is non-empty. Read by <c>AnyPending</c>.
     /// </summary>
-    let anyPending = Signal<bool>(graph, false)
+    let anyPending = Signal<bool>(graph, false, EqualityComparer<bool>.Default)
 
     /// <summary>
     /// Bumped on every change to <c>inFlight</c>. Read by <c>PendingKeys</c>.
     /// </summary>
-    let inFlightVersion = Signal<int>(graph, 0)
+    let inFlightVersion = Signal<int>(graph, 0, EqualityComparer<int>.Default)
 
     let removed = ResizeArray<'K>()
     let refreshing = ResizeArray<RowEntry<'K, 'V>>()
@@ -1555,18 +1555,33 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
 
         value
 
-    member this.Write(v: 'V) =
-        if
-            pending
-            || not (isNull error)
-            || not (equal.Equals (value, v))
-        then
-            pending <- false
-            error <- null
-            value <- v
-            Tracer.Moved (graph, id, box v)
-            observers.NotifyDirty ()
-            Tracer.Notified graph
+    /// <summary>
+    /// Stores <c>v</c>, notifying readers when it differs from the stored value. Returns false when the comparer throws:
+    /// the cell then fails with the comparer's exception and keeps its value.
+    /// </summary>
+    member this.Write(v: 'V) : bool =
+        let mutable moved = pending || not (isNull error)
+        let mutable comparerError: exn = null
+
+        if not moved then
+            try
+                moved <- not (equal.Equals (value, v))
+            with ex ->
+                comparerError <- ex
+
+        if not (isNull comparerError) then
+            this.Fail comparerError
+            false
+        else
+            if moved then
+                pending <- false
+                error <- null
+                value <- v
+                Tracer.Moved (graph, id, box v)
+                observers.NotifyDirty ()
+                Tracer.Notified graph
+
+            true
 
     member _.Fail(ex: exn) =
         pending <- false
@@ -1753,8 +1768,11 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             cell.Suspend ()
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         elif isNull failure then
-            failed.Remove key
-            cell.Write v
+            if cell.Write v then
+                failed.Remove key
+            else
+                failed.Add key |> ignore
+
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         else
             failed.Add key |> ignore
@@ -1998,12 +2016,23 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
             let mutable next = Unchecked.defaultof<'S>
             let mutable failure: exn = null
             let mutable pending = false
+            let mutable moved = false
 
             try
                 next <- graph.RunUntracked (fun () -> state.Value)
             with
             | NotReadyException _ -> pending <- true
             | ex -> failure <- ex
+
+            // A throwing comparer fails every live cell as a throwing source does.
+            if primed && not pending && isNull failure then
+                if sourcePending || not (isNull sourceError) then
+                    moved <- true
+                else
+                    try
+                        moved <- not (stateEqual.Equals (previous, next))
+                    with ex ->
+                        failure <- ex
 
             if pending then
                 if not sourcePending then
@@ -2024,11 +2053,7 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
                 sourcePending <- false
                 sourceError <- null
                 this.Invalidate Seq.empty
-            elif
-                sourcePending
-                || not (isNull sourceError)
-                || not (stateEqual.Equals (previous, next))
-            then
+            elif moved then
                 let prev = previous
                 previous <- next
                 sourcePending <- false
