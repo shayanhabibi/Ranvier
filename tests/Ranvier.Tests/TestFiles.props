@@ -41,5 +41,7 @@
         <Compile Include="$(MSBuildThisFileDirectory)PreviousValues.fs" Link="PreviousValues.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Texts.fs" Link="Texts.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)FailureOrigins.fs" Link="FailureOrigins.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Editables.fs" Link="Editables.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)MvuBridge.fs" Link="MvuBridge.fs" />
     </ItemGroup>
 </Project>

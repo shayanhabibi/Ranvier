@@ -35,6 +35,9 @@ These are implemented and covered by tests.
   `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
 - **Native AOT and trimming.** Both packages publish under Native AOT with no trim or AOT warnings, checked
   in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
+- **F# application patterns.** `createEditable` and `createDraft` for values seeded from upstream and edited
+  locally, forms as records of signals, and `Mvu`, which reads an Elmish-style model through selector memos. See
+  [Editable values and forms](../guide/forms.md) and [Migrating from Elmish](../guide/elmish.md).
 
 ## In progress
 
@@ -53,8 +56,6 @@ None of these is available. Each one is an open question about whether and how i
   looked, then value changes, then views that apply deltas instead of re-reading their upstream keys.
 - **A serialised affinity mode for Blazor Server.** A graph whose work may run on several threads, one at a
   time, queued as the renderer queues its own work.
-- **F# application patterns.** A bridge from an MVU model to per-selector memos, a per-field store without
-  code generation, and a writable derived value seeded from upstream and editable locally.
 - **Failure provenance.** Reporting which node raised the failure that a boundary or a failed memo holds.
 
 The [Ecosystem](ecosystem.md) page lists the current gaps these items address.

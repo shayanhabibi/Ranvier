@@ -33,6 +33,153 @@ module internal Identity =
             JsComparer<'A>.Instance.Equals(a, b)
 #endif
 
+/// <summary>A seed value with the number of its publication: 1 for the first, one more for each unequal value after it.</summary>
+[<Sealed; AllowNullLiteral>]
+type internal Stamp<'T>(version: int, value: 'T) =
+    member _.Version = version
+    member _.Value = value
+
+/// <summary>
+/// Equality of two edits: both absent, or equal stamps whose values are equal under <c>equal</c>.
+/// </summary>
+[<Sealed>]
+type internal EditComparer<'T>(equal: Collections.Generic.IEqualityComparer<'T>) =
+    interface Collections.Generic.IEqualityComparer<struct (int * 'T) voption> with
+        member _.Equals(a, b) =
+            match a, b with
+            | ValueNone, ValueNone -> true
+            | ValueSome (struct (va, xa)), ValueSome (struct (vb, xb)) -> va = vb && equal.Equals (xa, xb)
+            | _ -> false
+
+        member _.GetHashCode(edit) =
+            match edit with
+            | ValueNone -> 0
+            | ValueSome (struct (version, _)) -> version
+
+(*FOR-REVIEW Named Editable rather than the note's Writable to avoid a clash with ReactiveBindings.Writable
+  (wave-b decisions.md). Confirm the name. *)
+/// <summary>
+/// A value seeded from upstream that accepts local edits. <c>Value</c> holds the edit while one is in force and the seed's
+/// value otherwise. Owned by the scope current at creation.
+/// </summary>
+/// <remarks>
+/// <para>
+/// An editable made by <c>createEditable</c> drops its edit once the seed publishes a value unequal to its previous one,
+/// under the graph's equality policy. Every such publication counts, so A → B → A drops the edit when B was published.
+/// Writes that end at an equal value within one seed run (a batch, or a seed nothing read in between) keep the edit.
+/// A draft, made by <c>createDraft</c>, keeps its edit until <c>Reset</c>.
+/// </para>
+/// <para>
+/// An edit made while the seed is pending belongs to the seed's last settled value. While the seed is pending an edit in
+/// force stays in force; a seed failure replaces the value of an editable, and a draft's edit hides it.
+/// </para>
+/// </remarks>
+[<Sealed>]
+type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
+    let equal = graph.Options.Equality.Comparer<'T>()
+
+    /// <summary>The version of the seed's last published value; 0 before the first.</summary>
+    let mutable settled = 0
+
+    (*FOR-REVIEW The note stamps the seed with a struct tuple. A sealed Stamp class is used instead: on .NET a struct tuple
+      memo compares its 'T with EqualityComparer.Default (a deep compare of a record per equal re-run), and under Fable
+      it compares by reference. The class compares by reference on both targets and costs one allocation per unequal
+      seed value; edits stay allocation-free on .NET. *)
+    let stamped =
+        Memo.Create (
+            graph,
+            (fun (previous: Stamp<'T> voption) ->
+                let next =
+                    seed (
+                        match previous with
+                        | ValueSome stamp -> ValueSome stamp.Value
+                        | ValueNone -> ValueNone
+                    )
+
+                match previous with
+                | ValueSome stamp when
+                    Identity.same stamp.Value next
+                    || equal.Equals (stamp.Value, next)
+                    ->
+                    stamp
+                | _ ->
+                    let version =
+                        match previous with
+                        | ValueSome stamp -> stamp.Version + 1
+                        | ValueNone -> 1
+
+                    settled <- version
+                    Stamp (version, next)),
+            ScopeMode.Pure
+        )
+
+    let edit =
+        Signal<struct (int * 'T) voption>(graph, ValueNone, EditComparer<'T> equal)
+
+    /// <summary>True when an edit made against seed version <c>version</c> is still in force. A tracked read of the seed.</summary>
+    let inForce (version: int) =
+        //FOR-REVIEW The note leaves pending/failed seeds open: a pending seed keeps a current edit in force, a failed one drops it.
+        draft
+        || match stamped.TryValue with
+           | Ready stamp -> stamp.Version = version
+           | Pending -> version = settled
+           | Failed _ -> false
+
+    let value =
+        Memo.Create (
+            graph,
+            (fun _ ->
+                match edit.Value with
+                | ValueSome (struct (version, x)) when inForce version -> x
+                | _ -> stamped.Value.Value),
+            ScopeMode.Pure
+        )
+
+    /// <summary>
+    /// A tracked read of the edit in force, or of the seed's value. Setting it records an edit and wakes readers.
+    /// </summary>
+    /// <remarks>
+    /// The getter raises <c>NotReadyException</c> while the seed is pending with no edit in force, and the seed's
+    /// exception while it has failed. The setter brings the seed current, untracked, and records the edit against the
+    /// seed's last settled value.
+    /// </remarks>
+    /// <exception cref="T:System.InvalidOperationException">Set off the graph's thread under a guarded graph.</exception>
+    member _.Value
+        with get () = value.Value
+        and set (v: 'T) =
+            graph.AssertOnGraphThread "An editable write"
+            (stamped :> ISource).UpdateIfNecessary()
+            edit.Value <- ValueSome (struct (settled, v))
+
+    /// <summary>A non-throwing, tracked read of <c>Value</c>.</summary>
+    member _.TryValue: Reading<'T> = value.TryValue
+
+    /// <summary>An untracked read of the last computed <c>Value</c>, without recomputing.</summary>
+    member _.Peek = value.Peek
+
+    /// <summary>The status of <c>Value</c> after its last computation.</summary>
+    member _.Status = value.Status
+
+    /// <summary>True while an edit is in force. A tracked read.</summary>
+    member _.IsEdited =
+        match edit.Value with
+        | ValueSome (struct (version, _)) -> inForce version
+        | ValueNone -> false
+
+    /// <summary>A tracked read of the seed's current value, whether or not an edit is in force.</summary>
+    /// <remarks>Raises <c>NotReadyException</c> while the seed is pending and the seed's exception while it has failed.</remarks>
+    member _.Upstream = stamped.Value.Value
+
+    /// <summary>Drops the edit, so <c>Value</c> reads the seed.</summary>
+    /// <exception cref="T:System.InvalidOperationException">Called off the graph's thread under a guarded graph.</exception>
+    member _.Reset() =
+        edit.Value <- ValueNone
+
+    /// <summary>Detaches both derived nodes from their sources. Idempotent; the enclosing owner calls it at disposal.</summary>
+    member _.Dispose() =
+        value.Dispose ()
+        stamped.Dispose ()
+
 /// <summary>
 /// The functions most code should use. Every node type can be constructed
 /// directly against an explicit <c>Graph</c> — that is what the tests and the
@@ -404,6 +551,43 @@ module Api =
             | _ -> next
 
         Memo.Create (graph, compute, ScopeMode.Pure)
+
+    /// <summary>
+    /// A value seeded by <c>seed</c> that accepts local edits. An edit is dropped once the seed publishes an unequal value.
+    /// </summary>
+    /// <remarks>
+    /// <c>seed</c> is a pure derivation, as <c>createMemo</c>'s is, and receives the seed's own last published value,
+    /// <c>ValueNone</c> before the first. Costs one signal and two memos.
+    /// </remarks>
+    /// <exception cref="T:System.InvalidOperationException">Called inside a pure body, such as a <c>createMemo</c> body.</exception>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let quantity = createEditable (fun _ -> order.Value.Quantity)
+    /// quantity.Value &lt;- 3        // local edit
+    /// order.Value &lt;- reloaded    // an unequal quantity drops the edit
+    /// </code>
+    /// </example>
+    let createEditable (seed: 'T voption -> 'T) : Editable<'T> =
+        Editable<'T>(Graph.Current, seed, false)
+
+    /// <summary>
+    /// A value seeded by <c>seed</c> that accepts local edits. An edit stays in force until <c>Reset</c>, whatever the
+    /// seed publishes.
+    /// </summary>
+    /// <remarks>
+    /// <c>seed</c> is a pure derivation, as <c>createMemo</c>'s is, and receives the seed's own last published value,
+    /// <c>ValueNone</c> before the first. <c>Upstream</c> reads the seed while an edit is in force.
+    /// </remarks>
+    /// <exception cref="T:System.InvalidOperationException">Called inside a pure body, such as a <c>createMemo</c> body.</exception>
+    /// <example>
+    /// <code lang="fsharp">
+    /// let name = createDraft (fun _ -> user.Value.Name)
+    /// name.Value &lt;- "Ada"   // kept when user changes
+    /// name.Reset ()          // reads user.Value.Name again
+    /// </code>
+    /// </example>
+    let createDraft (seed: 'T voption -> 'T) : Editable<'T> =
+        Editable<'T>(Graph.Current, seed, true)
 
 /// <summary>Writes to a <c>Signal</c> computed from its current value.</summary>
 [<RequireQualifiedAccess>]

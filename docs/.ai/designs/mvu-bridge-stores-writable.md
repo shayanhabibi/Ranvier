@@ -1,7 +1,8 @@
 # MVU bridge, per-field stores and writable derived values: design
 
-**Status.** Proposal for review (research item B8, `RESEARCH-ecosystem-pain-points.md` §13). No code changed. Line
-references are to `c631f23`. Numbers come from a BenchmarkDotNet `--short` run (ShortRun, 3 iterations) in a
+**Status.** implemented on worktree-wf_c46b5816-3af-8, pending benchmark gate (research item B8,
+`RESEARCH-ecosystem-pain-points.md` §13). §10 records how the implementation departs from this note. Code references
+name the member rather than a line, because the implementation moved `Api.fs`. Numbers come from a BenchmarkDotNet `--short` run (ShortRun, 3 iterations) in a
 throwaway worktree on this container. Compare them as ratios, never as absolutes.
 
 ## 1. Goal
@@ -20,13 +21,13 @@ not to a call position. The docs for (a) state this.
 
 ## 2. What already exists
 
-- **Previous-value computes are implemented.** `createMemo` takes `'T voption -> 'T` (`Api.fs:88`), and `Memo.Run`
-  passes the last published value (`Core.fs:2356`). `designs/previous-value-computes.md` is shipped. (c) builds on it.
+- **Previous-value computes are implemented.** `createMemo` takes `'T voption -> 'T` (`Api.createMemo`), and `Memo.Run`
+  passes the last published value (`Core.fs`, `Memo.Run`). (c) builds on it.
 - **Focused reads are the selector half of (a).** `createMemo (fun _ -> store.Value.Owner)` over a root signal,
-  `Signal.update` (`Api.fs:399`), `List.updateBy` / `Array.updateBy` (`Api.fs:425`, `:470`) and `createOptionMemo`
-  (`Api.fs:372`) are all shipped and documented in `guide/collections.fsx` §Deep updates (lines 372–515). A write
+  `Signal.update`, `List.updateBy` / `Array.updateBy` and `createOptionMemo`
+  (all in `Api.fs`) are all shipped and documented in `guide/collections.fsx` §Deep updates (lines 372–515). A write
   re-runs the memos on the path, their direct children and the root's readers. Only readers whose value changed wake.
-- **Keyed selection.** `createSelector` (`Api.fs:353`) and `createLookup` (`Api.fs:340`) cover "which row is
+- **Keyed selection.** `createSelector` and `createLookup` (`Api.fs`) cover "which row is
   selected". `Combinators.fs` provides projection views only (`Projection.map`/`filter`/…, `Combinators.fs:848–1148`).
   There is no general `select` combinator over a record.
 - **Cutoff.** `Signal.Value <- v` compares under the graph's policy before notifying (`Core.fs:2018–2035`). `Memo.Run`
@@ -133,7 +134,7 @@ granularity. Measured with one field changed per write and one effect per field 
 | 64 | 43 ns, 0 B | 3,777 ns, 280 B | 143 ns, 280 B |
 
 Selector fan-out costs about 56 ns per selector. The allocation is the model copy. An unobserved selector does not run
-(memos are pull-based, `Core.fs:2420`). Nested selectors cut the re-run set to the path plus its siblings. The bridge
+(memos are pull-based: `Memo.EnsureCurrent` and `Memo.Pull` run the body only on a read). Nested selectors cut the re-run set to the path plus its siblings. The bridge
 adds one closure per `Select` and one list walk per command, and nothing on the write or flush path of other code.
 
 ## 5. (b) Per-field store without codegen
@@ -161,12 +162,13 @@ it, including `batch` for multi-field sets and (c)'s `createDraft` per field for
 All three are compositions of `Signal`, `Memo` and `Graph.Dispatch`. There is no reflection, no `Emit` and no
 `#if`, so they are AOT and trim safe and compile under Fable. Fable-specific costs: struct tuples and `ValueSome` in
 (c) allocate per edit, and the `Cmd` list in (a) is an F# list either way. The Fable test suite should run (c)'s
-version-stamp cases, because Fable compares struct tuples structurally through its own helpers.
+version-stamp cases, because under Fable's default policy struct tuples compare by reference, so the seed must reuse the
+same stamp object for the cutoff to hold.
 
 ## 7. Breaking changes
 
-None. The public API baseline (`public-api-baseline.txt`) gains `Writable'1`, `Api.createWritable`,
-`Api.createDraft`, the `Mvu'2` type and `MvuModule`, and `Reactive.Writable`/`Draft` in `Ranvier.CSharp`. Existing
+None. The public API baseline (`public-api-baseline.txt`) gains `Editable'1`, `Api.createEditable`,
+`Api.createDraft`, the `Mvu'2` type and `MvuModule`, and `Reactive.Editable`/`Draft` in `Ranvier.CSharp`. Existing
 entries are unchanged.
 
 ## 8. Alternatives considered
@@ -193,12 +195,46 @@ entries are unchanged.
 2. Should the MVU bridge take the Elmish-shaped `Cmd` abbreviation (yes / no)?
 3. Keep (b) to docs only (yes / no)?
 
+Answers (wave-b `decisions.md`): 1. renamed, to `Editable<'T>`; 2. no, plain command functions and no Elmish
+dependency; 3. yes.
 
-## Reviewer corrections (not yet applied)
+## 10. As implemented
+
+Deviations from §3–§5, each tagged `FOR-REVIEW` at its site:
+
+- **Names.** The type is `Editable<'T>`, made by `createEditable` and `createDraft` (C#: `Reactive.Editable`,
+  `Reactive.Draft`). `Mvu.withCmd` is `Mvu.withCommands`, and there is no `Cmd` abbreviation: `withCommands` takes
+  `'Model * (('Msg -> unit) -> unit) list`, which is Elmish's `Cmd<'Msg>` after abbreviation expansion.
+- **Seed stamp.** The seed memo holds an internal sealed `Stamp<'T>` (version and value), not a struct tuple. On .NET
+  a struct-tuple memo compares with `EqualityComparer.Default`, which deep-compares a record `'T` on every equal
+  re-run; under Fable it compares by reference. The class compares by reference on both targets, and the seed reuses
+  the previous stamp when the value is equal under the graph's comparer. Cost: one allocation per unequal seed value.
+- **Edit comparer.** The edit signal is `Signal<struct (int * 'T) voption>` built with an internal comparer (versions
+  equal and values equal under the graph's comparer for `'T`), so an equal edit wakes nothing on both targets.
+- **Setter.** The setter pulls the seed (`ISource.UpdateIfNecessary`, untracked, no closure) and stamps the edit with the
+  version of the seed's last published value, kept in a field the seed body writes. Before the first publication that
+  version is 0, so `createEditable` drops an edit made before the seed first settles.
+- **Pending and failed seeds.** While the seed is pending an edit made against its last settled version stays in force;
+  when the seed fails, an editable reads the failure and a draft with an edit reads the edit.
+- **Surface additions.** `Editable` also has `Dispose ()` (disposes both memos). `Mvu` exposes `Model`, `Dispatch` and
+  `Select` only. `Dispatch` runs `update` and the commands untracked (a closure only when called inside a computation)
+  and posts to the graph's inbox when called off the graph's thread.
+- **Allocation.** A dry BenchmarkDotNet run measured `LocalEdit` at 0 B and `UpstreamChange` at 24 B (the new
+  stamp). The allocation test in `tests/Ranvier.Tests/Editables.fs` asserts only that an edit read by one effect
+  allocates no more than a write through a two-memo chain, because a script-hosted measurement showed memo runs
+  allocating there.
+- **Benchmarks.** `bench/Ranvier.Benchmarks/Models.fs`: `FieldWriteBenchmarks` (`FieldSignalWrite`, `SelectorMemoWrite`,
+  `MvuDispatch`, `ModelCopyOnly`; N = 8, 64, 256) and `EditableBenchmarks` (`PlainSignalWrite`, `LocalEdit`,
+  `UpstreamChange`). Only a dry run was made; the numbers in §3.3 and §4.3 still need the full run.
+- **Docs.** `guide/forms.md` (editable values, the record-of-signals pattern for (b)) and `guide/elmish.md` (migrating
+  from Elmish). The cost table on the Elmish page gives shapes, not numbers, until the full run.
+
+
+## Reviewer corrections (applied)
 
 Verdict: needs fixes
 
 - Severity: minor-to-moderate. Api.fs line references are off by about 20 lines (src unchanged between c631f23 and HEAD): '`createMemo` takes `'T voption -> 'T` (`Api.fs:88`)' → Api.fs:93; '`Signal.update` (`Api.fs:399`)' → 423; '`List.updateBy` / `Array.updateBy` (`Api.fs:425`, `:470`)' → 444, 491; '`createOptionMemo` (`Api.fs:372`)' → 391; '`createSelector` (`Api.fs:353`)' → 372; '`createLookup` (`Api.fs:340`)' → 359.
 - §6 'the Fable test suite should run (c)'s version-stamp cases, because Fable compares struct tuples structurally through its own helpers': under the default `JsIdentityPolicy`, Fable resolves every type to `ReferenceComparer`, and Types.fs:193-195 says struct tuples compare by reference there. Structural comparison applies only under `StructuralPolicy`. The version-stamp design still works under reference comparison because it reuses the previous tuple object, but the stated reason is wrong. Correct: 'because under Fable's default policy struct tuples compare by reference, so the seed must reuse the same tuple object for the cutoff to hold'.
-- 'unobserved selector does not run (memos are pull-based, `Core.fs:2420`)': 2420 is inside `ResolveCheck`'s remarks and does not show laziness. Cite `Memo.EnsureCurrent`/`Pull` instead.
+- 'unobserved selector does not run (memos are pull-based: `Memo.EnsureCurrent` and `Memo.Pull` run the body only on a read)': 2420 is inside `ResolveCheck`'s remarks and does not show laziness. Cite `Memo.EnsureCurrent`/`Pull` instead.
 - '`designs/previous-value-computes.md` is shipped': the design file carries no shipped status. The code confirms the feature (Core.fs:2356; Api.fs:93), so cite the code rather than the design's status.

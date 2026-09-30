@@ -114,6 +114,7 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `Memo(() => …)` | `createMemo` |
 | `Memo(previous => …, seed)` | `createMemo`, with the previous value or `seed` |
 | `OwningMemo(() => …)` | `createMemoWith` |
+| `Editable(() => …)`, `Draft(() => …)` | `createEditable`, `createDraft` |
 | `Effect(() => …)` | `createEffect`, returning the `Effect`: dispose it to stop the effect early |
 | `EffectOn(() => …, value => …)` | `createEffectOn` |
 | `Async(token => …)`, `Async((previous, token) => …)` | `createAsync` |

@@ -50,6 +50,22 @@ type Reactive =
         Api.createMemo (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous))
 
     /// <summary>
+    /// A value seeded by <c>seed ()</c> that accepts local edits through <c>Value</c>. An edit is dropped once the seed
+    /// produces an unequal value.
+    /// </summary>
+    /// <remarks><c>IsEdited</c> reports whether an edit is in force, and <c>Reset ()</c> drops it.</remarks>
+    static member Editable<'T>(seed: Func<'T>) : Editable<'T> =
+        Api.createEditable (fun _ -> seed.Invoke ())
+
+    /// <summary>
+    /// A value seeded by <c>seed ()</c> that accepts local edits through <c>Value</c>. An edit stays in force until
+    /// <c>Reset ()</c>, whatever the seed produces.
+    /// </summary>
+    /// <remarks><c>Upstream</c> reads the seed's current value while an edit is in force.</remarks>
+    static member Draft<'T>(seed: Func<'T>) : Editable<'T> =
+        Api.createDraft (fun _ -> seed.Invoke ())
+
+    /// <summary>
     /// A derived value that owns the nodes <c>compute</c> creates. They are disposed before each re-run.
     /// </summary>
     static member OwningMemo<'T>(compute: Func<'T>) : Memo<'T> =
