@@ -1045,6 +1045,7 @@ module internal Activation =
         activated.Value <- entry
 #endif
 
+//FOR-REVIEW The note's §3 lists Failure as public; it is internal here because no public member returns it. Make it public only alongside an accessor such as a node's Failure property.
 /// <summary>
 /// A failed node's exception and the node it originated in. Every node the exception reaches through reads holds the
 /// same record.
