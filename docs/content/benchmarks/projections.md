@@ -55,9 +55,14 @@ A key reader (`Projection.NewKeyReader`) reports the keys added, removed and mov
 | `ReadAfterOneRemoval` | The toggle, then the change read from the key reader. |
 | `ReadIdle` | A read of the key reader with nothing changed since the previous read. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+The counter scenario `project-churn` measures the same write over 1000 rows, with no key reader and with one read by an effect. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
 
-The counter scenario `project-churn` measures the same write over 1000 rows, with no key reader and with one.
+| Variant | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| No key reader | 539,775 | 4,592 | SignalsCreated 1, MemosCreated 1, EffectRuns 1, Flushes 1 |
+| One key reader | 541,276 | 4,992 | SignalsCreated 1, MemosCreated 1, EffectRuns 2, Flushes 1 |
+
+A key reader adds about 1,500 instructions and 400 bytes to the churn pass, about 0.3 %. The BenchmarkDotNet cases, including `DeltaReaderBenchmarks` and four readers, are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*ChurnOneKey*" "*DeltaReader*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
 
 ## LookupBenchmarks
 

@@ -105,17 +105,25 @@ A write to `Count` re-runs `address`, which returns the same `Address` record an
 Under the default policy records compare by reference, so a nested copy-and-update keeps every record off the written
 path, and the selectors over those records stay asleep. See [Deep updates](collections.fsx#deep-updates).
 
-<!-- //FOR-REVIEW Fill in measured numbers from the post-merge instruction-counter run (counters.ps1, Windows), scenario mvu-dispatch. -->
-
 | Per write, one field changed, one reader per field | Cost |
 | --- | --- |
 | A signal per field (`FieldSignalWrite`) | One signal write; flat in the number of fields. |
 | A root signal and a selector per field (`SelectorMemoWrite`, `MvuDispatch`) | A model copy, plus one selector run per field. |
 | The model copy alone (`ModelCopyOnly`) | The allocation of the new model. |
 
-`FieldWriteBenchmarks` in `bench/Ranvier.Benchmarks` measures these at 8, 64 and 256 fields. When a view reads many
-fields of a record that changes often, the record-of-signals pattern in [Editable values and forms](forms.md) costs one
-signal write per field instead.
+`FieldWriteBenchmarks` in `bench/Ranvier.Benchmarks` measures these at 8, 64 and 256 fields. The counter scenario
+`mvu-dispatch` measures the first two at 64 fields, in retired instructions per write at commit `e13f159`, .NET 10 with
+tiered compilation and PGO off:
+
+| Per write, 64 fields | Instructions | Bytes | Selector runs |
+| --- | ---: | ---: | ---: |
+| A signal per field | 607 | 0 | 0 |
+| `Mvu.Dispatch` with a `Select` per field | 48,133 | 400 | 64 |
+
+A dispatch re-runs all 64 observed selectors and costs about 80 times a field signal write. Nested selectors cut that
+set to the selectors on the written path. When a view reads many fields of a record that changes often, the
+record-of-signals pattern in [Editable values and forms](forms.md) costs one signal write per field instead. See
+[Instruction counts](../benchmarks/counters.md) and the [full report](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
 
 ## An adoption path
 

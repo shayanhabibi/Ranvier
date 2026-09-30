@@ -16,14 +16,14 @@ not scenarios with each other.
 
 ## .NET
 
-.NET 10.0.12, with tiered compilation, PGO and ReadyToRun off. Ranvier at `d87920f`,
+.NET 10.0.12, with tiered compilation, PGO and ReadyToRun off. Ranvier at `e13f159`,
 FSharp.Data.Adaptive 1.2.27, R3 1.3.1.
 
 ![Instructions per operation under .NET](/Ranvier/benchmarks/counters-dotnet.svg)
 
 ## Fable under Node.js
 
-Node.js v26.7.0 (`--expose-gc --single-threaded`), fable-library-js 5.18.0. Ranvier at `d87920f`,
+Node.js v26.7.0 (`--expose-gc --single-threaded`), fable-library-js 5.18.0. Ranvier at `e13f159`,
 Fable.Ripple 1.0.0-beta.5. Bars are main-thread figures.
 
 ![Instructions per operation under Node.js](/Ranvier/benchmarks/counters-node.svg)
@@ -45,7 +45,7 @@ Seven scenarios measure Ranvier alone, on .NET only. A scenario with variants re
 | `editable-upstream` | Write the seed source of every 10th of 1000 editables. | — |
 | `mvu-dispatch` | Change one field of a 64-field model with one reader per field. | A signal per field; `Mvu.Dispatch` with a `Select` per field |
 
-> **Figures pending.** The charts above predate these scenarios. Their figures come with the next instruction-counter run (`counters.ps1`, on Windows, after the merge).
+The .NET chart includes these scenarios. Bars are colored by engine, and a scenario's variants share their engine's color.
 
 ## Reading the charts
 
@@ -54,6 +54,7 @@ Seven scenarios measure Ranvier alone, on .NET only. A scenario with variants re
   only.
 - **.NET and Node figures do not compare.** The .NET worker runs with PGO off; V8 optimises
   adaptively.
+
 The full report, with cycles, branch misses, allocations and library counters per scenario, is
-[`docs/.ai/benchmarks/counters/d87920f.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/d87920f.md)
+[`docs/.ai/benchmarks/counters/e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md)
 in the repository.

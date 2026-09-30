@@ -81,9 +81,16 @@ Repeated flight launches under each `FlightPolicy`, set by `Policy`. `Writes` ap
 | `RelaunchSettled` | Baseline. Writes a trigger the body reads and reads the memo. The body returns a completed task, so every flight settles on launch. |
 | `WritesDuringFlight` | Starts a flight whose task stays open, writes and reads `Writes` more times, then completes every open task, reading after each round. Under `FinishCurrent` the body runs twice whatever `Writes` is; under the other policies it runs `Writes + 1` times. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+The counter scenario `flight` runs the same shape at one write during a flight, once per policy: two writes and reads, then a settle of every flight the writes started. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
 
-The counter scenario `flight` runs the same shape at one write during a flight, once per policy. See [Instruction counts](counters.md).
+| Policy | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| `CancelPrevious` | 7,520 | 1,720 | 0 |
+| `KeepLatest` | 7,348 | 1,672 | 0 |
+| `Queue` | 15,065 | 3,184 | 0 |
+| `FinishCurrent` | 7,655 | 1,744 | 0 |
+
+`CancelPrevious`, `KeepLatest` and `FinishCurrent` cost the same within about 4 %. `Queue` costs about twice as much in instructions and bytes. The timing cases are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*FlightBenchmarks*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
 
 ## FailureBenchmarks
 
@@ -94,7 +101,14 @@ The error channel's cost on a recomputation. Each iteration writes a trigger the
 | `SucceedingRecompute` | Baseline. Re-running a memo whose body succeeds. |
 | `FailingRecompute` | Re-running a memo whose body throws a fresh exception. The failure records the memo as its origin. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+The counter scenario `fail-recompute` measures the same recomputation with one reader, then reads the reader's `ErrorOrigin`. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
+
+| Variant | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| Succeeding | 1,131 | 0 | MemoRecomputes 2 |
+| Failing | 62,686 | 1,576 | MemoRecomputes 2 |
+
+A failing recompute costs about 55 times a succeeding one, and the figure includes throwing a fresh .NET exception. The timing cases are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*FailureBenchmarks*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
 
 ## FailureChainBenchmarks
 
@@ -104,8 +118,6 @@ A failure's cost per reader: a memo whose body throws a fresh exception, read th
 | --- | --- |
 | `FailingRecomputeOneHop` | Re-running the failing memo and every reader on the path, then reading the last reader's failure. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
-
-The counter scenario `fail-recompute` measures one hop against a succeeding memo, including a read of the reader's `ErrorOrigin`.
+The failing row of `fail-recompute` above measures `Depth` 1. `Depth` 4 and 16 are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*FailureChainBenchmarks*"`) and have no published figure yet.
 
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

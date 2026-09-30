@@ -221,8 +221,9 @@ several variants, each is reported as its own engine:
 | `editable-upstream` | Write the seed source of every 10th of 1000 editables. | — |
 | `mvu-dispatch` | Change one field of a 64-field model with one reader per field. | a signal per field, `Mvu.Dispatch` with a `Select` per field |
 
-Wave B's published figures come from the first `counters.ps1` run on Windows
-after the merge, not from BenchmarkDotNet timing runs.
+Wave B's published figures come from the `counters.ps1` run on Windows at
+`e13f159` ([`counters/e13f159.md`](counters/e13f159.md)), not from BenchmarkDotNet
+timing runs.
 
 Every figure is `(m(2N) - m(N)) / N`: each case runs at N and at 2N, after one
 unmeasured run at N, and the difference cancels the fixed cost of the

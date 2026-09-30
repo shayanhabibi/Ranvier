@@ -15,7 +15,7 @@ Construction and teardown are not the hottest path, but they are the path a UI t
 | `CreateAndDisposeMemo` | Constructing and disposing a memo that reads nothing. |
 | `CreateAndDisposeEffect` | Constructing and disposing an effect that reads nothing. |
 
-`CreateAndDisposeSeededMemo` constructs and disposes a memo through the seeded constructor, `Memo (graph, seed, compute)`, which adds one adapter closure over the seed and the compute. It postdates the table below.
+`CreateAndDisposeSeededMemo` constructs and disposes a memo through the seeded constructor, `Memo (graph, seed, compute)`, which adds one adapter closure over the seed and the compute. It postdates the table below and has no published figure yet; it is in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*ConstructionBenchmarks*"`).
 
 There is deliberately no create-without-dispose case for memos. A memo attaches itself to its enclosing owner, so one that is never disposed is retained for the life of the graph by design; measuring that would measure garbage collection over a growing child list rather than construction.
 
@@ -96,6 +96,6 @@ The shallow size of each node type: the `Allocated` column of an uninitialised i
 | `AsyncSourceInt` | `AsyncSource<int>` |
 | `Failure` | `Failure`, the record a failed node holds. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+`SizeOfProbe` has no counter scenario and no published figure yet. It is in the suite for local runs: `dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*SizeOfProbe*"`.
 
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

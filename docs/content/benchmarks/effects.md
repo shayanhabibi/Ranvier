@@ -40,9 +40,14 @@ One field of a `Fields`-field model (8, 64 or 256) changed per write, with one e
 | `MvuDispatch` | `SelectorMemoWrite` through `Mvu.Dispatch` and `Mvu.Select`. |
 | `ModelCopyOnly` | The model copy alone: the part of `SelectorMemoWrite` spent outside the graph. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+The counter scenario `mvu-dispatch` compares a signal per field (`FieldSignalWrite`) with `Mvu.Dispatch` (`MvuDispatch`) at 64 fields. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
 
-The counter scenario `mvu-dispatch` compares a signal per field with `Mvu.Dispatch` at 64 fields.
+| Variant | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| A signal per field | 607 | 0 | EffectRuns 1, Flushes 1 |
+| `Mvu.Dispatch` | 48,133 | 400 | MemoRecomputes 64, EffectRuns 1, Flushes 1 |
+
+A dispatch costs about 80 times a field signal write: every observed selector re-runs, 64 recomputes per dispatch. `SelectorMemoWrite`, `ModelCopyOnly` and the 8- and 256-field cases are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*FieldWriteBenchmarks*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
 
 ## EditableBenchmarks
 
@@ -54,6 +59,11 @@ A writable derived value (`createEditable`) against a plain signal, each read by
 | `LocalEdit` | A local edit, waking the effect that reads the editable. |
 | `UpstreamChange` | An upstream write propagating through the source, the seed, the editable and the effect. |
 
-> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+The counter scenarios `editable-edit` and `editable-upstream` measure the same two writes over 1000 editables, each read by one effect. One operation writes every 10th editable, 100 writes in all. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
 
-The counter scenarios `editable-edit` and `editable-upstream` measure the same two writes over 1000 editables.
+| Scenario | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| `editable-edit` | 145,006 | 0 | MemoRecomputes 100, EffectRuns 100, Flushes 100 |
+| `editable-upstream` | 194,449 | 2,400 | MemoRecomputes 200, EffectRuns 100, Flushes 100 |
+
+A local edit costs about 1,450 instructions and allocates nothing; an upstream write costs about 1,940 instructions and 24 bytes, and recomputes two memos per write. `PlainSignalWrite` has no counter scenario of its own and no published figure yet; the timing cases are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*EditableBenchmarks*"`). The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).

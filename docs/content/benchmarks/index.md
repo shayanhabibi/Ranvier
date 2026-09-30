@@ -19,7 +19,7 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 
 ## Results
 
-The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages come from a full run of the suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from. Cases added after that run carry a **Figures pending** note: their figures come from the next instruction-counter run, not from a timing run.
+The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages come from a full run of the suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from. Cases added after that run take their figures from the [instruction-counter](counters.md) run at `e13f159` where a counter scenario covers them; the remaining cases are in the suite for local runs and have no published figure yet.
 
 The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 
