@@ -21,7 +21,7 @@ graph.Run (fun () ->
     app.Dispatch Increment)
 ```
 
-`Mvu.withCommands` takes an `update` that also returns commands. A command list has the shape of Elmish's `Cmd`, so
+`Mvu.withCmd` takes an `update` that also returns commands. A command list has the shape of Elmish's `Cmd`, so
 Elmish commands pass unchanged; the package does not depend on Elmish.
 
 ## Targets

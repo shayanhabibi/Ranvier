@@ -122,7 +122,7 @@ let tests =
                 let seen = ResizeArray<int>()
 
                 let app =
-                    Mvu.withCommands (init, []) (fun msg model ->
+                    Mvu.withCmd (init, []) (fun msg model ->
                         let next = update msg model
 
                         match msg with
@@ -135,12 +135,12 @@ let tests =
                 Expect.equal app.Model.Count 2 "the dispatched message is applied"
             }
 
-            test "initial commands run before withCommands returns" {
+            test "initial commands run before withCmd returns" {
                 use g = new Graph ()
                 use _ = g.Activate ()
 
                 let app =
-                    Mvu.withCommands (init, [ fun dispatch -> dispatch (Rename "Grace") ]) (fun msg model -> update msg model, [])
+                    Mvu.withCmd (init, [ fun dispatch -> dispatch (Rename "Grace") ]) (fun msg model -> update msg model, [])
 
                 Expect.equal app.Model.Name "Grace" "the initial command's message is applied"
             }

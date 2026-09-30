@@ -203,8 +203,9 @@ dependency; 3. yes.
 Deviations from §3–§5, each tagged `FOR-REVIEW` at its site:
 
 - **Names.** The type is `Editable<'T>`, made by `createEditable` and `createDraft` (C#: `Reactive.Editable`,
-  `Reactive.Draft`). `Mvu.withCmd` is `Mvu.withCommands`, and there is no `Cmd` abbreviation: `withCommands` takes
-  `'Model * (('Msg -> unit) -> unit) list`, which is Elmish's `Cmd<'Msg>` after abbreviation expansion.
+  `Reactive.Draft`). `Mvu.withCmd` keeps the ecosystem's name (maintainer review on #39), and there is no `Cmd`
+  abbreviation: `withCmd` takes `'Model * (('Msg -> unit) -> unit) list`, which is Elmish's `Cmd<'Msg>` after
+  abbreviation expansion.
 - **Seed stamp.** The seed memo holds an internal sealed `Stamp<'T>` (version and value), not a struct tuple. On .NET
   a struct-tuple memo compares with `EqualityComparer.Default`, which deep-compares a record `'T` on every equal
   re-run; under Fable it compares by reference. The class compares by reference on both targets, and the seed reuses

@@ -1439,7 +1439,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a selector wakes its readers only when its part changes
 - a nested selector re-runs only when its parent memo changes
 - commands run after the write, with Dispatch
-- initial commands run before withCommands returns
+- initial commands run before withCmd returns
 - a dispatch from an effect leaves the effect unsubscribed from the model
 
 </details>

@@ -62,7 +62,7 @@ graph.Run (fun () ->
 
 ## Commands
 
-`Mvu.withCommands` takes an `init` and an `update` that return a model and a command list, as Elmish's `Program.mkProgram`
+`Mvu.withCmd` takes an `init` and an `update` that return a model and a command list, as Elmish's `Program.mkProgram`
 does:
 
 ```fsharp
@@ -71,11 +71,11 @@ let update msg model =
     | Load -> { model with Loading = true }, [ fun dispatch -> fetch (fun items -> dispatch (Loaded items)) ]
     | Loaded items -> { model with Loading = false; Items = items }, []
 
-let app = Mvu.withCommands (initial, [ fun dispatch -> dispatch Load ]) update
+let app = Mvu.withCmd (initial, [ fun dispatch -> dispatch Load ]) update
 ```
 
 Each command runs after the write that came with it, in order, with `Dispatch` as its argument. The initial commands
-run before `withCommands` returns.
+run before `withCmd` returns.
 
 ## Dispatch and threads
 
@@ -119,7 +119,7 @@ signal write per field instead.
 
 ## An adoption path
 
-1. Keep `init` and `update`. Replace `Program.mkProgram` with `Mvu.withCommands`, and run the existing `view` from an
+1. Keep `init` and `update`. Replace `Program.mkProgram` with `Mvu.withCmd`, and run the existing `view` from an
    effect that reads `app.Model` and passes `app.Dispatch`.
 2. Move one view to selectors: read `app.Select` memos in its effects, not `app.Model`.
 3. Split the next view, and nest selectors where a view shows part of a sub-model.

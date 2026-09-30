@@ -86,16 +86,15 @@ module Mvu =
     let create (init: 'Model) (update: 'Msg -> 'Model -> 'Model) : Mvu<'Model, 'Msg> =
         Mvu<'Model, 'Msg>(Graph.Current, init, update, Unchecked.defaultof<_>, false)
 
-    //FOR-REVIEW The note named this withCmd; decisions.md drops the Cmd abbreviation, so the name drops it too. Confirm.
     /// <summary>
     /// A model from <c>init</c> whose <c>update</c> also returns commands. Each command receives <c>Dispatch</c>, after the
     /// model write it came with.
     /// </summary>
     /// <remarks>
     /// A command list has the shape of Elmish's <c>Cmd</c>, so Elmish commands pass unchanged. The initial commands run
-    /// before <c>withCommands</c> returns.
+    /// before <c>withCmd</c> returns.
     /// </remarks>
-    let withCommands
+    let withCmd
         (init: 'Model * (('Msg -> unit) -> unit) list)
         (update: 'Msg -> 'Model -> 'Model * (('Msg -> unit) -> unit) list)
         : Mvu<'Model, 'Msg> =
