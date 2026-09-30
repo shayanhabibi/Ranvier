@@ -35,7 +35,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
-| Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
+| Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 2 | 0 |
 | FanOut.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
 | Reentrancy.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Cutoff.fs | 16 | 14 | 14 | 16 | 14 | 14 | 0 | 0 |
@@ -54,8 +54,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | MapSemantics.fs | 42 | 42 | 41 | 42 | 42 | 41 | 0 | 1 |
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
-| PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| PreviousValues.fs | 11 | 11 | 11 | 11 | 11 | 11 | 14 | 0 |
+| **Total** | 705 | 687 | 649 | 779 | 757 | 716 | 73 | 1 |
 
 ## Tests.fs
 
@@ -539,6 +539,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | the active graph is per thread | JavaScript has one thread. |
+| TryGetCurrent returns the graph TryCurrent resolves | JavaScript has one thread. |
 
 <details><summary>7 passed in every build and delivery that runs them</summary>
 
@@ -1264,6 +1265,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 | Excluded | Reason |
 | --- | --- |
+| a seeded memo receives the seed, then the value last published | Fable drops the Memo constructors. |
+| a seeded owning memo owns the nodes its body creates | Fable drops the Memo constructors. |
+| the Memo constructor call forms resolve beside the seeded overloads | Fable drops the Memo constructors. |
 | a default-policy prev is complete at launch | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | %A{policy} | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | a read of Settled off the graph thread never caches a value older than the one published | reads the prev task's completion synchronously, and under Fable it is a promise. |
@@ -1276,7 +1280,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Queue loses a read made after awaiting prev | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | Queue resumes a body awaiting prev outside applyResult | reads the prev task's completion synchronously, and under Fable it is a promise. |
 
-<details><summary>8 passed in every build and delivery that runs them</summary>
+<details><summary>11 passed in every build and delivery that runs them</summary>
 
 - the first run receives ValueNone
 - a later run receives the value last published
@@ -1286,5 +1290,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a failed run leaves prev at the last settled value
 - a failed first run passes ValueNone to the next run
 - returning prev triggers the cutoff
+- a seeded Suspense fallback receives the seed, then the last value
+- a seeded Errors recover receives the error and the seed, then the last value
+- a seeded Catching boundary passes the seed, then its last value, to both handlers
 
 </details>

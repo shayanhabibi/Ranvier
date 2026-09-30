@@ -30,7 +30,8 @@ These are implemented and covered by tests.
 - **Trace log.** A traced build that records why each node ran. See [Tracing](../guide/tracing.md).
 - **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, and `ReactiveBindings` for
   `INotifyPropertyChanged` and `INotifyDataErrorInfo`. `AsObservableCollection` raises `Add`, `Remove`,
-  `Move` and `Replace` changes in place of `Reset`. See [C#](../guide/csharp.md).
+  `Move` and `Replace` changes in place of `Reset`. Previous values reach C# through a seed or
+  `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
 
 ## In progress
 
@@ -52,8 +53,6 @@ None of these is available. Each one is an open question about whether and how i
 - **Commands with a derived `CanExecute`.** An `ICommand` whose `CanExecute` and busy state come from memos.
 - **A serialised affinity mode for Blazor Server.** A graph whose work may run on several threads, one at a
   time, queued as the renderer queues its own work.
-- **C# surface cleanups.** Replacing the remaining `ValueOption` in the C# surface, such as
-  `Previous<T>.Settled`, with types that read naturally in C#.
 - **F# application patterns.** A bridge from an MVU model to per-selector memos, a per-field store without
   code generation, and a writable derived value seeded from upstream and editable locally.
 - **Failure provenance.** Reporting which node raised the failure that a boundary or a failed memo holds.

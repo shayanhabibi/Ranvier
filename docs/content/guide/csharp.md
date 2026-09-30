@@ -119,9 +119,9 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `Async(token => …)`, `Async((previous, token) => …)` | `createAsync` |
 | `OwningAsync(token => …)` | `createAsyncWith` |
 | `AsyncSource<T>()` | `createAsyncSource` |
-| `Suspense(body, fallback)` | `createSuspense` |
-| `ErrorBoundary(body, error => …)` | `createErrorBoundary` |
-| `Boundary(body, fallback, error => …)` | `createBoundary` |
+| `Suspense(body, fallback)`, `Suspense(body, previous => …, seed)` | `createSuspense` |
+| `ErrorBoundary(body, error => …)`, `ErrorBoundary(body, (error, previous) => …, seed)` | `createErrorBoundary` |
+| `Boundary(body, fallback, error => …)`, `Boundary(body, previous => …, (error, previous) => …, seed)` | `createBoundary` |
 | `Batch`, `Untrack`, `OnCleanup`, `Flush` | `batch`, `untrack`, `onCleanup`, `flush` |
 | `Root(owner => …)` | `createRoot` |
 | `CurrentOwner`, `RunWithOwner(owner, …)` | `getOwner`, `runWithOwner` |
@@ -129,8 +129,14 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `IndexProjection(source, map)` | `createIndexProjection` |
 | `Lookup(source, f, affected)`, `Selector(source)` | `createLookup`, `createSelector` |
 
-A boundary's `fallback` and `recover` receive no previous value in C#. Where the previous value matters, call
-`Boundary<T>.Suspense`, `Errors` or `Catching` with the graph.
+The overloads that take a `seed` pass the boundary's last value to `fallback` and `recover`, or `seed` before its
+first. A fallback that returns its argument keeps the last value shown while the body reloads:
+
+```csharp
+var shown = Suspense(() => name.Value, previous => previous, "Loading");
+```
+
+`Boundary<T>.Suspense`, `Errors` and `Catching` take the graph explicitly, with the seed before the handlers.
 
 ## Async values
 
@@ -183,8 +189,19 @@ A flight that completes on the thread pool reaches the graph through its dispatc
 [Async and pending](async-and-pending.md#threading-and-dispatch).
 
 Read every input before the first `await`: a read after it is not tracked. The overload taking `Previous<T>`
-awaits the value last published through `previous.Settled`, whose result is a `ValueOption`: test `IsSome`,
-then read `Value`.
+receives the value last published. `previous.SettledOr(seed)` returns it, or `seed` before the first value;
+`previous.TrySettled()` returns `(HasValue, Value)`:
+
+```csharp
+var total = Async<int>(async (previous, token) =>
+{
+    var by = step.Value;
+    return await previous.SettledOr(0) + by;
+});
+```
+
+Both return a `ValueTask` that is already complete under `CancelPrevious` and `KeepLatest`. Under `Queue` it
+completes once the flight started before this one is applied.
 
 `TryValue` reads a node without raising. `TryGetValue` and `TryGetError` take it apart:
 
@@ -332,5 +349,7 @@ stays only in a project that defines `RANVIER_TRACE` itself.
 
 ## Limits
 
-- **`Graph.Current` everywhere.** The factories read the thread's active graph. The constructors, such as
-  `new Memo<int>(graph, previous => …)`, take the graph explicitly.
+- **`Graph.Current` everywhere.** The factories read the thread's active graph; `Graph.TryGetCurrent(out var graph)`
+  reports whether one is active. The constructors take the graph explicitly: `new Memo<int>(graph, _ => …)`, and
+  `new Memo<int>(graph, seed, previous => …)` for a memo that receives its previous value, with `seed` before
+  compute. Each takes `owning` as a last argument.

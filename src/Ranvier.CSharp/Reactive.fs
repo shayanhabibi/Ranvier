@@ -74,7 +74,8 @@ type Reactive =
         Api.createAsync (fun _ token -> compute.Invoke token)
 
     /// <summary>
-    /// <c>Async</c>, with the value last published: read every input, then await <c>previous.Settled</c>.
+    /// <c>Async</c>, with the value last published: read every input, then await <c>previous.SettledOr (seed)</c> or
+    /// <c>previous.TrySettled ()</c>.
     /// </summary>
     static member Async<'T>(compute: Func<Previous<'T>, CancellationToken, Task<'T>>) : AsyncMemo<'T> =
         Api.createAsync (fun previous token -> compute.Invoke (previous, token))
@@ -102,6 +103,29 @@ type Reactive =
     /// <summary>A value that shows <c>fallback ()</c> while <c>body</c> is pending and <c>recover error</c> while it fails.</summary>
     static member Boundary<'T>(body: Func<'T>, fallback: Func<'T>, recover: Func<exn, 'T>) : Boundary<'T> =
         Api.createBoundary (fun _ -> fallback.Invoke ()) (fun ex _ -> recover.Invoke ex) body.Invoke
+
+    /// <summary>
+    /// <c>Suspense</c> whose <c>fallback</c> receives the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    /// <remarks>Returning its argument keeps the last value shown while <c>body</c> reloads.</remarks>
+    static member Suspense<'T>(body: Func<'T>, fallback: Func<'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createSuspense (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous)) body.Invoke
+
+    /// <summary>
+    /// <c>ErrorBoundary</c> whose <c>recover</c> receives the error and the boundary's last value, or <c>seed</c> before
+    /// its first.
+    /// </summary>
+    static member ErrorBoundary<'T>(body: Func<'T>, recover: Func<exn, 'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createErrorBoundary (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous)) body.Invoke
+
+    /// <summary>
+    /// <c>Boundary</c> whose handlers receive the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    static member Boundary<'T>(body: Func<'T>, fallback: Func<'T, 'T>, recover: Func<exn, 'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createBoundary
+            (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous))
+            (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous))
+            body.Invoke
 
     /// <summary>Runs <c>body</c> without recording anything it reads.</summary>
     static member Untrack<'T>(body: Func<'T>) : 'T =
