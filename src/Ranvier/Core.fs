@@ -1524,11 +1524,18 @@ type Graph(options: GraphOptions) =
     /// with no exception and no bad value until much later and somewhere else.
     /// </remarks>
     member this.AssertOnGraphThread(operation: string) =
-        if guarded && Platform.isOffThread ownerThread then
-            raise (
-                InvalidOperationException
-                    $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
-            )
+        // The owner thread is the one thread whose cell is `ownerAmbient`.
+        if
+            guarded
+            && not (obj.ReferenceEquals (AmbientSlot.Existing, ownerAmbient))
+        then
+            this.FailOffThread operation
+
+    member private _.FailOffThread(operation: string) : unit =
+        raise (
+            InvalidOperationException
+                $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
+        )
 
     member internal this.Schedule(item: IScheduled) =
         Tracer.Schedule (this, item, queueCount - queueHead)
@@ -1794,8 +1801,13 @@ type Graph(options: GraphOptions) =
             result
         finally
             current <- previous
-            currentOwner <- previousOwner
-            raisedPending <- previousRaised
+
+            // Each reference store is a GC write barrier; both fields usually still hold the saved value.
+            if not (obj.ReferenceEquals (currentOwner, previousOwner)) then
+                currentOwner <- previousOwner
+
+            if not (obj.ReferenceEquals (raisedPending, previousRaised)) then
+                raisedPending <- previousRaised
 
     /// <summary>
     /// Evaluates <c>body arg</c> as <c>RunHosted(host, body)</c> evaluates <c>body ()</c>.
@@ -1817,8 +1829,13 @@ type Graph(options: GraphOptions) =
             result
         finally
             current <- previous
-            currentOwner <- previousOwner
-            raisedPending <- previousRaised
+
+            // Each reference store is a GC write barrier; both fields usually still hold the saved value.
+            if not (obj.ReferenceEquals (currentOwner, previousOwner)) then
+                currentOwner <- previousOwner
+
+            if not (obj.ReferenceEquals (raisedPending, previousRaised)) then
+                raisedPending <- previousRaised
 
     /// <summary>
     /// Detaches a flight continuation starting on the graph thread from the
