@@ -75,7 +75,7 @@ type SignalBenchmarks() =
         let mutable sum = 0
 
         for memo in this.Observing do
-            sum <- sum + memo.Peek
+            sum <- sum + memo.Value
 
         sum
 

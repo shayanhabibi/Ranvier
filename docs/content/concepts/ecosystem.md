@@ -35,21 +35,29 @@ API is designed for F#. Evaluate it with that in mind.
 
 ### FSharp.Data.Adaptive
 
-A mature F# incremental computation library, used by the Aardvark platform. It has adaptive collections
-(`aset`, `alist`, `amap`) that Ranvier does not match: collection combinators here are still in design.
-Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
-visible in the code. If you need incremental collections or a proven F# library today, use Adaptive.
+A mature F# incremental computation library, used by the Aardvark platform. Its adaptive collections
+(`aset`, `alist`, `amap`) pass deltas from one stage to the next. Ranvier's
+[projections](../guide/collections.fsx) are keyed collections with `filter`, `map`, `sortBy`, `groupBy` and
+fold views. Each view re-reads its upstream keys on a membership or order change, and delta readers are still
+in design. Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
+visible in the code. If you need delta-based incremental collections or a proven F# library today, use Adaptive.
 
 ### SignalsDotnet
 
 A published signals library for .NET MVVM, with integrations listed for WPF, Avalonia, MAUI, Uno, Blazor,
 Unity and Godot. It tracks automatically and exposes async computations through an `IsComputing` flag.
-Its cancellation strategies for concurrent async runs are a direct counterpart of Ranvier's
+It is built on R3, so every signal is also an `Observable<T>`, and every signal implements
+`INotifyPropertyChanged`. `CollectionSignal` wraps an `ObservableCollection` and reacts both to the
+collection being replaced and to its contents changing. The `SignalsDotnet.Blazor` package provides a
+`TrackedScope` component that re-renders only the region of markup whose signals changed.
+`SignalsDotnet.Query` and `SignalsDotnet.AspNetCore`, which streams projections as server-sent events, are
+in alpha. Its cancellation strategies for concurrent async runs are a direct counterpart of Ranvier's
 [flight policies](async-graph.md#superseded-flights). If you want signals in a C# view model now, it is
 available and documented.
 
 The two libraries differ mainly in how async state travels: as a flag that each consumer checks, or as a
-status that propagates to a boundary.
+status that propagates to a boundary. In SignalsDotnet, writes wrapped in an atomic operation run each effect
+once, at the end. Its documentation does not say whether derived values update in height order.
 
 ### R3 and System.Reactive
 
@@ -57,6 +65,12 @@ Push-based streams, familiar to most .NET developers, with a large operator voca
 over time. A derived value that must stay consistent across several inputs is a different shape of
 problem, and Ranvier addresses that shape. For event pipelines, throttling, windowing and time-based
 composition, a stream library is the right tool.
+
+Both are active. System.Reactive 7.0.0 was released in July 2026. R3 is a redesign by the author of
+ReactiveProperty, whose README now says "If you're developing a new application, consider using R3 instead
+of ReactiveProperty." ReactiveUI 25 runs on its own `ReactiveUI.Primitives` package
+([reactiveui/ReactiveUI#4382](https://github.com/reactiveui/ReactiveUI/pull/4382)) and no longer depends on
+System.Reactive by default. The `ReactiveUI.Reactive` package keeps System.Reactive interop.
 
 ### Fable.Ripple
 
@@ -78,6 +92,63 @@ Height-ordered, cutoff-aware recomputation descends from Adapton, Jane Street's 
 FSharp.Data.Adaptive. The [Clef](https://clef-lang.com) language specification describes a Solid-style
 reactive surface over incremental nodes, and it leaves asynchronous suspension unspecified.
 
+## Diamonds without glitches
+
+A diamond is two derived values that read one source, and a third value that reads both. In Ranvier, one
+write to `a` runs `d` once, and `d` reads `b` and `c` from the same write.
+
+```fsharp
+let a = createSignal 1
+let b = createMemo (fun _ -> a.Value + 1)
+let c = createMemo (fun _ -> a.Value * 10)
+let d = createMemo (fun _ -> b.Value + c.Value)
+createEffect (fun () -> printfn "d = %d" d.Value)
+
+a.Value <- 2
+a.Value <- 3
+```
+
+```text
+d = 12
+d = 23
+d = 34
+```
+
+The same diamond in System.Reactive, with `CombineLatest`, emits once per leg. The first emission after each
+write combines the new `b` with the old `c`, a state the source never had.
+
+```fsharp
+let a = new BehaviorSubject<int> (1)
+let b = a.Select (fun x -> x + 1)
+let c = a.Select (fun x -> x * 10)
+Observable.CombineLatest(b, c, fun b c -> b + c).Subscribe (printfn "d = %d")
+
+a.OnNext 2
+a.OnNext 3
+```
+
+```text
+d = 12
+d = 13
+d = 23
+d = 24
+d = 34
+```
+
+ReactiveUI's multi-property `WhenAnyValue` behaves the same way: setting `A` and then `B` first emits the new
+`A` with the old `B`. The usual workarounds are `DelayChangeNotifications ()` or `Throttle (TimeSpan.Zero)`.
+Ranvier updates derived values in height order, and `d` runs after both of its inputs. Two writes that
+belong together go in one [`batch`](../guide/getting-started.md#batch).
+
+## Owners instead of hooks
+
+Ranvier has no rules of hooks. A node is an object held by reference, and its identity is independent of
+call order or line number, unlike React hooks or FuncUI's hook identity (FuncUI#212). A body may create
+nodes inside a branch or a loop, and each run may create a different set. Each node belongs to the
+[owner](contracts.md#ownership) that was current at its creation, and the next run of that owner disposes
+it. The cost is that state created in a body starts again on each run: state that has to survive a re-run
+lives outside the body.
+
 ## Where Ranvier may fit
 
 These are directions the design is aimed at. The XAML bridge ships in Ranvier.CSharp; the others have no integration yet.
@@ -92,17 +163,29 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   tests, desktop) and through Fable, with suspension that matches Solid 2.0. The Fable target is implemented
   and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
-  reads Pending, Ready and Failed states as values, with no UI thread involved.
+  reads Pending, Ready and Failed states as values, with no UI thread involved. See
+  [Testing async state](../guide/testing.md).
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
+- **Fluxor stores.** For Fluxor users, memos are memoised selectors: a memo over a signal holding the
+  store's state recomputes when that state changes, and an equal result stops at the memo
+  ([equality cutoff](../guide/getting-started.md#equality-cutoff)).
+- **Blazor.** A boundary maps onto a component. Blazor has no built-in signals, and
+  [dotnet/aspnetcore#67329](https://github.com/dotnet/aspnetcore/issues/67329), an open proposal, asks for
+  them. Blazor Server needs the serialised affinity mode listed under current gaps.
 
 ## Current gaps
 
 - No framework-specific UI packages yet. The .NET UI bindings are `ReactiveBindings` (`INotifyPropertyChanged` and
   `INotifyDataErrorInfo`) and `Projection.AsObservableCollection`; commands with a derived `CanExecute` are not covered.
-- The C# package, [Ranvier.CSharp](../guide/csharp.md), has no tracing, and a few of its types, such as
-  `Previous<T>.Settled`, still carry `ValueOption`.
+- The C# package, [Ranvier.CSharp](../guide/csharp.md), still exposes `ValueOption` in a few places, such as
+  `Previous<T>.Settled`.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
+- No debounce or throttle, and no flight policy that drops a new run while one is in progress.
+- Projections publish their current state only. Delta readers, which report the keys added, removed and
+  changed since a reader last looked, are in design.
 - The Fable target is implemented and not yet published; see [Fable (JavaScript) target](../fable/index.md).
+
+The [roadmap](roadmap.md) lists which of these are under consideration.
 
 ## Choosing
 

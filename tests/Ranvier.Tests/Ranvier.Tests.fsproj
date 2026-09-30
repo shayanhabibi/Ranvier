@@ -17,6 +17,7 @@
     <Import Project="TestFiles.props" />
 
     <ItemGroup>
+        <Compile Include="TestingGuide.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
 

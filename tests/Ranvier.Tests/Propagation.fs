@@ -64,6 +64,33 @@ let tests =
                 Expect.sequenceEqual seen [ (2, 3); (4, 6); (6, 9); (8, 12); (10, 15); (12, 18) ] "and there is exactly one observation per write"
             }
 
+            test "a memo at the bottom of a diamond runs once per write and sees only whole states" {
+                let g = new Graph ()
+                let a = Signal (g, 1)
+                let b = Make.Memo (g, (fun _ -> a.Value + 1))
+                let c = Make.Memo (g, (fun _ -> a.Value * 10))
+                let inputs = ResizeArray ()
+
+                let d =
+                    Make.Memo (
+                        g,
+                        fun _ ->
+                            let pair = b.Value, c.Value
+                            inputs.Add pair
+                            fst pair + snd pair
+                    )
+
+                let seen = ResizeArray ()
+                new Effect (g, (fun () -> seen.Add d.Value)) |> ignore
+
+                a.Value <- 2
+                a.Value <- 3
+
+                Expect.equal d.Runs 3 "one run for the first read and one per write"
+                Expect.sequenceEqual inputs [ (2, 10); (3, 20); (4, 30) ] "d reads b and c from the same write"
+                Expect.sequenceEqual seen [ 12; 23; 34 ] "the effect sees one value per write"
+            }
+
             test "a memo shared by two effects is recomputed once, not once per reader" {
                 let g = new Graph ()
                 let source = Signal (g, 1)

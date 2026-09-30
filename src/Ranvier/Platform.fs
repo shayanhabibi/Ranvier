@@ -54,17 +54,6 @@ module internal Platform =
 #endif
 
     /// <summary>
-    /// True when the calling thread is not <c>owner</c>. Constant <c>false</c> under Fable.
-    /// </summary>
-    let inline isOffThread (owner: int) =
-#if FABLE_COMPILER
-        ignore owner
-        false
-#else
-        Environment.CurrentManagedThreadId <> owner
-#endif
-
-    /// <summary>
     /// A task that has already finished, used as the seed of the queue a
     /// <c>FlightPolicy.Queue</c> node chains onto.
     /// </summary>

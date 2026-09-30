@@ -12,6 +12,55 @@ Preview — Ranvier is pre-release; its APIs may change.
 taking `Func` and `Action` delegates, and extension methods cover `Graph.Run`, `Signal.Update` and the projection
 operators. The nodes it returns are the engine's own `Signal<T>`, `Memo<T>`, `AsyncMemo<T>` and `Projection<K, V>`.
 
+## At a glance
+
+A XAML view model with a derived value over an async source. It has no `IsBusy` field, no `try`/`catch` and no
+`OnPropertyChanged` calls:
+
+```csharp
+public interface IWeatherService
+{
+    Task<int> TemperatureAsync(string city, CancellationToken token);
+}
+
+public sealed class WeatherViewModel : ReactiveObject
+{
+    readonly BoundSignal<string> city;
+    readonly Signal<int> attempt;
+    readonly BoundValue<string> forecast;
+
+    public WeatherViewModel(Graph graph, IWeatherService weather) : base(graph)
+    {
+        city = Bindings.Writable(nameof(City), "Oslo");
+        attempt = Bindings.Run(() => Signal(0));
+        var celsius = Bindings.Run(() => Async(token =>
+        {
+            _ = attempt.Value;
+            return weather.TemperatureAsync(city.Value, token);
+        }));
+        forecast = Bindings.Computed(nameof(Forecast), () => $"{City}: {celsius.Value} °C");
+    }
+
+    public string City { get => city.Value; set => city.Value = value; }
+    public string Forecast => forecast.Value;
+    public void Retry() => attempt.Value++;
+}
+```
+
+`ReactiveObject` implements `INotifyPropertyChanged`, `INotifyDataErrorInfo` and `IDisposable`, and adds
+`IsLoading` and `HasErrors`. Bound to a view, it behaves as follows:
+
+- **Loading.** While the temperature is in flight, `IsLoading` is true and `Forecast` keeps its last value, or `null` before the first result. Setting
+  `City` starts a new request.
+- **Value.** When the request completes, `Forecast` raises `PropertyChanged`, then `IsLoading` turns false.
+- **Error.** When the request fails, `HasErrors` turns true, `ErrorsChanged` is raised for `Forecast`, and
+  `GetErrors("Forecast")` returns the exception's message. `Forecast` still shows the last value.
+- **Retry.** `Retry` writes the signal the request reads, so the request runs again for the current city. The error
+  clears while it loads, and the next result replaces it.
+
+The sample runs as a test in `tests/Ranvier.CSharp.Tests/HeadlineSampleTests.cs`. [Binding to XAML](#binding-to-xaml)
+covers the bindings in full.
+
 ## Setup
 
 Reference `Ranvier.CSharp`; it brings `Ranvier` with it:

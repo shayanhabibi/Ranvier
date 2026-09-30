@@ -23,15 +23,15 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Effects.fs | 14 | 14 | 14 | 14 | 14 | 14 | 0 | 0 |
 | EffectSplit.fs | 26 | 26 | 21 | 26 | 26 | 21 | 0 | 0 |
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Owners.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
-| Equality.fs | 6 | 5 | 5 | 6 | 5 | 5 | 8 | 0 |
+| Owners.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
+| Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
 | Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
 | Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 4 | 0 |
+| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 9 | 0 |
 | Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
@@ -41,7 +41,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Cutoff.fs | 16 | 14 | 14 | 16 | 14 | 14 | 0 | 0 |
 | SuspensionEdges.fs | 21 | 20 | 20 | 21 | 20 | 20 | 0 | 0 |
 | Scopes.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
-| Propagation.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Propagation.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 681 | 663 | 625 | 755 | 733 | 692 | 64 | 1 |
+| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
 
 ## Tests.fs
 
@@ -148,7 +148,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Owners.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>12 passed in every build and delivery that runs them</summary>
 
 - disposing a root disposes the effects created inside it
 - a cleanup runs before the next run of the same effect
@@ -161,6 +161,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - disposal is idempotent
 - an effect created outside a root belongs to the graph root
 - a memo and an effect created in an effect body are disposed before the effect's next run
+- an effect body may create nodes conditionally and in a loop of varying length
 
 </details>
 
@@ -182,13 +183,32 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a throwing lookup comparer fails the key's cell | a custom comparer goes through GraphOptions. |
 | a throwing row comparer fails the projection row and a fold over it | a custom comparer goes through GraphOptions. |
 
-<details><summary>5 passed in every build and delivery that runs them</summary>
+<details><summary>24 passed in every build and delivery that runs them</summary>
 
 - the default policy compares primitives by value
 - the default policy compares strings by value
 - the default policy compares records by reference
 - the structural policy cuts off on equal records
+- a custom equality policy decides the cutoff for signals and memos
+- a custom equality policy cuts off a memo that recomputes to an equal value
 - a reference type with no structural equality is compared by identity
+- an equal write, by type / int
+- an equal write, by type / float
+- an equal write, by type / float nan
+- an equal write, by type / string
+- an equal write, by type / DateTime
+- an equal write, by type / DateTimeOffset
+- an equal write, by type / decimal
+- an equal write, by type / record
+- an equal write, by type / tuple
+- an equal write, by type / struct tuple
+- an equal write, by type / Some of int
+- an equal write, by type / Some of record
+- an equal write, by type / None
+- an equal write, by type / struct record
+- an equal write, by type / list
+- an equal write, by type / the same class instance
+- an equal write, by type / an equal class instance
 
 </details>
 
@@ -368,6 +388,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a disposed memo is not retained by its owner | JavaScript exposes no forced collection. |
 | a disposed root is not retained by its parent | JavaScript exposes no forced collection. |
 | a torn-down subtree is released even while its signal lives on | JavaScript exposes no forced collection. |
+| {name}: an undisposed token registration is released once its flight settles | JavaScript exposes no forced collection. |
+| {name}: a body that throws before returning its task releases its registration | JavaScript exposes no forced collection. |
+| {name}: overlapping flights release their registrations once the last one settles | JavaScript exposes no forced collection. |
+| {name}: disposing the memo cancels the flight in progress after an earlier flight settled | JavaScript exposes no forced collection. |
+| {name}: a flight that never settles is released when the memo is disposed | JavaScript exposes no forced collection. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
@@ -638,10 +663,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Propagation.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>12 passed in every build and delivery that runs them</summary>
 
 - an effect at the bottom of a diamond runs once per write
 - the bottom of a diamond never sees one leg updated and the other not
+- a memo at the bottom of a diamond runs once per write and sees only whole states
 - a memo shared by two effects is recomputed once, not once per reader
 - a write is carried the whole length of a deep chain
 - a cutoff partway down a chain stops everything below it

@@ -548,6 +548,44 @@ nan over nan         default wakes: 1, structural wakes: 0
 0.0 over -0.0        default wakes: 0, structural wakes: 0
 ```
 
+The table below lists, per type, whether a write of an equal but separately built value is cut off.
+The default policy depends on the target, because value types such as `DateTime` and `decimal` compile
+to objects under Fable. Writing the same instance back is cut off for every type.
+
+| Type | Default on .NET | Default under Fable | `StructuralPolicy`, both targets |
+| --- | --- | --- | --- |
+| `int`, `float`, `string` | Cut off | Cut off | Cut off |
+| `nan` | Propagates | Propagates | Cut off on .NET, propagates under Fable |
+| `DateTime`, `DateTimeOffset`, `decimal` | Cut off | Propagates | Cut off |
+| Struct records, struct tuples | Cut off | Propagates | Cut off |
+| `Some 1` | Propagates | Cut off | Cut off |
+| `None` | Cut off | Cut off | Cut off |
+| Records, tuples, lists, `Some` of a record | Propagates | Propagates | Cut off |
+| Class without custom equality | Propagates | Propagates | Propagates |
+
+The policy applies to every signal and memo in a graph. To override it, pass your own
+`IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` returns the comparer for each type
+of value and is called once when a node is created. A node cannot take its own comparer.
+
+```fsharp
+type CaseInsensitivePolicy() =
+    interface IEqualityPolicy with
+        member _.Comparer<'T>() =
+            { new System.Collections.Generic.IEqualityComparer<'T> with
+                member _.Equals(a, b) =
+                    System.String.Equals (string (box a), string (box b), System.StringComparison.OrdinalIgnoreCase)
+                member _.GetHashCode a = (string (box a)).ToLowerInvariant().GetHashCode () }
+
+let caseInsensitiveWakes =
+    countWakes { GraphOptions.Default with Equality = CaseInsensitivePolicy () } "abc" "ABC"
+
+printfn "case-insensitive wakes: %d" caseInsensitiveWakes
+```
+
+```text
+case-insensitive wakes: 0
+```
+
 ## Dynamic dependencies
 
 A memo or effect collects its dependencies again on every run. A source read by a branch that is no

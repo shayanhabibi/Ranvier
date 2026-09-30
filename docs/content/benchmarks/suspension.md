@@ -61,4 +61,15 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Suspension.SettleBenchmarks` at
 | SettleInline  | 10.240 ns | 0.2031 ns | 0.1696 ns |  97,652,054.4 | 1.90x slower |   0.04x | 0.0076 |     128 B |  1.33x more |
 | CreateAndRead |  5.402 ns | 0.0920 ns | 0.0816 ns | 185,130,337.5 |     baseline |         | 0.0057 |      96 B |             |
 
+## FlightPolicyBenchmarks
+
+The price of cancellation per async-memo flight. Each iteration writes a trigger the body reads, then reads the memo, which launches one flight. The body ignores its token, so the cancel runs no callbacks. `Flight` is `Completed` when the body returns a completed task, and `Superseded` when it returns a task that never completes, so every launch supersedes a flight in progress.
+
+| Method | What it measures |
+| --- | --- |
+| `KeepLatest` | Baseline. A launch under `FlightPolicy.KeepLatest`, where every flight shares the token source allocated at the first flight. |
+| `CancelPrevious` | A launch under `FlightPolicy.CancelPrevious`, which cancels and disposes the previous flight's token source and allocates a new one. |
+
+Not yet recorded.
+
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

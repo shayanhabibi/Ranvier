@@ -157,6 +157,7 @@ let theme =
                 "Core concepts"
                 [
                     Menu.page "guide/async-and-pending.md"
+                    Menu.page "guide/testing.md"
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
                 ]
@@ -179,6 +180,7 @@ let theme =
                     Menu.page "concepts/async-graph.md"
                     Menu.page "concepts/contracts.md"
                     Menu.page "concepts/ecosystem.md"
+                    Menu.page "concepts/roadmap.md"
                 ]
         ]
     |> Theme.menu

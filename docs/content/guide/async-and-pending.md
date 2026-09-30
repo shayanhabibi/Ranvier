@@ -264,25 +264,50 @@ the flights already in progress. The memo observes every flight's exception, inc
 flight's and one raised after the memo or its graph was disposed, so `TaskScheduler.UnobservedTaskException`
 receives none of them.
 
-The same policies under the names other .NET libraries use:
+The same policies under the names other .NET libraries use. A name appears only where its behaviour
+matches exactly:
 
-| Ranvier | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` | CommunityToolkit `AsyncRelayCommand` |
-|---------|---------------------|------------------------------------------|--------------------------------------|
-| `CancelPrevious` | `Switch` | `CancelCurrent` | — |
-| `KeepLatest` | — (`Switch` without the cancellation) | — | — |
-| `Queue` | `SequentialParallel` | — | — |
-| Not implemented | `Sequential` | `ScheduleNext` (runs once more after the current run, at most one queued) | — |
-| Not implemented | `Drop` | — | `AllowConcurrentExecutions = false` (the default: the command cannot execute while running) |
-| Not implemented | `Parallel` (every result, in completion order) | — | `AllowConcurrentExecutions = true` |
-| Not implemented | `ThrottleFirstLast` | — | — |
+| Ranvier | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` |
+|---------|---------------------|------------------------------------------|
+| `CancelPrevious` | `Switch` | `CancelCurrent` |
+| `KeepLatest` | none (`Switch` without the cancellation) | none |
+| `Queue` | `SequentialParallel` | none |
 
-Debounce and throttle are not implemented either, as a policy or as a combinator.
+Ranvier does not implement these policies:
+
+| Policy | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` |
+|--------|---------------------|------------------------------------------|
+| Run one flight at a time, queue every change | `Sequential` | none |
+| Run once more after the current run, at most one queued | none | `ScheduleNext` |
+| Ignore changes while a flight runs | `Drop` | none |
+| Run every flight, apply results in completion order | `Parallel` | none |
+| Run the first and the last change | `ThrottleFirstLast` | none |
+
+CommunityToolkit's `AsyncRelayCommand` has no counterpart. `AllowConcurrentExecutions` is a gate on
+`CanExecute` for a command with no result: `false` reports the command as not executable while it
+runs, and `true` lets executions overlap. An async memo has no `CanExecute` and always starts a new
+flight. Debounce and throttle are not implemented either, as a policy or as a combinator.
 
 Cancellation costs one `CancellationTokenSource` per flight under `CancelPrevious`: each launch cancels
-and disposes the superseded flight's source and allocates the next. `KeepLatest` and `Queue` allocate
-one source per memo, at its first flight, and cancel it only when the memo is disposed. A body that
-ignores its token pays that allocation and a `Cancel` with no registered callbacks. The token belongs
-to the async memo alone: signals, memos and effects carry none, and their reads take no token.
+and disposes the superseded flight's source and allocates the next. Under `KeepLatest` and `Queue`,
+overlapping flights share one source. It is disposed, without being cancelled, once every flight that
+holds it has settled, and the next flight allocates another; disposing the memo cancels it. A body
+that ignores its token pays that allocation and a `Cancel` with no registered callbacks. A body that registers on the
+token, as `HttpClient` does, also pays for the callbacks the `Cancel` runs. The token
+belongs to the async memo alone: signals, memos and effects carry none, and their reads take no token.
+
+A registration on the token lives as long as its source. `use _ = token.Register ...`, and every API
+that takes the token and completes (`Task.Delay`, `HttpClient`, `SemaphoreSlim.WaitAsync`,
+`cancellableTask` binds), releases its registration when the operation ends. A registration left
+undisposed is released with the source: under `CancelPrevious` at the next launch, under `KeepLatest`
+and `Queue` once the flights sharing the source have all settled, so a stream of overlapping flights
+keeps each one's registration until the stream goes quiet. A flight that completes only on
+cancellation stays in progress under `KeepLatest` and `Queue` until the memo is disposed, together
+with everything its task and registrations hold; use `CancelPrevious` for such bodies. Work that
+outlives its flight and keeps the token sees a disposed source once the source is released: it is
+not cancelled when the memo is disposed, and `token.WaitHandle` throws `ObjectDisposedException`.
+`FlightPolicyBenchmarks` in the [suspension bench](../benchmarks/suspension.md#flightpolicybenchmarks)
+compares a launch under `CancelPrevious` with one under `KeepLatest`.
 
 In the map, `Desk` stands in for a remote service: its requests stay pending until a button answers them. **Next user** starts a flight; pressed twice, the second flight supersedes the first, which drops. **Answer** settles the newest flight and **Fail** fails it. The timeline steps through each event.
 
