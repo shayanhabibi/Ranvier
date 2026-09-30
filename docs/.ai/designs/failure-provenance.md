@@ -1,7 +1,7 @@
 # Failure provenance: design
 
-*Status: proposed, not implemented. Needs maintainer review (per-failure cost, node layout).* Line references are to
-`c631f23`. Closes research §4 ("make the error carry the node it came from") and §8 ("where did this error come
+*Status: implemented on worktree-wf_c46b5816-3af-6, pending benchmark gate.* Line references in §2–§8 are to
+`c631f23`; §11 records what the implementation changed. Closes research §4 ("make the error carry the node it came from") and §8 ("where did this error come
 from").
 
 ## 1. Goal
@@ -12,7 +12,7 @@ it. Exceptions reach callers unchanged: same instance, same type.
 ## 2. Current behaviour
 
 - A failed node stores the exception in `error` and reports `Status.Error` (`Memo`: `Core.fs:2224, 2382-2384`; effect:
-  `Core.fs:3029-3031`; async memo: `Core.fs:3375-3378, 3505`; boundary: `Core.fs:3950, 3955`; `AsyncSource.Fail`:
+  `Core.fs:2876` (`Core.fs:3029-3031` is the internal `EffectOn`); async memo: `Core.fs:3375-3378, 3505`; boundary: `Core.fs:3950, 3955`; `AsyncSource.Fail`:
   `Core.fs:2137-2146`; disposal of a pending async value: `Core.fs:3694`; lookup cell: `Projections.fs:1522`).
 - A reader of a failed node gets the same instance: `.Value` captures it into a per-node `thrown`
   `ExceptionDispatchInfo` and rethrows (`Core.fs:2598-2601`, `Platform.fs:337-361`); the reader's `| ex ->` stores it.
@@ -109,14 +109,14 @@ rewritten.
 ## 8. Alternatives
 
 - **Wrap in `NodeFailedException(node, inner)`.** Breaks `with :? FormatException`, type tests in `recover`, and the
-  same-instance contract (`contracts.md:94-97`). One allocation per origin. Rejected.
+  same-instance contract (`contracts.md:99-100`). One allocation per origin. Rejected.
 - **Side table exception → node** (`ConditionalWeakTable`). Zero per-node memory and correct for post-`await` reads,
   but ~0.4 µs and GC-tracked ephemerons per failure (the Gen2 column in the probe), and Fable needs a `WeakMap` binding.
 - **`Reading.Failed of error * origin`.** Grows every `Reading<'T>` returned on the hot `TryValue` path by 8 bytes and
   breaks `NewFailed`. Rejected.
 - **Trace only.** `Tracer.Moved` already logs the error instance for memos, async memos, boundaries and lookup cells
   (`Core.fs:2405, 3291, 4027`, `Projections.fs:1593`); a `Trace.failureOrigin` query would scan for the first `Moved`
-  carrying the instance. Zero cost untraced, but effects log only status (`Core.fs:3047`), projection rows log
+  carrying the instance. Zero cost untraced, but effects log only status (`Core.fs:2879`), projection rows log
   `null` (`Projections.fs:436, 610`), and release builds have no log. Worth adding alongside, not instead.
 
 ## 9. Recommendation
@@ -131,7 +131,7 @@ rewritten.
 3. Add `Trace.failureOrigin` in the same change? yes / no
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections (applied)
 
 Verdict: needs fixes
 
@@ -139,3 +139,67 @@ Verdict: needs fixes
 - `Origin: INode` can be an internal node the caller cannot identify or reach: a lookup cell (Projections.fs:1516, which the note lists as an origin), a projection row memo, a FoldRow or a projection beacon. Say what `ErrorOrigin` reports for these (for example, map to the owning public Projection/Lookup), or document that the Id may name an internal node.
 - §2 'effect: `Core.fs:3029-3031`' is `EffectOn` (internal type at 2953). The public `Effect` stores its failure at Core.fs:2876. Likewise §8 'effects log only status (`Core.fs:3047`)' cites EffectOn; Effect's RunEnd is at 2879.
 - §8 'the same-instance contract (`contracts.md:94-97`)': lines 94-97 are the read table. The same-instance sentence is at contracts.md:99-100.
+
+All four are applied: the retention finding and the internal-node finding by the implementation (§11), the line
+references in §2 and §8 in place.
+
+## 11. Implementation
+
+Decisions taken (`docs/.ai/wave-b/decisions.md`): `ErrorOrigin` as a property; one shared capture across the path;
+no `Trace.errorOrigin`.
+
+**Surface.** `ErrorOrigin: INode` on `Memo`, `AsyncMemo`, `Boundary`, `Effect`, `Projection` and `AsyncSource`;
+`CaughtFrom: INode` on `Boundary`. `ErrorOrigin` is untracked, like `Status`; `CaughtFrom` is tracked and brings the
+boundary current, like `Caught`. C# reads both as ordinary properties (test in `ReactiveTests.cs`). User docs:
+`contracts.md` "Finding where a failure came from", rewritten, which also fixes the stale `raise` paragraph.
+
+**Record.** `Failure` (internal, sealed, `AllowNullLiteral`): the exception, the origin, and a lazily taken
+`CapturedFailure`. `Graph.FailureOf (error, origin, previous)` returns the last failed read's record when it holds the
+same instance, else `previous` when it holds the same instance, else a new record; every catching arm calls it.
+`Graph.Raise` records the read and rethrows the shared capture.
+
+**Retention (reviewer finding 1).** `Graph.lastRaised` is written only inside a stale read or a flush, and cleared by
+`FailureOf`, at the end of the outermost stale read (`ExitPull`) and at the end of each flush. Every computation body
+runs inside one of the two, so the slot is null whenever the graph is idle. A `Retention.fs` test pins both paths
+(fails with the `ExitPull` clear removed).
+
+**Internal nodes (reviewer finding 2).**
+- Projection rows: `RunRow` records the failure with the projection as origin and hands it to the row memo, so a
+  reader of `Get` reports the projection (or the upstream node the row's reader rethrew). A purity violation in a
+  row still reports the row memo.
+- Fold rows: the fold rethrows the row memo's record, so the fold memo reports the row's origin. A throwing fold
+  comparer reports the fold's memo.
+- Projection pass failures: recorded on the projection and handed to the reader that pulled the pass.
+- Beacons never fail (`Status.None`), so no failure originates in one.
+- Lookup cells: a `Lookup` is not an `INode`, so it cannot be reported. A key function or comparer failure reports
+  the key's internal cell; a `source` or `affected` failure reports the lookup's internal source memo. Documented in
+  `contracts.md`.
+
+**Deviations from §3–§5.**
+- `Failure` is internal: no public member returns it, so a public type would be surface without a use.
+- The capture is lazy (first rethrow), not eager at the origin. A failure read only through `TryValue`, `Error` or
+  `Caught` never captures. The frames are the same: the first rethrow is the first time the stack trace changes.
+- The cutoff compares exception instances (`Failure.Moved`), not record references, so a body that fails again with
+  the same instance still cuts off as before. `FailureOf` reuses the previous record for the same instance.
+- `AsyncMemo` reaches itself from the let-bound `applyResult` through its owner link (`link.Child`) rather than a new
+  field or a self-identifier.
+- `EffectOn` (internal) keeps its `error: exn`; it exposes no origin.
+- `LookupOf` now rethrows a failing source through `Graph.Raise` instead of `raise`, so cell reads keep the source's
+  stack trace.
+- Limits beyond §4: a synchronous failure queued behind earlier flights under `Queue` reports the async memo; a read
+  after the first suspending `await` can report either node, depending on whether the flight settles inside the
+  stale read or flush that raised it.
+
+**Measured (short job, smoke only; the A/B gate runs on the quiet machine).** `SizeOfProbe`: `Memo<int>` 112 B (was
+120), `Boundary<int>` 152 B (was 160), `AsyncMemo<int>` 160 B (unchanged, padding), `Effect` 96 B, `AsyncSource<int>`
+56 B, `Failure` 40 B. `FailureBenchmarks`: `SucceedingRecompute` 57 ns / 0 B, `FailingRecompute` 3.9 µs / 256 B.
+`FailureChainBenchmarks.FailingRecomputeOneHop`: 10 µs / 1008 B at depth 1, 24 µs / 2784 B at depth 4, 90 µs /
+9888 B at depth 16. No before numbers were taken in this worktree.
+
+**Benchmarks added.** `Suspension.fs`: `FailureBenchmarks` (`SucceedingRecompute` baseline, `FailingRecompute`) and
+`FailureChainBenchmarks` (`FailingRecomputeOneHop`, `Depth` 1/4/16). `Probe.fs`: `SizeOfProbe`. The non-failing guard is
+`Memos.fs` as before.
+
+**Hot-path additions to review under the gate.** One null test per outermost stale read (`ExitPull`) and per flush
+(the `lastRaised` clears). `Effect.Error` gains a null test. Everything else is on the failing branch.
+

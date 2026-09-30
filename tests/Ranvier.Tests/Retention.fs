@@ -71,6 +71,31 @@ let private runFlights policy count (body: int -> CancellationToken -> obj -> Ta
         a.TryValue |> ignore
 
     g, a, refs
+
+/// <summary>
+/// Reads a failed memo inside a body that swallows the failure, through a stale read when <c>viaEffect</c> is false and
+/// a flush otherwise, then disposes every node. Returns a weak reference to the failed memo.
+/// </summary>
+[<System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)>]
+let private swallowFailedRead (g: Graph) (viaEffect: bool) =
+    let failing = Make.Memo<int>(g, (fun _ -> failwith "boom"))
+
+    let swallow () =
+        try
+            failing.Value
+        with _ ->
+            0
+
+    if viaEffect then
+        let effect = new Effect (g, (fun () -> swallow () |> ignore))
+        effect.Dispose ()
+    else
+        let reader = Make.Memo (g, (fun _ -> swallow ()))
+        reader.TryValue |> ignore
+        reader.Dispose ()
+
+    failing.Dispose ()
+    WeakReference failing
 #endif
 
 [<Tests>]
@@ -287,6 +312,15 @@ let tests =
                     a.Dispose ()
                     Expect.isLessThan (aliveOf refs) 20 "disposal cancels every flight in progress"
                     g.Dispose ()
+                }
+
+            for name, viaEffect in [ "stale read", false; "flush", true ] do
+                test $"a failed read swallowed inside a {name} is released when it ends" {
+                    let g = new Graph ()
+                    let failing = ResizeArray [ swallowFailedRead g viaEffect ]
+
+                    Expect.equal (aliveOf failing) 0 "the graph keeps no failure once the read or flush ends"
+                    GC.KeepAlive g
                 }
 #endif
         ]

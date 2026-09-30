@@ -1045,6 +1045,51 @@ module internal Activation =
         activated.Value <- entry
 #endif
 
+//FOR-REVIEW The note's §3 lists Failure as public; it is internal here because no public member returns it. Make it public only alongside an accessor such as a node's Failure property.
+/// <summary>
+/// A failed node's exception and the node it originated in. Every node the exception reaches through reads holds the
+/// same record.
+/// </summary>
+/// <remarks>
+/// The origin is the node whose body, comparer, flight, <c>Fail</c> or disposal raised the exception, as reported by
+/// <c>ErrorOrigin</c>.
+/// </remarks>
+[<Sealed; AllowNullLiteral>]
+type internal Failure(error: exn, origin: INode) =
+    let mutable captured: Platform.CapturedFailure = null
+
+    member _.Error = error
+    member _.Origin = origin
+
+    /// <summary>
+    /// Raises <c>Error</c>. On .NET every rethrow carries the frames captured by the first, followed by the rethrowing
+    /// reader's frames.
+    /// </summary>
+    member _.Rethrow() : unit =
+        if isNull captured then
+            captured <- Platform.captureFailure null error
+
+        Platform.rethrowStored captured
+
+    /// <summary>The exception of <c>failure</c>, or null when <c>failure</c> is null.</summary>
+    static member ErrorOf(failure: Failure) : exn =
+        if isNull failure then null else failure.Error
+
+    /// <summary>The origin of <c>failure</c>, or null when <c>failure</c> is null.</summary>
+    static member OriginOf(failure: Failure) : INode =
+        if isNull failure then
+            Unchecked.defaultof<INode>
+        else
+            failure.Origin
+
+    /// <summary>
+    /// True when <c>next</c> and <c>previous</c> hold different exception instances, null counting as none. The cutoff of
+    /// every node that stores a <c>Failure</c>.
+    /// </summary>
+    static member Moved(next: Failure, previous: Failure) =
+        not (obj.ReferenceEquals (next, previous))
+        && not (obj.ReferenceEquals (Failure.ErrorOf next, Failure.ErrorOf previous))
+
 /// <summary>
 /// Holds each thread's <c>AmbientCell</c>. Held apart from <c>Graph</c>, whose static initialisation check would
 /// otherwise guard every access.
@@ -1107,6 +1152,15 @@ type Graph(options: GraphOptions) =
     /// null. Survives a <c>try/with</c> in the body that swallows the raise.
     /// </summary>
     let mutable raisedPending: INode = Unchecked.defaultof<INode>
+
+    /// <summary>
+    /// The failure of the last failed read inside a stale read or a flush, or null. Taken by the next run that catches a
+    /// failure, and cleared then and at the end of the outermost stale read and of each flush.
+    /// </summary>
+    /// <remarks>
+    /// Every computation body runs inside a stale read or a flush, so the slot is null whenever the graph is idle.
+    /// </remarks>
+    let mutable lastRaised: Failure = null
 
     /// <summary>
     /// Effects invalidated in the current turn, waiting to be run.
@@ -1612,6 +1666,10 @@ type Graph(options: GraphOptions) =
                 queueCount <- 0
             finally
                 flushing <- false
+
+                if not (isNull lastRaised) then
+                    lastRaised <- null
+
                 Tracer.FlushEnd this
                 this.LeaveAmbient previousAmbient
 
@@ -1674,6 +1732,10 @@ type Graph(options: GraphOptions) =
 
         if pullDepth = 0 then
             this.LeaveAmbient pullAmbient
+
+            //FOR-REVIEW One load and branch per outermost stale read, on the hot path the Memos benchmarks cover. Without it a failed read swallowed by a body pulled outside every flush stays reachable from the graph until the next caught failure or flush. Drop it if the A/B gate objects, and document that retention instead.
+            if not (isNull lastRaised) then
+                lastRaised <- null
 
             if flushOwed then
                 this.SettleFlush ()
@@ -1953,6 +2015,46 @@ type Graph(options: GraphOptions) =
 
         NotReadyException node
 
+    /// <summary>
+    /// Records <c>failure</c> as the failure of the last failed read, for <c>FailureOf</c> in the run that catches it.
+    /// </summary>
+    /// <remarks>Records nothing outside every stale read and flush.</remarks>
+    member internal _.Raised(failure: Failure) =
+        if pullDepth > 0 || flushing then
+            lastRaised <- failure
+
+    /// <summary>Raises the exception of <c>failure</c> to the reader of a failed node, as recorded by <c>Raised</c>.</summary>
+    member internal this.Raise(failure: Failure) : unit =
+        this.Raised failure
+        failure.Rethrow ()
+
+    /// <summary>
+    /// The failure a run records for <c>error</c>: the last failed read's when it holds <c>error</c>, else
+    /// <c>previous</c> when it holds <c>error</c>, else a new failure originating in <c>origin</c>. Clears the last
+    /// failed read.
+    /// </summary>
+    /// <remarks>
+    /// A run that catches a failed read of A, then reads a failed B, then rethrows A's exception records it as its own.
+    /// </remarks>
+    member internal _.FailureOf(error: exn, origin: INode, previous: Failure) : Failure =
+        let raised = lastRaised
+
+        if not (isNull raised) then
+            lastRaised <- null
+
+        if
+            not (isNull raised)
+            && obj.ReferenceEquals (raised.Error, error)
+        then
+            raised
+        elif
+            not (isNull previous)
+            && obj.ReferenceEquals (previous.Error, error)
+        then
+            previous
+        else
+            Failure (error, origin)
+
     /// <summary>True when the running body has raised a pending read.</summary>
     member internal _.RaisedPending = not (isNull (box raisedPending))
 
@@ -2160,8 +2262,7 @@ type AsyncSource<'T>(graph: Graph) =
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
     let mutable value = Unchecked.defaultof<'T>
-    let mutable error: exn = null
-    let mutable thrown: Platform.CapturedFailure = null
+    let mutable failure: Failure = null
 
     let mutable status = Status.Pending ||| Status.Uninitialized
 
@@ -2207,12 +2308,12 @@ type AsyncSource<'T>(graph: Graph) =
     /// Publishes a failure as a settled outcome: dependents suspended on the source read <c>reason</c> as its error.
     /// </summary>
     /// <exception cref="T:System.ArgumentNullException"><c>reason</c> is null.</exception>
-    member _.Fail(reason: exn) =
+    member this.Fail(reason: exn) =
         if isNull reason then
             raise (ArgumentNullException (nameof reason))
 
         graph.Post (fun () ->
-            error <- reason
+            failure <- Failure (reason, (this :> INode))
             status <- Status.Error
             Tracer.SourceSettled (observers, true, reason)
 
@@ -2231,8 +2332,7 @@ type AsyncSource<'T>(graph: Graph) =
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            thrown <- Platform.captureFailure thrown error
-            Platform.rethrowStored thrown
+            graph.Raise failure
 
         value
 
@@ -2244,8 +2344,15 @@ type AsyncSource<'T>(graph: Graph) =
         graph.Track (this :> ISource)
 
         if status.HasFlag Status.Pending then Pending
-        elif status.HasFlag Status.Error then Failed error
+        elif status.HasFlag Status.Error then Failed failure.Error
         else Ready value
+
+    /// <summary>The source itself while <c>Status</c> has <c>Error</c>, otherwise null.</summary>
+    member this.ErrorOrigin: INode =
+        if status.HasFlag Status.Error then
+            this :> INode
+        else
+            Unchecked.defaultof<INode>
 
 /// <summary>
 /// A derived, cached computation.
@@ -2294,8 +2401,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
-    let mutable error: exn = null
-    let mutable thrown: Platform.CapturedFailure = null
+    let mutable failure: Failure = null
     let mutable runs = 0
     let mutable disposed = false
 
@@ -2443,10 +2549,10 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
         // of whether any of these moved.
         let previous = value
         let previousStatus = status
-        let previousError = error
+        let previousFailure = failure
 
         status <- Status.None
-        error <- null
+        failure <- null
         runs <- runs + 1
 #if RANVIER_COUNTERS
         Counters.MemoRecomputed ()
@@ -2471,7 +2577,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
         with
         | ex when violated ->
             violated <- false
-            error <- ScopeMessages.failure mode ex
+            failure <- graph.FailureOf (ScopeMessages.failure mode ex, this, previousFailure)
             status <- Status.Error
         | NotReadyException source ->
             if isNull pendingSources then
@@ -2481,7 +2587,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
 
             status <- Status.Pending
         | ex ->
-            error <- ex
+            failure <- graph.FailureOf (ex, this, previousFailure)
             status <- Status.Error
 
         // The cutoff, and the whole point of `Check`. Status counts as part of
@@ -2491,19 +2597,19 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
         // comparer fails the run as a throwing body does.
         let mutable moved =
             status <> previousStatus
-            || not (obj.ReferenceEquals (error, previousError))
+            || Failure.Moved (failure, previousFailure)
 
         if not moved then
             try
                 moved <- not (equal.Equals (previous, value))
             with ex ->
                 value <- previous
-                error <- ex
+                failure <- graph.FailureOf (ex, this, previousFailure)
                 status <- Status.Error
                 moved <- true
 
         if moved then
-            Tracer.Moved (graph, id, (if isNull error then box value else box error))
+            Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)
@@ -2698,8 +2804,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            thrown <- Platform.captureFailure thrown error
-            Platform.rethrowStored thrown
+            graph.Raise failure
 
         value
 
@@ -2711,8 +2816,20 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
         graph.Track (this :> ISource)
 
         if status.HasFlag Status.Pending then Pending
-        elif status.HasFlag Status.Error then Failed error
+        elif status.HasFlag Status.Error then Failed failure.Error
         else Ready value
+
+    /// <summary>
+    /// The node the current failure originated in while <c>Status</c> has <c>Error</c>, otherwise null. Untracked.
+    /// </summary>
+    /// <remarks>
+    /// The memo itself when its body, its comparer or its purity check raised the exception; the upstream node when the
+    /// body rethrew the exception of a failed read.
+    /// </remarks>
+    member _.ErrorOrigin: INode = Failure.OriginOf failure
+
+    /// <summary>The current failure, or null.</summary>
+    member internal _.Failure = failure
 
     /// <summary>
     /// Untracked read of the cached value, without recomputing.
@@ -2777,7 +2894,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     let mutable freshness = Freshness.Clean
 
     let mutable status = Status.Uninitialized
-    let mutable error: exn = null
+    let mutable failure: Failure = null
     let mutable queued = false
     let mutable disposed = false
     let mutable link: OwnerLink = null
@@ -2946,7 +3063,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
             pendingSources.Clear ()
 
         status <- Status.None
-        error <- null
+        failure <- null
         runs <- runs + 1
 #if RANVIER_COUNTERS
         Counters.EffectRan ()
@@ -2974,7 +3091,7 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
             // not strand every effect queued behind it. Solid routes
             // this to the nearest error boundary; we have none yet, so
             // it is recorded and readable.
-            error <- ex
+            failure <- graph.FailureOf (ex, this, null)
             status <- Status.Error
 
         Tracer.RunEnd (graph, id, status)
@@ -3023,7 +3140,14 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     /// The error from the last run, or null. Effects do not throw out of the
     /// flush loop, so this is the only way to see one.
     /// </summary>
-    member _.Error = error
+    member _.Error = Failure.ErrorOf failure
+
+    /// <summary>The node the last run's failure originated in, or null when the run did not fail.</summary>
+    /// <remarks>
+    /// The effect itself when its body raised the exception; the upstream node when the body rethrew the exception of a
+    /// failed read.
+    /// </remarks>
+    member _.ErrorOrigin: INode = Failure.OriginOf failure
 
     /// <summary>
     /// The source of the last run's last pending read, or empty when the run did not suspend.
@@ -3328,8 +3452,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Pending ||| Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
-    let mutable error: exn = null
-    let mutable thrown: Platform.CapturedFailure = null
+    let mutable failure: Failure = null
     let mutable runs = 0
     let mutable disposed = false
     let mutable link: OwnerLink = null
@@ -3404,7 +3527,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     let mutable launching = false
 
     let wake () =
-        Tracer.Moved (graph, id, (if isNull error then box value else box error))
+        Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
 
         if launching then
             observers.NotifyDirtyExcept graph.CurrentComputation
@@ -3516,14 +3639,15 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
             | Platform.FlightOutcome.Completed v ->
                 Tracer.FlightSettled (graph, id, gen, 0, 0, box v)
                 write v
-                error <- null
+                failure <- null
                 status <- Status.None
                 wake ()
             // A cancellation of the current flight is a failure.
             | Platform.FlightOutcome.Faulted ex
             | Platform.FlightOutcome.Canceled ex ->
                 Tracer.FlightSettled (graph, id, gen, (if outcome.IsCanceled then 2 else 1), 0, ex)
-                error <- ex
+                // The owner link is the one reference to this node in reach of a let-bound function.
+                failure <- graph.FailureOf (ex, (link.Child :?> INode), null)
                 status <- Status.Error
                 wake ()
         else
@@ -3657,7 +3781,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
         let previous = Previous<'T>(this :> IPreviousSource<'T>, chained)
         runs <- runs + 1
         Tracer.RunStart (graph, id, runs)
-        error <- null
+        failure <- null
 
         status <-
             Status.Pending
@@ -3675,7 +3799,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                 let outcome = Task.FromResult (Platform.FlightOutcome<'T>.Faulted ex)
                 tail <- Platform.after tail (fun () -> Platform.apply outcome (publishQueued gen))
             | _ ->
-                error <- ex
+                failure <- graph.FailureOf (ex, this, null)
                 status <- Status.Error
 
         running <- running + 1
@@ -3877,7 +4001,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                 if not (isNull pendingSources) then
                     pendingSources.Clear ()
 
-                error <- ObjectDisposedException (this.GetType().Name)
+                failure <- Failure (ObjectDisposedException (this.GetType().Name), (this :> INode))
                 status <- Status.Error
                 wake ()
 
@@ -3946,8 +4070,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            thrown <- Platform.captureFailure thrown error
-            Platform.rethrowStored thrown
+            graph.Raise failure
 
         value
 
@@ -3959,8 +4082,18 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
         graph.Track (this :> ISource)
 
         if status.HasFlag Status.Pending then Pending
-        elif status.HasFlag Status.Error then Failed error
+        elif status.HasFlag Status.Error then Failed failure.Error
         else Ready value
+
+    /// <summary>
+    /// The node the current failure originated in while <c>Status</c> has <c>Error</c>, otherwise null. Untracked.
+    /// </summary>
+    /// <remarks>
+    /// The async memo itself for a faulted or cancelled flight, a throwing body, a purity violation or disposal while
+    /// pending; the upstream node when the body rethrew the exception of a failed read before its first await that
+    /// suspends. A failure read after that await can report the async memo instead.
+    /// </remarks>
+    member _.ErrorOrigin: INode = Failure.OriginOf failure
 
     /// <summary>
     /// The last settled value, untracked, without starting a flight. The one
@@ -4013,9 +4146,8 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
     let mutable value = Unchecked.defaultof<'T>
-    let mutable error: exn = null
-    let mutable thrown: Platform.CapturedFailure = null
-    let mutable caught: exn = null
+    let mutable failure: Failure = null
+    let mutable caught: Failure = null
     let mutable waiting = false
     let mutable runs = 0
     let mutable disposed = false
@@ -4090,11 +4222,11 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
         let previous = value
         let previousStatus = status
         let previousWaiting = waiting
-        let previousError = error
+        let previousFailure = failure
         let previousCaught = caught
 
         status <- Status.None
-        error <- null
+        failure <- null
         caught <- null
         waiting <- false
         runs <- runs + 1
@@ -4125,21 +4257,30 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
 
             match onError with
             | ValueSome recover ->
+                // Taken before `recover` runs: a failed read inside it replaces the last failed read.
+                let from = graph.FailureOf (ex, this, previousCaught)
+
                 try
                     let recovered = recover ex last
                     graph.CheckRaised ()
-                    caught <- ex
+                    caught <- from
                     recovered
                 with
                 | NotReadyException inner -> suspend inner
                 | rethrown ->
                     graph.ClearRaised ()
-                    error <- rethrown
+
+                    failure <-
+                        if obj.ReferenceEquals (rethrown, ex) then
+                            from
+                        else
+                            graph.FailureOf (rethrown, this, previousFailure)
+
                     status <- Status.Error
                     value
 
             | ValueNone ->
-                error <- ex
+                failure <- graph.FailureOf (ex, this, previousFailure)
                 status <- Status.Error
                 value
 
@@ -4193,15 +4334,15 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
         let mutable moved =
             status <> previousStatus
             || waiting <> previousWaiting
-            || not (obj.ReferenceEquals (error, previousError))
-            || not (obj.ReferenceEquals (caught, previousCaught))
+            || Failure.Moved (failure, previousFailure)
+            || Failure.Moved (caught, previousCaught)
 
         if not moved then
             try
                 moved <- not (equal.Equals (previous, value))
             with ex ->
                 value <- previous
-                error <- ex
+                failure <- graph.FailureOf (ex, this, previousFailure)
                 caught <- null
                 waiting <- false
                 status <- Status.Error
@@ -4211,7 +4352,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             shown <- true
 
         if moved then
-            Tracer.Moved (graph, id, (if isNull error then box value else box error))
+            Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)
@@ -4391,7 +4532,17 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     member this.Caught =
         this.EnsureCurrent ()
         graph.Track (this :> ISource)
-        caught
+        Failure.ErrorOf caught
+
+    /// <summary>The node <c>Caught</c> originated in, or null when <c>Caught</c> is null.</summary>
+    /// <remarks>
+    /// A tracked read that brings the boundary current, as <c>Caught</c> does. The boundary itself when its body raised
+    /// the exception; the upstream node when the body rethrew the exception of a failed read.
+    /// </remarks>
+    member this.CaughtFrom: INode =
+        this.EnsureCurrent ()
+        graph.Track (this :> ISource)
+        Failure.OriginOf caught
 
     /// <summary>
     /// The source of the last run's last pending read, whether or not a fallback caught it, and the source a fallback or
@@ -4424,8 +4575,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             raise (graph.NotReady (this :> INode))
 
         if status.HasFlag Status.Error then
-            thrown <- Platform.captureFailure thrown error
-            Platform.rethrowStored thrown
+            graph.Raise failure
 
         value
 
@@ -4437,8 +4587,17 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
         graph.Track (this :> ISource)
 
         if status.HasFlag Status.Pending then Pending
-        elif status.HasFlag Status.Error then Failed error
+        elif status.HasFlag Status.Error then Failed failure.Error
         else Ready value
+
+    /// <summary>
+    /// The node the current failure originated in while <c>Status</c> has <c>Error</c>, otherwise null. Untracked.
+    /// </summary>
+    /// <remarks>
+    /// The boundary itself when its comparer raised the exception, or <c>recover</c> or a fallback raised a new one; the
+    /// upstream node for an exception that passed through, including one rethrown by <c>recover</c>.
+    /// </remarks>
+    member _.ErrorOrigin: INode = Failure.OriginOf failure
 
     /// <summary>
     /// Untracked read of the cached value, without re-running the body.

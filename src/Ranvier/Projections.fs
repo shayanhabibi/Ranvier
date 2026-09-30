@@ -323,7 +323,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>
     /// The last pass's failure, as <c>Effect.Error</c>.
     /// </summary>
-    let mutable error: exn = null
+    let mutable failure: Failure = null
     let mutable status = Status.None
     let mutable disposed = false
     let mutable link: OwnerLink = null
@@ -528,8 +528,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         | NotReadyException _ ->
             this.Report (entry, true)
             reraise ()
-        | _ ->
+        | ex ->
+            // The row memo records the projection as the origin: the row is internal.
+            let recorded = graph.FailureOf (ex, this, null)
             this.Report (entry, false)
+            graph.Raised recorded
             reraise ()
 
     /// <summary>
@@ -650,11 +653,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         this.Pass.ClearStaged ()
         removed.Clear ()
         let previousStatus = status
-        let previousError = error
+        let previousFailure = failure
         let retry = not invalidated
         invalidated <- false
         checkPending <- false
-        error <- null
+        failure <- null
         status <- Status.None
 
         // The guard covers the diff as well as `Enumerate`: a failure in either
@@ -707,21 +710,24 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             // and on a new exception after a source change. Each reader's pull
             // re-runs a failed pass, so waking on a retry would bounce between
             // two readers indefinitely.
+            let recorded = graph.FailureOf (ex, this, previousFailure)
             this.Pass.ClearStaged ()
             this.Abandon ()
-            error <- ex
+            failure <- recorded
             status <- Status.Error
 
             if
                 not (previousStatus.HasFlag Status.Error)
                 || (not retry
-                    && not (obj.ReferenceEquals (ex, previousError)))
+                    && Failure.Moved (recorded, previousFailure))
             then
                 Tracer.Moved (graph, id, null)
                 beacon.NotifyFailure this.Running
                 Tracer.Notified graph
 
             Tracer.RunEnd (graph, id, status)
+            // The reader that pulled the pass catches the exception next.
+            graph.Raised recorded
             reraise ()
 
     /// <summary>
@@ -1357,7 +1363,15 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// A pass the scheduler runs has no reader to raise to, so its failure is
     /// visible here, as with <c>Effect.Error</c>.
     /// </remarks>
-    member _.Error = error
+    member _.Error = Failure.ErrorOf failure
+
+    /// <summary>The node the last pass's failure originated in, or null when the pass did not fail.</summary>
+    /// <remarks>
+    /// The projection itself when its source, <c>keyOf</c> or a duplicate key raised the exception; the upstream node when
+    /// the source rethrew the exception of a failed read. A failed row reports its origin through the reader of the row:
+    /// the projection when its reader or factory raised the exception.
+    /// </remarks>
+    member _.ErrorOrigin: INode = Failure.OriginOf failure
 
     /// <summary>
     /// <c>Pending</c> if the last pass suspended, <c>Error</c> if it failed, <c>None</c>
@@ -1638,8 +1652,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
     do Tracer.Bind (observers, graph, id)
     do Tracer.LookupCellNew (graph, id)
     let mutable value = Unchecked.defaultof<'V>
-    let mutable error: exn = null
-    let mutable thrown: Platform.CapturedFailure = null
+    let mutable failure: Failure = null
     let mutable pending = false
 
     interface INode with
@@ -1647,7 +1660,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
 
         member _.Status =
             if pending then Status.Pending
-            elif not (isNull error) then Status.Error
+            elif not (isNull failure) then Status.Error
             else Status.None
 
     interface ISource with
@@ -1672,9 +1685,8 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
         if pending then
             raise (graph.NotReady (this :> INode))
 
-        if not (isNull error) then
-            thrown <- Platform.captureFailure thrown error
-            Platform.rethrowStored thrown
+        if not (isNull failure) then
+            graph.Raise failure
 
         value
 
@@ -1683,7 +1695,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
     /// the cell then fails with the comparer's exception and keeps its value.
     /// </summary>
     member this.Write(v: 'V) : bool =
-        let mutable moved = pending || not (isNull error)
+        let mutable moved = pending || not (isNull failure)
         let mutable comparerError: exn = null
 
         if not moved then
@@ -1693,12 +1705,12 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
                 comparerError <- ex
 
         if not (isNull comparerError) then
-            this.Fail comparerError
+            this.Fail (Failure (comparerError, (this :> INode)))
             false
         else
             if moved then
                 pending <- false
-                error <- null
+                failure <- null
                 value <- v
                 Tracer.Moved (graph, id, box v)
                 observers.NotifyDirty ()
@@ -1706,10 +1718,10 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
 
             true
 
-    member _.Fail(ex: exn) =
+    member _.Fail(recorded: Failure) =
         pending <- false
-        error <- ex
-        Tracer.Moved (graph, id, ex)
+        failure <- recorded
+        Tracer.Moved (graph, id, recorded.Error)
         observers.NotifyDirty ()
         Tracer.Notified graph
 
@@ -1720,7 +1732,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
     member _.Suspend() =
         if not pending then
             pending <- true
-            error <- null
+            failure <- null
             Tracer.Moved (graph, id, null)
             observers.NotifyDirty ()
             Tracer.Notified graph
@@ -1899,7 +1911,8 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         else
             failed.Add key |> ignore
-            cell.Fail failure
+            //FOR-REVIEW A Lookup is not an INode, so a key function failure reports the key's internal cell. Implementing INode on Lookup (an Id per lookup) would let ErrorOrigin name the lookup itself; left out as new public surface.
+            cell.Fail (graph.FailureOf (failure, cell, null))
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
 
     /// <summary>
@@ -1947,13 +1960,13 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 this.Recompute (key, cell)
 
     /// <summary>
-    /// Fails every live cell with <c>ex</c>.
+    /// Fails every live cell with <c>recorded</c>.
     /// </summary>
-    member internal _.FailAll(ex: exn) =
+    member internal _.FailAll(recorded: Failure) =
         if not disposed then
             cells.Iterate (fun key cell ->
                 failed.Add key |> ignore
-                cell.Fail ex)
+                cell.Fail recorded)
 
     /// <summary>
     /// Suspends every live cell until the next recompute.
@@ -2090,9 +2103,9 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
     let mutable primed = false
 
     /// <summary>
-    /// The source's exception, while the source is failing.
+    /// The source's failure, while the source is failing.
     /// </summary>
-    let mutable sourceError: exn = null
+    let mutable sourceError: Failure = null
 
     /// <summary>
     /// Set while the source is pending.
@@ -2130,7 +2143,7 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
             raise (graph.NotReady (state :> INode))
 
         if not (isNull sourceError) then
-            raise sourceError
+            graph.Raise sourceError
 
         f previous key
 
@@ -2165,11 +2178,11 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
             elif not (isNull failure) then
                 if
                     sourcePending
-                    || not (obj.ReferenceEquals (failure, sourceError))
+                    || not (obj.ReferenceEquals (failure, Failure.ErrorOf sourceError))
                 then
                     sourcePending <- false
-                    sourceError <- failure
-                    this.FailAll failure
+                    sourceError <- graph.FailureOf (failure, state, null)
+                    this.FailAll sourceError
             elif not primed then
                 primed <- true
                 previous <- next
@@ -2193,4 +2206,4 @@ type internal LookupOf<'S, 'K, 'V when 'K: equality>(graph: Graph, f: 'S -> 'K -
                 if isNull affectedError then
                     this.Invalidate keys
                 else
-                    this.FailAll affectedError
+                    this.FailAll (graph.FailureOf (affectedError, state, null))
