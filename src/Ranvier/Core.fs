@@ -1815,14 +1815,24 @@ type Graph(options: GraphOptions) =
     member private _.CheckContext(operation: string) =
         if not (obj.ReferenceEquals (SynchronizationContext.Current, context)) then
             raise (
-                InvalidOperationException
-                    $"%s{operation} ran on thread %d{Platform.currentThreadId ()} outside the synchronisation context this Serialised graph was constructed on. Marshal through Graph.Dispatch."
+                InvalidOperationException (
+                    operation
+                    + " ran on thread "
+                    + string (Platform.currentThreadId ())
+                    + " outside the synchronisation context this Serialised graph was constructed on. Marshal through Graph.Dispatch."
+                )
             )
 
     member private _.FailConcurrent(operation: string, other: int) : unit =
         raise (
-            InvalidOperationException
-                $"%s{operation} ran on thread %d{Platform.currentThreadId ()} while thread %d{other} was inside this Serialised graph. Two threads entered it at once."
+            InvalidOperationException (
+                operation
+                + " ran on thread "
+                + string (Platform.currentThreadId ())
+                + " while thread "
+                + string other
+                + " was inside this Serialised graph. Two threads entered it at once."
+            )
         )
 #endif
 
