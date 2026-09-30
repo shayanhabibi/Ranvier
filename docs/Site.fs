@@ -114,7 +114,7 @@ let private darkByDefault =
                 "(()=>{try{if(!localStorage.getItem(\"nacara-theme\")){var d=document.documentElement;d.dataset.theme=\"dark\";d.dataset.themeSetting=\"dark\";document.addEventListener(\"DOMContentLoaded\",()=>{for(const s of document.querySelectorAll(\"[data-nacara-theme]\"))s.value=d.dataset.themeSetting})}}catch{}})();"
         ]
 
-/// The public API of the Ranvier and Ranvier.CSharp assemblies, built beside the site.
+/// The public API of the Ranvier, Ranvier.CSharp and Ranvier.Elmish assemblies, built beside the site.
 let apiOptions =
     let beside =
         System.Reflection.Assembly.GetExecutingAssembly().Location
@@ -125,7 +125,7 @@ let apiOptions =
         Title = "API reference"
         Sources =
             [
-                for name in [ "Ranvier"; "Ranvier.CSharp" ] -> FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
+                for name in [ "Ranvier"; "Ranvier.CSharp"; "Ranvier.Elmish" ] -> FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
             ]
     }
 

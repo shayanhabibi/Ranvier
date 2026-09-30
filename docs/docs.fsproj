@@ -29,6 +29,7 @@
         <ProjectReference Include="maps/authoring/Ranvier.Docs.MapAuthoring.fsproj" />
         <!-- Builds the libraries beside the site, where the API reference reads them. -->
         <ProjectReference Include="../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
+        <ProjectReference Include="../src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />
     </ItemGroup>
     <ItemGroup>
         <!-- The Partas.Nacara packages were built with the .NET 11 SDK and need FSharp.Core 11;

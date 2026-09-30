@@ -1,4 +1,7 @@
-namespace Ranvier
+namespace Ranvier.Elmish
+
+open System
+open Ranvier
 
 /// <summary>
 /// An Elmish-style model held in a signal: <c>Dispatch</c> applies <c>update</c>, and <c>Select</c> reads a part of the
@@ -39,18 +42,19 @@ type Mvu<'Model, 'Msg>
     /// </summary>
     /// <remarks>
     /// <c>update</c> and the commands run untracked. A call on the graph's thread runs inline, and a dispatch from an effect
-    /// joins the running flush. A call from another thread is queued, as <c>Graph.Dispatch</c> queues work.
+    /// joins the running flush. A call from another thread is queued, as <c>Graph.Dispatch</c> queues work. Under
+    /// <c>Serialised</c>, a call from outside the graph is queued and waits for the next drain; with no
+    /// <c>SynchronizationContext</c> at construction, that drain is <c>Graph.Pump</c>.
     /// </remarks>
     member this.Dispatch(msg: 'Msg) : unit =
-        //FOR-REVIEW Routes off-thread calls through the inbox (one thread-id test per dispatch) and allocates a closure when
-        //FOR-REVIEW dispatched from inside a computation, to run update untracked. The note only asked for off-thread routing.
+        //FOR-REVIEW Routes off-thread calls through the inbox (one thread-id test per dispatch) and allocates a closure per
+        //FOR-REVIEW dispatch to run update untracked. In core the closure was allocated only inside a computation; outside
+        //FOR-REVIEW Ranvier the test for a running computation is internal, so the bridge calls Graph.Untrack on every
+        //FOR-REVIEW on-thread dispatch. Graph.Untrack on the graph's thread takes no hold, so writes still flush as before.
         if graph.IsOnGraphThread then
-            if isNull (box graph.CurrentComputation) then
-                this.Apply msg
-            else
-                graph.RunUntracked (fun () -> this.Apply msg)
+            graph.Untrack (fun () -> this.Apply msg)
         else
-            graph.Post (fun () -> this.Apply msg)
+            graph.Dispatch (fun () -> this.Apply msg)
 
     /// <summary>A memo holding <c>select model</c>, owned by the current scope.</summary>
     /// <remarks>
@@ -59,7 +63,13 @@ type Mvu<'Model, 'Msg>
     /// </remarks>
     /// <exception cref="T:System.InvalidOperationException">Called inside a pure body, such as a <c>createMemo</c> body.</exception>
     member _.Select(select: 'Model -> 'A) : Memo<'A> =
-        Memo.Create (graph, (fun _ -> select root.Value), ScopeMode.Pure)
+#if FABLE_COMPILER
+        //FOR-REVIEW Fable has no public Memo constructor, so the selector memo belongs to Graph.Current, which is the
+        //FOR-REVIEW bridge's graph unless Select is called while another graph is current.
+        createMemo (fun _ -> select root.Value)
+#else
+        new Memo<'A> (graph, Func<'A voption, 'A>(fun _ -> select root.Value))
+#endif
 
 /// <summary>Constructors for <c>Mvu</c> over the current graph.</summary>
 [<RequireQualifiedAccess>]

@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <!--
-    A NativeAOT app over Ranvier and Ranvier.CSharp. `dotnet publish -c Release -r linux-x64` fails on any
-    IL2xxx/IL3xxx warning: both assemblies are rooted, so ILC analyses their whole public surface. The published
+    A NativeAOT app over Ranvier, Ranvier.CSharp and Ranvier.Elmish. `dotnet publish -c Release -r linux-x64` fails on any
+    IL2xxx/IL3xxx warning: the assemblies are rooted, so ILC analyses their whole public surface. The published
     binary exits non-zero when an exception or a ToString text differs from the JIT build's.
     -->
     <PropertyGroup>
@@ -23,11 +23,13 @@
     <ItemGroup>
         <ProjectReference Include="../../src/Ranvier/Ranvier.fsproj" />
         <ProjectReference Include="../../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
+        <ProjectReference Include="../../src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />
     </ItemGroup>
 
     <ItemGroup>
         <TrimmerRootAssembly Include="Ranvier" />
         <TrimmerRootAssembly Include="Ranvier.CSharp" />
+        <TrimmerRootAssembly Include="Ranvier.Elmish" />
     </ItemGroup>
 
 </Project>

@@ -11,6 +11,7 @@ open System
 open System.Threading.Tasks
 open FSharp.Data.Adaptive
 open Ranvier
+open Ranvier.Elmish
 
 /// <summary>
 /// State built outside the measured region. <c>Run</c> performs the operations the

@@ -2,6 +2,7 @@ module Ranvier.Tests.MvuBridge
 
 open Expecto
 open Ranvier
+open Ranvier.Elmish
 
 type private Address = { City: string; Zip: string }
 

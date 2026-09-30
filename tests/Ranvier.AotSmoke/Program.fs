@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Threading
 open Ranvier
 open Ranvier.CSharp
+open Ranvier.Elmish
 
 let mutable private failures = 0
 
@@ -84,6 +85,11 @@ let main _ =
     raises<NotReadyException> "a pending read" "NotReadyException " (fun () ->
         let source = AsyncSource<int>(g)
         source.Value |> ignore)
+
+    let app = Mvu.create 0 (fun (step: int) model -> model + step)
+    let doubled = app.Select (fun model -> model * 2)
+    app.Dispatch 3
+    equals "an Mvu selector reads the dispatched model" "6" (string doubled.Value)
 
     if failures = 0 then
         Console.WriteLine "all checks passed"

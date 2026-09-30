@@ -2,6 +2,7 @@ module Ranvier.Benchmarks.Models
 
 open BenchmarkDotNet.Attributes
 open Ranvier
+open Ranvier.Elmish
 
 /// <summary>
 /// One field of an N-field model changed per write, with one effect per field. Compares a signal per field (the
@@ -43,16 +44,12 @@ type FieldWriteBenchmarks() =
             |> ignore
 
         let bridge =
-            Mvu<int[], int>(
-                mvuGraph,
-                Array.zeroCreate<int> n,
-                (fun field model ->
-                    let copy = Array.copy model
-                    copy[field] <- copy[field] + 1
-                    copy),
-                Unchecked.defaultof<_>,
-                false
-            )
+            use _ = mvuGraph.Activate ()
+
+            Mvu.create (Array.zeroCreate<int> n) (fun (field: int) model ->
+                let copy = Array.copy model
+                copy[field] <- copy[field] + 1
+                copy)
 
         this.Bridge <- bridge
 

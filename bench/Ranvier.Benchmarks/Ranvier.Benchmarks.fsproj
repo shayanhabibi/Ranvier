@@ -37,6 +37,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
+        <ProjectReference Include="..\..\src\Ranvier.Elmish\Ranvier.Elmish.fsproj" />
         <ProjectReference Include="..\..\src\Ranvier.CSharp\Ranvier.CSharp.fsproj" />
     </ItemGroup>
 
