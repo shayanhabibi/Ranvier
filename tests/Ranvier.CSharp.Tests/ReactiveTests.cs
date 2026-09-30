@@ -154,4 +154,22 @@ public class ReactiveTests
 
         Assert.Equal([false, true], acted);
     }
+
+    [Fact]
+    public void ErrorOriginNamesTheNodeAFailureCameFrom()
+    {
+        using var active = new Graph().Activate();
+        var price = AsyncSource<decimal>();
+        var total = Memo(() => price.Value * 2);
+        var shown = ErrorBoundary(() => total.Value.ToString(), _ => "unavailable");
+
+        Assert.Null(total.ErrorOrigin);
+        price.Fail(new InvalidOperationException("offline"));
+        Flush();
+
+        Assert.Equal("unavailable", shown.Value);
+        Assert.Same(price, shown.CaughtFrom);
+        Assert.Same(price, total.ErrorOrigin);
+        Assert.Same(price.ErrorOrigin, total.ErrorOrigin);
+    }
 }

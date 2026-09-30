@@ -1,6 +1,7 @@
 module Ranvier.Benchmarks.Probe
 
 open System.Collections.Generic
+open System.Runtime.CompilerServices
 open BenchmarkDotNet.Attributes
 open Ranvier
 
@@ -217,3 +218,32 @@ type EdgeChurnProbe() =
 
         for s in sources do
             s.AddObserver observer
+
+/// <summary>
+/// The shallow size of each node type: the <c>Allocated</c> column of an uninitialised instance, fields only.
+/// </summary>
+[<MemoryDiagnoser; BenchmarkCategory "Probe">]
+type SizeOfProbe() =
+    [<Benchmark>]
+    member _.MemoInt() =
+        RuntimeHelpers.GetUninitializedObject typeof<Memo<int>>
+
+    [<Benchmark>]
+    member _.AsyncMemoInt() =
+        RuntimeHelpers.GetUninitializedObject typeof<AsyncMemo<int>>
+
+    [<Benchmark>]
+    member _.BoundaryInt() =
+        RuntimeHelpers.GetUninitializedObject typeof<Boundary<int>>
+
+    [<Benchmark>]
+    member _.Effect() =
+        RuntimeHelpers.GetUninitializedObject typeof<Effect>
+
+    [<Benchmark>]
+    member _.AsyncSourceInt() =
+        RuntimeHelpers.GetUninitializedObject typeof<AsyncSource<int>>
+
+    [<Benchmark>]
+    member _.Failure() =
+        RuntimeHelpers.GetUninitializedObject typeof<Failure>

@@ -207,3 +207,84 @@ type FlightPolicyBenchmarks() =
         tick <- tick + 1
         cancelTrigger.Value <- tick
         cancelPrevious.TryValue
+
+/// <summary>
+/// The error channel's cost on a recomputation: a memo whose body throws a fresh exception on every run, against one
+/// that succeeds. Each iteration writes a trigger the memo reads.
+/// </summary>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FailureBenchmarks() =
+    let graph = new Graph ()
+    let trigger = Signal (graph, 0)
+    let mutable tick = 0
+
+    let succeeding = Memo (graph, (fun _ -> trigger.Value + 1))
+
+    let failing =
+        Memo (
+            graph,
+            fun _ ->
+                if trigger.Value >= 0 then
+                    raise (System.InvalidOperationException "failing")
+
+                0
+        )
+
+    [<GlobalSetup>]
+    member _.Setup() =
+        succeeding.TryValue |> ignore
+        failing.TryValue |> ignore
+
+    /// <summary>Re-runs a memo whose body succeeds.</summary>
+    [<Benchmark(Baseline = true)>]
+    member _.SucceedingRecompute() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        succeeding.TryValue
+
+    /// <summary>Re-runs a memo whose body throws a fresh exception.</summary>
+    [<Benchmark>]
+    member _.FailingRecompute() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        failing.TryValue
+
+/// <summary>
+/// A failure's cost per reader: a memo whose body throws a fresh exception, read through <c>Depth</c> memos that each read
+/// the one before with <c>Value</c>. Depth 1 is one hop.
+/// </summary>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FailureChainBenchmarks() =
+    let graph = new Graph ()
+    let trigger = Signal (graph, 0)
+    let mutable tail: Memo<int> = Unchecked.defaultof<Memo<int>>
+    let mutable tick = 0
+
+    [<Params(1, 4, 16)>]
+    member val Depth = 1 with get, set
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        let mutable previous =
+            Memo (
+                graph,
+                fun _ ->
+                    if trigger.Value >= 0 then
+                        raise (System.InvalidOperationException "failing")
+
+                    0
+            )
+
+        for _ in 1 .. this.Depth do
+            let inner = previous
+            previous <- Memo (graph, (fun _ -> inner.Value + 1))
+
+        tail <- previous
+        tail.TryValue |> ignore
+
+    /// <summary>Re-runs the failing memo and every reader on the path, then reads the last reader's failure.</summary>
+    [<Benchmark>]
+    member _.FailingRecomputeOneHop() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        tail.TryValue
