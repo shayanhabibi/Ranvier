@@ -81,6 +81,31 @@ Repeated flight launches under each `FlightPolicy`, set by `Policy`. `Writes` ap
 | `RelaunchSettled` | Baseline. Writes a trigger the body reads and reads the memo. The body returns a completed task, so every flight settles on launch. |
 | `WritesDuringFlight` | Starts a flight whose task stays open, writes and reads `Writes` more times, then completes every open task, reading after each round. Under `FinishCurrent` the body runs twice whatever `Writes` is; under the other policies it runs `Writes + 1` times. |
 
-Not yet recorded.
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenario `flight` runs the same shape at one write during a flight, once per policy. See [Instruction counts](counters.md).
+
+## FailureBenchmarks
+
+The error channel's cost on a recomputation. Each iteration writes a trigger the memo reads, so every read re-runs the body.
+
+| Method | What it measures |
+| --- | --- |
+| `SucceedingRecompute` | Baseline. Re-running a memo whose body succeeds. |
+| `FailingRecompute` | Re-running a memo whose body throws a fresh exception. The failure records the memo as its origin. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+## FailureChainBenchmarks
+
+A failure's cost per reader: a memo whose body throws a fresh exception, read through `Depth` memos (1, 4 or 16) that each read the one before with `Value`. Each reader adopts the upstream failure and its origin.
+
+| Method | What it measures |
+| --- | --- |
+| `FailingRecomputeOneHop` | Re-running the failing memo and every reader on the path, then reading the last reader's failure. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenario `fail-recompute` measures one hop against a succeeding memo, including a read of the reader's `ErrorOrigin`.
 
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

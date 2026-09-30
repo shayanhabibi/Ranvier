@@ -15,6 +15,8 @@ Construction and teardown are not the hottest path, but they are the path a UI t
 | `CreateAndDisposeMemo` | Constructing and disposing a memo that reads nothing. |
 | `CreateAndDisposeEffect` | Constructing and disposing an effect that reads nothing. |
 
+`CreateAndDisposeSeededMemo` constructs and disposes a memo through the seeded constructor, `Memo (graph, seed, compute)`, which adds one adapter closure over the seed and the compute. It postdates the table below.
+
 There is deliberately no create-without-dispose case for memos. A memo attaches itself to its enclosing owner, so one that is never disposed is retained for the life of the graph by design; measuring that would measure garbage collection over a growing child list rather than construction.
 
 Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Lifetimes.ConstructionBenchmarks` at commit `d87920f`.
@@ -80,5 +82,20 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Lifetimes.ScopeBenchmarks` at c
 | DisposeChildrenIndividually | 8        |   391.09 ns |  4.925 ns |  4.607 ns |  2,556,979.7 | 0.1464 | 0.0010 |    2456 B |
 | **CreateAndDisposeScope**       | **64**       | **3,961.65 ns** | **38.597 ns** | **34.215 ns** |    **252,420.3** | **1.1406** | **0.0687** |   **19136 B** |
 | DisposeChildrenIndividually | 64       | 4,581.74 ns | 40.383 ns | 35.799 ns |    218,257.8 | 1.1597 | 0.0610 |   19480 B |
+
+## SizeOfProbe
+
+The shallow size of each node type: the `Allocated` column of an uninitialised instance, which counts the object's own fields and none of the objects they reference. It tracks how a change to a node's fields moves its footprint.
+
+| Method | Type |
+| --- | --- |
+| `MemoInt` | `Memo<int>` |
+| `AsyncMemoInt` | `AsyncMemo<int>` |
+| `BoundaryInt` | `Boundary<int>` |
+| `Effect` | `Effect` |
+| `AsyncSourceInt` | `AsyncSource<int>` |
+| `Failure` | `Failure`, the record a failed node holds. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
 
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.

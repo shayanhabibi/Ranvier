@@ -28,3 +28,32 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Effects.EffectBenchmarks` at co
 | BatchOfTenWrites | 64      | 1,298.42 ns | 13.692 ns | 12.138 ns |    770,167.6 |         - |
 
 `BatchOfTenWrites` performs ten writes per operation where `WriteAndFlush` performs one, so the rows are not comparable per operation. The batch row shows the cost of ten writes that share one flush.
+
+## FieldWriteBenchmarks
+
+One field of a `Fields`-field model (8, 64 or 256) changed per write, with one effect per field. The model is an `int[]`, so a copy costs what copying a record of `Fields` fields costs. See [Elmish](../guide/elmish.md) for the patterns compared.
+
+| Method | What it measures |
+| --- | --- |
+| `FieldSignalWrite` | Baseline. A write to one field's own signal, waking its one effect. Flat in `Fields`. |
+| `SelectorMemoWrite` | A copy of a root signal's model with one field changed, re-running all `Fields` selector memos and waking one effect. |
+| `MvuDispatch` | `SelectorMemoWrite` through `Mvu.Dispatch` and `Mvu.Select`. |
+| `ModelCopyOnly` | The model copy alone: the part of `SelectorMemoWrite` spent outside the graph. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenario `mvu-dispatch` compares a signal per field with `Mvu.Dispatch` at 64 fields.
+
+## EditableBenchmarks
+
+A writable derived value (`createEditable`) against a plain signal, each read by one effect.
+
+| Method | What it measures |
+| --- | --- |
+| `PlainSignalWrite` | Baseline. One signal write, waking one effect. |
+| `LocalEdit` | A local edit, waking the effect that reads the editable. |
+| `UpstreamChange` | An upstream write propagating through the source, the seed, the editable and the effect. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenarios `editable-edit` and `editable-upstream` measure the same two writes over 1000 editables.

@@ -31,6 +31,22 @@ Fable.Ripple 1.0.0-beta.5. Bars are main-thread figures.
 Scenarios with a negative figure (`derive-effect`, `derive-on`, `shape-dynamic`, `async-recover`)
 do less work per operation than Node's run-to-run noise and show no bar.
 
+## Wave B scenarios
+
+Seven scenarios measure Ranvier alone, on .NET only. A scenario with variants reports each variant as its own bar.
+
+| Scenario | One operation | Variants |
+| --- | --- | --- |
+| `chain-affinity` | Write the source of a chain of 4 memos and read the tail. | `Guarded`, `Unchecked`, `Serialised` |
+| `project-churn` | Replace the last key of a 1000-row projection with a new key. | No key reader; one key reader read by an effect |
+| `flight` | Write an async memo's trigger and read it, twice, then settle every flight the writes started. | `CancelPrevious`, `KeepLatest`, `Queue`, `FinishCurrent` |
+| `fail-recompute` | Re-run a memo and its one reader, then read the reader's `ErrorOrigin`. | Succeeding; failing with a fresh exception |
+| `editable-edit` | Edit every 10th of 1000 editables, each read by one effect. | — |
+| `editable-upstream` | Write the seed source of every 10th of 1000 editables. | — |
+| `mvu-dispatch` | Change one field of a 64-field model with one reader per field. | A signal per field; `Mvu.Dispatch` with a `Select` per field |
+
+> **Figures pending.** The charts above predate these scenarios. Their figures come with the next instruction-counter run (`counters.ps1`, on Windows, after the merge).
+
 ## Reading the charts
 
 - **Engines differ in semantics.** R3 pushes each write straight to its subscribers, without

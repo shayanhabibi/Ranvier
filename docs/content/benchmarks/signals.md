@@ -44,6 +44,22 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Signals.SignalBenchmarks` at co
 | WriteCutoff       | 64        |  1.0090 ns | 0.0231 ns | 0.0193 ns |   991,112,303.3 |         - |
 | WriteAndPropagate | 64        | 57.4765 ns | 0.3814 ns | 0.3381 ns |    17,398,409.8 |         - |
 
+## Thread affinity
+
+`SignalBenchmarks` runs each case under every `ThreadAffinity`, set by `Affinity`:
+
+| `Affinity` | Check on a write's entry |
+| --- | --- |
+| `Guarded` | The default. A thread-id comparison against the graph's owner thread. |
+| `Unchecked` | None. |
+| `Serialised` | Entry into the graph by the calling thread, which must run on the synchronisation context the graph was constructed on. A second thread entering at once raises. |
+
+The table above predates the parameter and shows `Guarded` only.
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenario `chain-affinity` writes the head of a four-memo chain and reads the tail under each affinity.
+
 ## EqualityBenchmarks
 
 A reference-typed signal written with a cutoff by identity (the default) or by structural comparison (`StructuralPolicy`). The gap between the rows is the cost of choosing structural equality.

@@ -31,6 +31,34 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Projections.ProjectionBenchmark
 | EditOneItem | 512   | 6,653.607 ns |  45.0946 ns | 35.2069 ns |     150,294.4 |      - |      - |      96 B |
 | Reorder     | 512   | 8,307.363 ns | 104.3172 ns | 92.4745 ns |     120,375.1 | 1.0986 | 0.0916 |   18496 B |
 
+## Key churn and key readers
+
+A key reader (`Projection.NewKeyReader`) reports the keys added, removed and moved since its previous read. These cases measure a write that removes one key and adds another, and what a reader adds to it.
+
+`ProjectionBenchmarks.ChurnOneKey` runs on the fixture above's `Items`: one effect observes each row except the last, and one observes `Keys`.
+
+| Method | What it measures |
+| --- | --- |
+| `ChurnOneKey` | A write removing the source's last key and adding a key the source has never held, with no key reader. |
+
+`DeltaReaderChurnBenchmarks` is `ChurnOneKey` with `Readers` key readers (1 or 4), each read by its own effect after every write, at `Items` 8, 64 or 512.
+
+| Method | What it measures |
+| --- | --- |
+| `ChurnOneKey` | The same write, then one read per reader. The difference from `ProjectionBenchmarks.ChurnOneKey` is the readers' cost. |
+
+`DeltaReaderBenchmarks` compares two ways of finding one change. The source toggles key `Items / 2` out and back in on every write, at `Items` 64, 512 or 10 000.
+
+| Method | What it measures |
+| --- | --- |
+| `SetDiffAfterOneRemoval` | Baseline. The toggle, then a set difference of the previous and current `Keys`: linear in `Items`. |
+| `ReadAfterOneRemoval` | The toggle, then the change read from the key reader. |
+| `ReadIdle` | A read of the key reader with nothing changed since the previous read. |
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
+The counter scenario `project-churn` measures the same write over 1000 rows, with no key reader and with one.
+
 ## LookupBenchmarks
 
 A selector created with `createSelector`, whose key 7 loses its last observer and is read again before the next transition. Each case should reuse the key's cell; a regression would rebuild it.

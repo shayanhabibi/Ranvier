@@ -25,6 +25,10 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Memos.MemoBenchmarks` at commit
 
 `CachedRead` is at the resolution limit (see [Reading the results](index.md#reading-the-results)), which is why the ratios in this table carry a large `RatioSD`.
 
+`MemoBenchmarks` also runs each case under every `ThreadAffinity`, set by `Affinity` (`Guarded`, `Unchecked`, `Serialised`), as [`SignalBenchmarks`](signals.md#thread-affinity) does. `Recompute` carries the check twice: on the write and on the stale read. The table above predates the parameter and shows `Guarded` only.
+
+> **Figures pending.** The figures for these cases come with the next instruction-counter run ([`counters.ps1`](counters.md), on Windows, after the merge).
+
 ## ChainBenchmarks
 
 A signal followed by a chain of `Depth` memos (1, 4, 16 or 64). This shows how propagation scales with depth.

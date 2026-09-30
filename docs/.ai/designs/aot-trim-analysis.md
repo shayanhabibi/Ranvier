@@ -270,6 +270,19 @@ Deviations from the note:
 - The traced build is not AOT-checked in CI (decision 2), and after the change above it no longer claims to be
   AOT-compatible.
 
+## Maintainer decision on the traced build
+
+- The maintainer accepts that the traced build (`-p:RanvierTrace=true`, `Ranvier.Traced`) is not AOT-compatible: it
+  drops `IsAotCompatible`, is not compiled `--reflectionfree`, and stays unchecked in CI. The untraced build keeps the
+  NativeAOT and trimming claim of `guide/installation.md`. This settles the `FOR-REVIEW` tag in
+  `Directory.Build.targets`.
+- Hand-writing `ToString` on the public trace records and unions is a follow-up, to be filed as a good first issue. Once
+  it lands, the traced build can be compiled `--reflectionfree` and claim `IsAotCompatible` again. The types, all in
+  `src/Ranvier/TraceModel.fs` and `TraceEvents.fs`:
+  `WhyRoot`, `WhyStep`, `Why`, `WhyNotReason`, `TraceRun`, `TraceHistory`, `TraceFlightState`, `TraceFlight`,
+  `TraceWaiting`, `TraceNodeStatus`, `TraceSnapshotNode`, `TraceSnapshotOwner`, `TraceSnapshot`, `TraceDump`,
+  `TraceEvent`, `TraceOrigin`. Each override matches the `%A` text the JIT build prints today (for example
+  `Disposed 3` for `WhyNotReason.Disposed 3`), and a test in `tests/Ranvier.Tests/Texts.fs` pins it.
 
 ## Reviewer corrections (applied above; kept for the record)
 

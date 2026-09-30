@@ -94,7 +94,7 @@ A write to `Count` re-runs `address`, which returns the same `Address` record an
 Under the default policy records compare by reference, so a nested copy-and-update keeps every record off the written
 path, and the selectors over those records stay asleep. See [Deep updates](collections.fsx#deep-updates).
 
-<!-- //FOR-REVIEW Fill in measured numbers after the full (non-short) FieldWriteBenchmarks run in the benchmark gate. -->
+<!-- //FOR-REVIEW Fill in measured numbers from the post-merge instruction-counter run (counters.ps1, Windows), scenario mvu-dispatch. -->
 
 | Per write, one field changed, one reader per field | Cost |
 | --- | --- |
