@@ -62,6 +62,7 @@ doubled = 10
 - [Getting started](getting-started.md): graphs, signals, memos, effects, batching and scopes.
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
 - [Testing async state](testing.md): deterministic tests that decide when each flight lands.
+- [Blazor Server](blazor-server.md): one graph per circuit, with `ThreadAffinity.Serialised`.
 - [Collections](collections.fsx): keyed and index projections, lookups and selectors.
 - [Tracing](tracing.md): why a node ran or did not run, where it was created, and the graph as it stands.
 - [Signal maps](signal-maps.md): how to read the live graph maps beneath the examples, and how to write one.

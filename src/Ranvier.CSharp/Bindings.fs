@@ -195,6 +195,10 @@ type BoundSignal<'T> internal (graph: Graph, owner: Owner, name: string, signal:
     /// Reads the signal, tracked, on the graph's thread, and the value last notified elsewhere. Setting it writes the
     /// signal through <c>Graph.Dispatch</c>: inline on the graph's thread, marshalled from any other.
     /// </summary>
+    /// <remarks>
+    /// Under <c>ThreadAffinity.Serialised</c>, a set from outside the graph applies at the next drain, so a read right
+    /// after it returns the previous value.
+    /// </remarks>
     member _.Value
         with get (): 'T =
             if graph.IsOnGraphThread && not owner.IsDisposed then

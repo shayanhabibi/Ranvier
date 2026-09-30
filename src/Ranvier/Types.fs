@@ -29,6 +29,16 @@ type ThreadAffinity =
     /// proven affinity some other way.
     /// </summary>
     | Unchecked
+    /// <summary>
+    /// Any thread may enter the graph, one at a time, on the synchronisation context current at construction. An entry
+    /// from another context raises, and an entry while another thread is inside the graph raises.
+    /// </summary>
+    /// <remarks>
+    /// For a Blazor Server circuit, whose work items run on its context but on varying pool threads. Work posted
+    /// by a thread outside the graph, settles included, is queued to the dispatcher. Under Fable it behaves as
+    /// <c>Unchecked</c>.
+    /// </remarks>
+    | Serialised
 
     /// <summary>The case name.</summary>
     override this.ToString() =
@@ -127,6 +137,7 @@ exception NotReadyException of source: INode with
 /// The work stays in the inbox, and the dispatcher chooses the thread the drain runs on. Under <c>Guarded</c>, a drain
 /// off the owning thread raises <c>InvalidOperationException</c> to the <c>Graph.Dispatch</c> caller and the work stays
 /// queued. Under <c>Unchecked</c>, a dispatcher that drains off-thread, such as <c>ImmediateDispatcher</c>, runs graph code there.
+/// Under <c>Serialised</c>, a drain that finds another thread inside the graph leaves the work for that thread's exit to post.
 /// </remarks>
 type IGraphDispatcher =
     abstract Post: drain: Action -> unit

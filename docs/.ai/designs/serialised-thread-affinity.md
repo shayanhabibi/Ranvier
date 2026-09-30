@@ -1,6 +1,7 @@
 # Serialised thread affinity for Blazor Server: design
 
-*Status: proposed, not implemented. Needs maintainer review (hot-path change).* Line references are to `c631f23`.
+*Status: implemented on worktree-wf_c46b5816-3af-7, pending benchmark gate.* Line references in §2-§8 are to
+`c631f23`; §11 records where the implementation departs from this note.
 Closes research §9 (Blazor) and the known limitation in `concepts/contracts.md:77` and `concepts/async-graph.md:143`.
 
 ## 1. Goal
@@ -19,7 +20,7 @@ used from a circuit must:
   (`Types.fs:274-280`).
 - The graph records its constructing thread once (`Core.fs:1147`) and resolves the owner's ambient cell once when
   guarded (`Core.fs:1154`). `AssertOnGraphThread` compares thread ids (`Core.fs:1526-1531`, via
-  `Platform.isOffThread`, `Platform.fs:59-65`). Its callers: root creation, cleanup registration, graph dispose, flush,
+  `Platform.isOffThread`, `Platform.fs:59-65`). Its callers: root creation, cleanup registration, graph dispose, `Pump`, flush,
   stale read, batch, node creation, untracked read, signal write, node dispose (`Core.fs:1360-1905, 2026, 2044, 2479`...).
 - `Post` runs work inline when `IsOnGraphThread` (`Core.fs:1427, 1443-1452`), otherwise enqueues it and posts a drain
   to the dispatcher. `Settle`/`Fail` go through `Post` (`Core.fs:2119-2130, 2137-2146`).
@@ -48,7 +49,9 @@ graph" under `Serialised`.
 ## 4. How it works
 
 **Holder, not owner.** The graph keeps `holder: int` (0 when free). Every entry point that calls
-`AssertOnGraphThread` today brackets its work under `Serialised`:
+`AssertOnGraphThread` today brackets its work under `Serialised`. Where the check and the end of the work sit in
+different members, the bracket spans them: `EnterPull` acquires, and the outermost `ExitPull` (`pullDepth` back
+to 0) releases. Node creation is the exception (§11).
 
 1. `SynchronizationContext.Current` is reference-equal to the context captured at construction, or the call raises
    `InvalidOperationException` ("ran outside the circuit's context"). Failing this check proves misuse; passing it
@@ -70,7 +73,7 @@ settle applied inline on a pool thread would run effects concurrently with a ren
 
 **Ambient and continuations.** `ownerAmbient` stays null (per-thread cell, as `Unchecked` today, `Core.fs:1310-1320`).
 Activation flows with the execution context (`Core.fs:1274`, third argument true). `EnterContinuation`/
-`LeaveContinuation` (`Core.fs:1833, 1859`) use the holder test, so a flight continuation that resumes without holding
+`LeaveContinuation` (`Core.fs:1832, 1857`) use the holder test, so a flight continuation that resumes without holding
 the graph stays untracked, as an off-thread one does today. The trace log uses its locked mode.
 
 **Fable.** One thread: the context check is skipped and the CAS is a field write, behind a `Platform` helper, as
@@ -79,26 +82,35 @@ the graph stays untracked, as an off-thread one does today. The trace log uses i
 ## 5. Blazor mapping
 
 One graph per circuit: a scoped service, constructed during the first component activation, on the renderer's
-context, so the default dispatcher captures it. One owner scope per component:
+context, so the default dispatcher captures it. One owner scope per component. The full sample, which compiles
+and was run under `HtmlRenderer`, is `docs/content/guide/blazor-server.md`; its shape:
 
 ```fsharp
-type CartSummary() =
+type CircuitGraph() =
+    let graph = new Graph (GraphOptions.Default.WithThreadAffinity Serialised)
+    member _.Graph = graph
+    interface IDisposable with
+        member _.Dispose() = graph.Dispatch (fun () -> graph.Dispose ())
+
+type CartSummary(circuit: CircuitGraph, cart: CartStore) =     // constructor injection, .NET 9+
     inherit ComponentBase()
-    let mutable scope: Owner = null
-    [<Inject>] member val Graph: Graph = null with get, set
-    [<Inject>] member val Cart: CartStore = null with get, set
-    member val View: Memo<CartView> = null with get, set
+    let graph = circuit.Graph
+    let mutable scope: Owner option = None
+    let mutable view: Memo<CartView> option = None
+
+    member private this.Rerender() = this.StateHasChanged ()
+    member private this.RequestRender() = this.InvokeAsync (Action this.Rerender) |> ignore
 
     override this.OnInitialized() =
-        this.Graph.CreateRoot (fun owner ->
-            scope <- owner
-            this.View <- createMemo (fun _ -> { Total = this.Cart.Total.Value; Count = this.Cart.Lines.Value.Length })
-            // One re-render per settled change; StateHasChanged coalesces queued renders.
-            createEffectOn (fun () -> this.View.TryValue) (fun _ -> this.InvokeAsync this.StateHasChanged |> ignore))
+        graph.Run (fun () ->                      // activates the graph around createRoot
+            createRoot (fun owner ->
+                let summary = createMemo (fun _ -> ...)
+                createEffectOn (fun () -> summary.TryValue) (fun _ -> this.RequestRender ())
+                scope <- Some owner
+                view <- Some summary))
 
-    // BuildRenderTree reads this.View.Peek / TryValue.
     interface IDisposable with
-        member _.Dispose() = if not (isNull scope) then scope.Dispose ()
+        member _.Dispose() = scope |> Option.iter _.Dispose()
 ```
 
 Event handlers write signals directly (`@onclick` runs on the circuit's context, acquires, flushes, releases). An
@@ -136,9 +148,10 @@ Measured on this VM (4 cores, .NET 10, BenchmarkDotNet 0.15.8, probe benchmarks 
 - `Interlocked`, `Volatile` and `SynchronizationContext` are AOT- and trim-safe; no reflection.
 - A new union case adds `Tags Serialised`, `IsSerialised` and `get_Serialised` to the baseline (additive). F# code that
   matches `ThreadAffinity` exhaustively gets FS0025; Ranvier is unreleased.
-- Behavioural change confined to the new case. C# `ReactiveProperty` setters (`Bindings.fs:193-201`) go through
-  `Dispatch`, so under `Serialised` a setter called outside the holder applies at the next drain: a read right after
-  the set sees the old value.
+- Behavioural change confined to the new case. The C# `BoundSignal<'T>.Value` setter (`Bindings.fs:195-201`) goes
+  through `Dispatch`, so under `Serialised` a setter called outside the holder applies at the next drain: a read right
+  after the set sees the old value. `ReactiveBindings.Dispose` (`Bindings.fs:496`) also goes through `Dispatch`, so a
+  disposal outside the holder is deferred to the next drain in the same way.
 
 ## 8. Alternatives
 
@@ -158,12 +171,14 @@ operation) and replace both known-limitation sections. Ship the component patter
 
 ## 10. Questions for the maintainer
 
-1. Case name `Serialised` (matching the docs' spelling)? yes / no
-2. `Dispatch` from the captured context outside the holder: queue or inline?
-3. Blazor component helper: docs or package?
+Answered in `docs/.ai/wave-b/decisions.md`:
+
+1. Case name `Serialised`: yes.
+2. `Dispatch` from the captured context outside the holder: queue.
+3. Blazor component helper: docs only (`docs/content/guide/blazor-server.md`).
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections (applied)
 
 Verdict: needs fixes
 
@@ -172,3 +187,53 @@ Verdict: needs fixes
 - §2 list of `AssertOnGraphThread` callers omits `Pump` (Core.fs:1492).
 - §4 'Every entry point that calls `AssertOnGraphThread` today brackets its work ... release in `finally`': the stale-read check sits in `EnterPull` (Core.fs:1624-1625), and its end is the separate `ExitPull` (1638). A per-method try/finally cannot bracket it: acquire has to happen in EnterPull and release in ExitPull, with pullDepth as the nesting count. The same applies wherever the assert and the end of the work are in different members.
 - Minor line references: '`EnterContinuation`/`LeaveContinuation` (`Core.fs:1833, 1859`)' → 1832, 1857.
+
+## 11. Implementation notes and deviations
+
+- **Entry bracket.** `Graph.Entered (operation, body)` is an inline helper over `Enter`/`Release`. Under `Guarded`
+  it is the old check plus one branch on the returned `false`; the body is inlined on both paths, so the `Guarded`
+  path carries no `try/finally`. Under Fable it is `AssertOnGraphThread` then the body, and `serialised` is the
+  constant `false`, so `Serialised` behaves as `Unchecked` there.
+- **Release posts, it does not drain** (FOR-REVIEW at `Graph.Release`). The note has the releasing thread drain
+  the inbox before clearing `holder`. The implementation clears `holder`, then posts a drain to the dispatcher when
+  the inbox is non-empty. This keeps user work out of the `finally` of a failing entry, at the cost of one context
+  hop for a settle that arrived while the graph was held. Under `ImmediateDispatcher` the post drains at once.
+- **Node creation checks, it does not hold** (FOR-REVIEW at `Graph.NextId`). The constructor's work ends outside
+  `NextId`, so a top-level node creation verifies the context and that no other thread is inside, then proceeds
+  unheld. A node created inside `createRoot`, a body or a batch is held by that entry. The public
+  `AssertOnGraphThread` has the same check-only meaning under `Serialised`.
+- **Root scope disposal holds.** `Owner.Dispose` on a `RootScope` acquires through `ILateRunner.HoldTeardown`
+  before it marks the scope disposed, so a rejected `Dispose` leaves the root live and a retry tears it down.
+  `ILateRunner.RunDetached` (late children of a disposed root) acquires as well. Both acquire under `Serialised`
+  only; `Guarded` still checks per disposed node, as before.
+- **Release fences.** `Graph.Release` frees the graph with `Interlocked.Exchange`, a full fence, before it reads
+  the inbox. A volatile store followed by the inbox's volatile loads could reorder and lose the wakeup against a
+  drain whose CAS found the graph held.
+- **Stale reads from a second thread.** `Graph.Deferring` is false under `Serialised` on every thread other than
+  the holder (FOR-REVIEW at `Graph.Deferring`). Without it, a stale read during the holder's flush saw `current`
+  set, skipped `EnterPull` and refreshed the memo unheld. The cost is one branch on stale reads inside a body for
+  every affinity.
+- **Null context.** A graph constructed with no `SynchronizationContext` captures null; the context check then
+  passes on every thread without a context, and the concurrent-entry check still applies. The .NET tests use this.
+- **Trace queries.** `Trace.*`'s thread gate calls `AssertOnGraphThread` under `Serialised` (a free graph on the
+  context may be queried), and keeps `IsOnGraphThread` for the other affinities.
+- **Error message.** The `Guarded` message is unchanged. `Serialised` adds two:
+  `<op> ran on thread N outside the synchronisation context this Serialised graph was constructed on. ...` and
+  `<op> ran on thread N while thread M was inside this Serialised graph. Two threads entered it at once.`
+  Both are in `guide/troubleshooting.md`.
+- **Blazor sample.** Constructor injection (.NET 9+) and `option` fields replace the nullable `[<Inject>]`
+  properties; `graph.Run` activates the graph around `createRoot`. The container may dispose scoped services off
+  the renderer's context, so the sample wraps the graph in `CircuitGraph`, whose `Dispose` goes through
+  `Dispatch` (FOR-REVIEW: whether ASP.NET Core disposes the circuit scope on the renderer's context was not
+  verified).
+- **Benchmarks.** `SignalBenchmarks` and `MemoBenchmarks` take an `Affinity` parameter over
+  `[Guarded; Unchecked; Serialised]` for the whole class, so `Read`, `Peek` and the cached reads are also
+  multiplied, and every row's id gains `Affinity=...`. The A/B gate compares the `Guarded` rows against master's
+  unparameterised rows. A short-job sanity run of `Recompute` on this VM: Guarded 47 ns, Unchecked 44 ns,
+  Serialised 76 ns (short job, error bars of 10-60 ns). `Serialised` pays two acquire/release pairs per
+  `Recompute` (the write and the stale read), more than §6's single-bracket estimate.
+- **Tests.** `tests/Ranvier.Tests/Threading.fs` (`Serialised: ...`): concurrent entry from two threads raises for
+  each entry point (stale reads included), a root `Dispose` rejected while another thread holds the graph leaves
+  the root live and a retry disposes it, an entry off the construction context raises, a settle from outside the graph is queued even
+  on the context, work posted from inside runs inline, and a drain that finds the graph held is re-posted by the
+  holder. One smoke test runs under Fable. `tests/Ranvier.CSharp.Tests` covers the deferred `BoundSignal` set.

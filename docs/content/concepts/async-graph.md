@@ -111,7 +111,8 @@ completions back to it.
 - **Ownership.** A graph belongs to the thread that constructed it. Under `ThreadAffinity = Guarded` (the
   default), a signal write, node creation, batch, flush, disposal or stale read from another thread raises
   `InvalidOperationException`, and the error message names both threads. `Unchecked` removes the check. Use `Unchecked` for Fable, or when every write is known
-  to arrive on one thread.
+  to arrive on one thread. `Serialised` accepts any thread on the construction context, one at a time; see
+  [Hopping synchronisation contexts](#hopping-synchronisation-contexts).
 - **Inbox.** Completions from other threads, such as `AsyncSource.Settle` and finished `AsyncMemo` flights,
   go into the graph's inbox. `Graph.Pump ()` applies them in arrival order on the owning thread and then
   flushes effects.
@@ -143,13 +144,16 @@ of `graph.Activate ()`. A guarded graph is ambient on the activating thread only
 must activate a graph before it creates nodes. An activation inside an async body is invisible to other work
 on the activating thread while the body is suspended.
 
-### Known limitation: hopping synchronisation contexts
+### Hopping synchronisation contexts
 
-*Exploratory.* A Blazor Server circuit serialises work but runs it on different pool threads. Under
+*Implemented.* A Blazor Server circuit serialises work but runs it on different pool threads. Under
 `Guarded`, a graph owned by one of those threads rejects writes that arrive on the next one. Under
-`Unchecked`, the writes land but the thread check is gone. A dedicated affinity mode for a "serialised, but
-not on one thread" host has been identified but not built. Blazor WebAssembly is single-threaded and already
-works.
+`Unchecked`, the writes land but the thread check is gone. `ThreadAffinity.Serialised` accepts an entry from
+any thread on the context captured at construction, and raises when a second thread enters while one is
+inside the graph. Settles and dispatched work from outside the graph are queued to the context, so they run
+serialised with rendering. Activation flows with the execution context, as under `Unchecked`.
+[Contracts](contracts.md#serialised-hosts) lists the rules, and [Blazor Server](../guide/blazor-server.md)
+shows one graph per circuit. Blazor WebAssembly is single-threaded and works under the default.
 
 ## Ownership and disposal
 

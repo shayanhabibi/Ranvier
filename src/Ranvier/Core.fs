@@ -855,18 +855,40 @@ and Owner internal (sink: Owner) =
     /// A root scope's teardown runs untracked, with effects deferred until it
     /// returns, and owns every node its cleanups create.
     /// </remarks>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// A root scope of a <c>Serialised</c> graph is disposed outside the construction context, or while another
+    /// thread is inside the graph. The scope stays live.
+    /// </exception>
     member this.Dispose() =
         if not disposed then
-            disposed <- true
-            Tracer.OwnerDispose this
-
             match box this with
-            | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached(this, this.DisposeScope)
-            | _ -> this.DisposeScope ()
+            | :? RootScope as r ->
+                let runner = r.Runner
+                let held = runner.HoldTeardown ()
 
-            if not (isNull parentLink) then
-                parentLink.Detach ()
-                parentLink <- null
+                try
+                    this.TearDown runner
+                finally
+                    if held then
+                        runner.ReleaseTeardown ()
+            | _ -> this.TearDown Unchecked.defaultof<ILateRunner>
+
+    /// <summary>
+    /// Marks the scope disposed, disposes its children and unlinks it from its parent. A root scope passes its
+    /// <c>runner</c>, which runs the teardown detached; any other scope passes null.
+    /// </summary>
+    member private this.TearDown(runner: ILateRunner) =
+        disposed <- true
+        Tracer.OwnerDispose this
+
+        if isNull (box runner) then
+            this.DisposeScope ()
+        else
+            runner.RunDetached (this, this.DisposeScope)
+
+        if not (isNull parentLink) then
+            parentLink.Detach ()
+            parentLink <- null
 
     interface IDisposable with
         member this.Dispose() =
@@ -898,6 +920,20 @@ and internal ILateRunner =
     /// recorded on <c>owner</c>.
     /// </summary>
     abstract RunDetached: owner: Owner * f: (unit -> unit) -> unit
+
+    /// <summary>
+    /// Holds a <c>Serialised</c> graph for a root scope's teardown.
+    /// </summary>
+    /// <returns>True when the caller must pair it with <c>ReleaseTeardown</c>.</returns>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// The caller runs outside the construction context, or another thread holds the graph.
+    /// </exception>
+    abstract HoldTeardown: unit -> bool
+
+    /// <summary>
+    /// Frees a graph held by <c>HoldTeardown</c>.
+    /// </summary>
+    abstract ReleaseTeardown: unit -> unit
 
 /// <summary>
 /// The scope <c>Graph.CreateRoot</c> hands out.
@@ -1208,6 +1244,30 @@ type Graph(options: GraphOptions) =
     /// </summary>
     let ownerAmbient = if guarded then AmbientSlot.Cell else null
 
+    let serialised =
+#if FABLE_COMPILER
+        false
+#else
+        options.ThreadAffinity = Serialised
+#endif
+
+#if !FABLE_COMPILER
+    /// <summary>
+    /// The synchronisation context every entry of a <c>Serialised</c> graph must run on.
+    /// </summary>
+    let context = SynchronizationContext.Current
+
+    /// <summary>
+    /// The id of the thread inside a <c>Serialised</c> graph, or 0 when the graph is free.
+    /// </summary>
+    let mutable holder = 0
+#endif
+
+    /// <summary>
+    /// True when the outermost stale read acquired the graph and its <c>ExitPull</c> releases it.
+    /// </summary>
+    let mutable pullHeld = false
+
     let mutable batchDepth = 0
     let mutable flushing = false
 
@@ -1337,7 +1397,8 @@ type Graph(options: GraphOptions) =
     /// A stack rather than an assignment, so a library that activates its own
     /// graph for the length of a call cannot strand its caller's. On .NET the
     /// activation flows with the execution context, so it may span an <c>await</c>. A guarded graph is ambient on the
-    /// activating thread only; an <c>Unchecked</c> graph is ambient on every thread its execution context reaches.
+    /// activating thread only; an <c>Unchecked</c> or <c>Serialised</c> graph is ambient on every thread its execution
+    /// context reaches.
     /// </remarks>
     member this.Activate() =
         let cell = AmbientSlot.Cell
@@ -1410,6 +1471,78 @@ type Graph(options: GraphOptions) =
                 cell.Hosting <- previous
             | _ -> ()
 
+    /// <summary>
+    /// Makes the calling thread the graph's holder under <c>Serialised</c>.
+    /// </summary>
+    /// <returns>True when this call entered a free graph and must be paired with <c>Release</c>.</returns>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// The caller runs outside the construction context, or another thread holds the graph.
+    /// </exception>
+    member private this.Acquire(operation: string) : bool =
+#if FABLE_COMPILER
+        false
+#else
+        let me = Platform.currentThreadId ()
+
+        if Volatile.Read &holder = me then
+            false
+        else
+            this.CheckContext operation
+            let prior = Interlocked.CompareExchange (&holder, me, 0)
+
+            if prior <> 0 then
+                this.FailConcurrent (operation, prior)
+
+            true
+#endif
+
+    /// <summary>
+    /// Frees a graph entered by <c>Acquire</c>, and posts a drain when the inbox holds work.
+    /// </summary>
+    member internal this.Release() =
+#if !FABLE_COMPILER
+        // A full fence: the inbox check below observes every enqueue whose drain found the graph held by this thread.
+        Interlocked.Exchange (&holder, 0) |> ignore
+
+        //FOR-REVIEW The note has the releasing thread drain the inbox itself before it clears `holder`. Posting a drain instead keeps user work out of the `finally` of a failing entry, at the cost of one context hop for a settle that arrived while the graph was held.
+        if not inbox.IsEmpty then
+            dispatcher.Post (Action this.PumpFromDispatcher)
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Checks the caller as <c>AssertOnGraphThread</c> does, and under <c>Serialised</c> enters the graph.
+    /// </summary>
+    /// <returns>True when the caller must pair it with <c>Release</c>.</returns>
+    [<System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>]
+    member internal this.Enter(operation: string) : bool =
+        if guarded then
+            if not (obj.ReferenceEquals (AmbientSlot.Existing, ownerAmbient)) then
+                this.FailOffThread operation
+
+            false
+        else
+            serialised && this.Acquire operation
+
+    /// <summary>
+    /// Runs <c>body</c> as the entry point <c>operation</c>: checked under <c>Guarded</c>, held under
+    /// <c>Serialised</c>.
+    /// </summary>
+    member inline internal this.Entered<'T>(operation: string, [<InlineIfLambda>] body: unit -> 'T) : 'T =
+#if FABLE_COMPILER
+        this.AssertOnGraphThread operation
+        body ()
+#else
+        if this.Enter operation then
+            try
+                body ()
+            finally
+                this.Release ()
+        else
+            body ()
+#endif
+
     member internal _.CurrentOwner =
         if isNull (box currentOwner) then
             let host =
@@ -1430,16 +1563,19 @@ type Graph(options: GraphOptions) =
         this.RunRoot body.Invoke
 
     member internal this.RunRoot(body: Owner -> 'T) =
-        this.AssertOnGraphThread "Creating a root"
-        let owner = new RootScope (this) :> Owner
-        owner.SetParent (this.CurrentOwner.AttachLinked owner)
-        let previous = currentOwner
-        currentOwner <- owner
+        this.Entered (
+            "Creating a root",
+            fun () ->
+                let owner = new RootScope (this) :> Owner
+                owner.SetParent (this.CurrentOwner.AttachLinked owner)
+                let previous = currentOwner
+                currentOwner <- owner
 
-        try
-            body owner
-        finally
-            currentOwner <- previous
+                try
+                    body owner
+                finally
+                    currentOwner <- previous
+        )
 
     /// <summary>
     /// Registers a cleanup with the innermost enclosing scope. Inside the body
@@ -1452,14 +1588,17 @@ type Graph(options: GraphOptions) =
         this.AddCleanup f.Invoke
 
     member internal this.AddCleanup(f: unit -> unit) =
-        this.AssertOnGraphThread "Registering a cleanup"
-        let owner = this.CurrentOwner
+        this.Entered (
+            "Registering a cleanup",
+            fun () ->
+                let owner = this.CurrentOwner
 
-        if owner.IsDisposed then
-            this.Detached (owner, (fun () -> owner.AddCleanup f))
-            this.RequestFlush ()
-        else
-            owner.AddCleanup f
+                if owner.IsDisposed then
+                    this.Detached (owner, (fun () -> owner.AddCleanup f))
+                    this.RequestFlush ()
+                else
+                    owner.AddCleanup f
+        )
 
     member internal _.RunOwned(owner: Owner, body: unit -> 'T) =
         let previous = currentOwner
@@ -1474,14 +1613,17 @@ type Graph(options: GraphOptions) =
     /// Tears down every scope the graph owns.
     /// </summary>
     member this.Dispose() =
-        this.AssertOnGraphThread "Disposing a graph"
-        root.Dispose ()
+        this.Entered (
+            "Disposing a graph",
+            fun () ->
+                root.Dispose ()
 
-        if
-            not (isNull ownerAmbient)
-            && obj.ReferenceEquals (ownerAmbient.Hosting, this)
-        then
-            ownerAmbient.Hosting <- null
+                if
+                    not (isNull ownerAmbient)
+                    && obj.ReferenceEquals (ownerAmbient.Hosting, this)
+                then
+                    ownerAmbient.Hosting <- null
+        )
 
     interface IDisposable with
         member this.Dispose() =
@@ -1498,7 +1640,19 @@ type Graph(options: GraphOptions) =
             and set _ = ()
 #endif
 
-    member _.IsOnGraphThread = Platform.currentThreadId () = ownerThread
+    /// <summary>
+    /// True when the calling thread is the graph's owner thread; under <c>Serialised</c>, when the calling thread is
+    /// inside the graph.
+    /// </summary>
+    member _.IsOnGraphThread =
+#if FABLE_COMPILER
+        Platform.currentThreadId () = ownerThread
+#else
+        if serialised then
+            Volatile.Read &holder = Platform.currentThreadId ()
+        else
+            Platform.currentThreadId () = ownerThread
+#endif
 
     /// <summary>
     /// Marshals <c>work</c> into the graph's consistency domain, running it inline
@@ -1564,7 +1718,9 @@ type Graph(options: GraphOptions) =
     /// progress from a spin.
     /// </remarks>
     member this.Pump() =
-        this.AssertOnGraphThread "Pump"
+        this.Entered ("Pump", (fun () -> this.Drain ()))
+
+    member private this.Drain() =
         let mutable ran = 0
         let mutable draining = true
 
@@ -1588,10 +1744,30 @@ type Graph(options: GraphOptions) =
         ran
 
     member private this.PumpFromDispatcher() =
+#if FABLE_COMPILER
         this.Pump () |> ignore
+#else
+        if not serialised then
+            this.Pump () |> ignore
+        else
+            let me = Platform.currentThreadId ()
+
+            if Volatile.Read &holder = me then
+                this.Drain () |> ignore
+            else
+                this.CheckContext "Pump"
+
+                // Held by another thread: its Release posts a new drain.
+                if Interlocked.CompareExchange (&holder, me, 0) = 0 then
+                    try
+                        this.Drain () |> ignore
+                    finally
+                        this.Release ()
+#endif
 
     /// <summary>
-    /// Raises if the caller is not on the thread that owns this graph.
+    /// Raises if the caller is not on the thread that owns this graph. Under <c>Serialised</c>, raises if another
+    /// thread is inside the graph, or if the caller is outside it and runs off the construction context.
     /// </summary>
     /// <remarks>
     /// The failure this prevents is the worst one available here: two threads
@@ -1600,11 +1776,11 @@ type Graph(options: GraphOptions) =
     /// </remarks>
     member this.AssertOnGraphThread(operation: string) =
         // The owner thread is the one thread whose cell is `ownerAmbient`.
-        if
-            guarded
-            && not (obj.ReferenceEquals (AmbientSlot.Existing, ownerAmbient))
-        then
-            this.FailOffThread operation
+        if guarded then
+            if not (obj.ReferenceEquals (AmbientSlot.Existing, ownerAmbient)) then
+                this.FailOffThread operation
+        elif serialised then
+            this.CheckHeld operation
 
     member private _.FailOffThread(operation: string) : unit =
         raise (
@@ -1617,6 +1793,39 @@ type Graph(options: GraphOptions) =
                 + ". Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
             )
         )
+
+    /// <summary>
+    /// Raises unless the calling thread is inside the graph, or the graph is free and the caller runs on its
+    /// context. Enters nothing.
+    /// </summary>
+    member private this.CheckHeld(operation: string) =
+#if !FABLE_COMPILER
+        let held = Volatile.Read &holder
+
+        if held <> Platform.currentThreadId () then
+            if held <> 0 then
+                this.FailConcurrent (operation, held)
+
+            this.CheckContext operation
+#else
+        ()
+#endif
+
+#if !FABLE_COMPILER
+    member private _.CheckContext(operation: string) =
+        if not (obj.ReferenceEquals (SynchronizationContext.Current, context)) then
+            raise (
+                InvalidOperationException
+                    $"%s{operation} ran on thread %d{Platform.currentThreadId ()} outside the synchronisation context this Serialised graph was constructed on. Marshal through Graph.Dispatch."
+            )
+
+    member private _.FailConcurrent(operation: string, other: int) : unit =
+        raise (
+            InvalidOperationException
+                $"%s{operation} ran on thread %d{Platform.currentThreadId ()} while thread %d{other} was inside this Serialised graph. Two threads entered it at once."
+        )
+#endif
+
 
     member internal this.Schedule(item: IScheduled) =
         Tracer.Schedule (this, item, queueCount - queueHead)
@@ -1637,8 +1846,9 @@ type Graph(options: GraphOptions) =
     /// The graph is ambient while the loop runs.
     /// </remarks>
     member this.Flush() =
-        this.AssertOnGraphThread "A flush"
+        this.Entered ("A flush", (fun () -> this.RunFlush ()))
 
+    member private this.RunFlush() =
         if not flushing then
 #if RANVIER_COUNTERS
             Counters.Flushed ()
@@ -1705,16 +1915,27 @@ type Graph(options: GraphOptions) =
     /// <summary>
     /// True inside a stale read, or while a computation's body runs outside
     /// <c>untrack</c>. False inside <c>untrack</c> within a body, where the flush is
-    /// deferred as well.
+    /// deferred as well. Under <c>Serialised</c>, false on every thread other than the holder, so a stale read from
+    /// such a thread enters the graph through <c>EnterPull</c>.
     /// </summary>
-    member internal _.Deferring = pullDepth > 0 || not (isNull (box current))
+    //FOR-REVIEW The `serialised` test adds one branch to every stale read inside a body on Guarded and Unchecked graphs. Without it, a stale read from a second thread during the holder's flush saw `current` set and refreshed the memo unheld.
+    member internal _.Deferring =
+        (pullDepth > 0 || not (isNull (box current)))
+#if !FABLE_COMPILER
+        && not (
+            serialised
+            && Volatile.Read &holder
+               <> Platform.currentThreadId ()
+        )
+#endif
 
     /// <summary>
     /// Marks the start of a stale read. The outermost one makes this graph
     /// ambient until it ends.
     /// </summary>
     member internal this.EnterPull() =
-        this.AssertOnGraphThread "A stale read"
+        if this.Enter "A stale read" then
+            pullHeld <- true
 
         if pullDepth = 0 then
             let previous = this.EnterAmbient ()
@@ -1737,7 +1958,15 @@ type Graph(options: GraphOptions) =
             if not (isNull lastRaised) then
                 lastRaised <- null
 
-            if flushOwed then
+            if pullHeld then
+                pullHeld <- false
+
+                try
+                    if flushOwed then
+                        this.SettleFlush ()
+                finally
+                    this.Release ()
+            elif flushOwed then
                 this.SettleFlush ()
 
     /// <summary>
@@ -1787,19 +2016,22 @@ type Graph(options: GraphOptions) =
         this.RunBatch body.Invoke
 
     member internal this.RunBatch(body: unit -> 'T) =
-        this.AssertOnGraphThread "A batch"
-        batchDepth <- batchDepth + 1
-        Tracer.BatchEnter (this, batchDepth)
+        this.Entered (
+            "A batch",
+            fun () ->
+                batchDepth <- batchDepth + 1
+                Tracer.BatchEnter (this, batchDepth)
 
-        let result =
-            try
-                body ()
-            finally
-                batchDepth <- batchDepth - 1
-                Tracer.BatchExit (this, batchDepth)
+                let result =
+                    try
+                        body ()
+                    finally
+                        batchDepth <- batchDepth - 1
+                        Tracer.BatchExit (this, batchDepth)
 
-        this.RequestFlush ()
-        result
+                this.RequestFlush ()
+                result
+        )
 
     /// <summary>
     /// Discharges <c>owner</c> with effects deferred. A computation discharges its
@@ -1833,17 +2065,30 @@ type Graph(options: GraphOptions) =
 
     interface ILateRunner with
         member this.RunDetached(owner, f) =
-            this.Detached (
-                owner,
-                fun () ->
-                    try
-                        f ()
-                    with ex ->
-                        owner.RecordError ex
-            )
+            // Holds a Serialised graph for a root scope's teardown; Guarded checks each disposed node instead.
+            let held = serialised && this.Acquire "Disposing a root"
 
-            if queueHead < queueCount then
-                this.RequestFlush ()
+            try
+                this.Detached (
+                    owner,
+                    fun () ->
+                        try
+                            f ()
+                        with ex ->
+                            owner.RecordError ex
+                )
+
+                if queueHead < queueCount then
+                    this.RequestFlush ()
+            finally
+                if held then
+                    this.Release ()
+
+        member this.HoldTeardown() =
+            serialised && this.Acquire "Disposing a root"
+
+        member this.ReleaseTeardown() =
+            this.Release ()
 
     /// <summary>
     /// Runs <c>teardown</c> untracked, with effects deferred and <c>owner</c> as the
@@ -1868,6 +2113,7 @@ type Graph(options: GraphOptions) =
             this.LeaveAmbient previousAmbient
 
     member internal this.NextId() =
+        //FOR-REVIEW Node creation checks a Serialised graph but does not hold it: the constructor's work ends outside NextId. A node created inside CreateRoot, a body or a batch is held by that entry.
         this.AssertOnGraphThread "Creating a node"
         nextId <- nextId + 1
         nextId
@@ -2077,25 +2323,28 @@ type Graph(options: GraphOptions) =
     /// Evaluates <c>body</c> with tracking suppressed.
     /// </summary>
     member internal this.RunUntracked(body: unit -> 'T) =
-        this.AssertOnGraphThread "An untracked read"
-        let previous = current
-        let previousHost = untrackedHost
-        let previousInBody = untrackedInBody
+        this.Entered (
+            "An untracked read",
+            fun () ->
+                let previous = current
+                let previousHost = untrackedHost
+                let previousInBody = untrackedInBody
 
-        if not (isNull (box previous)) then
-            untrackedInBody <- true
+                if not (isNull (box previous)) then
+                    untrackedInBody <- true
 
-            if isNull (box currentOwner) then
-                untrackedHost <- previous :?> IScopeHost
+                    if isNull (box currentOwner) then
+                        untrackedHost <- previous :?> IScopeHost
 
-        current <- Unchecked.defaultof<IComputation>
+                current <- Unchecked.defaultof<IComputation>
 
-        try
-            body ()
-        finally
-            current <- previous
-            untrackedHost <- previousHost
-            untrackedInBody <- previousInBody
+                try
+                    body ()
+                finally
+                    current <- previous
+                    untrackedHost <- previousHost
+                    untrackedInBody <- previousInBody
+        )
 
     /// <summary>
     /// Evaluates <c>body</c> with tracking suppressed and <c>host</c>'s scope rule
@@ -2198,34 +2447,38 @@ type Signal<'T> internal (graph: Graph, initial: 'T, equal: IEqualityComparer<'T
             // The guard sits before the cutoff, not after: an off-thread write
             // that happens to be equal is still a bug, and one that would
             // otherwise only show up on the write that differs.
-            graph.AssertOnGraphThread "A signal write"
+            graph.Entered (
+                "A signal write",
+                fun () ->
+                    if not (equal.Equals (value, v)) then
+                        value <- v
+                        Tracer.Write (observers, true, box v)
 
-            if not (equal.Equals (value, v)) then
-                value <- v
-                Tracer.Write (observers, true, box v)
+                        observers.NotifyDirty ()
+                        Tracer.Notified observers
 
-                observers.NotifyDirty ()
-                Tracer.Notified observers
-
-                graph.RequestFlush ()
-            else
-                Tracer.Write (observers, false, box v)
+                        graph.RequestFlush ()
+                    else
+                        Tracer.Write (observers, false, box v)
+            )
 
     /// <summary>
     /// Writes <c>v</c> as the setter does, leaving <c>running</c> unmarked. For a computation that reads the new value
     /// in its current run.
     /// </summary>
     member internal _.WriteExcept(v: 'T, running: IComputation) =
-        graph.AssertOnGraphThread "A signal write"
-
-        if not (equal.Equals (value, v)) then
-            value <- v
-            Tracer.Write (observers, true, box v)
-            observers.NotifyDirtyExcept running
-            Tracer.Notified observers
-            graph.RequestFlush ()
-        else
-            Tracer.Write (observers, false, box v)
+        graph.Entered (
+            "A signal write",
+            fun () ->
+                if not (equal.Equals (value, v)) then
+                    value <- v
+                    Tracer.Write (observers, true, box v)
+                    observers.NotifyDirtyExcept running
+                    Tracer.Notified observers
+                    graph.RequestFlush ()
+                else
+                    Tracer.Write (observers, false, box v)
+        )
 
     /// <summary>Marks every reader for a check, leaving the value unchanged.</summary>
     member internal _.NotifyCheck() =
@@ -2683,20 +2936,22 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// goes on being marked dirty for the lifetime of the graph.
     /// </remarks>
     member this.Dispose() =
-        graph.AssertOnGraphThread "Disposing a node"
+        graph.Entered (
+            "Disposing a node",
+            fun () ->
+                if not disposed then
+                    disposed <- true
+                    Tracer.NodeDispose (graph, id)
 
-        if not disposed then
-            disposed <- true
-            Tracer.NodeDispose (graph, id)
+                    if not (isNull link) then
+                        link.Detach ()
+                        link <- null
 
-            if not (isNull link) then
-                link.Detach ()
-                link <- null
+                    this.DetachSources ()
 
-            this.DetachSources ()
-
-            if not (isNull (box scope)) then
-                graph.Retire scope
+                    if not (isNull (box scope)) then
+                        graph.Retire scope
+        )
 
     /// <summary>
     /// Marks every reader dirty. A reader of a row whose key was removed
@@ -3104,20 +3359,22 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
     /// owner at construction, so disposing that owner disposes this.
     /// </remarks>
     member this.Dispose() =
-        graph.AssertOnGraphThread "Disposing a node"
+        graph.Entered (
+            "Disposing a node",
+            fun () ->
+                if not disposed then
+                    disposed <- true
+                    Tracer.NodeDispose (graph, id)
 
-        if not disposed then
-            disposed <- true
-            Tracer.NodeDispose (graph, id)
+                    if not (isNull link) then
+                        link.Detach ()
+                        link <- null
 
-            if not (isNull link) then
-                link.Detach ()
-                link <- null
+                    this.DetachSources ()
 
-            this.DetachSources ()
-
-            if not (isNull (box scope)) then
-                graph.Retire scope
+                    if not (isNull (box scope)) then
+                        graph.Retire scope
+        )
 
     interface IDisposable with
         member this.Dispose() =
@@ -3300,20 +3557,22 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
 
     /// <summary>Detaches from the sources and disposes the action's scope. Idempotent.</summary>
     member this.Dispose() =
-        graph.AssertOnGraphThread "Disposing a node"
+        graph.Entered (
+            "Disposing a node",
+            fun () ->
+                if not disposed then
+                    disposed <- true
+                    Tracer.NodeDispose (graph, id)
 
-        if not disposed then
-            disposed <- true
-            Tracer.NodeDispose (graph, id)
+                    if not (isNull link) then
+                        link.Detach ()
+                        link <- null
 
-            if not (isNull link) then
-                link.Detach ()
-                link <- null
+                    sources.Clear (this :> IComputation)
 
-            sources.Clear (this :> IComputation)
-
-            if not (isNull (box actionOwner)) then
-                graph.Retire actionOwner
+                    if not (isNull (box actionOwner)) then
+                        graph.Retire actionOwner
+        )
 
     /// <summary>The error of the last run, from <c>compute</c> or <c>act</c>; null when it did not fail.</summary>
     member _.Error = error
@@ -3975,44 +4234,46 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// <c>ObjectDisposedException</c> and wakes its readers once.
     /// </remarks>
     member this.Dispose() =
-        graph.AssertOnGraphThread "Disposing a node"
+        graph.Entered (
+            "Disposing a node",
+            fun () ->
+                if not disposed then
+                    disposed <- true
+                    Tracer.NodeDispose (graph, id)
 
-        if not disposed then
-            disposed <- true
-            Tracer.NodeDispose (graph, id)
+                    if not (isNull link) then
+                        link.Detach ()
+                        link <- null
 
-            if not (isNull link) then
-                link.Detach ()
-                link <- null
+                    this.DetachSources ()
 
-            this.DetachSources ()
+                    if not (isNull (box scope)) then
+                        graph.Retire scope
 
-            if not (isNull (box scope)) then
-                graph.Retire scope
+                    if not (isNull cts) then
+                        // Detached before the cancel: a flight settled inline by it runs `retireSource`.
+                        let source = cts
+                        cts <- null
+                        source.Cancel ()
+                        source.Dispose ()
 
-            if not (isNull cts) then
-                // Detached before the cancel: a flight settled inline by it runs `retireSource`.
-                let source = cts
-                cts <- null
-                source.Cancel ()
-                source.Dispose ()
+                    if status.HasFlag Status.Pending then
+                        if not (isNull pendingSources) then
+                            pendingSources.Clear ()
 
-            if status.HasFlag Status.Pending then
-                if not (isNull pendingSources) then
-                    pendingSources.Clear ()
+                        failure <- Failure (ObjectDisposedException (this.GetType().Name), (this :> INode))
+                        status <- Status.Error
+                        wake ()
 
-                failure <- Failure (ObjectDisposedException (this.GetType().Name), (this :> INode))
-                status <- Status.Error
-                wake ()
+                    lock observers (fun () ->
+                        if not (isNull waiters) then
+                            let settled = lastSettled ()
 
-            lock observers (fun () ->
-                if not (isNull waiters) then
-                    let settled = lastSettled ()
+                            for waiter in waiters.Values do
+                                Platform.resolve waiter settled
 
-                    for waiter in waiters.Values do
-                        Platform.resolve waiter settled
-
-                    waiters <- null)
+                            waiters <- null)
+        )
 
     interface IDisposable with
         member this.Dispose() =
@@ -4398,20 +4659,22 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// last value it produced — fallback included — and stops being woken.
     /// </summary>
     member this.Dispose() =
-        graph.AssertOnGraphThread "Disposing a node"
+        graph.Entered (
+            "Disposing a node",
+            fun () ->
+                if not disposed then
+                    disposed <- true
+                    Tracer.NodeDispose (graph, id)
 
-        if not disposed then
-            disposed <- true
-            Tracer.NodeDispose (graph, id)
+                    if not (isNull link) then
+                        link.Detach ()
+                        link <- null
 
-            if not (isNull link) then
-                link.Detach ()
-                link <- null
+                    this.DetachSources ()
 
-            this.DetachSources ()
-
-            if not (isNull (box scope)) then
-                graph.Retire scope
+                    if not (isNull (box scope)) then
+                        graph.Retire scope
+        )
 
     /// <summary>
     /// Catches the pending channel. Errors still propagate — a failure is not a

@@ -11,8 +11,8 @@ open Ranvier
 /// </summary>
 [<MemoryDiagnoser; BenchmarkCategory "Signal">]
 type SignalBenchmarks() =
-    let graph = new Graph ()
-    let signal = Signal (graph, 0)
+    let mutable graph = Unchecked.defaultof<Graph>
+    let mutable signal = Unchecked.defaultof<Signal<int>>
     let mutable counter = 0
 
     /// <summary>
@@ -21,10 +21,20 @@ type SignalBenchmarks() =
     [<Params(0, 1, 8, 64)>]
     member val Observers = 0 with get, set
 
+    /// <summary>
+    /// The graph's thread affinity: each case puts a different check on the write's entry.
+    /// </summary>
+    [<ParamsSource("Affinities")>]
+    member val Affinity = Guarded with get, set
+
+    member _.Affinities = [ Guarded; Unchecked; Serialised ]
+
     member val private Observing: Memo<int>[] = Array.empty with get, set
 
     [<GlobalSetup>]
     member this.Setup() =
+        graph <- new Graph (GraphOptions.Default.WithThreadAffinity this.Affinity)
+        signal <- Signal (graph, 0)
         this.Observing <- Array.init this.Observers (fun _ -> Memo (graph, (fun _ -> signal.Value * 2)))
 
         for memo in this.Observing do

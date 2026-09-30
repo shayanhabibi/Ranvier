@@ -10,13 +10,23 @@ open Ranvier
 /// </summary>
 [<MemoryDiagnoser; BenchmarkCategory "Memo">]
 type MemoBenchmarks() =
-    let graph = new Graph ()
-    let source = Signal (graph, 1)
-    let memo = Memo (graph, (fun _ -> source.Value * 2))
+    let mutable source = Unchecked.defaultof<Signal<int>>
+    let mutable memo = Unchecked.defaultof<Memo<int>>
     let mutable counter = 0
 
+    /// <summary>
+    /// The graph's thread affinity: each case puts a different check on the write's and the stale read's entry.
+    /// </summary>
+    [<ParamsSource("Affinities")>]
+    member val Affinity = Guarded with get, set
+
+    member _.Affinities = [ Guarded; Unchecked; Serialised ]
+
     [<GlobalSetup>]
-    member _.Setup() =
+    member this.Setup() =
+        let graph = new Graph (GraphOptions.Default.WithThreadAffinity this.Affinity)
+        source <- Signal (graph, 1)
+        memo <- Memo (graph, (fun _ -> source.Value * 2))
         memo.TryValue |> ignore
 
     /// <summary>
