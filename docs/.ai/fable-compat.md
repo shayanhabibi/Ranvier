@@ -45,7 +45,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
-| Projections.fs | 95 | 95 | 95 | 95 | 95 | 95 | 10 | 0 |
+| Projections.fs | 102 | 102 | 102 | 102 | 102 | 102 | 10 | 0 |
 | Lookups.fs | 31 | 31 | 31 | 31 | 31 | 31 | 0 | 0 |
 | MemoScopes.fs | 24 | 24 | 22 | 24 | 24 | 22 | 0 | 0 |
 | MemoPurity.fs | 13 | 13 | 13 | 13 | 13 | 13 | 0 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 719 | 701 | 663 | 793 | 771 | 730 | 69 | 1 |
+| **Total** | 726 | 708 | 670 | 800 | 778 | 737 | 69 | 1 |
 
 ## Tests.fs
 
@@ -791,7 +791,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a view stops following when the scope that created it re-runs | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | AsObservableCollection over a pending pass resets once when the pass settles | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 
-<details><summary>95 passed in every build and delivery that runs them</summary>
+<details><summary>102 passed in every build and delivery that runs them</summary>
 
 - the key order follows the source
 - a projection nothing reads is never recomputed
@@ -883,11 +883,18 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a read of a pending pass raises, and the read after the settle reports the changes once
 - a reader past max(64, N) unread changes reads a reset
 - a disposed projection gives a reset with empty keys
+- a removal whose cleanup disposes the projection gives a reset with empty keys
 - disposing the last reader, or its owner, stops recording
 - groupBy groups follow the law (seed 11)
 - index projection keys follow the law (seed 11)
+- filter keys follow the law while predicates fail and recover (seed 11)
+- sortBy keys follow the law while sort keys fail and recover (seed 11)
 - groupBy groups follow the law (seed 4242)
 - index projection keys follow the law (seed 4242)
+- filter keys follow the law while predicates fail and recover (seed 4242)
+- sortBy keys follow the law while sort keys fail and recover (seed 4242)
+- a filter key whose predicate starts failing reads as Removed, and as Added once it recovers
+- a new sortBy key whose sort key fails reads as no change, and is removed without a change
 
 </details>
 

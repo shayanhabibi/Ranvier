@@ -363,6 +363,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     let seen = Platform.KeySet<'K>()
 
     /// <summary>
+    /// The keys of this pass that keep their row and stay out of <c>Keys</c>. Null until the first such key.
+    /// </summary>
+    let mutable hidden: Platform.KeySet<'K> = Unchecked.defaultof<_>
+
+    /// <summary>The <c>hidden</c> keys of the last applied pass. Null exactly while <c>hidden</c> is.</summary>
+    let mutable lastHidden: Platform.KeySet<'K> = Unchecked.defaultof<_>
+
+    /// <summary>
     /// Keys whose row is pending.
     /// </summary>
     let inFlight = Platform.KeySet<'K>()
@@ -454,6 +462,44 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     member internal _.PassKeys = passKeys
     member internal _.Seen = seen
+
+    /// <summary>
+    /// Leaves the last key of <c>PassKeys</c> out of <c>Keys</c> while keeping its row. The key readers see the key as
+    /// removed until a pass includes it again.
+    /// </summary>
+    member internal _.HideLast() =
+        let last = passKeys.Count - 1
+        let key = passKeys[last]
+        passKeys.RemoveAt last
+
+        if isNull (box hidden) then
+            hidden <- Platform.KeySet<'K>()
+            lastHidden <- Platform.KeySet<'K>()
+
+        hidden.Add key |> ignore
+
+    /// <summary>
+    /// Records for the key readers each key that entered or left the hidden keys with its row intact, then makes this
+    /// pass's hidden keys the last applied ones.
+    /// </summary>
+    member private _.SettleHidden() =
+        if not (isNull log) then
+            // A key added by this pass and hidden records Added then Removed, which cancel.
+            hidden.Iterate (fun key ->
+                if not (lastHidden.Contains key) then
+                    log.Record (key, KeyChange.Removed))
+
+            lastHidden.Iterate (fun key ->
+                if
+                    not (hidden.Contains key)
+                    && not (isNull (entries.Find key))
+                then
+                    log.Record (key, KeyChange.Added))
+
+        let swap = lastHidden
+        lastHidden <- hidden
+        hidden <- swap
+        hidden.Clear ()
 
     /// <summary>Stores the row of an added key, and records the addition for the key readers.</summary>
     member internal _.AddEntry(key: 'K, entry: RowEntry<'K, 'V>) =
@@ -562,7 +608,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private _.Retire(entry: RowEntry<'K, 'V>) =
         entry.Live <- false
 
-        if not (isNull log) then
+        if
+            not (isNull log)
+            && (isNull (box lastHidden)
+                || not (lastHidden.Contains entry.Key))
+        then
             log.Record (entry.Key, KeyChange.Removed)
 
         if entry.Watched then
@@ -593,6 +643,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         passKeys.Clear ()
         seen.Clear ()
+
+        if not (isNull (box hidden)) then
+            hidden.Clear ()
+
         this.Pass.ClearStaged ()
         removed.Clear ()
         let previousStatus = status
@@ -713,6 +767,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </summary>
     member private this.ApplyAdditions() =
         this.Pass.CreateAdded ()
+
+        if not (isNull (box hidden)) then
+            this.SettleHidden ()
+
         this.Pass.CommitWrites ()
         this.Pass.ClearStaged ()
         publishKeys ()
@@ -1327,6 +1385,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
             entries.Clear ()
             inFlight.Clear ()
+
+            if not (isNull (box hidden)) then
+                hidden.Clear ()
+                lastHidden.Clear ()
 
             if not (isNull log) then
                 log.Reset ()

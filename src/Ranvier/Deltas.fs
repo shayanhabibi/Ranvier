@@ -11,7 +11,7 @@ type KeyChange =
     | Removed = 1
     /// <summary>Live at both reads, removed and re-added between them: a new row, and a new scope in the factory form.</summary>
     | Replaced = 2
-    /// <summary>Reserved for value readers. A key reader reports membership only.</summary>
+    /// <summary>Reserved for value readers. A key reader reports <c>Added</c>, <c>Removed</c> and <c>Replaced</c>.</summary>
     | Changed = 3
 
 /// <summary>
@@ -100,7 +100,9 @@ type ProjectionDelta<'K when 'K: equality> internal (changes: KeyChanges<'K>, ke
     /// True whenever the order or membership of <c>Keys</c> differs from <c>PreviousKeys</c>. Also true after an order that moved
     /// and moved back between the reads; <c>Positional</c> is then empty.
     /// </summary>
-    member _.OrderChanged = not (obj.ReferenceEquals (keys, previousKeys))
+    member _.OrderChanged =
+        not (obj.ReferenceEquals (keys, previousKeys))
+        && (keys.Length > 0 || previousKeys.Length > 0)
 
     /// <summary>
     /// True on the reader's first read, after the reader fell behind, and after the projection is disposed. <c>Changes</c> is
@@ -142,8 +144,9 @@ type internal IKeyLogHost<'K when 'K: equality> =
 
 /// <summary>A cursor over a projection's membership and order. Disposed with the scope that created it.</summary>
 /// <remarks>
-/// Each reader keeps its own changes, at most <c>max(64, N)</c> of them; past that its next read reports a reset. Created by
-/// <c>Projection.NewKeyReader</c>.
+/// Each reader keeps its own changes, at most <c>max(64, N)</c> of them with <c>N</c> the live key count as each change
+/// arrives; past that its next read reports a reset. A write that removes most keys can therefore read as a reset. Created
+/// by <c>Projection.NewKeyReader</c>.
 /// </remarks>
 and
 #if FABLE_COMPILER
@@ -159,8 +162,8 @@ and
     let mutable cursor: 'K[] = Array.empty
 
     /// <summary>
-    /// Set until the first read, after the reader falls behind and after the projection is disposed. The reader records
-    /// nothing while it is set.
+    /// Set until the first read, after the reader falls behind and after the projection is disposed. Recording resumes at the
+    /// read that clears it.
     /// </summary>
     let mutable reset = true
 
@@ -169,8 +172,11 @@ and
     let mutable disposed = false
     let mutable link: OwnerLink = null
 
+    /// <summary>The owner link, kept only while the reader runs.</summary>
     member internal _.Link
-        with set (value: OwnerLink) = link <- value
+        with set (value: OwnerLink) =
+            if not disposed then
+                link <- value
 
     /// <summary>Records <c>change</c> to <c>key</c>, or flags a reset once the pending changes exceed the cap.</summary>
     member internal _.Record(key: 'K, change: KeyChange) =

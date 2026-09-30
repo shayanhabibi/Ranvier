@@ -2048,15 +2048,15 @@ let private expectLaw (label: string) (delta: ProjectionDelta<int>) =
 
 /// <summary>
 /// Drives <c>passes</c> random writes of <c>items</c> through <c>project</c>, with two readers read at random intervals
-/// and checked against the law after every read.
+/// and checked against the law after every read. The step <c>project</c> returns runs after each write of <c>items</c>.
 /// </summary>
-let private randomPasses (seed: int) (passes: int) (project: Signal<int[]> -> Projection<int, 'V>) =
+let private randomPassesWith (seed: int) (passes: int) (project: Signal<int[]> -> Projection<int, 'V> * (Lcg -> unit)) =
     use g = new Graph ()
     use _ = g.Activate ()
     let rng = Lcg seed
     let universe = [| 1..24 |]
     let items = createSignal (shuffle rng universe |> Array.take 12)
-    let proj = project items
+    let proj, extra = project items
     createEffect (fun () -> proj.Keys |> ignore)
     let readers = [| proj.NewKeyReader (); proj.NewKeyReader () |]
     let resets = Array.zeroCreate<int> readers.Length
@@ -2084,6 +2084,8 @@ let private randomPasses (seed: int) (passes: int) (project: Signal<int[]> -> Pr
                         (shuffle rng absent
                          |> Array.take (min 3 absent.Length)))
 
+        extra rng
+
         for r in 0 .. readers.Length - 1 do
             if rng.Next 3 = 0 then
                 let delta = readers[r].Read()
@@ -2097,6 +2099,24 @@ let private randomPasses (seed: int) (passes: int) (project: Signal<int[]> -> Pr
     for r in 0 .. readers.Length - 1 do
         expectLaw $"seed {seed}, final, reader {r}" (readers[r].Read())
         Expect.isLessThanOrEqual resets[r] 1 $"reader {r}: only the first read resets"
+
+let private randomPasses (seed: int) (passes: int) (project: Signal<int[]> -> Projection<int, 'V>) =
+    randomPassesWith seed passes (fun items -> project items, ignore)
+
+/// <summary>Rewrites <c>failing</c> with a random subset of the keys on every other step, on average.</summary>
+let private rewriteFailing (failing: Signal<Set<int>>) (rng: Lcg) =
+    if rng.Next 2 = 0 then
+        failing.Value <-
+            set
+                [
+                    for k in 1..24 do
+                        if rng.Next 5 = 0 then
+                            k
+                ]
+
+let private failWhen (failing: Signal<Set<int>>) (n: int) =
+    if failing.Value.Contains n then
+        failwith $"key {n} fails"
 
 [<Tests>]
 let deltaReaderTests =
@@ -2304,6 +2324,37 @@ let deltaReaderTests =
                 Expect.sequenceEqual delta.PreviousKeys [ 1; 2; 3 ] "the keys of the previous read"
             }
 
+            test "a removal whose cleanup disposes the projection gives a reset with empty keys" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let target = ref Unchecked.defaultof<Projection<int, int>>
+
+                let proj =
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            let x = item ()
+
+                            onCleanup (fun () ->
+                                if x = 2 then
+                                    target.Value.Dispose ())
+
+                            fun () -> x)
+                        (fun () -> items.Value)
+
+                target.Value <- proj
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 1; 3; 4 ]
+                let delta = reader.Read ()
+                Expect.isTrue delta.IsReset "a reset"
+                Expect.isEmpty delta.Keys "no keys"
+                Expect.isTrue (reader.Read ()).IsEmpty "later reads are empty"
+            }
+
             test "disposing the last reader, or its owner, stops recording" {
                 use g = new Graph ()
                 use _ = g.Activate ()
@@ -2342,4 +2393,82 @@ let deltaReaderTests =
                 test $"index projection keys follow the law (seed {seed})" {
                     randomPasses seed 150 (fun items -> createIndexProjection id (fun () -> items.Value))
                 }
+
+                test $"filter keys follow the law while predicates fail and recover (seed {seed})" {
+                    randomPassesWith seed 150 (fun items ->
+                        let failing = createSignal Set.empty<int>
+
+                        createProjection id id (fun () -> items.Value)
+                        |> Projection.filter (fun n ->
+                            failWhen failing n
+                            n % 3 <> 0),
+                        rewriteFailing failing)
+                }
+
+                test $"sortBy keys follow the law while sort keys fail and recover (seed {seed})" {
+                    randomPassesWith seed 150 (fun items ->
+                        let failing = createSignal Set.empty<int>
+
+                        createProjection id id (fun () -> items.Value)
+                        |> Projection.sortBy (fun n ->
+                            failWhen failing n
+                            -n),
+                        rewriteFailing failing)
+                }
+
+            test "a filter key whose predicate starts failing reads as Removed, and as Added once it recovers" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let failing = createSignal Set.empty<int>
+
+                let proj =
+                    createProjection id id (fun () -> [ 1; 2; 3 ])
+                    |> Projection.filter (fun n ->
+                        failWhen failing n
+                        true)
+
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                failing.Value <- set [ 2 ]
+                let failed = reader.Read ()
+                Expect.sequenceEqual failed.Keys [ 1; 3 ] "the failed key leaves Keys"
+                Expect.equal (keysWith KeyChange.Removed failed) (set [ 2 ]) "2 reads as Removed"
+                expectLaw "predicate fails" failed
+
+                failing.Value <- Set.empty
+                let recovered = reader.Read ()
+                Expect.sequenceEqual recovered.Keys [ 1; 2; 3 ] "the recovered key returns"
+                Expect.equal (keysWith KeyChange.Added recovered) (set [ 2 ]) "2 reads as Added"
+                expectLaw "predicate recovers" recovered
+            }
+
+            test "a new sortBy key whose sort key fails reads as no change, and is removed without a change" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let failing = createSignal (set [ 4 ])
+
+                let proj =
+                    createProjection id id (fun () -> items.Value)
+                    |> Projection.sortBy (fun n ->
+                        failWhen failing n
+                        -n)
+
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 1; 2; 3; 4 ]
+                let added = reader.Read ()
+                Expect.sequenceEqual added.Keys [ 3; 2; 1 ] "the failed key stays out of Keys"
+                Expect.equal added.Changes.Count 0 "no change"
+                expectLaw "new key fails" added
+
+                items.Value <- [ 1; 2; 3 ]
+                let removed = reader.Read ()
+                Expect.equal removed.Changes.Count 0 "a hidden key's removal is no change"
+                expectLaw "hidden key removed" removed
+            }
         ]

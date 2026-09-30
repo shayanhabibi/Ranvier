@@ -233,7 +233,22 @@ Deviations from §4 to §8:
   replays on a reset too.
 - **`OrderChanged`** is the reference test of §4.1. It is also true when the order moved and moved back between two
   reads (a new array with equal content); `Positional` is then empty. Documented on the member.
+- **`OrderChanged` on empty arrays** is false when both arrays are empty, whatever their identity: under Fable
+  `Array.empty` is not a shared instance, so the reference test alone would report an empty projection as reordered.
 - **`IsEmpty`** is `not IsReset && Changes.Count = 0 && not OrderChanged`.
+- **Hidden keys (review fix).** §4.1 assumes a key has a row exactly while it is in `Keys`. `filter` and `sortBy` break
+  that: a key whose predicate or sort key fails keeps its row and stays out of `Keys`. Those views now call
+  `Projection.HideLast` in place of dropping the last pass key, which records the key in a `hidden` set (allocated with
+  its `lastHidden` twin at the first hidden key). After `CreateAdded`, `SettleHidden` records `Removed` for a surviving key
+  that became hidden and `Added` for one that left the hidden set (a new hidden key records `Added` then `Removed`,
+  which cancel), and `Retire` records nothing for a key hidden at the last applied pass. A projection that never hides a
+  key pays one null check per applied pass. Law tests over `filter` and `sortBy` with failing predicates and sort keys
+  cover it.
+- **Cap.** `N` in `max(64, N)` is the live key count as each change arrives, so a write that removes most keys of a
+  large projection reads as a reset while the same write in reverse (refilling) does not. Documented on
+  `ProjectionReader`; the committed cap test depends on it.
+- **Cleanup that disposes the projection.** A removal whose cleanup disposes the projection stops `ApplyDiff` after the
+  removals; the next read is a reset with empty `Keys`, and later reads are empty. Covered by a test.
 - **Registration order.** `NewKeyReader` registers the reader with the log, then attaches it to
   `graph.CurrentOwner`, so an owner that is already disposed releases (and unregisters) the reader at once.
   A disposed projection hands back an unregistered reader whose first read is a reset with empty `Keys` (tagged

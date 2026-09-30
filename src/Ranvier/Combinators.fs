@@ -134,7 +134,7 @@ type internal FilterView<'K, 'V, 'U when 'K: equality>
                         this.Visit (key, key)
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         heldOut.Publish upstream
 
@@ -243,7 +243,7 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>(graph: G
                         ranks.Add entry.Row.Peek
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         if not (unchanged ()) then
             sorted <- false

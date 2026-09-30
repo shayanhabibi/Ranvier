@@ -19,7 +19,6 @@ type DeltaReaderBenchmarks() =
     let mutable full = Array.empty<int>
     let mutable without = Array.empty<int>
     let mutable previous = Array.empty<int>
-    let mutable sink = 0
 
     [<Params(64, 512, 10_000)>]
     member val Items = 64 with get, set
