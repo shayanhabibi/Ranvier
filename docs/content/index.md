@@ -9,7 +9,7 @@ layout: splash
 <span class="rv-hero__status"><span class="rv-badge">Preview</span> APIs may change.</span>
 <h1 class="rv-hero__title">ranvier</h1>
 <p class="rv-hero__line">Fine-grained reactive computation for .NET.</p>
-<p class="rv-hero__sub">Signals, memos and effects for .NET, glitch-free, native async and error handling/boundaries, inspired by <a href="https://www.solidjs.com/blog/solid-2-0-rc-the-big-reveal">solid</a>.<br/>Tracing let's <b>agents</b> immediately reason about the state of the graph without cost to production builds.<br/>Every decision benchmarked and evaluated for cost versus value.</p>
+<p class="rv-hero__sub">Signals, memos and effects where loading and failure are part of the graph. An async value's pending and failed states reach every value derived from it and stop at a boundary, so no view model tracks <code>IsBusy</code> by hand. Glitch-free, owned and inspired by <a href="https://www.solidjs.com/blog/solid-2-0-rc-the-big-reveal">Solid</a>.<br/>A traced build lets people and <b>agents</b> ask why anything ran; a release build compiles the tracing out.</p>
 <div class="rv-hero__actions">
 <a class="rv-btn rv-btn--primary" href="/Ranvier/guide/getting-started/">Get started <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
 <a class="rv-btn rv-btn--secondary" href="/Ranvier/guide/async-and-pending/">Async and pending</a>
@@ -341,15 +341,21 @@ controls [
 <a class="rv-trace__more" href="/Ranvier/guide/tracing/">Read the tracing guide <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
 </div>
 
-## What it provides
+## Why Ranvier
 
-A dependency graph with explicit ownership, plus a second channel for values that have not arrived yet.
+The parts of reactive state that .NET developers most often rebuild by hand, built into the library.
 
 <div class="rv-cards">
-<a class="rv-card" href="/Ranvier/guide/getting-started/#memos"><strong class="rv-card__title">Signals, memos, effects</strong><p>Dependencies are tracked as computations run. Propagation is glitch-free (tested on the diamond case in the guide), and an equality cutoff stops it when a recomputed value is unchanged. Every memo and effect belongs to an owner that disposes it.</p></a>
-<a class="rv-card" href="/Ranvier/concepts/suspension/"><strong class="rv-card__title">Suspension and boundaries</strong><p>Async sources and async memos mark a node as in flight. Suspense and error boundaries catch the pending or failed state their body reads and substitute a value of the same type.</p></a>
-<a class="rv-card" href="/Ranvier/guide/collections/#selectors"><strong class="rv-card__title">Collections and projections</strong><p>Keyed and index projections give each row its own reactive value. Lookups derive a value per key, and a selection change wakes only the readers of the previous and new key.</p></a>
-<a class="rv-card" href="/Ranvier/fable/"><strong class="rv-card__title">Fable target <span class="rv-badge">Implemented</span></strong><p>The library targets <code>net10.0</code>, <code>net8.0</code> and <code>netstandard2.1</code>, and compiles to JavaScript with Fable. The Fable page lists where the targets differ.</p></a>
+<a class="rv-card" href="/Ranvier/guide/async-and-pending/#the-pending-channel"><strong class="rv-card__title">Loading and errors, derived</strong><p>Pending and failure travel on their own channel. They pass from an async source through every memo that reads it to the nearest boundary, which shows a fallback or a recovered value. A flight policy decides what happens to superseded work: cancel it, keep only the latest, queue it, or finish it and run once more. During a refresh <code>Peek</code> keeps the last value.</p></a>
+<a class="rv-card" href="/Ranvier/concepts/contracts/#error-recovery"><strong class="rv-card__title">Errors are state, not the end of the stream</strong><p>A failure is a value that readers see and a boundary recovers from. The next successful run clears it, and every dependency stays live. <code>ErrorOrigin</code> names the node the failure started in.</p></a>
+<a class="rv-card" href="/Ranvier/concepts/contracts/#ownership"><strong class="rv-card__title">Owners instead of leaks</strong><p>Every memo, effect and projection row belongs to an owner. Disposing the owner disposes them, in a fixed order. Lifetimes are deterministic and never depend on the garbage collector or on a forgotten unsubscribe.</p></a>
+<a class="rv-card" href="/Ranvier/concepts/ecosystem/#diamonds-without-glitches"><strong class="rv-card__title">Glitch-free diamonds</strong><p>A value that reads two paths from one source runs once per write, and both paths it reads come from that write. It never sees one path updated and the other stale.</p></a>
+<a class="rv-card" href="/Ranvier/guide/csharp/#binding-to-xaml"><strong class="rv-card__title">Built for C# and XAML</strong><p><code>ReactiveBindings</code> raises <code>PropertyChanged</code> for derived properties with no dependency attributes. <code>ReactiveCommand</code> derives <code>CanExecute</code> and <code>IsRunning</code> from the graph. C# callers need no F# option types.</p></a>
+<a class="rv-card" href="/Ranvier/guide/collections/#reading-changes"><strong class="rv-card__title">Incremental collections</strong><p>Keyed projections give each row its own reactive value. A key reader reports only the keys added, removed or replaced since its last read. A bound <code>ObservableCollection</code> receives individual adds, removes and moves instead of a reset.</p></a>
+<a class="rv-card" href="/Ranvier/concepts/contracts/#threading"><strong class="rv-card__title">A written threading contract</strong><p>A graph checks that it is called from its own thread, and the contract lists which calls may come from other threads. <code>Serialised</code> mode accepts a Blazor Server circuit's changing threads and raises on genuine concurrency.</p></a>
+<a class="rv-card" href="/Ranvier/guide/testing/"><strong class="rv-card__title">Deterministic async tests</strong><p><code>ManualDispatcher</code> and <code>Settle</code> let a test decide when each flight lands. Loading, failure and cancellation are tested with no timers, sleeps or polling.</p></a>
+<a class="rv-card" href="/Ranvier/guide/installation/#native-aot-and-trimming"><strong class="rv-card__title">Portable, with no platform package</strong><p>One core for <code>net10.0</code>, <code>net8.0</code> and <code>netstandard2.1</code>, with no UI-framework dependency. The untraced build is Native AOT and trim clean, and the library compiles to JavaScript with Fable.</p></a>
+<a class="rv-card" href="/Ranvier/guide/elmish/"><strong class="rv-card__title">Adopt it one view at a time</strong><p><code>Ranvier.Elmish</code> keeps an existing <code>init</code> and <code>update</code> and reads the model through selector memos. Editable values cover forms seeded from upstream data.</p></a>
 </div>
 
 <script>
