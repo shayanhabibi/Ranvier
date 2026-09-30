@@ -66,6 +66,9 @@ the older flight:
 | `KeepLatest` | No | Yes | No |
 | `Queue` | No | No | Yes, in the order the flights started |
 
+`FinishCurrent` starts no flight while one is in progress. The flight finishes, and every change during it folds
+into one trailing run against the current inputs; the memo stays pending until that run settles.
+
 Pass the `CancellationToken` to the I/O that the flight performs. Under `CancelPrevious`, the superseded I/O
 then stops. Solid has no token to cancel, so this policy is a .NET addition.
 
@@ -81,8 +84,8 @@ SignalsDotnet and CommunityToolkit.Mvvm.
 - an `Async<'T>` adapter for cold, restartable F# async workflows
 - a streaming memo over `IAsyncEnumerable<'T>`, matching Solid's async-iterable results
 - a drop-while-running policy, which ignores changes while a flight is in progress (R3 `Drop`)
-- a coalescing policy, which runs once more after the current flight completes (SignalsDotnet `ScheduleNext`,
-  R3 `ThrottleFirstLast`)
+- a coalescing policy that publishes the finished flight's result before the trailing run (SignalsDotnet
+  `ScheduleNext`, R3 `ThrottleFirstLast`); `FinishCurrent` keeps the memo pending until the trailing run settles
 - debounce and throttle, as a flight policy or as a combinator
 
 A streaming memo will live as long as its owner scope, as every other node does. Losing its last reader

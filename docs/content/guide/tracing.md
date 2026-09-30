@@ -217,8 +217,11 @@ waiting /shipping
 
 The first quote settled after the second one started, so its result was dropped. A flight can end
 `in flight`, `settled`, `failed`, `cancelled` or `dropped`. A dropped flight is `superseded` by a
-newer flight, `disposed` with its node, or `suspended`: a failure that arrived while the newest run
-waits on a pending source. A settle marked `held pending` kept its value while a newer run waits.
+newer flight, `disposed` with its node, `suspended`: a failure that arrived while the newest run
+waits on a pending source, or `trailing`: a failure that arrived while a `FinishCurrent` trailing run is
+owed. A settle marked `held pending` kept its value while a newer run waits. Its `Settle` event's `Flag`
+tells the two apart: 1 for a run suspended on a pending source, 2 for an owed trailing run. A change that
+arrives during a `FinishCurrent` flight records `RunDeferred` in place of a `RunStart`.
 
 `Trace.why` follows a settle back to the run that started the flight:
 

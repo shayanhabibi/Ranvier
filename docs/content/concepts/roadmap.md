@@ -20,7 +20,7 @@ These are implemented and covered by tests.
 - **Pending channel and boundaries.** A propagating "not ready" status, with `createSuspense`,
   `createErrorBoundary` and `createBoundary` to decide what to show in the meantime. See
   [Suspension](suspension.md).
-- **Async memos.** `createAsync` with the `CancelPrevious`, `KeepLatest` and `Queue` flight policies, and the
+- **Async memos.** `createAsync` with the `CancelPrevious`, `KeepLatest`, `Queue` and `FinishCurrent` flight policies, and the
   previous value passed to each flight. See [Async and pending](../guide/async-and-pending.md).
 - **Threading, failure and ownership contracts.** Thread affinity checks, dispatch from other threads, and
   `ManualDispatcher` for deterministic tests. See [Contracts](contracts.md).

@@ -72,4 +72,15 @@ The price of cancellation per async-memo flight. Each iteration writes a trigger
 
 Not yet recorded.
 
+## FlightBenchmarks
+
+Repeated flight launches under each `FlightPolicy`, set by `Policy`. `Writes` applies to `WritesDuringFlight` only.
+
+| Method | What it measures |
+| --- | --- |
+| `RelaunchSettled` | Baseline. Writes a trigger the body reads and reads the memo. The body returns a completed task, so every flight settles on launch. |
+| `WritesDuringFlight` | Starts a flight whose task stays open, writes and reads `Writes` more times, then completes every open task, reading after each round. Under `FinishCurrent` the body runs twice whatever `Writes` is; under the other policies it runs `Writes + 1` times. |
+
+Not yet recorded.
+
 The `Ratio` and `Alloc Ratio` columns, where present, compare each method with the baseline method *of the same class* on the same run. They describe the relative cost of two operations inside Ranvier, not a comparison with any other library.
