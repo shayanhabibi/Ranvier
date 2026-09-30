@@ -152,6 +152,7 @@ let theme =
                     Menu.page "guide/getting-started.md"
                     Menu.page "guide/csharp.md"
                     Menu.page "guide/blazor-server.md"
+                    Menu.page "guide/elmish.md"
                 ]
             Menu.section
                 "Core concepts"
@@ -160,6 +161,7 @@ let theme =
                     Menu.page "guide/testing.md"
                     Menu.page "guide/collections.fsx"
                     Menu.page "guide/aggregates.fsx"
+                    Menu.page "guide/forms.md"
                 ]
             Menu.section
                 "Reference"

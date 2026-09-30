@@ -1,11 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="brand/wordmark/ranvier-wordmark-dark.svg">
-    <img alt="ranvier" src="brand/wordmark/ranvier-wordmark-light.svg" width="240">
-  </picture>
+  <img alt="ranvier: fine-grained reactive computation for .NET" src="brand/og/ranvier-og.png">
 </p>
-
-<p align="center">Fine-grained reactive computation for .NET.</p>
 
 <p align="center">
   <a href="https://shayanhabibi.github.io/Ranvier/">Documentation</a>
