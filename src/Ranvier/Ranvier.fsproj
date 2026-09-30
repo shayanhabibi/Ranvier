@@ -17,7 +17,7 @@
         <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier: the same assembly, namespaces and version, with the per-graph event log and its queries compiled in.</Description>
         <PackageTags>reactive;reactivity;signals;memo;effects;fine-grained;fsharp</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>0.1.0-preview.1</Version>
+        <Version>0.1.0-preview.2</Version>
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 

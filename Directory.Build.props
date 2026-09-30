@@ -9,7 +9,7 @@
         <Copyright>Copyright (c) 2026 Shayan Habibi</Copyright>
         <PackageProjectUrl>https://shayanhabibi.github.io/Ranvier/</PackageProjectUrl>
         <PackageIcon>ranvier-icon.png</PackageIcon>
-        <PackageReleaseNotes>First preview. The API may change before 1.0.</PackageReleaseNotes>
+        <PackageReleaseNotes>Preview release. The API may change before 1.0.</PackageReleaseNotes>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
