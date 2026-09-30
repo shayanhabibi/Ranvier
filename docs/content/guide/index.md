@@ -63,9 +63,11 @@ doubled = 10
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
 - [Testing async state](testing.md): deterministic tests that decide when each flight lands.
 - [Collections](collections.fsx): keyed and index projections, lookups and selectors.
+- [Editable values and forms](forms.md): values seeded from upstream and edited locally, and forms as records of signals.
 - [Tracing](tracing.md): why a node ran or did not run, where it was created, and the graph as it stands.
 - [Signal maps](signal-maps.md): how to read the live graph maps beneath the examples, and how to write one.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
+- [Migrating from Elmish](elmish.md): an MVU model read through selector memos, one view at a time.
 
 ## Status
 
@@ -76,6 +78,7 @@ doubled = 10
 | Projections, lookups and selectors | Implemented, with factory map semantics. A node created inside a memo pulled by a projection row belongs to that memo. |
 | Fable/JavaScript | Implemented and tested under Node.js; no package published yet. See [Fable (JavaScript) target](../fable/index.md). |
 | Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
+| Editable values (`createEditable`, `createDraft`) and the MVU bridge (`Mvu`) | Implemented and tested; see [Editable values and forms](forms.md) and [Migrating from Elmish](elmish.md). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
 
 ## Origin
