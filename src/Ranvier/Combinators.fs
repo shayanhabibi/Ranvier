@@ -767,13 +767,22 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         if full then
             this.Recompute ()
 
-    member private _.Failure: exn =
+    /// <summary>Raises the exception of the first failed row, with the row's origin when the row still holds it.</summary>
+    member private _.RaiseFailure() =
         if isNull (box failure) then
             rows.Iterate (fun _ row ->
                 if isNull (box failure) && not (isNull row.Error) then
                     failure <- row)
 
-        failure.Error
+        let recorded = failure.Entry.Row.Failure
+
+        if
+            not (isNull recorded)
+            && obj.ReferenceEquals (recorded.Error, failure.Error)
+        then
+            graph.Raise recorded
+        else
+            raise failure.Error
 
     /// <summary>The memo's body: tracks the upstream keys and this node, then returns the current state.</summary>
     member this.Compute(_: 'S voption) : 'S =
@@ -786,7 +795,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
             moved <- false
 
             if failed > 0 then
-                raise this.Failure
+                this.RaiseFailure ()
 
             state
 

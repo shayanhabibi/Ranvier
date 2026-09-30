@@ -39,5 +39,6 @@
         <Compile Include="$(MSBuildThisFileDirectory)Lenses.fs" Link="Lenses.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Combinators.fs" Link="Combinators.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)PreviousValues.fs" Link="PreviousValues.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)FailureOrigins.fs" Link="FailureOrigins.fs" />
     </ItemGroup>
 </Project>
