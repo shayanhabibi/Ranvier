@@ -1111,6 +1111,13 @@ type internal Failure(error: exn, origin: INode) =
     static member ErrorOf(failure: Failure) : exn =
         if isNull failure then null else failure.Error
 
+    /// <summary>
+    /// The payload of a trace <c>Moved</c> event: the exception of <c>failure</c>, or <c>value</c> when <c>failure</c> is
+    /// null.
+    /// </summary>
+    static member Payload(failure: Failure, value: obj) : obj =
+        if isNull failure then value else box failure.Error
+
     /// <summary>The origin of <c>failure</c>, or null when <c>failure</c> is null.</summary>
     static member OriginOf(failure: Failure) : INode =
         if isNull failure then
@@ -2872,7 +2879,7 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
                 moved <- true
 
         if moved then
-            Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
+            Tracer.Moved (graph, id, Failure.Payload (failure, box value))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)
@@ -3796,7 +3803,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     let mutable launching = false
 
     let wake () =
-        Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
+        Tracer.Moved (graph, id, Failure.Payload (failure, box value))
 
         if launching then
             observers.NotifyDirtyExcept graph.CurrentComputation
@@ -4623,7 +4630,7 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
             shown <- true
 
         if moved then
-            Tracer.Moved (graph, id, (if isNull failure then box value else box failure.Error))
+            Tracer.Moved (graph, id, Failure.Payload (failure, box value))
             observers.NotifyDirtyExcept graph.CurrentComputation
             Tracer.Notified graph
             Tracer.RunEnd (graph, id, status)

@@ -1721,7 +1721,7 @@ type internal LookupCell<'V>(graph: Graph, equal: IEqualityComparer<'V>, orphane
     member _.Fail(recorded: Failure) =
         pending <- false
         failure <- recorded
-        Tracer.Moved (graph, id, recorded.Error)
+        Tracer.Moved (graph, id, Failure.Payload (recorded, null))
         observers.NotifyDirty ()
         Tracer.Notified graph
 
