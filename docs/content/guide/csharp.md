@@ -219,6 +219,28 @@ var firstPage = open.Take(() => pageSize.Value);
 `rows.TryGetValue(key, out var row)` reads a row that may be absent; `Lookup` has the same method.
 `AsObservableCollection` binds a projection to a WPF, Avalonia or MAUI list.
 
+`rows.NewKeyReader()` returns an `IDisposable` reader whose `Read()` reports the keys added, removed or
+replaced since its previous read:
+
+```csharp
+using var reader = rows.NewKeyReader();
+reader.Read(); // the first read reports a reset: rebuild from Keys
+
+var delta = reader.Read();
+foreach (var (key, change) in delta.Changes)
+{
+    switch (change)
+    {
+        case KeyChange.Added: /* insert key */ break;
+        case KeyChange.Removed: /* drop key */ break;
+        case KeyChange.Replaced: /* rebuild key */ break;
+    }
+}
+```
+
+`delta.IsReset` asks for a rebuild from `delta.Keys`, and `delta.Positional` lists the index edits from
+`PreviousKeys` to `Keys`.
+
 ## Binding to XAML
 
 `ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
