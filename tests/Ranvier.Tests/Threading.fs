@@ -97,6 +97,64 @@ let private activationAcrossAwait (graph: Graph) : AcrossAwait =
         LeakedToStarter = leaked
         AmbientAfterAwait = ambientAfterAwait.Value
     }
+
+/// <summary>
+/// A <c>Serialised</c> graph constructed while <c>context</c> is current, or with no context when it is null.
+/// </summary>
+let private serialisedUnder (context: SynchronizationContext) =
+    let previous = SynchronizationContext.Current
+
+    try
+        SynchronizationContext.SetSynchronizationContext context
+        new Graph (GraphOptions.Default.WithThreadAffinity Serialised)
+    finally
+        SynchronizationContext.SetSynchronizationContext previous
+
+/// <summary>
+/// Runs <c>body</c> with <c>context</c> current on the calling thread.
+/// </summary>
+let private within (context: SynchronizationContext) (body: unit -> 'T) : 'T =
+    let previous = SynchronizationContext.Current
+
+    try
+        SynchronizationContext.SetSynchronizationContext context
+        body ()
+    finally
+        SynchronizationContext.SetSynchronizationContext previous
+
+/// <summary>
+/// A flush held open on <c>Worker</c>, a thread running under the graph's context. The worker stays inside an effect
+/// until <c>Release</c> is set.
+/// </summary>
+type private HeldFlush =
+    {
+        Worker: Thread
+        Release: ManualResetEventSlim
+    }
+
+/// <summary>
+/// Starts a flush of <c>g</c>, a <c>Serialised</c> graph constructed under <c>context</c>, on another thread, and
+/// returns once that thread is inside the graph.
+/// </summary>
+let private holdFlush (context: SynchronizationContext) (g: Graph) : HeldFlush =
+    let trigger = within context (fun () -> Signal (g, 0))
+    let entered = new ManualResetEventSlim (false)
+    let release = new ManualResetEventSlim (false)
+
+    within context (fun () ->
+        g.Run (fun () ->
+            createEffect (fun () ->
+                if trigger.Value = 1 then
+                    entered.Set ()
+                    release.Wait (TimeSpan.FromSeconds 5.0) |> ignore)))
+
+    let worker =
+        Thread ((fun () -> within context (fun () -> trigger.Value <- 1)), IsBackground = true)
+
+    worker.Start ()
+    entered.Wait (TimeSpan.FromSeconds 5.0) |> ignore
+
+    { Worker = worker; Release = release }
 #endif
 
 [<Tests>]
@@ -635,6 +693,174 @@ let tests =
                         raise failures[i]
 
                     Expect.equal results[i] (writes * 2, expectedTotal) $"graph %d{i} saw every write and settle"
+            }
+#endif
+
+            test "Serialised: writes, reads and effects run as on any graph" {
+                let g = new Graph (GraphOptions.Default.WithThreadAffinity Serialised)
+                let s = Signal (g, 1)
+                let m = Memo (g, (fun _ -> s.Value * 10))
+                let seen = ResizeArray ()
+                g.Run (fun () -> createEffect (fun () -> seen.Add m.Value))
+
+                s.Value <- 2
+                g.Batch (fun () -> s.Value <- 3) |> ignore
+
+                Expect.equal m.Value 30 "the memo follows the writes"
+                Expect.sequenceEqual seen [ 10; 20; 30 ] "the effect ran once per write"
+            }
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: a free graph accepts a write and a stale read from another thread" {
+                let g = serialisedUnder null
+                let s = Signal (g, 1)
+                let m = Memo (g, (fun _ -> s.Value * 10))
+                m.Value |> ignore
+
+                offThread (fun () -> s.Value <- 2)
+                Expect.equal (offThread (fun () -> m.Value)) 20 "the other thread brought the memo current"
+
+                s.Value <- 3
+                Expect.equal m.Value 30 "the stale read released the graph"
+                Expect.isFalse g.IsOnGraphThread "the graph is free between entries"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: a thread entering while another is inside the graph raises" {
+                let context = SynchronizationContext ()
+                let g = serialisedUnder context
+                let s = within context (fun () -> Signal (g, 0))
+                let held = holdFlush context g
+
+                let entries: (string * (unit -> unit)) list =
+                    [
+                        "A signal write", (fun () -> s.Value <- 1)
+                        "A batch", (fun () -> g.Batch (fun () -> ()) |> ignore)
+                        "A flush", (fun () -> g.Flush ())
+                        "Creating a node", (fun () -> Signal (g, 0) |> ignore)
+                        "Creating a root", (fun () -> g.CreateRoot (fun _ -> ()) |> ignore)
+                        "Pump", (fun () -> g.Pump () |> ignore)
+                    ]
+
+                let messages =
+                    try
+                        [
+                            for (operation, entry) in entries ->
+                                operation,
+                                within context (fun () ->
+                                    try
+                                        entry ()
+                                        None
+                                    with ex ->
+                                        Some ex.Message)
+                        ]
+                    finally
+                        held.Release.Set ()
+                        held.Worker.Join ()
+
+                for (operation, message) in messages do
+                    match message with
+                    | Some text ->
+                        Expect.stringContains text $"%s{operation} ran on thread" $"%s{operation} is named"
+                        Expect.stringContains text "was inside this Serialised graph" "with the concurrent entry"
+                    | None -> failtest $"%s{operation} entered a graph another thread was inside"
+
+                Expect.equal s.Peek 0 "the rejected write did not land"
+                within context (fun () -> s.Value <- 2)
+                Expect.equal s.Peek 2 "the graph accepts writes once the other thread leaves"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: an entry outside the construction context raises" {
+                let context = SynchronizationContext ()
+                let g = serialisedUnder context
+                let s = within context (fun () -> Signal (g, 0))
+
+                let caught =
+                    offThread (fun () ->
+                        try
+                            s.Value <- 1
+                            None
+                        with ex ->
+                            Some ex)
+
+                match caught with
+                | Some ex -> Expect.stringContains ex.Message "outside the synchronisation context" "the message names the context"
+                | None -> failtest "a write without the graph's context must not proceed"
+
+                Expect.equal s.Peek 0 "the write did not land"
+                offThread (fun () -> within context (fun () -> s.Value <- 2))
+                Expect.equal s.Peek 2 "any thread on the context may write"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: a settle from outside the graph is queued, even on the graph's context" {
+                let context = RecordingContext ()
+                let g = serialisedUnder context
+                let a = within context (fun () -> AsyncSource<int>(g))
+
+                within context (fun () -> a.Settle 5)
+
+                Expect.equal g.PendingWork 1 "the settle waits in the inbox"
+                Expect.equal context.Posted.Count 1 "and a drain was posted to the context"
+                Expect.equal a.TryValue Pending "nothing applied it inline"
+
+                offThread (fun () -> within context (fun () -> context.Drain ()))
+                Expect.equal a.TryValue (Ready 5) "the drain applied it, on whichever thread ran the context"
+                Expect.equal g.PendingWork 0 "inbox drained"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: work posted from inside the graph runs inline" {
+                let g = serialisedUnder null
+                let s = Signal (g, 0)
+                let a = AsyncSource<int>(g)
+                let inside = ResizeArray ()
+
+                g.Run (fun () ->
+                    createEffect (fun () ->
+                        if s.Value = 1 then
+                            inside.Add g.IsOnGraphThread
+                            g.Dispatch (fun () -> a.Settle 8)))
+
+                s.Value <- 1
+
+                Expect.sequenceEqual inside [ true ] "the effect's thread holds the graph"
+                Expect.equal g.PendingWork 0 "nothing was queued"
+                Expect.equal a.TryValue (Ready 8) "the settle applied inline"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: a drain that finds the graph held leaves the work, and the holder posts it again" {
+                let context = RecordingContext ()
+                let g = serialisedUnder context
+                let a = within context (fun () -> AsyncSource<int>(g))
+                let held = holdFlush context g
+
+                try
+                    within context (fun () -> a.Settle 6)
+                    Expect.equal context.Posted.Count 1 "the settle posted a drain"
+
+                    within context (fun () -> context.Drain ())
+                    Expect.equal g.PendingWork 1 "the drain left the work for the holder"
+                finally
+                    held.Release.Set ()
+                    held.Worker.Join ()
+
+                Expect.equal context.Posted.Count 1 "the holder's release posted a new drain"
+                within context (fun () -> context.Drain ())
+                Expect.equal a.TryValue (Ready 6) "and that drain applied the settle"
             }
 #endif
         ]

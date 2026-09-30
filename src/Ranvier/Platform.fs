@@ -377,6 +377,8 @@ module internal Platform =
 
         member _.Count = queue.Count
 
+        member _.IsEmpty = queue.Count = 0
+
         member _.TryTake() : 'T voption =
             if queue.Count = 0 then
                 ValueNone
@@ -389,6 +391,8 @@ module internal Platform =
             queue.Enqueue item
 
         member _.Count = queue.Count
+
+        member _.IsEmpty = queue.IsEmpty
 
         member _.TryTake() : 'T voption =
             let mutable item = Unchecked.defaultof<'T>

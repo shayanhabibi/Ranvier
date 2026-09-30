@@ -221,7 +221,9 @@ module Trace =
             )
 
     let private gate (graph: Graph) (operation: string) =
-        if not graph.IsOnGraphThread then
+        if graph.Options.ThreadAffinity = Serialised then
+            graph.AssertOnGraphThread operation
+        elif not graph.IsOnGraphThread then
             raise (
                 System.InvalidOperationException (
                     operation
