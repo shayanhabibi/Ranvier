@@ -1244,6 +1244,20 @@ type Graph(options: GraphOptions) =
         | :? Graph as g -> ValueSome g
         | _ -> ValueNone
 
+#if !FABLE_COMPILER
+    /// <summary>
+    /// True with the ambient graph on this thread, as <c>TryCurrent</c> resolves it; otherwise false with <c>null</c>.
+    /// </summary>
+    static member TryGetCurrent([<System.Runtime.InteropServices.Out>] graph: byref<Graph>) : bool =
+        match Graph.Ambient with
+        | :? Graph as g ->
+            graph <- g
+            true
+        | _ ->
+            graph <- Unchecked.defaultof<Graph>
+            false
+#endif
+
     /// <summary>
     /// The ambient graph on this thread.
     /// </summary>
@@ -2324,6 +2338,34 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// </summary>
     new(graph: Graph, compute: Func<'T voption, 'T>, owning: bool) as this =
         Memo<'T>(graph, compute.Invoke, (if owning then ScopeMode.Owning else ScopeMode.Pure))
+        then this.Attach ()
+
+    (*FOR-REVIEW The seed precedes compute, unlike Reactive.Memo(compute, seed). A seed after compute makes
+      Memo (graph, (fun _ -> ...), true) fail overload resolution in F# (FS0041 "No overloads match" for a non-bool
+      memo, ambiguity for a bool one) and makes C# new Memo<bool>(graph, _ => x, false) ambiguous (CS0121). The
+      order matches Aggregate(seed, folder). The (Graph, Func<'T>) constructors from the note are not added: beside
+      (Graph, Func<'T voption, 'T>) they make F# Memo (graph, fun _ -> ...) ambiguous (FS0041), and C# already
+      writes new Memo<int>(graph, _ => ...) without naming ValueOption. OverloadResolutionPriority does not help:
+      F# ignores it. PreviousValues "the Memo constructor call forms resolve beside the seeded overloads" and C#
+      PreviousValueTests.MemoConstructorCallFormsResolve pin the call forms. *)
+    /// <summary>
+    /// A pure memo over <c>compute</c>, which receives the value last published, or <c>seed</c> before the first.
+    /// </summary>
+    new(graph: Graph, seed: 'T, compute: Func<'T, 'T>) as this =
+        Memo<'T>(graph, (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous)), ScopeMode.Pure)
+        then this.Attach ()
+
+    /// <summary>
+    /// A memo over <c>compute</c>, which receives the value last published, or <c>seed</c> before the first. Owning
+    /// when <c>owning</c> is true, pure otherwise.
+    /// </summary>
+    new(graph: Graph, seed: 'T, compute: Func<'T, 'T>, owning: bool) as this =
+        Memo<'T>(
+            graph,
+            (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous)),
+            (if owning then ScopeMode.Owning else ScopeMode.Pure)
+        )
+
         then this.Attach ()
 #endif
 
@@ -4251,6 +4293,34 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// </summary>
     static member Catching(graph: Graph, body: Func<'T>, fallback: Func<'T voption, 'T>, recover: Func<exn, 'T voption, 'T>) =
         Boundary<'T>.Create(graph, body.Invoke, ValueSome fallback.Invoke, ValueSome (fun ex previous -> recover.Invoke (ex, previous)))
+
+    (*FOR-REVIEW The seed forms put the seed before the handlers, as the seeded Memo constructors do; the Reactive
+      facade puts it last, as Reactive.Memo(compute, seed) does. Each overload differs in arity from its ValueOption
+      form, so either order resolves. *)
+    /// <summary>
+    /// <c>Suspense</c> whose <c>fallback</c> receives the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    static member Suspense(graph: Graph, body: Func<'T>, seed: 'T, fallback: Func<'T, 'T>) =
+        Boundary<'T>.Create(graph, body.Invoke, ValueSome (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous)), ValueNone)
+
+    /// <summary>
+    /// <c>Errors</c> whose <c>recover</c> receives the error and the boundary's last value, or <c>seed</c> before its
+    /// first.
+    /// </summary>
+    static member Errors(graph: Graph, body: Func<'T>, seed: 'T, recover: Func<exn, 'T, 'T>) =
+        Boundary<'T>.Create(graph, body.Invoke, ValueNone, ValueSome (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous)))
+
+    /// <summary>
+    /// <c>Catching</c> whose handlers receive the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    static member Catching(graph: Graph, body: Func<'T>, seed: 'T, fallback: Func<'T, 'T>, recover: Func<exn, 'T, 'T>) =
+        Boundary<'T>
+            .Create(
+                graph,
+                body.Invoke,
+                ValueSome (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous)),
+                ValueSome (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous))
+            )
 
     interface IOwned with
         member this.Release() =

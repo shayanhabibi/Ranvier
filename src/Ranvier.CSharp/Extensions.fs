@@ -2,6 +2,7 @@ namespace Ranvier.CSharp
 
 open System
 open System.Runtime.CompilerServices
+open System.Threading.Tasks
 open Ranvier
 
 /// <summary>Extension methods on graphs and signals.</summary>
@@ -26,6 +27,53 @@ type GraphExtensions =
     [<Extension>]
     static member Update<'T>(signal: Signal<'T>, update: Func<'T, 'T>) : unit =
         Signal.update signal update.Invoke
+
+/// <summary>
+/// Awaitable reads of <c>Previous.Settled</c> for C#: the value or a seed, or a <c>(HasValue, Value)</c> pair.
+/// </summary>
+/// <remarks>
+/// Each completes when <c>Settled</c> completes. A completed <c>Settled</c> yields a completed <c>ValueTask</c> without
+/// allocating; a pending one allocates one continuation. Read every input, then await, as with <c>Settled</c>.
+/// </remarks>
+[<Extension; AbstractClass; Sealed>]
+type PreviousExtensions =
+
+    /// <summary>The value last published, or <c>seed</c> before the first.</summary>
+    [<Extension>]
+    static member SettledOr<'T>(previous: Previous<'T>, seed: 'T) : ValueTask<'T> =
+        let settled = previous.Settled
+
+        if settled.IsCompletedSuccessfully then
+            ValueTask<'T>(ValueOption.defaultValue seed settled.Result)
+        else
+            ValueTask<'T>(
+                task {
+                    let! last = settled
+                    return ValueOption.defaultValue seed last
+                }
+            )
+
+    /// <summary>
+    /// <c>(true, value)</c> with the value last published, or <c>(false, default)</c> before the first.
+    /// </summary>
+    [<Extension>]
+    static member TrySettled<'T>(previous: Previous<'T>) : [<TupleElementNames([| "HasValue"; "Value" |])>] ValueTask<struct (bool * 'T)> =
+        let settled = previous.Settled
+
+        if settled.IsCompletedSuccessfully then
+            ValueTask<struct (bool * 'T)>(PreviousExtensions.Unpack settled.Result)
+        else
+            ValueTask<struct (bool * 'T)>(
+                task {
+                    let! last = settled
+                    return PreviousExtensions.Unpack last
+                }
+            )
+
+    static member private Unpack(last: 'T voption) : struct (bool * 'T) =
+        match last with
+        | ValueSome value -> struct (true, value)
+        | ValueNone -> struct (false, Unchecked.defaultof<'T>)
 
 /// <summary>
 /// Live operators on projections. Each returns a node that updates per changed row rather than recomputing the whole

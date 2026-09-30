@@ -31,7 +31,8 @@ These are implemented and covered by tests.
 - **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, `ReactiveBindings` for
   `INotifyPropertyChanged` and `INotifyDataErrorInfo`, and `ReactiveCommand`, an `ICommand` whose `CanExecute`
   and busy state come from graph nodes. `AsObservableCollection` raises `Add`, `Remove`,
-  `Move` and `Replace` changes in place of `Reset`. See [C#](../guide/csharp.md).
+  `Move` and `Replace` changes in place of `Reset`. Previous values reach C# through a seed or
+  `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
 - **Native AOT and trimming.** Both packages publish under Native AOT with no trim or AOT warnings, checked
   in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
 
@@ -52,8 +53,6 @@ None of these is available. Each one is an open question about whether and how i
   looked, then value changes, then views that apply deltas instead of re-reading their upstream keys.
 - **A serialised affinity mode for Blazor Server.** A graph whose work may run on several threads, one at a
   time, queued as the renderer queues its own work.
-- **C# surface cleanups.** Replacing the remaining `ValueOption` in the C# surface, such as
-  `Previous<T>.Settled`, with types that read naturally in C#.
 - **F# application patterns.** A bridge from an MVU model to per-selector memos, a per-field store without
   code generation, and a writable derived value seeded from upstream and editable locally.
 - **Failure provenance.** Reporting which node raised the failure that a boundary or a failed memo holds.

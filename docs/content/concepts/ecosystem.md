@@ -178,8 +178,6 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 - No framework-specific UI packages yet. The .NET UI bindings are `ReactiveBindings` (`INotifyPropertyChanged` and
   `INotifyDataErrorInfo`), `ReactiveCommand` (`ICommand` with a derived `CanExecute`) and
   `Projection.AsObservableCollection`.
-- The C# package, [Ranvier.CSharp](../guide/csharp.md), still exposes `ValueOption` in a few places, such as
-  `Previous<T>.Settled`.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
 - No debounce or throttle, and no flight policy that drops a new run while one is in progress.
 - Projections publish their current state only. Delta readers, which report the keys added, removed and

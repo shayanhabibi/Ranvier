@@ -215,8 +215,7 @@ public class AsyncTests
         var total = Async<int>(async (previous, token) =>
         {
             var by = step.Value;
-            var last = await previous.Settled;
-            return (last.IsSome ? last.Value : 0) + by;
+            return await previous.SettledOr(0) + by;
         });
 
         Assert.Equal(1, total.Value);

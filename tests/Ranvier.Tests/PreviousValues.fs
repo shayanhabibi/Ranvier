@@ -260,6 +260,138 @@ let tests =
                 Expect.equal observed.Value 1 "the same instance does not wake the observer"
                 Expect.equal (unbox<int> m.Peek) 1 "the retained value is the first"
             }
+
+            test "a seeded Suspense fallback receives the seed, then the last value" {
+                let g = new Graph ()
+                let first = AsyncSource<int> g
+                let second = AsyncSource<int> g
+                let current = Signal (g, first)
+                let seen = ResizeArray ()
+
+                let b =
+                    Boundary<int>
+                        .Suspense(
+                            g,
+                            (fun () -> current.Value.Value),
+                            -1,
+                            fun last ->
+                                seen.Add last
+                                last
+                        )
+
+                Expect.equal b.Value -1 "the seed before a value"
+                first.Settle 5
+                Expect.equal b.Value 5 "settled"
+                current.Value <- second
+                Expect.equal b.Value 5 "the last value while pending"
+                Expect.sequenceEqual seen [ -1; 5 ] "the seed, then the last value"
+            }
+
+            test "a seeded Errors recover receives the error and the seed, then the last value" {
+                let g = new Graph ()
+                let s = Signal (g, -1)
+                let seen = ResizeArray ()
+
+                let b =
+                    Boundary<int>
+                        .Errors(
+                            g,
+                            (fun () -> if s.Value < 0 then failwith "negative" else s.Value),
+                            100,
+                            fun error last ->
+                                seen.Add (error.Message, last)
+                                last
+                        )
+
+                Expect.equal b.Value 100 "the seed before a value"
+                s.Value <- 3
+                Expect.equal b.Value 3 "recovered"
+                s.Value <- -2
+                Expect.equal b.Value 3 "the last value while failing"
+                Expect.sequenceEqual seen [ ("negative", 100); ("negative", 3) ] "the seed, then the last value"
+            }
+
+            test "a seeded Catching boundary passes the seed, then its last value, to both handlers" {
+                let g = new Graph ()
+                let pending = AsyncSource<int> g
+                let mode = Signal (g, 0)
+
+                let b =
+                    Boundary<int>
+                        .Catching(
+                            g,
+                            (fun () ->
+                                match mode.Value with
+                                | 0 -> pending.Value
+                                | 1 -> failwith "failed"
+                                | v -> v),
+                            7,
+                            (fun last -> last + 1000),
+                            fun _ last -> last + 2000
+                        )
+
+                Expect.equal b.Value 1007 "the fallback over the seed"
+                mode.Value <- 1
+                Expect.equal b.Value 3007 "recover over the fallback value"
+                mode.Value <- 9
+                Expect.equal b.Value 9 "a value"
+                mode.Value <- 1
+                Expect.equal b.Value 2009 "recover over the last value"
+            }
+
+#if !FABLE_COMPILER
+            // .NET only: Fable drops the Memo constructors.
+            test "a seeded memo receives the seed, then the value last published" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let seen = ResizeArray ()
+
+                let m =
+                    Memo<int>(
+                        g,
+                        100,
+                        fun last ->
+                            seen.Add last
+                            last + s.Value
+                    )
+
+                Expect.equal m.Value 101 "the seed before the first run"
+                s.Value <- 5
+                Expect.equal m.Value 106 "the value last published after"
+                Expect.sequenceEqual seen [ 100; 101 ] "the seed, then the published value"
+            }
+
+            test "a seeded owning memo owns the nodes its body creates" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+
+                let m =
+                    Memo<int>(g, 0, (fun last -> last + (Memo<int>(g, (fun _ -> s.Value))).Value), true)
+
+                Expect.equal m.Value 1 "the inner memo is owned"
+                s.Value <- 2
+                Expect.equal m.Value 3 "folded"
+
+                let pureMemo = Memo<int>(g, 0, (fun _ -> (Memo<int>(g, (fun _ -> 1))).Value))
+                Expect.throws (fun () -> pureMemo.Value |> ignore) "a pure one raises"
+            }
+
+            (*FOR-REVIEW Pins the F# call forms beside the seeded constructors. A seed placed after compute breaks the
+              owning and bool forms; a (Graph, Func<'T>) constructor would make the first form ambiguous. *)
+            test "the Memo constructor call forms resolve beside the seeded overloads" {
+                let g = new Graph ()
+                let s = Signal (g, 2)
+                let ignoring = Memo (g, fun _ -> s.Value)
+                let owning = Memo (g, (fun _ -> s.Value), true)
+                let fold = Memo (g, (fun last -> ValueOption.defaultValue 0 last + s.Value), false)
+                let flag = Memo<bool>(g, (fun _ -> s.Value > 1), true)
+                let seeded = Memo (g, 10, fun last -> last + s.Value)
+                let seededFlag = Memo (g, true, fun last -> not last)
+
+                Expect.equal [ ignoring.Value; owning.Value; fold.Value; seeded.Value ] [ 2; 2; 2; 12 ] "each form builds its memo"
+                Expect.equal (flag.Value, seededFlag.Value) (true, false) "and the bool forms"
+            }
+#endif
         ]
 
 /// <summary>
