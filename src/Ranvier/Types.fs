@@ -30,6 +30,12 @@ type ThreadAffinity =
     /// </summary>
     | Unchecked
 
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | Guarded -> "Guarded"
+        | Unchecked -> "Unchecked"
+
 /// <summary>What an async memo does with a flight that a newer run has superseded.</summary>
 type FlightPolicy =
     /// <summary>
@@ -49,6 +55,13 @@ type FlightPolicy =
     /// pending source, the memo stays Pending: a Ready outcome becomes the <c>Peek</c> value and a Failed outcome is discarded.
     /// </remarks>
     | Queue
+
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | CancelPrevious -> "CancelPrevious"
+        | KeepLatest -> "KeepLatest"
+        | Queue -> "Queue"
 
 /// <summary>
 /// Supplies the cutoff comparer for a node's value type.
@@ -87,7 +100,12 @@ type INode =
 /// Deliberately NOT cached. Caching the exception object saves nothing on .NET:
 /// fresh throws measured cheaper than cached ones on .NET 9, 10 and 11 alike.
 /// </remarks>
-exception NotReadyException of source: INode
+exception NotReadyException of source: INode with
+    /// <summary><c>NotReadyException</c>, then the source's <c>ToString</c> text, or <c>null</c>.</summary>
+    override this.Message =
+        match box this.source with
+        | null -> "NotReadyException null"
+        | source -> "NotReadyException " + source.ToString ()
 
 
 /// <summary>
@@ -297,6 +315,28 @@ type GraphOptions =
             Dispatcher = Some dispatcher
         }
 
+    /// <summary>The record's fields, one per line, in F# record syntax.</summary>
+    override this.ToString() =
+        let text (value: obj) =
+            match value with
+            | null -> "null"
+            | value -> value.ToString ()
+
+        let dispatcher =
+            match this.Dispatcher with
+            | Some dispatcher -> "Some " + text dispatcher
+            | None -> "None"
+
+        "{ Equality = "
+        + text this.Equality
+        + "\n  FlightPolicy = "
+        + this.FlightPolicy.ToString ()
+        + "\n  ThreadAffinity = "
+        + this.ThreadAffinity.ToString ()
+        + "\n  Dispatcher = "
+        + dispatcher
+        + " }"
+
 /// <summary>
 /// Engine's internal read path and user's opt-in escape hatch.
 /// </summary>
@@ -306,6 +346,22 @@ type Reading<'T> =
     | Pending
     /// <summary>The node failed. <c>error</c> is a non-null exception on both targets.</summary>
     | Failed of error: exn
+
+    /// <summary>
+    /// The case name and its payload: a <c>string</c> value in double quotes, <c>null</c> as <c>null</c>, and any other
+    /// payload as its <c>string</c> text, which formats a number in the invariant culture.
+    /// </summary>
+    override this.ToString() =
+        let text (value: obj) =
+            match value with
+            | null -> "null"
+            | :? string as s -> "\"" + s + "\""
+            | value -> string value
+
+        match this with
+        | Ready value -> "Ready " + text (box value)
+        | Pending -> "Pending"
+        | Failed error -> "Failed " + text error
 
 #if !FABLE_COMPILER
     /// <summary>True with the value when the reading is <c>Ready</c>.</summary>

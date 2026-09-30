@@ -17,6 +17,14 @@
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
+    <!-- The reflection-free flag rejects `%A` (FS3376) and stops the compiler generating `%+A`-based `ToString`, so the
+         assembly never reaches FSharp.Core's reflective formatter. `IsAotCompatible` marks the assembly trimmable and
+         AOT-compatible; tests/Ranvier.AotSmoke checks that claim at publish time. -->
+    <PropertyGroup>
+        <OtherFlags>$(OtherFlags) --reflectionfree</OtherFlags>
+        <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    </PropertyGroup>
+
     <ItemGroup>
         <Compile Include="Reactive.fs" />
         <Compile Include="Extensions.fs" />

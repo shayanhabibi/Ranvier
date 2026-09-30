@@ -179,7 +179,7 @@ type internal RowSnapshot<'K, 'V when 'K: equality>(capacity: int) =
         if slot > 0 then
             pairs[slot - 1].Value
         else
-            raise (KeyNotFoundException $"The snapshot has no key %A{key}.")
+            raise (KeyNotFoundException ("The snapshot has no key " + string key + "."))
 
     interface IReadOnlyDictionary<'K, 'V> with
         member _.Count = pairs.Count
@@ -1012,7 +1012,7 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         if isNull entry then
             this.TrackAbsent ()
-            raise (KeyNotFoundException $"The projection has no key %A{key}.")
+            raise (KeyNotFoundException ("The projection has no key " + string key + "."))
 
         if keepSettled && entry.Settled then
             match entry.Row.TryValue with
@@ -1361,7 +1361,11 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
             // Two items, one key: one of them would silently disappear. The
             // throw fails the pass, and reaches the boundary around the read.
             raise (
-                InvalidOperationException $"The projection produced the key %A{key} twice in one pass. Keys must be unique; check the keyOf function."
+                InvalidOperationException (
+                    "The projection produced the key "
+                    + string key
+                    + " twice in one pass. Keys must be unique; check the keyOf function."
+                )
             )
 
         this.PassKeys.Add key
@@ -1406,19 +1410,18 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
                         factory (fun () -> source.Value)
                     with
                     | NotReadyException _ as ex ->
+                        let message =
+                            "The projection's factory for key "
+                            + string key
+                            + " read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns."
+
                         let failure =
 #if FABLE_COMPILER
-                            let failure =
-                                InvalidOperationException
-                                    $"The projection's factory for key %A{key} read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns."
-
+                            let failure = InvalidOperationException message
                             Platform.setInner failure ex
                             failure
 #else
-                            InvalidOperationException (
-                                $"The projection's factory for key %A{key} read a pending source. The factory runs once per key, untracked, and cannot wait for a source to settle. Read the source inside the reader the factory returns.",
-                                ex
-                            )
+                            InvalidOperationException (message, ex)
 #endif
 
                         fun () -> raise failure
