@@ -70,6 +70,8 @@ let all =
                     Ranvier.Tests.Combinators.foldTests
                 ]
             testList "PreviousValues.fs" [ Ranvier.Tests.PreviousValues.tests; Ranvier.Tests.PreviousValues.asyncTests ]
+            testList "Editables.fs" [ Ranvier.Tests.Editables.tests ]
+            testList "MvuBridge.fs" [ Ranvier.Tests.MvuBridge.tests ]
         ]
 
 Mocha.runTests all |> ignore

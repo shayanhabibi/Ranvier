@@ -55,7 +55,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| Editables.fs | 17 | 17 | 17 | 17 | 17 | 17 | 1 | 0 |
+| MvuBridge.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
+| **Total** | 726 | 708 | 670 | 800 | 778 | 737 | 71 | 1 |
 
 ## Tests.fs
 
@@ -1286,5 +1288,51 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a failed run leaves prev at the last settled value
 - a failed first run passes ValueNone to the next run
 - returning prev triggers the cutoff
+
+</details>
+
+## Editables.fs
+
+| Excluded | Reason |
+| --- | --- |
+| an edit of an int allocates no more than a write through a chain of two memos | JavaScript exposes no allocation counter. |
+
+<details><summary>17 passed in every build and delivery that runs them</summary>
+
+- an editable reads the seed until edited, then the edit
+- an upstream change drops the edit of an editable
+- A -> B -> A observed drops the edit
+- A -> B -> A inside a batch keeps the edit
+- A -> B -> A with nothing reading the seed keeps the edit
+- a seed that re-runs to an equal value keeps the edit and wakes no reader
+- a seed returning a new but equal record drops the edit under the default policy
+- a seed returning its previous record keeps the edit
+- an equal edit wakes no reader
+- Reset drops the edit
+- IsEdited wakes its reader on edit, on reset and when upstream drops the edit
+- the seed receives its own last value
+- a draft keeps its edit across upstream changes until Reset
+- an edit while the seed is pending belongs to the last settled value
+- a pending seed that settles to a new value drops the edit
+- an edit before the seed first settles is dropped by an editable and kept by a draft
+- disposing the owner detaches the editable from its seed
+
+</details>
+
+## MvuBridge.fs
+
+| Excluded | Reason |
+| --- | --- |
+| a dispatch from another thread is queued until the graph pumps | JavaScript has one thread. |
+
+<details><summary>7 passed in every build and delivery that runs them</summary>
+
+- Dispatch applies update to the model
+- an update that returns its argument wakes nothing
+- a selector wakes its readers only when its part changes
+- a nested selector re-runs only when its parent memo changes
+- commands run after the write, with Dispatch
+- initial commands run before withCommands returns
+- a dispatch from an effect leaves the effect unsubscribed from the model
 
 </details>
