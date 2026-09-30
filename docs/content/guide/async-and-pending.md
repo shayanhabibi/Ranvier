@@ -246,23 +246,31 @@ show refused.TryValue, show faulted.TryValue
 
 ### Flight policy
 
-A new flight supersedes the one in progress. `GraphOptions.FlightPolicy` sets what happens to the
-superseded flight:
+`GraphOptions.FlightPolicy` sets what a change does while a flight is in progress:
 
-| Policy | Old token cancelled | Superseded result discarded | Every result applied |
-|--------|---------------------|-----------------------------|----------------------|
-| `CancelPrevious` (default) | Yes | Yes | No |
-| `KeepLatest` | No | Yes | No |
-| `Queue` | No | No | Yes, in the order the flights started |
+| Policy | New flight at once | Old token cancelled | Superseded result discarded | Every result applied |
+|--------|--------------------|---------------------|-----------------------------|----------------------|
+| `CancelPrevious` (default) | Yes | Yes | Yes | No |
+| `KeepLatest` | Yes | No | Yes | No |
+| `Queue` | Yes | No | No | Yes, in the order the flights started |
+| `FinishCurrent` | No, one trailing flight after it settles | No | No flight is superseded | No |
 
 `CancelPrevious` and `KeepLatest` publish the same values. They differ only in whether the
 superseded flight's `CancellationToken` is cancelled. Pass the token to the IO the flight performs,
 so that `CancelPrevious` stops the superseded IO.
 
-Every policy starts a new flight as soon as a changed memo is read; the policy decides only the fate of
-the flights already in progress. The memo observes every flight's exception, including a superseded
+`CancelPrevious`, `KeepLatest` and `Queue` start a new flight as soon as a changed memo is read, and
+decide only the fate of the flights already in progress. The memo observes every flight's exception, including a superseded
 flight's and one raised after the memo or its graph was disposed, so `TaskScheduler.UnobservedTaskException`
 receives none of them.
+
+`FinishCurrent` lets the flight in progress finish. A change during it runs no body and starts no
+flight, and the memo stays pending. When the flight settles, the memo runs once more against the
+current inputs, however many changes arrived: its value becomes the `Peek` value and the trailing
+run's previous value, and a failure is discarded. The trailing run starts at the memo's next read,
+so a memo read by an effect starts it as soon as the flight settles. A flight with no change during
+it applies as under `KeepLatest`. Use it for work that must not be abandoned halfway, such as a
+save, where the settled value must still match the latest inputs.
 
 The same policies under the names other .NET libraries use. A name appears only where its behaviour
 matches exactly:
@@ -272,25 +280,34 @@ matches exactly:
 | `CancelPrevious` | `Switch` | `CancelCurrent` |
 | `KeepLatest` | none (`Switch` without the cancellation) | none |
 | `Queue` | `SequentialParallel` | none |
+| `FinishCurrent` | none | none |
+
+`FinishCurrent` is closest to SignalsDotnet's `ScheduleNext` and R3's `ThrottleFirstLast`. Both
+publish the finished run's result; `FinishCurrent` keeps the memo pending until the trailing run
+settles, so a published value always belongs to the current inputs.
 
 Ranvier does not implement these policies:
 
 | Policy | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` |
 |--------|---------------------|------------------------------------------|
 | Run one flight at a time, queue every change | `Sequential` | none |
-| Run once more after the current run, at most one queued | none | `ScheduleNext` |
+| Run once more after the current run and publish both results | none | `ScheduleNext` |
 | Ignore changes while a flight runs | `Drop` | none |
 | Run every flight, apply results in completion order | `Parallel` | none |
 | Run the first and the last change | `ThrottleFirstLast` | none |
 
-CommunityToolkit's `AsyncRelayCommand` has no counterpart. `AllowConcurrentExecutions` is a gate on
-`CanExecute` for a command with no result: `false` reports the command as not executable while it
-runs, and `true` lets executions overlap. An async memo has no `CanExecute` and always starts a new
-flight. Debounce and throttle are not implemented either, as a policy or as a combinator.
+CommunityToolkit's `AsyncRelayCommand` has no async-memo counterpart. `AllowConcurrentExecutions` is a
+gate on `CanExecute` for a command with no result: `false` reports the command as not executable while
+it runs, and `true` lets executions overlap. An async memo has no `CanExecute`: every change starts a
+new flight, or under `FinishCurrent` a trailing one. For commands, C# has `ReactiveCommand`, whose
+`CommandPolicy.Disable` matches `AllowConcurrentExecutions = false`; see [C#](csharp.md#commands).
+Debounce and throttle are not implemented either, as a policy or as a combinator.
 
 Cancellation costs one `CancellationTokenSource` per flight under `CancelPrevious`: each launch cancels
 and disposes the superseded flight's source and allocates the next. Under `KeepLatest` and `Queue`,
-overlapping flights share one source. It is disposed, without being cancelled, once every flight that
+overlapping flights share one source. Under `FinishCurrent` flights never overlap, and each flight
+allocates one source, disposed without being cancelled when the flight settles. A change during
+a flight allocates nothing. It is disposed, without being cancelled, once every flight that
 holds it has settled, and the next flight allocates another; disposing the memo cancels it. A body
 that ignores its token pays that allocation and a `Cancel` with no registered callbacks. A body that registers on the
 token, as `HttpClient` does, also pays for the callbacks the `Cancel` runs. The token
@@ -299,15 +316,16 @@ belongs to the async memo alone: signals, memos and effects carry none, and thei
 A registration on the token lives as long as its source. `use _ = token.Register ...`, and every API
 that takes the token and completes (`Task.Delay`, `HttpClient`, `SemaphoreSlim.WaitAsync`,
 `cancellableTask` binds), releases its registration when the operation ends. A registration left
-undisposed is released with the source: under `CancelPrevious` at the next launch, under `KeepLatest`
-and `Queue` once the flights sharing the source have all settled, so a stream of overlapping flights
+undisposed is released with the source: under `CancelPrevious` at the next launch, under `FinishCurrent`
+when its flight settles, under `KeepLatest` and `Queue` once the flights sharing the source have all settled, so a stream of overlapping flights
 keeps each one's registration until the stream goes quiet. A flight that completes only on
 cancellation stays in progress under `KeepLatest` and `Queue` until the memo is disposed, together
 with everything its task and registrations hold; use `CancelPrevious` for such bodies. Work that
 outlives its flight and keeps the token sees a disposed source once the source is released: it is
 not cancelled when the memo is disposed, and `token.WaitHandle` throws `ObjectDisposedException`.
 `FlightPolicyBenchmarks` in the [suspension bench](../benchmarks/suspension.md#flightpolicybenchmarks)
-compares a launch under `CancelPrevious` with one under `KeepLatest`.
+compares a launch under `CancelPrevious` with one under `KeepLatest`, and `FlightBenchmarks`
+compares every policy, with and without changes during a flight.
 
 In the map, `Desk` stands in for a remote service: its requests stay pending until a button answers them. **Next user** starts a flight; pressed twice, the second flight supersedes the first, which drops. **Answer** settles the newest flight and **Fail** fails it. The timeline steps through each event.
 
@@ -337,8 +355,10 @@ one member, `Settled`, is a `Task<'T voption>` that completes with `ValueNone` b
 on a [memo](getting-started.md#the-previous-value), a run that suspends on a pending source or fails
 leaves the previous value unchanged.
 
-Read every input, then await `previous.Settled`. Under `CancelPrevious` and `KeepLatest`, `Settled`
-is complete when the body runs, and only the newest flight's result becomes a previous value.
+Read every input, then await `previous.Settled`. Under `CancelPrevious`, `KeepLatest` and
+`FinishCurrent`, `Settled` is complete when the body runs. Under the first two, only the newest
+flight's result becomes a previous value; under `FinishCurrent`, a trailing run receives the value of
+the flight it waited for, or the value before it when that flight failed.
 Under `Queue`, `Settled` completes when the flight started before this one is applied, so the
 flights fold in start order. An await on it suspends, and reads after it are untracked. If the
 earlier flight fails or is dropped, `Settled` returns the value published before it. Disposing the
@@ -624,10 +644,12 @@ A graph belongs to the thread that constructed it. The rules:
 | Creating a node, `Batch`, `Untrack`, `Flush`, `CreateRoot`, `OnCleanup`, `Dispose` | Guarded. From another thread each raises `InvalidOperationException` before it changes the graph. |
 | `.Value`, `TryValue` | Guarded when the read recomputes a stale memo or boundary. A read of a current value is not guarded. |
 | `Peek` | Not guarded. |
-| `Graph.Current` | Flows with the async context of `graph.Activate ()`. A guarded graph is current on the activating thread only; an `Unchecked` graph is current on every thread the activating context reaches. The `create*` functions elsewhere raise `No ambient graph on this thread`. |
+| `Graph.Current` | Flows with the async context of `graph.Activate ()`. A guarded graph is current on the activating thread only; an `Unchecked` or `Serialised` graph is current on every thread the activating context reaches. The `create*` functions elsewhere raise `No ambient graph on this thread`. |
 
 `ThreadAffinity = Unchecked` removes the guard. Use it only when every write is known to arrive on
-one thread.
+one thread. `ThreadAffinity = Serialised` suits a host that runs its work one item at a time on a
+synchronisation context but on varying threads, such as a Blazor Server circuit; see
+[Blazor Server](blazor-server.md).
 
 The write guard's message names both threads:
 

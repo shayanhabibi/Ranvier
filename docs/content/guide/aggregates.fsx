@@ -22,6 +22,7 @@ aggregate is a `Memo<'S>`: read it, track it and dispose it as any memo.
 #load "../../../src/Ranvier/Positional.fs"
 #load "../../../src/Ranvier/Trace.fs"
 #load "../../../src/Ranvier/Core.fs"
+#load "../../../src/Ranvier/Deltas.fs"
 #load "../../../src/Ranvier/Projections.fs"
 #load "../../../src/Ranvier/Api.fs"
 #load "../../../src/Ranvier/Combinators.fs"

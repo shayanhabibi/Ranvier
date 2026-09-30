@@ -1,11 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="brand/wordmark/ranvier-wordmark-dark.svg">
-    <img alt="ranvier" src="brand/wordmark/ranvier-wordmark-light.svg" width="240">
-  </picture>
+  <img alt="ranvier: fine-grained reactive computation for .NET" src="brand/og/ranvier-og.png">
 </p>
-
-<p align="center">Fine-grained reactive computation for .NET.</p>
 
 <p align="center">
   <a href="https://shayanhabibi.github.io/Ranvier/">Documentation</a>
@@ -21,6 +16,7 @@
 
 > **Preview.** Ranvier is pre-release. Its APIs may change before the first release. Install the preview from NuGet as
 > [`Ranvier`](https://www.nuget.org/packages/Ranvier), or [`Ranvier.CSharp`](https://www.nuget.org/packages/Ranvier.CSharp) from C#.
+> The Elmish-style MVU bridge ships separately as [`Ranvier.Elmish`](https://www.nuget.org/packages/Ranvier.Elmish).
 
 ## Overview
 
@@ -93,6 +89,7 @@ Global flags: `--quick` skips restores and cleaning,
 build.fsx                      the build CLI
 src/Ranvier/                   the library
 src/Ranvier.CSharp/            the C# façade
+src/Ranvier.Elmish/            the MVU bridge (Mvu)
 tests/Ranvier.Tests/           the Expecto suite
 tests/Ranvier.CSharp.Tests/    the xUnit suite, written in C#
 docs/docs.fsproj               the Nacara site (net10.0)

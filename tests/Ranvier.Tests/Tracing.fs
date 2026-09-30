@@ -1236,9 +1236,97 @@ let tests =
             test "valueText renders a value as one line" {
                 Expect.equal (TraceModel.valueText (box {| Sku = "tea"; Qty = 2 |})) "{| Qty = 2; Sku = \"tea\" |}" "a record joins its fields"
                 Expect.equal (TraceModel.valueText (box "a\nb")) "a b" "a string collapses its lines"
+#if !FABLE_COMPILER
+                Expect.equal (TraceModel.valueText (box [| 1; 2 |])) "[|1; 2|]" "an array lists its elements"
+                Expect.equal (TraceModel.valueText (box [ "a"; "b" ])) "[\"a\"; \"b\"]" "a list quotes its strings"
+                Expect.equal (TraceModel.valueText (box (Some 1))) "Some 1" "any other value as its %A text"
+#endif
                 let long = TraceModel.valueText (box [ 1..100 ])
                 Expect.equal long.Length 60 "a long value is truncated"
                 Expect.isTrue (long.EndsWith "…") "with an ellipsis"
+            }
+
+            test "FinishCurrent records a deferred run and a settle held for the trailing run" {
+                use g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            FlightPolicy = FinishCurrent
+                        }
+                    )
+
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let flights = ResizeArray<TaskCompletionSource<int>>()
+
+                let a =
+                    createAsync (fun _ _ ->
+                        s.Value |> ignore
+                        let flight = TaskCompletionSource<int>()
+                        flights.Add flight
+                        flight.Task)
+
+                let id = (a :> INode).Id
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.TryValue |> ignore
+
+                let deferred =
+                    ofKind TraceEventKind.RunDeferred g
+                    |> Array.filter (fun e -> e.Node = id)
+
+                Expect.equal (deferred |> Array.map _.Arg) [| 1 |] "one deferred run, during flight 1"
+
+                flights[0].SetResult 10
+
+                let settle =
+                    ofKind TraceEventKind.Settle g
+                    |> Array.find (fun e -> e.Node = id)
+
+                Expect.equal settle.Flag 2 "the settle is held for the trailing run"
+
+                match (Trace.waitingOn g a).Flights with
+                | [ first ] -> Expect.equal first.State (TraceFlightState.Settled (settle.Seq, true)) "waitingOn shows it held pending"
+                | other -> failtestf "expected one flight, got %A" other
+
+                a.TryValue |> ignore
+
+                let trailing =
+                    ofKind TraceEventKind.RunStart g
+                    |> Array.filter (fun e -> e.Node = id)
+                    |> Array.last
+
+                Expect.equal trailing.Arg 2 "the read starts the trailing run"
+            }
+
+            test "FinishCurrent drops a failure that settles with a run owed as Trailing" {
+                use g =
+                    new Graph (
+                        { GraphOptions.Default with
+                            FlightPolicy = FinishCurrent
+                        }
+                    )
+
+                use _ = g.Activate ()
+                let s = createSignal 1
+                let flights = ResizeArray<TaskCompletionSource<int>>()
+
+                let a =
+                    createAsync (fun _ _ ->
+                        s.Value |> ignore
+                        let flight = TaskCompletionSource<int>()
+                        flights.Add flight
+                        flight.Task)
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.TryValue |> ignore
+                flights[0].SetException(exn "stale")
+
+                match (Trace.waitingOn g a).Flights with
+                | [ {
+                        State = TraceFlightState.Dropped (_, reason)
+                    } ] -> Expect.equal reason TraceDropReason.Trailing "dropped for the trailing run"
+                | other -> failtestf "expected one dropped flight, got %A" other
             }
 
             test "waitingOn reports superseded, settled and failed flights" {

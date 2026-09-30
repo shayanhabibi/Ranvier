@@ -30,6 +30,34 @@ type private Flight<'T>() =
     member _.Fail(e: exn) =
         source.SetException e
 
+/// <summary>A graph under <c>FinishCurrent</c> whose off-thread work waits for <c>Pump</c>.</summary>
+let private finishCurrentGraph () =
+    new Graph (
+        { GraphOptions.Default with
+            Dispatcher = Some (ManualDispatcher () :> IGraphDispatcher)
+            FlightPolicy = FinishCurrent
+        }
+    )
+
+/// <summary>
+/// An async memo over <c>s</c> with one hand-settled <c>Flight</c> per run, and the value of <c>s</c> each run read.
+/// </summary>
+let private finishCurrentMemo (g: Graph) (s: Signal<int>) =
+    let flights = ResizeArray<Flight<int>>()
+    let inputs = ResizeArray<int>()
+
+    let a =
+        Make.AsyncMemo<int>(
+            g,
+            fun _ _ ->
+                inputs.Add s.Value
+                let flight = Flight<int>()
+                flights.Add flight
+                flight.Task
+        )
+
+    a, flights, inputs
+
 /// <summary>What a search view shows: nothing known yet, or a loaded list that may be empty.</summary>
 type private Results =
     | NotYetKnown
@@ -583,6 +611,160 @@ let tests =
                 Expect.equal a.TryValue Pending "a new run is pending until the next outcome"
                 flights[1].Settle 20
                 Expect.equal a.TryValue (Ready 20) "the second outcome, with the third flight in progress"
+            }
+
+            test "FinishCurrent folds the changes during a flight into one trailing run" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let a, flights, inputs = finishCurrentMemo g s
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                Expect.equal a.TryValue Pending "a change during the flight keeps the memo pending"
+                s.Value <- 3
+                Expect.equal a.TryValue Pending "so does a second"
+                Expect.equal a.Runs 1 "changes during the flight run no body"
+
+                flights[0].Settle 10
+                Expect.equal a.Peek 10 "the finished flight's value is the Peek value"
+                Expect.equal a.TryValue Pending "the read starts the trailing run"
+                Expect.equal a.Runs 2 "one trailing run for both changes"
+                Expect.sequenceEqual inputs [ 1; 3 ] "the trailing run reads the current inputs"
+
+                flights[1].Settle 30
+                Expect.equal a.TryValue (Ready 30) "the trailing flight publishes"
+            }
+
+#if !FABLE_COMPILER
+            // .NET only: reads Settled's completion synchronously, and under Fable it is a promise.
+            test "FinishCurrent hands the finished flight's value to the trailing run as Previous" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let flights = ResizeArray<Flight<int>>()
+                let prevs = ResizeArray<Previous<int>>()
+
+                let a =
+                    Make.AsyncMemo<int>(
+                        g,
+                        fun prev _ ->
+                            s.Value |> ignore
+                            prevs.Add prev
+                            let flight = Flight<int>()
+                            flights.Add flight
+                            flight.Task
+                    )
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.TryValue |> ignore
+                flights[0].Settle 10
+                a.TryValue |> ignore
+
+                Expect.equal prevs.Count 2 "two runs"
+                Expect.isTrue prevs[1].Settled.IsCompleted "Settled is complete when the trailing body runs"
+                Expect.equal prevs[1].Settled.Result (ValueSome 10) "the trailing run starts from the finished flight"
+            }
+#endif
+
+            test "FinishCurrent discards a failure that settles with a run owed" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let a, flights, _ = finishCurrentMemo g s
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                flights[0].Fail(exn "stale")
+                Expect.equal a.TryValue Pending "the failure is discarded and the trailing run starts"
+                Expect.equal a.Runs 2 "the trailing run"
+                flights[1].Settle 20
+                Expect.equal a.TryValue (Ready 20) "the trailing flight publishes"
+            }
+
+            test "FinishCurrent disposed with a run owed runs nothing more" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let tokens = ResizeArray<CancellationToken>()
+                let flight = Flight<int>()
+
+                let a =
+                    Make.AsyncMemo<int>(
+                        g,
+                        fun _ token ->
+                            s.Value |> ignore
+                            tokens.Add token
+                            flight.Task
+                    )
+
+                a.TryValue |> ignore
+                s.Value <- 2
+                a.Dispose ()
+                Expect.isTrue tokens[0].IsCancellationRequested "the flight in progress is cancelled"
+                flight.Settle 10
+
+                match a.TryValue with
+                | Failed e -> Expect.isTrue (isDisposedError e) "the memo fails as disposed"
+                | other -> failtestf "expected Failed, got %A" other
+
+                Expect.equal a.Runs 1 "the owed run is dropped"
+            }
+
+            test "FinishCurrent applies a flight with no change during it as KeepLatest does" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let a, flights, inputs = finishCurrentMemo g s
+
+                a.TryValue |> ignore
+                flights[0].Settle 10
+                Expect.equal a.TryValue (Ready 10) "the flight publishes"
+                s.Value <- 2
+                Expect.equal a.TryValue Pending "a change after the flight starts a flight at once"
+                Expect.sequenceEqual inputs [ 1; 2 ] "against the new input"
+            }
+
+            test "FinishCurrent does not hold a run back behind a body suspended on a pending source" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let upstream = AsyncSource<int>(g)
+                let flight = Flight<int>()
+
+                let a =
+                    Make.AsyncMemo<int>(
+                        g,
+                        fun _ _ ->
+                            s.Value |> ignore
+                            upstream.Value |> ignore
+                            flight.Task
+                    )
+
+                Expect.equal a.TryValue Pending "suspended before a flight started"
+                s.Value <- 2
+                a.TryValue |> ignore
+                Expect.equal a.Runs 2 "the change runs the body"
+                upstream.Settle 1
+                a.TryValue |> ignore
+                Expect.equal a.Runs 3 "the settle runs it again and starts the flight"
+                flight.Settle 7
+                Expect.equal a.TryValue (Ready 7) "the flight publishes"
+            }
+
+            test "FinishCurrent starts the trailing run for an effect that reads the memo" {
+                let g = finishCurrentGraph ()
+                let s = Signal (g, 1)
+                let a, flights, inputs = finishCurrentMemo g s
+                let seen = ResizeArray<Reading<int>>()
+                use _reader = new Effect (g, (fun () -> seen.Add a.TryValue))
+
+                s.Value <- 2
+                s.Value <- 3
+                Expect.equal a.Runs 1 "the effect's re-reads during the flight run no body"
+
+                flights[0].Settle 10
+                Expect.equal a.Runs 2 "the settle wakes the effect, and its read starts the trailing run"
+                Expect.sequenceEqual inputs [ 1; 3 ] "against the current inputs"
+                Expect.equal seen[seen.Count - 1] Pending "the effect sees the memo pending"
+
+                flights[1].Settle 30
+                Expect.equal seen[seen.Count - 1] (Ready 30) "then the trailing flight's value"
             }
 
             test "a failed flight settles as Failed" {

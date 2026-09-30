@@ -134,7 +134,7 @@ type internal FilterView<'K, 'V, 'U when 'K: equality>
                         this.Visit (key, key)
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         heldOut.Publish upstream
 
@@ -243,7 +243,7 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>(graph: G
                         ranks.Add entry.Row.Peek
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         if not (unchanged ()) then
             sorted <- false
@@ -346,7 +346,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality> internal (graph: Gr
         for struct (groupKey, group) in adds do
             let source = Signal<Projection<'K, 'V>>(graph, group.View)
             let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>>(groupKey, source)
-            this.Entries.Set (groupKey, entry)
+            this.AddEntry (groupKey, entry)
             entry.Reader <- fun () -> source.Value
             entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun _ -> this.RunRow entry), ScopeMode.ValueRow)
 
@@ -767,13 +767,22 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
         if full then
             this.Recompute ()
 
-    member private _.Failure: exn =
+    /// <summary>Raises the exception of the first failed row, with the row's origin when the row still holds it.</summary>
+    member private _.RaiseFailure() =
         if isNull (box failure) then
             rows.Iterate (fun _ row ->
                 if isNull (box failure) && not (isNull row.Error) then
                     failure <- row)
 
-        failure.Error
+        let recorded = failure.Entry.Row.Failure
+
+        if
+            not (isNull recorded)
+            && obj.ReferenceEquals (recorded.Error, failure.Error)
+        then
+            graph.Raise recorded
+        else
+            raise failure.Error
 
     /// <summary>The memo's body: tracks the upstream keys and this node, then returns the current state.</summary>
     member this.Compute(_: 'S voption) : 'S =
@@ -786,7 +795,7 @@ type internal ProjectionFold<'K, 'V, 'S when 'K: equality>
             moved <- false
 
             if failed > 0 then
-                raise this.Failure
+                this.RaiseFailure ()
 
             state
 
@@ -911,7 +920,7 @@ module Projection =
         let read key =
             match choices.Value.Get key with
             | Some value -> value
-            | None -> raise (System.Collections.Generic.KeyNotFoundException $"The projection has no key %A{key}.")
+            | None -> raise (System.Collections.Generic.KeyNotFoundException ("The projection has no key " + string key + "."))
 
         let view = new FilterView<'K, 'V, 'U> (graph, upstream, inclusion, read)
 
@@ -1180,6 +1189,7 @@ module Projection =
     /// let hours = rows |> Projection.sumBy (fun t -> t.Hours)
     /// </code>
     /// </example>
+    [<NoDynamicInvocation>]
     let inline sumBy (projection: 'V -> ^N) (upstream: Projection<'K, 'V>) : Memo< ^N > =
         upstream
         |> map projection

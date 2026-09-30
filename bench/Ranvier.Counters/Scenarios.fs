@@ -2,14 +2,16 @@
 /// The workloads, one implementation per engine. In the first five, every
 /// engine builds the same shape: a root holds a shared source and its rows, and
 /// a row is a source of its own plus one reaction reading the row and the shared
-/// source. The cost of a root is constant in the number of roots alive. The
-/// projection workloads measure Ranvier alone.
+/// source. The cost of a root is constant in the number of roots alive. Every
+/// other workload measures Ranvier alone.
 /// </summary>
 module CounterBench.Scenarios
 
 open System
+open System.Threading.Tasks
 open FSharp.Data.Adaptive
 open Ranvier
+open Ranvier.Elmish
 
 /// <summary>
 /// State built outside the measured region. <c>Run</c> performs the operations the
@@ -48,6 +50,9 @@ let ChainDepth = 4
 
 [<Literal>]
 let FormFields = 8
+
+[<Literal>]
+let ModelFields = 64
 
 /// <summary>
 /// Written by every reaction, which keeps every reaction's result live.
@@ -124,8 +129,8 @@ module private Ranvier =
                     (graph :> IDisposable).Dispose()
         }
 
-    let chain (n: int) =
-        let graph = Workloads.newGraph ()
+    /// <summary>A signal and a chain of <c>ChainDepth</c> memos over it in <c>graph</c>. An operation writes the source and reads the tail.</summary>
+    let chainOn (graph: Graph) (n: int) =
         let source = Signal (graph, 0)
         let mutable tail = Memo (graph, (fun _ -> source.Value + 1))
 
@@ -146,6 +151,13 @@ module private Ranvier =
                         sink <- tail.Value
             Teardown = fun () -> (graph :> IDisposable).Dispose()
         }
+
+    let chain (n: int) =
+        chainOn (Workloads.newGraph ()) n
+
+    /// <summary><c>chain</c> in a graph of thread affinity <c>affinity</c>.</summary>
+    let chainAffinity (affinity: ThreadAffinity) (n: int) =
+        chainOn (new Graph (GraphOptions.Default.WithThreadAffinity affinity)) n
 
     let cutoff (n: int) =
         let graph = Workloads.newGraph ()
@@ -419,6 +431,219 @@ module private Ranvier =
                 fun () ->
                     for write in writes do
                         source.Value <- write
+            Teardown =
+                fun () ->
+                    owner.Dispose ()
+                    (graph :> IDisposable).Dispose()
+        }
+
+    /// <summary>
+    /// A <c>RowCount</c>-row projection whose last key is replaced by a key the source has never held on each operation.
+    /// One effect reads each other row and one reads <c>Keys</c>; <c>readers</c> key readers are each read by an effect
+    /// of their own.
+    /// </summary>
+    let projectChurn (readers: int) (n: int) =
+        let graph = Workloads.newGraph ()
+        let items = Array.init RowCount (fun i -> i, i)
+        use _ = graph.Activate ()
+        let source = Signal (graph, items)
+
+        let owner =
+            graph.CreateRoot (fun owner ->
+                let rows = createProjection fst snd (fun () -> source.Value)
+
+                for key in 0 .. RowCount - 2 do
+                    new Effect (graph, (fun () -> sink <- rows.Get key))
+                    |> ignore
+
+                new Effect (graph, (fun () -> sink <- rows.Keys.Length))
+                |> ignore
+
+                for _ in 1..readers do
+                    let reader = rows.NewKeyReader ()
+
+                    new Effect (graph, (fun () -> sink <- reader.Read().Changes.Count))
+                    |> ignore
+
+                owner)
+
+        let writes =
+            Array.init n (fun op ->
+                let next = Array.copy items
+                next[RowCount - 1] <- RowCount + op, op
+                next)
+
+        {
+            Run =
+                fun () ->
+                    for write in writes do
+                        source.Value <- write
+            Teardown =
+                fun () ->
+                    owner.Dispose ()
+                    (graph :> IDisposable).Dispose()
+        }
+
+    /// <summary>
+    /// An async memo whose body reads a trigger and returns a task left open, in a graph of flight policy
+    /// <c>policy</c>. An operation writes the trigger and reads the memo, twice, then completes every open task, reading
+    /// the memo after each round, until none remains.
+    /// </summary>
+    let flight (policy: FlightPolicy) (n: int) =
+        let graph = new Graph (GraphOptions.Default.WithFlightPolicy policy)
+        let trigger = Signal (graph, 0)
+        let pending = ResizeArray<TaskCompletionSource<int>>()
+
+        let memo =
+            new AsyncMemo<int> (
+                graph,
+                fun _ _ ->
+                    trigger.Value |> ignore
+                    let source = TaskCompletionSource<int>()
+                    pending.Add source
+                    source.Task
+            )
+
+        let settle (value: int) =
+            while pending.Count > 0 do
+                let round = pending.ToArray ()
+                pending.Clear ()
+
+                for source in round do
+                    source.SetResult value
+
+                memo.TryValue |> ignore
+
+        memo.TryValue |> ignore
+        settle 0
+        let next = ref 0
+
+        {
+            Run =
+                fun () ->
+                    for _ in 1..n do
+                        for _ in 1..2 do
+                            next.Value <- next.Value + 1
+                            trigger.Value <- next.Value
+                            memo.TryValue |> ignore
+
+                        settle next.Value
+            Teardown =
+                fun () ->
+                    memo.Dispose ()
+                    (graph :> IDisposable).Dispose()
+        }
+
+    /// <summary>
+    /// A memo read by one memo. The first throws a fresh exception on every run when <c>fails</c>, and returns its input
+    /// otherwise. An operation writes the trigger the first memo reads, then reads the reader and the node its failure
+    /// originated in.
+    /// </summary>
+    let recompute (fails: bool) (n: int) =
+        let graph = Workloads.newGraph ()
+        let trigger = Signal (graph, 0)
+
+        let first =
+            Memo (
+                graph,
+                fun _ ->
+                    if fails && trigger.Value >= 0 then
+                        raise (InvalidOperationException "failing")
+
+                    trigger.Value
+            )
+
+        let reader = Memo (graph, (fun _ -> first.Value + 1))
+        reader.TryValue |> ignore
+        let next = ref 0
+
+        {
+            Run =
+                fun () ->
+                    for _ in 1..n do
+                        next.Value <- next.Value + 1
+                        trigger.Value <- next.Value
+
+                        match reader.TryValue with
+                        | Ready v -> sink <- v
+                        | _ -> sink <- if isNull (box reader.ErrorOrigin) then 0 else 1
+            Teardown = fun () -> (graph :> IDisposable).Dispose()
+        }
+
+    /// <summary>
+    /// <c>RowCount</c> editables, each seeded from a source of its own and read by one effect. An operation writes every
+    /// <c>UpdateStride</c>th row: an edit to the editable when <c>local</c>, a write to its source otherwise.
+    /// </summary>
+    let editable (local: bool) (n: int) =
+        let graph = Workloads.newGraph ()
+
+        let owner, rows =
+            graph.CreateRoot (fun owner ->
+                use _ = graph.Activate ()
+
+                let rows =
+                    Array.init RowCount (fun i ->
+                        let source = createSignal i
+                        let value = createEditable (fun _ -> source.Value)
+                        createEffect (fun () -> sink <- value.Value)
+                        source, value)
+
+                owner, rows)
+
+        {
+            Run =
+                fun () ->
+                    for _ in 1..n do
+                        for i in 0..UpdateStride .. RowCount - 1 do
+                            let source, value = rows[i]
+
+                            if local then
+                                value.Value <- value.Peek + 1
+                            else
+                                source.Value <- source.Peek + 1
+            Teardown =
+                fun () ->
+                    owner.Dispose ()
+                    (graph :> IDisposable).Dispose()
+        }
+
+    /// <summary>
+    /// An <c>int[]</c> model of <c>ModelFields</c> fields, each read by one effect. An operation changes one field:
+    /// through <c>Mvu.Dispatch</c> and one <c>Select</c> per field when <c>mvu</c>, as a write to the field's own signal
+    /// otherwise.
+    /// </summary>
+    let fieldWrite (mvu: bool) (n: int) =
+        let graph = Workloads.newGraph ()
+
+        let owner, write =
+            graph.CreateRoot (fun owner ->
+                use _ = graph.Activate ()
+
+                if mvu then
+                    let app =
+                        Mvu.create (Array.zeroCreate<int> ModelFields) (fun (field: int) model ->
+                            let copy = Array.copy model
+                            copy[field] <- copy[field] + 1
+                            copy)
+
+                    for i in 0 .. ModelFields - 1 do
+                        let selected = app.Select (fun model -> model[i])
+                        createEffect (fun () -> sink <- selected.Value)
+
+                    owner, app.Dispatch
+                else
+                    let fields = Array.init ModelFields (fun _ -> createSignal 0)
+
+                    for field in fields do
+                        createEffect (fun () -> sink <- field.Value)
+
+                    owner, (fun (field: int) -> fields[field].Value <- fields[field].Peek + 1))
+
+        {
+            Run =
+                fun () ->
+                    for op in 1..n do
+                        write (op % ModelFields)
             Teardown =
                 fun () ->
                     owner.Dispose ()
@@ -782,4 +1007,59 @@ let all (scale: int) : Case list =
                 "fail one source of one error-boundary widget, then settle a replacement"
                 (500 * scale)
                 [ "Ranvier", workload Workloads.asyncRecover ]
+        yield!
+            scenario
+                "chain-affinity"
+                $"write the source of %d{ChainDepth} memos, read the tail, per thread affinity"
+                (5000 * scale)
+                [
+                    "Ranvier (Guarded)", Ranvier.chainAffinity Guarded
+                    "Ranvier (Unchecked)", Ranvier.chainAffinity ThreadAffinity.Unchecked
+                    "Ranvier (Serialised)", Ranvier.chainAffinity Serialised
+                ]
+        yield!
+            scenario
+                "project-churn"
+                $"replace the last key of a %d{RowCount}-row projection"
+                (50 * scale)
+                [
+                    "Ranvier (no reader)", Ranvier.projectChurn 0
+                    "Ranvier (key reader)", Ranvier.projectChurn 1
+                ]
+        yield!
+            scenario
+                "flight"
+                "write an async memo's trigger twice, then settle every flight the writes started"
+                (500 * scale)
+                [
+                    "Ranvier (CancelPrevious)", Ranvier.flight CancelPrevious
+                    "Ranvier (KeepLatest)", Ranvier.flight KeepLatest
+                    "Ranvier (Queue)", Ranvier.flight FlightPolicy.Queue
+                    "Ranvier (FinishCurrent)", Ranvier.flight FinishCurrent
+                ]
+        yield!
+            scenario
+                "fail-recompute"
+                "re-run a memo and its one reader, then read the reader's failure origin"
+                (500 * scale)
+                [
+                    "Ranvier (succeeding)", Ranvier.recompute false
+                    "Ranvier (failing)", Ranvier.recompute true
+                ]
+        yield! scenario "editable-edit" $"edit every %d{UpdateStride}th of %d{RowCount} editables" (50 * scale) [ "Ranvier", Ranvier.editable true ]
+        yield!
+            scenario
+                "editable-upstream"
+                $"write the seed source of every %d{UpdateStride}th of %d{RowCount} editables"
+                (50 * scale)
+                [ "Ranvier", Ranvier.editable false ]
+        yield!
+            scenario
+                "mvu-dispatch"
+                $"change one field of a %d{ModelFields}-field model, one reader per field"
+                (500 * scale)
+                [
+                    "Ranvier (signal per field)", Ranvier.fieldWrite false
+                    "Ranvier (Mvu)", Ranvier.fieldWrite true
+                ]
     ]

@@ -207,3 +207,171 @@ type FlightPolicyBenchmarks() =
         tick <- tick + 1
         cancelTrigger.Value <- tick
         cancelPrevious.TryValue
+
+/// <summary>
+/// Repeated flight launches under each <c>FlightPolicy</c>, including changes that arrive while a flight is in
+/// progress.
+/// </summary>
+/// <remarks>
+/// <c>RelaunchSettled</c> writes a trigger the body reads and reads the memo; the body returns a completed task, so
+/// every flight settles on launch. <c>WritesDuringFlight</c> starts a flight whose task stays open, writes and reads
+/// <c>Writes</c> more times, then completes every open task, reading after each round, until none remains.
+/// </remarks>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FlightBenchmarks() =
+    let mutable settledTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable heldTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable settled: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let mutable held: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let open' = ResizeArray<TaskCompletionSource<int>>()
+    let mutable tick = 0
+
+    /// <summary>The case name of the graph's <c>FlightPolicy</c>.</summary>
+    //FOR-REVIEW FinishCurrent does not exist on master: the master side of the A/B gate needs this value removed from Params.
+    [<Params("CancelPrevious", "KeepLatest", "Queue", "FinishCurrent")>]
+    member val Policy = "CancelPrevious" with get, set
+
+    /// <summary>The writes made while the first flight of a <c>WritesDuringFlight</c> iteration is in progress.</summary>
+    [<Params(1, 10)>]
+    member val Writes = 1 with get, set
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        let policy =
+            match this.Policy with
+            | "KeepLatest" -> KeepLatest
+            | "Queue" -> FlightPolicy.Queue
+            | "FinishCurrent" -> FinishCurrent
+            | _ -> CancelPrevious
+
+        let graph = new Graph (GraphOptions.Default.WithFlightPolicy policy)
+        settledTrigger <- Signal (graph, 0)
+        heldTrigger <- Signal (graph, 0)
+
+        settled <- new AsyncMemo<int> (graph, fun _ _ -> Task.FromResult settledTrigger.Value)
+
+        held <-
+            new AsyncMemo<int> (
+                graph,
+                fun _ _ ->
+                    heldTrigger.Value |> ignore
+                    let source = TaskCompletionSource<int>()
+                    open'.Add source
+                    source.Task
+            )
+
+        settled.TryValue |> ignore
+
+    /// <summary>Launches one flight that settles on launch.</summary>
+    [<Benchmark(Baseline = true)>]
+    member _.RelaunchSettled() =
+        tick <- tick + 1
+        settledTrigger.Value <- tick
+        settled.TryValue
+
+    /// <summary>
+    /// Starts a flight, makes <c>Writes</c> changes while it is in progress, then settles every flight the changes
+    /// started.
+    /// </summary>
+    [<Benchmark>]
+    member this.WritesDuringFlight() =
+        tick <- tick + 1
+        heldTrigger.Value <- tick
+        held.TryValue |> ignore
+
+        for _ in 1 .. this.Writes do
+            tick <- tick + 1
+            heldTrigger.Value <- tick
+            held.TryValue |> ignore
+
+        while open'.Count > 0 do
+            let round = open'.ToArray ()
+            open'.Clear ()
+
+            for source in round do
+                source.SetResult tick
+
+            held.TryValue |> ignore
+
+        held.TryValue
+
+/// <summary>
+/// The error channel's cost on a recomputation: a memo whose body throws a fresh exception on every run, against one
+/// that succeeds. Each iteration writes a trigger the memo reads.
+/// </summary>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FailureBenchmarks() =
+    let graph = new Graph ()
+    let trigger = Signal (graph, 0)
+    let mutable tick = 0
+
+    let succeeding = Memo (graph, (fun _ -> trigger.Value + 1))
+
+    let failing =
+        Memo (
+            graph,
+            fun _ ->
+                if trigger.Value >= 0 then
+                    raise (System.InvalidOperationException "failing")
+
+                0
+        )
+
+    [<GlobalSetup>]
+    member _.Setup() =
+        succeeding.TryValue |> ignore
+        failing.TryValue |> ignore
+
+    /// <summary>Re-runs a memo whose body succeeds.</summary>
+    [<Benchmark(Baseline = true)>]
+    member _.SucceedingRecompute() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        succeeding.TryValue
+
+    /// <summary>Re-runs a memo whose body throws a fresh exception.</summary>
+    [<Benchmark>]
+    member _.FailingRecompute() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        failing.TryValue
+
+/// <summary>
+/// A failure's cost per reader: a memo whose body throws a fresh exception, read through <c>Depth</c> memos that each read
+/// the one before with <c>Value</c>. Depth 1 is one hop.
+/// </summary>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FailureChainBenchmarks() =
+    let graph = new Graph ()
+    let trigger = Signal (graph, 0)
+    let mutable tail: Memo<int> = Unchecked.defaultof<Memo<int>>
+    let mutable tick = 0
+
+    [<Params(1, 4, 16)>]
+    member val Depth = 1 with get, set
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        let mutable previous =
+            Memo (
+                graph,
+                fun _ ->
+                    if trigger.Value >= 0 then
+                        raise (System.InvalidOperationException "failing")
+
+                    0
+            )
+
+        for _ in 1 .. this.Depth do
+            let inner = previous
+            previous <- Memo (graph, (fun _ -> inner.Value + 1))
+
+        tail <- previous
+        tail.TryValue |> ignore
+
+    /// <summary>Re-runs the failing memo and every reader on the path, then reads the last reader's failure.</summary>
+    [<Benchmark>]
+    member _.FailingRecomputeOneHop() =
+        tick <- tick + 1
+        trigger.Value <- tick
+        tail.TryValue

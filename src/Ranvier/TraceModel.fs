@@ -373,7 +373,17 @@ module TraceModel =
                 && (run = 0 || e.Arg = run))
 
         match start with
-        | None -> raise (ArgumentException ($"The trace log holds no RunStart for node {node} run {run}.", nameof run))
+        | None ->
+            raise (
+                ArgumentException (
+                    "The trace log holds no RunStart for node "
+                    + string node
+                    + " run "
+                    + string run
+                    + ".",
+                    nameof run
+                )
+            )
         | Some start ->
             let steps = ResizeArray<WhyStep>()
 
@@ -535,7 +545,7 @@ module TraceModel =
         for e in events do
             if e.Node = node && e.Cause <> 0 then
                 match e.Kind with
-                | TraceEventKind.Settle -> states[e.Cause] <- TraceFlightState.Settled (e.Seq, e.Flag = 1)
+                | TraceEventKind.Settle -> states[e.Cause] <- TraceFlightState.Settled (e.Seq, e.Flag <> 0)
                 | TraceEventKind.Fail -> states[e.Cause] <- TraceFlightState.Failed (e.Seq, e.Flag = 1)
                 | TraceEventKind.FlightDrop -> states[e.Cause] <- TraceFlightState.Dropped (e.Seq, enum<TraceDropReason> e.Flag)
                 | _ -> ()

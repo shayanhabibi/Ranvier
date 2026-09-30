@@ -5,6 +5,36 @@ open BenchmarkDotNet.Attributes
 open Ranvier
 
 /// <summary>
+/// A projection of <c>items</c> rows over an array whose last key is replaced by a new key on every <c>Write</c>. One effect
+/// observes each of the other rows, and one observes <c>Keys</c>.
+/// </summary>
+type Churn(graph: Graph, items: int) =
+    let mutable sink = 0
+    let mutable next = items
+    let source = Signal (graph, Array.init items (fun i -> i + 1, i + 1))
+
+    let projection =
+        use _ = graph.Activate ()
+        createProjection fst snd (fun () -> source.Value)
+
+    do
+        for i in 1 .. items - 1 do
+            new Effect (graph, (fun () -> sink <- projection.Get i))
+            |> ignore
+
+        new Effect (graph, (fun () -> sink <- projection.Keys.Length))
+        |> ignore
+
+    member _.Projection = projection
+
+    /// <summary>Removes the last key and adds a key the source has never held.</summary>
+    member _.Write() =
+        next <- next + 1
+        let rows = Array.copy source.Peek
+        rows[items - 1] <- next, next
+        source.Value <- rows
+
+/// <summary>
 /// A projection of <c>Items</c> rows, each observed by one effect, which keeps the
 /// projection scheduled.
 /// </summary>
@@ -15,6 +45,7 @@ type ProjectionBenchmarks() =
     let mutable projection = Unchecked.defaultof<Projection<int, int>>
     let mutable sink = 0
     let mutable counter = 0
+    let mutable churn = Unchecked.defaultof<Churn>
 
     [<Params(8, 64, 512)>]
     member val Items = 8 with get, set
@@ -52,6 +83,20 @@ type ProjectionBenchmarks() =
     [<Benchmark>]
     member _.Reorder() =
         source.Value <- List.rev source.Peek
+
+    /// <summary>
+    /// Builds the fixture of <c>ChurnOneKey</c> in place of <c>Setup</c>.
+    /// </summary>
+    [<GlobalSetup(Target = "ChurnOneKey")>]
+    member this.SetupChurn() =
+        churn <- Churn (graph, this.Items)
+
+    /// <summary>
+    /// A write removing the source's last key and adding a new one, with no key reader.
+    /// </summary>
+    [<Benchmark>]
+    member _.ChurnOneKey() =
+        churn.Write ()
 
     [<GlobalCleanup>]
     member _.Cleanup() =

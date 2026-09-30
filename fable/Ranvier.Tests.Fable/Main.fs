@@ -47,7 +47,13 @@ let all =
             testList "Reads.fs" [ Ranvier.Tests.Reads.tests ]
             testList "Batching.fs" [ Ranvier.Tests.Batching.tests ]
             testList "AsyncEdges.fs" [ Ranvier.Tests.AsyncEdges.tests ]
-            testList "Projections.fs" [ Ranvier.Tests.Projections.tests; Ranvier.Tests.Projections.summaryTests ]
+            testList
+                "Projections.fs"
+                [
+                    Ranvier.Tests.Projections.tests
+                    Ranvier.Tests.Projections.summaryTests
+                    Ranvier.Tests.Projections.deltaReaderTests
+                ]
             testList "Lookups.fs" [ Ranvier.Tests.Lookups.tests ]
             testList "MemoScopes.fs" [ Ranvier.Tests.MemoScopes.tests ]
             testList "MemoPurity.fs" [ Ranvier.Tests.MemoPurity.tests ]
@@ -70,6 +76,10 @@ let all =
                     Ranvier.Tests.Combinators.foldTests
                 ]
             testList "PreviousValues.fs" [ Ranvier.Tests.PreviousValues.tests; Ranvier.Tests.PreviousValues.asyncTests ]
+            testList "Texts.fs" [ Ranvier.Tests.Texts.tests ]
+            testList "FailureOrigins.fs" [ Ranvier.Tests.FailureOrigins.tests ]
+            testList "Editables.fs" [ Ranvier.Tests.Editables.tests ]
+            testList "MvuBridge.fs" [ Ranvier.Tests.MvuBridge.tests ]
         ]
 
 Mocha.runTests all |> ignore

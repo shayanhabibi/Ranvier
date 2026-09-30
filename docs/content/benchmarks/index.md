@@ -9,17 +9,17 @@ Ranvier ships a BenchmarkDotNet suite with one benchmark class per primitive: si
 
 | Area | What it covers |
 | --- | --- |
-| [Signals](signals.md) | Reads, writes with 0 to 64 observers, the equality cutoff, and `StructuralPolicy` against identity comparison. |
-| [Memos](memos.md) | Cache hits, one recomputation, propagation through chains of 1 to 64 memos, and a diamond. |
-| [Effects](effects.md) | Write-and-flush with 1 to 64 effects, and a batch of ten writes. |
-| [Lifetimes](lifetimes.md) | Construction and disposal of nodes, fan-out on one source, and scopes with children. |
-| [Projections](projections.md) | Keyed projection reads, single-item edits, reorders, and selector (`Lookup`) reads. |
-| [Suspension](suspension.md) | The cost of the pending channel: throwing through a chain, boundaries, settling a source, and cancelling a flight. |
+| [Signals](signals.md) | Reads, writes with 0 to 64 observers, the equality cutoff, `StructuralPolicy` against identity comparison, and each `ThreadAffinity`. |
+| [Memos](memos.md) | Cache hits, one recomputation under each `ThreadAffinity`, propagation through chains of 1 to 64 memos, and a diamond. |
+| [Effects](effects.md) | Write-and-flush with 1 to 64 effects, a batch of ten writes, one-field writes to a model, and editable values. |
+| [Lifetimes](lifetimes.md) | Construction and disposal of nodes, fan-out on one source, scopes with children, and the shallow size of each node type. |
+| [Projections](projections.md) | Keyed projection reads, single-item edits, reorders, key churn with and without key readers, and selector (`Lookup`) reads. |
+| [Suspension](suspension.md) | The cost of the pending and error channels: throwing through a chain, boundaries, settling a source, flights under each `FlightPolicy`, and failing recomputations. |
 | [Instruction counts](counters.md) | Whole scenarios by instructions per operation, against FSharp.Data.Adaptive, R3 and Fable.Ripple, on .NET and Node.js. |
 
 ## Results
 
-The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages come from a full run of the suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from.
+The benchmark suite lives in this repository as `bench/Ranvier.Benchmarks`. The results on these pages come from a full run of the suite at commit `d87920f`, recorded on **2026-09-28**; each table states its own date and the benchmark class it came from. Cases added after that run take their figures from the [instruction-counter](counters.md) run at `e13f159` where a counter scenario covers them; the remaining cases are in the suite for local runs and have no published figure yet.
 
 The BenchmarkDotNet comparison runs against other .NET reactive libraries are not published here; [Instruction counts](counters.md) compares engines by instructions instead. The engine-internal diagnostic probes in the suite are not published either; they compare candidate implementations of internal data structures rather than measure a public operation.
 
@@ -59,7 +59,7 @@ dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*"
 # One area
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*Memo*"
 
-# By category: Signal, Memo, Effect, Lifetime, Projection, Suspension
+# By category: Signal, Memo, Effect, Lifetime, Projection, Suspension, Commands, Model, Editable
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --anyCategories Memo
 
 # Smoke run: short job, not for publishing

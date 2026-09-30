@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net10.0;net8.0;netstandard2.1</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <!-- As for Ranvier: a method with a `tail.` call never reaches Tier1. -->
+        <Tailcalls>false</Tailcalls>
+        <RootNamespace>Ranvier.Elmish</RootNamespace>
+        <AssemblyName>Ranvier.Elmish</AssemblyName>
+        <PackageId>Ranvier.Elmish</PackageId>
+        <!-- As for Ranvier: the traced build packs as Ranvier.Elmish.Traced and depends on Ranvier.Traced. -->
+        <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Elmish.Traced</PackageId>
+        <Title>Ranvier.Elmish</Title>
+        <Description>An Elmish-style model-view-update bridge for Ranvier: a model held in a signal, updated by dispatched messages and read through selector memos.</Description>
+        <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier.Elmish: the model-view-update bridge for Ranvier. Depends on Ranvier.Traced.</Description>
+        <PackageTags>reactive;reactivity;signals;elmish;mvu;fine-grained;fsharp</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Version>0.1.0-preview.1</Version>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    </PropertyGroup>
+
+    <!-- `RanvierAotClean` compiles the untraced build reflection-free and marks it trimmable and AOT-compatible
+         (Directory.Build.targets). tests/Ranvier.AotSmoke checks that claim at publish time. -->
+    <PropertyGroup>
+        <RanvierAotClean>true</RanvierAotClean>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="Mvu.fs" />
+        <None Include="README.md" Pack="true" PackagePath="\" />
+        <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Ranvier/Ranvier.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+        <AssemblyMetadata Include="RanvierTrace" Value="true" />
+    </ItemGroup>
+
+</Project>

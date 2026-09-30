@@ -17,10 +17,16 @@
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
+    <!-- `RanvierAotClean` compiles the untraced build reflection-free and marks it trimmable and AOT-compatible
+         (Directory.Build.targets). tests/Ranvier.AotSmoke checks that claim at publish time. -->
+    <PropertyGroup>
+        <RanvierAotClean>true</RanvierAotClean>
+    </PropertyGroup>
+
     <ItemGroup>
+        <Compile Include="Bindings.fs" />
         <Compile Include="Reactive.fs" />
         <Compile Include="Extensions.fs" />
-        <Compile Include="Bindings.fs" />
         <Compile Include="Tracing.fs" />
         <None Include="README.md" Pack="true" PackagePath="\" />
         <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />

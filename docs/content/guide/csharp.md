@@ -114,14 +114,15 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `Memo(() => …)` | `createMemo` |
 | `Memo(previous => …, seed)` | `createMemo`, with the previous value or `seed` |
 | `OwningMemo(() => …)` | `createMemoWith` |
+| `Editable(() => …)`, `Draft(() => …)` | `createEditable`, `createDraft` |
 | `Effect(() => …)` | `createEffect`, returning the `Effect`: dispose it to stop the effect early |
 | `EffectOn(() => …, value => …)` | `createEffectOn` |
 | `Async(token => …)`, `Async((previous, token) => …)` | `createAsync` |
 | `OwningAsync(token => …)` | `createAsyncWith` |
 | `AsyncSource<T>()` | `createAsyncSource` |
-| `Suspense(body, fallback)` | `createSuspense` |
-| `ErrorBoundary(body, error => …)` | `createErrorBoundary` |
-| `Boundary(body, fallback, error => …)` | `createBoundary` |
+| `Suspense(body, fallback)`, `Suspense(body, previous => …, seed)` | `createSuspense` |
+| `ErrorBoundary(body, error => …)`, `ErrorBoundary(body, (error, previous) => …, seed)` | `createErrorBoundary` |
+| `Boundary(body, fallback, error => …)`, `Boundary(body, previous => …, (error, previous) => …, seed)` | `createBoundary` |
 | `Batch`, `Untrack`, `OnCleanup`, `Flush` | `batch`, `untrack`, `onCleanup`, `flush` |
 | `Root(owner => …)` | `createRoot` |
 | `CurrentOwner`, `RunWithOwner(owner, …)` | `getOwner`, `runWithOwner` |
@@ -129,8 +130,14 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `IndexProjection(source, map)` | `createIndexProjection` |
 | `Lookup(source, f, affected)`, `Selector(source)` | `createLookup`, `createSelector` |
 
-A boundary's `fallback` and `recover` receive no previous value in C#. Where the previous value matters, call
-`Boundary<T>.Suspense`, `Errors` or `Catching` with the graph.
+The overloads that take a `seed` pass the boundary's last value to `fallback` and `recover`, or `seed` before its
+first. A fallback that returns its argument keeps the last value shown while the body reloads:
+
+```csharp
+var shown = Suspense(() => name.Value, previous => previous, "Loading");
+```
+
+`Boundary<T>.Suspense`, `Errors` and `Catching` take the graph explicitly, with the seed before the handlers.
 
 ## Async values
 
@@ -183,8 +190,19 @@ A flight that completes on the thread pool reaches the graph through its dispatc
 [Async and pending](async-and-pending.md#threading-and-dispatch).
 
 Read every input before the first `await`: a read after it is not tracked. The overload taking `Previous<T>`
-awaits the value last published through `previous.Settled`, whose result is a `ValueOption`: test `IsSome`,
-then read `Value`.
+receives the value last published. `previous.SettledOr(seed)` returns it, or `seed` before the first value;
+`previous.TrySettled()` returns `(HasValue, Value)`:
+
+```csharp
+var total = Async<int>(async (previous, token) =>
+{
+    var by = step.Value;
+    return await previous.SettledOr(0) + by;
+});
+```
+
+Both return a `ValueTask` that is already complete under `CancelPrevious` and `KeepLatest`. Under `Queue` it
+completes once the flight started before this one is applied.
 
 `TryValue` reads a node without raising. `TryGetValue` and `TryGetError` take it apart:
 
@@ -218,6 +236,28 @@ var firstPage = open.Take(() => pageSize.Value);
 
 `rows.TryGetValue(key, out var row)` reads a row that may be absent; `Lookup` has the same method.
 `AsObservableCollection` binds a projection to a WPF, Avalonia or MAUI list.
+
+`rows.NewKeyReader()` returns an `IDisposable` reader whose `Read()` reports the keys added, removed or
+replaced since its previous read:
+
+```csharp
+using var reader = rows.NewKeyReader();
+reader.Read(); // the first read reports a reset: rebuild from Keys
+
+var delta = reader.Read();
+foreach (var (key, change) in delta.Changes)
+{
+    switch (change)
+    {
+        case KeyChange.Added: /* insert key */ break;
+        case KeyChange.Removed: /* drop key */ break;
+        case KeyChange.Replaced: /* rebuild key */ break;
+    }
+}
+```
+
+`delta.IsReset` asks for a rebuild from `delta.Keys`, and `delta.Positional` lists the index edits from
+`PreviousKeys` to `Keys`.
 
 ## Binding to XAML
 
@@ -277,8 +317,75 @@ A new view model can derive from `ReactiveObject` instead, which implements the 
   was current when it subscribed, posted there when the raise happens elsewhere. Setting a `Writable` property from
   another thread goes through `Graph.Dispatch`.
 - **Lifetime.** The bindings own a root scope under the scope current at construction. `Dispose`, or disposing that
-  scope, disposes the property memos and anything created through `bindings.Run`, and drops every handler. Signals
-  passed to `Writable` stay usable.
+  scope, disposes the property memos, the commands and anything created through `bindings.Run`, and drops every
+  handler. Signals passed to `Writable` stay usable.
+
+## Commands
+
+`bindings.Command` returns a `ReactiveCommand`, an `ICommand` whose `CanExecute` is a memo over the state it reads
+and whose busy state is a signal. It needs no `IsBusy` field and no `NotifyCanExecuteChanged` calls:
+
+```csharp
+public sealed class EditorViewModel : ReactiveObject
+{
+    readonly BoundSignal<string> draft;
+    readonly BoundValue<bool> isValid;
+    readonly BoundValue<bool> isBusy;
+
+    public EditorViewModel(Graph graph, IRepository repo) : base(graph)
+    {
+        draft = Bindings.Writable(nameof(Draft), "");
+        isValid = Bindings.Computed(nameof(IsValid), () => Draft.Length > 0);
+        Save = Bindings.Command((_, token) => repo.SaveAsync(draft.Value, token), () => IsValid && Load is { IsRunning: false });
+        Load = Bindings.Command((_, token) => repo.LoadAsync(token), () => !Save.IsRunning);
+        isBusy = Bindings.Computed(nameof(IsBusy), () => Save.IsRunning || Load.IsRunning);
+    }
+
+    public string Draft { get => draft.Value; set => draft.Value = value; }
+    public bool IsValid => isValid.Value;
+    public bool IsBusy => isBusy.Value;
+    public ReactiveCommand Save { get; }
+    public ReactiveCommand Load { get; }
+}
+```
+
+Each command is disabled while the other runs, and `IsBusy` covers both. The predicate of `Save` reads `Load`, which
+is created after it: a command first evaluates its predicate at the first `CanExecute` call, event subscription or
+execution, after the constructor has returned. The pattern `Load is { IsRunning: false }` only keeps the C# compiler's
+null analysis quiet.
+
+- **`CanExecute`.** True while the predicate returns true, and false while it reads a pending or failed node. Under
+  the default policy, `CommandPolicy.Disable`, it is also false while an execution runs. `CanExecute` returns the value
+  last notified, so any thread can call it.
+- **State.** `CanRun`, `IsRunning` and `Error` raise `PropertyChanged` on the command. On the graph's thread each is a
+  tracked read, so a `Computed` body or another command's predicate that reads it re-runs when it changes. `Enabled`
+  is the memo behind `CanRun`.
+- **Executing.** `ExecuteAsync(parameter)` marshals to the graph's thread and starts an execution when the command is
+  enabled. The body runs untracked, with a token that `Cancel`, `Dispose` and `CommandPolicy.CancelPrevious` cancel.
+  Under `Disable`, `CanExecuteChanged` has been raised with `false` before the body starts, so a second click does
+  nothing. The returned task completes with the execution, after `IsRunning` and `Error` are updated.
+- **Serialised graphs.** Under `ThreadAffinity.Serialised`, `Execute` and `ExecuteAsync` start the execution inline only
+  on the thread inside the graph. A call from anywhere else, a button handler on the construction context included, is
+  queued and starts at the next drain. A graph constructed with no `SynchronizationContext` drains only when
+  `graph.Pump()` runs, so the execution, and the task `ExecuteAsync` returned, wait until then. See
+  [Serialised hosts](../concepts/contracts.md#serialised-hosts).
+- **Failures.** A failed execution sets `Error` to its exception, and the next successful one clears it. An
+  `OperationCanceledException` after the command cancelled the token clears it too. `ICommand.Execute`, which a
+  button calls, discards the task: a failure reaches `Error` only, never the `SynchronizationContext`.
+- **Policies.** `CommandPolicy.Disable` disables the command while an execution runs. `CommandPolicy.CancelPrevious`
+  keeps it enabled: a new execution cancels the token of the one in flight, and only the latest execution sets
+  `Error`.
+- **Threads.** `CanExecuteChanged` and `PropertyChanged` handlers run on the `SynchronizationContext` that was current
+  when they subscribed, as the bindings' handlers do.
+- **Lifetime.** The bindings dispose their commands. `command.Dispose()` disposes one earlier and cancels its
+  executions.
+
+`bindings.Command(parameter => …)` takes a synchronous `Action<object>`; its writes are batched. Outside a
+`ReactiveBindings`, `Reactive.Command` creates a command on `Graph.Current` with an effect of its own.
+
+`AnyPending(quote, stock, shipping)` is a memo that is true while any of its nodes is pending, whatever their value
+types. It reads each node with `graph.TrackStatus(node)`, a tracked read of a node's `Status` that returns a pending or
+failed status without raising.
 
 ## Options and threads
 
@@ -332,5 +439,7 @@ stays only in a project that defines `RANVIER_TRACE` itself.
 
 ## Limits
 
-- **`Graph.Current` everywhere.** The factories read the thread's active graph. The constructors, such as
-  `new Memo<int>(graph, previous => …)`, take the graph explicitly.
+- **`Graph.Current` everywhere.** The factories read the thread's active graph; `Graph.TryGetCurrent(out var graph)`
+  reports whether one is active. The constructors take the graph explicitly: `new Memo<int>(graph, _ => …)`, and
+  `new Memo<int>(graph, seed, previous => …)` for a memo that receives its previous value, with `seed` before
+  compute. Each takes `owning` as a last argument.

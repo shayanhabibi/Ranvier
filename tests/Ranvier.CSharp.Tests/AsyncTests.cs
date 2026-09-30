@@ -83,6 +83,33 @@ public class AsyncTests
     }
 
     [Fact]
+    public void FinishCurrentRunsOneTrailingSearchAfterTheFlightInProgress()
+    {
+        var service = new ScriptedSearch();
+        var graph = new Graph(
+            GraphOptions.Default
+                .WithDispatcher(new ManualDispatcher())
+                .WithFlightPolicy(FlightPolicy.FinishCurrent));
+        var shown = new List<string>();
+
+        var search = graph.Run(() => new SearchViewModel(service));
+        graph.Run(() => Effect(() => shown.Add(search.Summary.Value)));
+
+        search.Query.Value = "a";
+        search.Query.Value = "ad";
+        Assert.Single(service.Calls);
+        Assert.False(service.Calls[0].Token.IsCancellationRequested);
+
+        service.Calls[0].Reply.SetResult(["stale"]);
+        Assert.True(search.IsSearching);
+        Assert.Equal(["", "ad"], service.Calls.Select(call => call.Query));
+
+        service.Calls[1].Reply.SetResult(["Ada"]);
+        Assert.Equal("Ada", shown[^1]);
+        Assert.DoesNotContain("stale", shown);
+    }
+
+    [Fact]
     public void BoundariesShowFallbackAndRecovery()
     {
         using var active = new Graph().Activate();
@@ -188,8 +215,7 @@ public class AsyncTests
         var total = Async<int>(async (previous, token) =>
         {
             var by = step.Value;
-            var last = await previous.Settled;
-            return (last.IsSome ? last.Value : 0) + by;
+            return await previous.SettledOr(0) + by;
         });
 
         Assert.Equal(1, total.Value);

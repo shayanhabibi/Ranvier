@@ -95,6 +95,31 @@ guaranteed to arrive on one thread.
 
 See [Async and pending](async-and-pending.md#threading-and-dispatch).
 
+### &lt;operation&gt; ran on thread N outside the synchronisation context this Serialised graph was constructed on. Marshal through Graph.Dispatch.
+
+`InvalidOperationException`, from a graph built with `ThreadAffinity = Serialised`.
+
+**Cause.** A write, a stale read, `Pump` or another entry ran on a thread whose
+`SynchronizationContext.Current` differs from the one current when the graph was constructed. On Blazor
+Server, the usual source is code after an `await` with `ConfigureAwait(false)`, or work started with
+`Task.Run`.
+
+**Fix.** Hand the work to `Graph.Dispatch`, or to the component's `InvokeAsync`. Both run it on the
+circuit's context.
+
+See [Contracts](../concepts/contracts.md#serialised-hosts).
+
+### &lt;operation&gt; ran on thread N while thread M was inside this Serialised graph. Two threads entered it at once.
+
+`InvalidOperationException`, from a graph built with `ThreadAffinity = Serialised`.
+
+**Cause.** Two threads entered the graph at the same time. Both had the graph's synchronisation context
+installed, so the context check passed on each. On Blazor Server,
+[aspnetcore#69323](https://github.com/dotnet/aspnetcore/issues/69323) describes one way this happens. The rejected call made no change to
+the graph, and the thread inside it continues unaffected.
+
+**Fix.** Route the second caller's work through `Graph.Dispatch`, which queues it until the graph is free.
+
 ### NotReadyException
 
 `NotReadyException`, whose message is `NotReadyException` followed by the pending node's type, for

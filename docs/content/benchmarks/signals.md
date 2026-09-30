@@ -44,6 +44,28 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Signals.SignalBenchmarks` at co
 | WriteCutoff       | 64        |  1.0090 ns | 0.0231 ns | 0.0193 ns |   991,112,303.3 |         - |
 | WriteAndPropagate | 64        | 57.4765 ns | 0.3814 ns | 0.3381 ns |    17,398,409.8 |         - |
 
+## Thread affinity
+
+`SignalBenchmarks` runs each case under every `ThreadAffinity`, set by `Affinity`:
+
+| `Affinity` | Check on a write's entry |
+| --- | --- |
+| `Guarded` | The default. A thread-id comparison against the graph's owner thread. |
+| `Unchecked` | None. |
+| `Serialised` | Entry into the graph by the calling thread, which must run on the synchronisation context the graph was constructed on. A second thread entering at once raises. |
+
+The table above predates the parameter and shows `Guarded` only.
+
+The counter scenario `chain-affinity` writes the head of a four-memo chain and reads the tail under each affinity. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
+
+| Affinity | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| `Guarded` | 2,179 | 0 | MemoRecomputes 4 |
+| `Unchecked` | 2,177 | 0 | MemoRecomputes 4 |
+| `Serialised` | 2,516 | 0 | MemoRecomputes 4 |
+
+`Unchecked` costs the same as `Guarded`: the thread-id comparison is within run-to-run noise. `Serialised` costs about 340 more instructions per write and read of the chain, about 15 % over `Guarded`. The BenchmarkDotNet timing cases for each affinity are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*SignalBenchmarks*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
+
 ## EqualityBenchmarks
 
 A reference-typed signal written with a cutoff by identity (the default) or by structural comparison (`StructuralPolicy`). The gap between the rows is the cost of choosing structural equality.

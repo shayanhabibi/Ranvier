@@ -19,25 +19,26 @@ the APIs in use.
 A graph belongs to the thread that constructed it, the **owning thread**. A program that follows the table
 below runs every body, cleanup and comparer on the owning thread. The exception is the code of an async body
 after its first `await` that suspends: it runs wherever its task resumes, outside the graph's tracking.
+Under `ThreadAffinity.Serialised` the graph has no owning thread; see [Serialised hosts](#serialised-hosts).
 
 ### Which threads may call what
 
-| Operation | Thread | Called from another thread under `Guarded` |
-| --- | --- | --- |
-| `signal.Value <- v` | Owning | Raises `InvalidOperationException` before the equality check. The value stays unchanged, and an equal write raises too. |
-| `graph.Pump ()` | Owning | Raises `InvalidOperationException`. |
-| `graph.Dispatch work` | Any | Queues `work` in the graph's inbox. On the owning thread, `work` runs inline. |
-| `AsyncSource.Settle` and `Fail`, flight completions | Any | Queued in the inbox, as `Dispatch` is. On the owning thread, they apply inline. |
-| Reads, node creation, `batch`, `flush`, `Dispose` | Owning | Unchecked. Marshal them through `Dispatch`. |
+| Operation | Thread | Called from another thread under `Guarded` | Under `Serialised` |
+| --- | --- | --- | --- |
+| `signal.Value <- v` | Owning | Raises `InvalidOperationException` before the equality check. The value stays unchanged, and an equal write raises too. | Runs on any thread on the construction context while no other thread is inside the graph. Raises otherwise, before the equality check. |
+| `graph.Pump ()` | Owning | Raises `InvalidOperationException`. | As a write. |
+| `graph.Dispatch work` | Any | Queues `work` in the graph's inbox. On the owning thread, `work` runs inline. | Runs `work` inline on the thread inside the graph. Queues it from every other thread, including one on the construction context. |
+| `AsyncSource.Settle` and `Fail`, flight completions | Any | Queued in the inbox, as `Dispatch` is. On the owning thread, they apply inline. | As `Dispatch`. |
+| Stale reads, node creation, `batch`, `flush`, `untrack`, `createRoot`, `onCleanup`, `Dispose` | Owning | Raise `InvalidOperationException`. A read of a current value is unchecked. | As a write. |
 
-The affinity check compares `Environment.CurrentManagedThreadId` with the id recorded when the graph was
-constructed. The check depends on the thread id alone: a second thread that has the owning thread's
+Under `Guarded`, the affinity check compares the calling thread with the thread that constructed the graph.
+The check depends on the thread alone: a second thread that has the owning thread's
 `SynchronizationContext` installed still fails the check. The check therefore holds on hosts where a context
 can be installed on more than one thread, such as a Blazor Server renderer
 ([aspnetcore#69323](https://github.com/dotnet/aspnetcore/issues/69323)).
 
 `ThreadAffinity.Unchecked` removes the check. The caller then guarantees that one thread at a time touches
-the graph.
+the graph. `ThreadAffinity.Serialised` replaces it with a check that one thread at a time is inside the graph.
 
 ### Where work runs
 
@@ -74,10 +75,28 @@ equality comparers, `fallback` and `recover`, dispatched work and `IGraphDispatc
   it completes resume their awaiters asynchronously.
 - A build with tracing compiled in adds a lock around the trace log's bookkeeping.
 
-### Known limitation: hopping synchronisation contexts
+### Serialised hosts
 
-A host that serialises work but runs it on different pool threads fails the thread check under `Guarded`.
-See [the async graph on .NET](async-graph.md#known-limitation-hopping-synchronisation-contexts).
+A Blazor Server circuit runs its work one item at a time on its synchronisation context, and each item may
+run on a different pool thread. A graph for such a host is constructed with
+`GraphOptions.Default.WithThreadAffinity Serialised`, on that context:
+
+- **Entry.** Each operation in the table above enters the graph for its duration. The calling thread must
+  have the construction context installed, and no other thread may be inside the graph. Either failure raises
+  `InvalidOperationException` before the graph changes. Nested entries on the thread inside the graph proceed.
+- **Queued work.** `Dispatch`, `Settle`, `Fail` and flight completions run inline only on the thread inside
+  the graph. From any other thread they wait in the inbox for a drain on the context, so settles run
+  serialised with the host's other work.
+- **Held graph.** A drain that finds another thread inside the graph leaves the work queued. The thread
+  inside posts a new drain when it leaves.
+- **Node creation** outside an enclosing entry checks the caller and does not hold the graph. Inside
+  `createRoot`, a body or a batch, the enclosing entry holds it.
+- **`IsOnGraphThread`** is true on the thread inside the graph.
+
+The context check catches a call from the wrong context. The concurrent-entry check catches the
+[aspnetcore#69323](https://github.com/dotnet/aspnetcore/issues/69323) case, in which two threads run on the
+same context at once. Under Fable, `Serialised` behaves as `Unchecked`.
+[Blazor Server](../guide/blazor-server.md) shows one graph per circuit.
 
 ## Error recovery
 
@@ -116,7 +135,7 @@ Recovery happens through re-runs alone.
 | Thrown by | Result |
 | --- | --- |
 | A memo body | The memo fails. |
-| An async body, or its task faulting or being cancelled | The async value fails. Under `CancelPrevious` and `KeepLatest`, a superseded flight's outcome is discarded. |
+| An async body, or its task faulting or being cancelled | The async value fails. Under `CancelPrevious` and `KeepLatest`, a superseded flight's outcome is discarded. Under `FinishCurrent`, a failure that settles while a trailing run is owed is discarded. |
 | An effect body | Recorded on the effect's `Status` and `Error`. Every effect queued behind it in the flush still runs. |
 | A boundary's `fallback` or `recover` | The boundary fails with that exception. |
 | A cleanup | Recorded, and the remaining cleanups and disposals still run. A `createRoot` scope keeps the error in its own `Errors`; a computation's scope records it in `graph.Root.Errors`. |
@@ -133,9 +152,35 @@ constructed directly. See
 
 ### Finding where a failure came from
 
-The exception object carries no reference to the node that raised it. `.Value` rethrows it with `raise`,
-which replaces its stack trace with the reader's, so the original throw site survives only until the first
-read. To trace a failure back:
+A failed node reports the node the failure originated in as `ErrorOrigin`, and an error boundary reports the origin
+of `Caught` as `CaughtFrom`. Both are null while the node holds no failure. `ErrorOrigin` is an untracked read, like
+`Status`; `CaughtFrom` is tracked and brings the boundary current, like `Caught`.
+
+| Node | `ErrorOrigin` |
+| --- | --- |
+| `Memo`, `Boundary`, `Effect` | The node itself when its body, comparer or purity check raised the exception; otherwise the origin of the failed read it rethrew. |
+| `AsyncMemo` | The async memo for a faulted or cancelled flight, a throwing body or disposal while pending; the origin of a failed read rethrown before the first `await` that suspends. A failure read after that `await` can report the async memo instead. |
+| `AsyncSource` | The source, after `Fail`. |
+| `Projection` | The projection when its source, `keyOf` or a duplicate key failed the pass; otherwise the origin of the failed read the source rethrew. |
+
+A reader that rethrows a failed read keeps its origin, through any number of memos, effects, boundaries and
+projections. A boundary's `recover` that rethrows `ex` keeps the origin too. A node that throws a new exception,
+including one that wraps the failure as its `InnerException`, is the origin of the new exception.
+
+Rows, lookup cells and fold rows are internal nodes. A failed projection row reports its projection, and a fold over
+it reports the row's origin. A lookup is not a node: a failure raised by its `source` or `affected` function reports
+the lookup's internal source memo, and one raised by its key function or comparer reports the key's internal cell. In
+[traces](../guide/tracing.md) the cells appear as parts of the source memo.
+
+Two limits apply. A body that catches a failed read, reads another failed node and then rethrows the first
+exception is the origin of that exception. A failure delivered to a `Queue` flight's turn behind earlier flights
+reports the async memo.
+
+`.Value` rethrows the stored exception with its original stack trace. On .NET every reader on the path rethrows the
+same capture, so the trace shows the frames of the origin's throw followed by the frames of the last read. Under
+Fable the exception is rethrown as it was raised.
+
+Other tools for tracing a failure back:
 
 - a boundary's `Caught` and every failed node on the path hold the same instance
 - `PendingSources` on a memo or effect gives the source of its last pending read

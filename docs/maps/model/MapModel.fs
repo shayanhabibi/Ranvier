@@ -259,6 +259,7 @@ module MapModel =
         | TraceDropReason.Superseded -> "superseded"
         | TraceDropReason.Disposed -> "disposed"
         | TraceDropReason.Suspended -> "suspended"
+        | TraceDropReason.Trailing -> "trailing"
         | _ -> "dropped"
 
     let private payload (e: TraceEvent) =

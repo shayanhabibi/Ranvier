@@ -20,7 +20,7 @@ These are implemented and covered by tests.
 - **Pending channel and boundaries.** A propagating "not ready" status, with `createSuspense`,
   `createErrorBoundary` and `createBoundary` to decide what to show in the meantime. See
   [Suspension](suspension.md).
-- **Async memos.** `createAsync` with the `CancelPrevious`, `KeepLatest` and `Queue` flight policies, and the
+- **Async memos.** `createAsync` with the `CancelPrevious`, `KeepLatest`, `Queue` and `FinishCurrent` flight policies, and the
   previous value passed to each flight. See [Async and pending](../guide/async-and-pending.md).
 - **Threading, failure and ownership contracts.** Thread affinity checks, dispatch from other threads, and
   `ManualDispatcher` for deterministic tests. See [Contracts](contracts.md).
@@ -28,9 +28,24 @@ These are implemented and covered by tests.
   `sortBy`, `groupBy`, slicing and fold views. See [Collections](../guide/collections.fsx) and
   [Aggregates](../guide/aggregates.fsx).
 - **Trace log.** A traced build that records why each node ran. See [Tracing](../guide/tracing.md).
-- **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, and `ReactiveBindings` for
-  `INotifyPropertyChanged` and `INotifyDataErrorInfo`. `AsObservableCollection` raises `Add`, `Remove`,
-  `Move` and `Replace` changes in place of `Reset`. See [C#](../guide/csharp.md).
+- **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, `ReactiveBindings` for
+  `INotifyPropertyChanged` and `INotifyDataErrorInfo`, and `ReactiveCommand`, an `ICommand` whose `CanExecute`
+  and busy state come from graph nodes. `AsObservableCollection` raises `Add`, `Remove`,
+  `Move` and `Replace` changes in place of `Reset`. Previous values reach C# through a seed or
+  `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
+- **Native AOT and trimming.** The packages publish under Native AOT with no trim or AOT warnings, checked
+  in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
+- **F# application patterns.** `createEditable` and `createDraft` for values seeded from upstream and edited
+  locally, and forms as records of signals. See [Editable values and forms](../guide/forms.md).
+- **MVU bridge.** The `Ranvier.Elmish` package: `Mvu`, which reads an Elmish-style model through selector memos. See
+  [Migrating from Elmish](../guide/elmish.md).
+- **Projection key readers.** `NewKeyReader` reports the keys added, removed and replaced since a reader last
+  looked, and the order they now hold. See [Reading changes](../guide/collections.fsx#reading-changes).
+- **Serialised thread affinity.** `ThreadAffinity.Serialised` admits one thread at a time on the construction
+  context, for hosts such as Blazor Server. See [Serialised hosts](contracts.md#serialised-hosts) and
+  [Blazor Server](../guide/blazor-server.md).
+- **Failure provenance.** `ErrorOrigin` on a failed node and `CaughtFrom` on an error boundary report the node a
+  failure originated in. See [Finding where a failure came from](contracts.md#finding-where-a-failure-came-from).
 
 ## In progress
 
@@ -42,20 +57,10 @@ These are implemented and covered by tests.
 
 None of these is available. Each one is an open question about whether and how it fits.
 
-- **AOT and trimming analysis in CI.** Checks that the libraries stay compatible with Native AOT and
-  trimming as the C# surface grows.
 - **A drop-while-running flight policy.** A policy that ignores a new run while one is in progress, as R3's
   `Drop` and CommunityToolkit's `AsyncRelayCommand` do.
 - **Debounce and throttle.** As a flight policy or as a combinator.
-- **Projection delta readers.** Readers that report the keys added, removed and changed since they last
-  looked, then value changes, then views that apply deltas instead of re-reading their upstream keys.
-- **Commands with a derived `CanExecute`.** An `ICommand` whose `CanExecute` and busy state come from memos.
-- **A serialised affinity mode for Blazor Server.** A graph whose work may run on several threads, one at a
-  time, queued as the renderer queues its own work.
-- **C# surface cleanups.** Replacing the remaining `ValueOption` in the C# surface, such as
-  `Previous<T>.Settled`, with types that read naturally in C#.
-- **F# application patterns.** A bridge from an MVU model to per-selector memos, a per-field store without
-  code generation, and a writable derived value seeded from upstream and editable locally.
-- **Failure provenance.** Reporting which node raised the failure that a boundary or a failed memo holds.
+- **Projection value readers and delta views.** Key readers ship; the next stages are readers that report the
+  rows whose values changed, then views that apply deltas instead of re-reading their upstream keys.
 
 The [Ecosystem](ecosystem.md) page lists the current gaps these items address.

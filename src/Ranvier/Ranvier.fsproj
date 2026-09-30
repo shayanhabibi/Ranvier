@@ -21,6 +21,12 @@
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
+    <!-- `RanvierAotClean` compiles the untraced build reflection-free and marks it trimmable and AOT-compatible
+         (Directory.Build.targets). tests/Ranvier.AotSmoke checks that claim at publish time. -->
+    <PropertyGroup>
+        <RanvierAotClean>true</RanvierAotClean>
+    </PropertyGroup>
+
     <!-- `-p:RanvierCounters=true` compiles in the operation counts in
          `Counters.fs`. Pass it as a global property, so every project in the
          build sees the same define. -->
@@ -50,6 +56,7 @@
         <Compile Include="TraceSite.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="Trace.fs" />
         <Compile Include="Core.fs" />
+        <Compile Include="Deltas.fs" />
         <Compile Include="Projections.fs" />
         <Compile Include="Api.fs" />
         <Compile Include="Combinators.fs" />

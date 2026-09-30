@@ -39,6 +39,39 @@ public class ReactiveTests
     }
 
     [Fact]
+    public void EditableDropsItsEditWhenTheSeedChanges()
+    {
+        using var active = new Graph().Activate();
+        var source = Signal(1);
+        var quantity = Editable(() => source.Value);
+
+        quantity.Value = 5;
+        Assert.Equal(5, quantity.Value);
+        Assert.True(quantity.IsEdited);
+
+        source.Value = 2;
+        Assert.Equal(2, quantity.Value);
+        Assert.False(quantity.IsEdited);
+    }
+
+    [Fact]
+    public void DraftKeepsItsEditUntilReset()
+    {
+        using var active = new Graph().Activate();
+        var source = Signal("Ada");
+        var name = Draft(() => source.Value);
+
+        name.Value = "Grace";
+        source.Value = "Edsger";
+        Assert.Equal("Grace", name.Value);
+        Assert.Equal("Edsger", name.Upstream);
+
+        name.Reset();
+        Assert.Equal("Edsger", name.Value);
+        Assert.False(name.IsEdited);
+    }
+
+    [Fact]
     public void BatchRunsAnEffectOnceForSeveralWrites()
     {
         using var active = new Graph().Activate();
@@ -153,5 +186,23 @@ public class ReactiveTests
         Flush();
 
         Assert.Equal([false, true], acted);
+    }
+
+    [Fact]
+    public void ErrorOriginNamesTheNodeAFailureCameFrom()
+    {
+        using var active = new Graph().Activate();
+        var price = AsyncSource<decimal>();
+        var total = Memo(() => price.Value * 2);
+        var shown = ErrorBoundary(() => total.Value.ToString(), _ => "unavailable");
+
+        Assert.Null(total.ErrorOrigin);
+        price.Fail(new InvalidOperationException("offline"));
+        Flush();
+
+        Assert.Equal("unavailable", shown.Value);
+        Assert.Same(price, shown.CaughtFrom);
+        Assert.Same(price, total.ErrorOrigin);
+        Assert.Same(price.ErrorOrigin, total.ErrorOrigin);
     }
 }

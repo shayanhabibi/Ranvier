@@ -25,6 +25,18 @@ Recorded 2026-09-28. Source: `Ranvier.Benchmarks.Memos.MemoBenchmarks` at commit
 
 `CachedRead` is at the resolution limit (see [Reading the results](index.md#reading-the-results)), which is why the ratios in this table carry a large `RatioSD`.
 
+`MemoBenchmarks` also runs each case under every `ThreadAffinity`, set by `Affinity` (`Guarded`, `Unchecked`, `Serialised`), as [`SignalBenchmarks`](signals.md#thread-affinity) does. `Recompute` carries the check twice: on the write and on the stale read. The table above predates the parameter and shows `Guarded` only.
+
+The counter scenario `chain-affinity` covers the same two checks: it writes the head of a four-memo chain and reads the stale tail under each affinity. Figures are retired instructions per operation at commit `e13f159`, .NET 10 with tiered compilation and PGO off (see [Instruction counts](counters.md)):
+
+| Affinity | instr/op | bytes/op | Library counters/op |
+| --- | ---: | ---: | --- |
+| `Guarded` | 2,179 | 0 | MemoRecomputes 4 |
+| `Unchecked` | 2,177 | 0 | MemoRecomputes 4 |
+| `Serialised` | 2,516 | 0 | MemoRecomputes 4 |
+
+`Serialised` adds about 340 instructions per write and read of the chain, about 15 % over `Guarded`; `Unchecked` matches `Guarded` within noise. The timing cases are in the suite for local runs (`dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*MemoBenchmarks*"`) and have no published figure yet. The full report is [`e13f159.md`](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
+
 ## ChainBenchmarks
 
 A signal followed by a chain of `Depth` memos (1, 4, 16 or 64). This shows how propagation scales with depth.

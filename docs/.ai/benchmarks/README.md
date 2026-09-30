@@ -15,7 +15,8 @@ dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*Memo*"
 # regression, not a 5% one.
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --short --filter "*"
 
-# By category: Signal, Memo, Effect, Suspension, Lifetime.
+# By category: Signal, Memo, Effect, Suspension, Lifetime, Projection,
+# Commands, Model, Editable, Probe.
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --anyCategories Memo
 
 # Regression sentinels. Run on every engine change.
@@ -34,16 +35,27 @@ comparable with it.
 
 | Group | Question |
 | --- | --- |
-| `SignalBenchmarks` | What does a write cost, with 0 to 64 observers, and what does the cutoff cost when it stops one? |
+| `SignalBenchmarks` | What does a write cost, with 0 to 64 observers, and what does the cutoff cost when it stops one? `Affinity` (`Guarded`, `Unchecked`, `Serialised`) sets the graph's `ThreadAffinity`: what does each entry check add to a write? |
 | `EqualityBenchmarks` | What does `StructuralPolicy` cost against the default `===` identity? |
-| `MemoBenchmarks` | Cache hit, tracked cache hit, and one recomputation. |
+| `MemoBenchmarks` | Cache hit, tracked cache hit, and one recomputation. `Affinity`, as for signals: what does each check add to the write and the stale read? |
 | `ChainBenchmarks` | Does propagation scale with depth, at 1 / 4 / 16 / 64? |
 | `DiamondBenchmarks` | Is a reconverging node recomputed once per write, or twice? |
 | `EffectBenchmarks` | Schedule and flush, and what batching saves over ten separate writes. |
 | `SuspensionBenchmarks` | What does a throw through a chain cost, against re-running it over a settled source? |
 | `BoundaryBenchmarks` | Re-running a body and catching its throw, against a clean boundary. |
 | `SettleBenchmarks` | Settling on the graph's own thread, taking the inline path. |
-| `ConstructionBenchmarks`, `ScopeBenchmarks` | Mount and unmount: construction, disposal, and a scope with children. |
+| `FlightBenchmarks` | What does a flight cost under each `FlightPolicy` (`Policy`: `CancelPrevious`, `KeepLatest`, `Queue`, `FinishCurrent`), settled on launch and with `Writes` (1, 10) changes arriving during a flight? |
+| `FailureBenchmarks` | What does the error channel add to a recomputation: a body that throws a fresh exception, against one that succeeds? |
+| `FailureChainBenchmarks` | What does a failure cost per reader, through `Depth` (1, 4, 16) memos that each read the one before? |
+| `ConstructionBenchmarks`, `ScopeBenchmarks` | Mount and unmount: construction, disposal, and a scope with children. `CreateAndDisposeSeededMemo`: what does the seeded `Memo` constructor add? |
+| `ProjectionBenchmarks.ChurnOneKey` | What does a write that removes one key and adds a new one cost, with no key reader? (`Items`: 8, 64, 512) |
+| `DeltaReaderBenchmarks` | Is finding one removed key through a key reader cheaper than a set difference of two `Keys` arrays, and what does an idle read cost? (`Items`: 64, 512, 10 000) |
+| `DeltaReaderChurnBenchmarks` | What does `ChurnOneKey` cost with `Readers` (1, 4) key readers, each read by its own effect? (`Items`: 8, 64, 512) |
+| `CommandLifecycleBenchmarks`, `CommandExecuteBenchmarks` | What do constructing, disposing and executing a `ReactiveCommand` cost, standalone (`Reactive.Command`) against hosted (`ReactiveBindings.Command`)? (`Host`) |
+| `CommandSlotsBenchmarks` | What does one execution of a hosted command cost when its bindings hold `Slots` (1, 10, 100) computed properties, each refreshed per notify pass? |
+| `FieldWriteBenchmarks` | What does a one-field write to an N-field model cost as a signal per field, as a root signal with a selector memo per field, through `Mvu.Dispatch`, and as the model copy alone? (`Fields`: 8, 64, 256) |
+| `EditableBenchmarks` | What do a local edit and an upstream change of a `createEditable` value cost, against a plain signal write? |
+| `SizeOfProbe` | What is the shallow size of `Memo`, `AsyncMemo`, `Boundary`, `Effect`, `AsyncSource` and `Failure`? Read the `Allocated` column. |
 | `DerivedValueComparison`, `ChainComparison`, `CutoffComparison` | The same work in FSharp.Data.Adaptive, R3, System.Reactive and by hand. |
 
 ## Regression sentinels
@@ -194,6 +206,24 @@ well, so both targets run the same graphs and report the same library counters:
 | `shape-dynamic` | For 100 effects reading `a` or `b` by a shared condition, alternately flip the condition and write every active source. |
 | `async-resolve` | Reload 10 suspense widgets of 10 async sources in one batch, then settle each source. |
 | `async-recover` | Fail one source of one error-boundary widget, then settle a replacement. |
+
+Seven further scenarios cover the features of Wave B. They live in
+`bench/Ranvier.Counters/Scenarios.fs` and run on .NET only. Where a scenario has
+several variants, each is reported as its own engine:
+
+| Scenario | One operation | Variants |
+| --- | --- | --- |
+| `chain-affinity` | `chain`, in a graph of each `ThreadAffinity`. | `Guarded`, `Unchecked`, `Serialised` |
+| `project-churn` | Replace the last key of a 1000-row projection with a new key. | no key reader, one key reader read by an effect |
+| `flight` | Write an async memo's trigger and read it twice, then settle every flight the writes started. | `CancelPrevious`, `KeepLatest`, `Queue`, `FinishCurrent` |
+| `fail-recompute` | Re-run a memo and its one reader, then read the reader's `ErrorOrigin`. | succeeding, failing with a fresh exception |
+| `editable-edit` | Edit every 10th of 1000 `createEditable` values, each read by one effect. | — |
+| `editable-upstream` | Write the seed source of every 10th of 1000 editables. | — |
+| `mvu-dispatch` | Change one field of a 64-field model with one reader per field. | a signal per field, `Mvu.Dispatch` with a `Select` per field |
+
+Wave B's published figures come from the `counters.ps1` run on Windows at
+`e13f159` ([`counters/e13f159.md`](counters/e13f159.md)), not from BenchmarkDotNet
+timing runs.
 
 Every figure is `(m(2N) - m(N)) / N`: each case runs at N and at 2N, after one
 unmeasured run at N, and the difference cancels the fixed cost of the

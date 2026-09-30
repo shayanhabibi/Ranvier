@@ -127,6 +127,12 @@ let private PanelTitle = 26.0
 [<Literal>]
 let private PanelGap = 14.0
 
+/// <summary>The engine a variant such as <c>Ranvier (Serialised)</c> belongs to. Variants share their engine's color.</summary>
+let private family (engine: string) =
+    match engine.IndexOf " (" with
+    | -1 -> engine
+    | i -> engine.Substring (0, i)
+
 /// <summary>
 /// A standalone SVG of <c>panels</c>, stacked vertically with one bar per engine. Each panel scales from zero to its
 /// largest bar; light and dark colors follow <c>prefers-color-scheme</c>.
@@ -134,7 +140,7 @@ let private PanelGap = 14.0
 let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
     let present =
         panels
-        |> Array.collect (fun p -> Array.map fst p.Bars)
+        |> Array.collect (fun p -> Array.map (fst >> family) p.Bars)
         |> Array.distinct
 
     let unknown =
@@ -267,7 +273,7 @@ let svg (title: string) (versions: Map<string, string>) (panels: Panel[]) =
             let r = min 4.0 w
 
             add
-                $"""<path class="s%d{slot engine}" d="M%s{px x0} %s{px by}h%s{px (w - r)}a%s{px r} %s{px r} 0 0 1 %s{px r} %s{px r}v%s{px (BarHeight - 2.0 * r)}a%s{px r} %s{px r} 0 0 1 -%s{px r} %s{px r}h-%s{px (w - r)}z"><title>%s{escape tip}</title></path>"""
+                $"""<path class="s%d{slot (family engine)}" d="M%s{px x0} %s{px by}h%s{px (w - r)}a%s{px r} %s{px r} 0 0 1 %s{px r} %s{px r}v%s{px (BarHeight - 2.0 * r)}a%s{px r} %s{px r} 0 0 1 -%s{px r} %s{px r}h-%s{px (w - r)}z"><title>%s{escape tip}</title></path>"""
 
             add $"""<text class="ink" x="%s{px (x0 + w + 6.0)}" y="%s{px (by + 11.0)}">%s{compact value}</text>""")
 

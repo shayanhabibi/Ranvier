@@ -30,6 +30,12 @@ type ConstructionBenchmarks() =
         let memo = Memo (graph, (fun _ -> 1))
         memo.Dispose ()
 
+    /// <summary>The seeded constructor: one adapter closure over the seed and compute.</summary>
+    [<Benchmark>]
+    member _.CreateAndDisposeSeededMemo() =
+        let memo = Memo (graph, 0, (fun previous -> previous + 1))
+        memo.Dispose ()
+
     [<Benchmark>]
     member _.CreateAndDisposeEffect() =
         let effect = new Effect (graph, id)

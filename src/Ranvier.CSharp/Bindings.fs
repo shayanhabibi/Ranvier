@@ -5,7 +5,10 @@ open System.Collections
 open System.Collections.Generic
 open System.ComponentModel
 open System.Runtime.ExceptionServices
+open System.Runtime.InteropServices
 open System.Threading
+open System.Threading.Tasks
+open System.Windows.Input
 open Ranvier
 
 /// <summary>
@@ -192,6 +195,10 @@ type BoundSignal<'T> internal (graph: Graph, owner: Owner, name: string, signal:
     /// Reads the signal, tracked, on the graph's thread, and the value last notified elsewhere. Setting it writes the
     /// signal through <c>Graph.Dispatch</c>: inline on the graph's thread, marshalled from any other.
     /// </summary>
+    /// <remarks>
+    /// Under <c>ThreadAffinity.Serialised</c>, a set from outside the graph applies at the next drain, so a read right
+    /// after it returns the previous value.
+    /// </remarks>
     member _.Value
         with get (): 'T =
             if graph.IsOnGraphThread && not owner.IsDisposed then
@@ -212,6 +219,444 @@ type BoundSignal<'T> internal (graph: Graph, owner: Owner, name: string, signal:
 
             if not (equal.Equals (old.Value, next.Value)) then
                 notes.Changed.Add changedArgs
+
+/// <summary>What a <c>ReactiveCommand</c> does when an execution is requested while another runs.</summary>
+type CommandPolicy =
+    /// <summary>The command is disabled while an execution runs, and a request made meanwhile is ignored.</summary>
+    | Disable = 0
+    /// <summary>The request cancels the token of every execution in flight, then starts a new execution.</summary>
+    | CancelPrevious = 1
+
+/// <summary>
+/// An <c>ICommand</c> whose <c>CanExecute</c> is derived from graph nodes and whose busy state is observable. Create one
+/// with <c>ReactiveBindings.Command</c> or <c>Reactive.Command</c>.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <c>CanExecute</c> is true while <c>Enabled</c> is ready and true: false while the predicate reads a pending or failed
+/// node, and, under <c>CommandPolicy.Disable</c>, false while an execution runs. <c>CanExecuteChanged</c> and
+/// <c>PropertyChanged</c> (<c>"CanRun"</c>, <c>"IsRunning"</c>, <c>"Error"</c>) are raised on the graph's thread, or
+/// posted to the <c>SynchronizationContext</c> current when the handler subscribed.
+/// </para>
+/// <para>
+/// The predicate is first evaluated at the first <c>CanExecute</c> call, event subscription or execution, so it can
+/// read commands created after this one.
+/// </para>
+/// <para>
+/// An execution runs the body untracked on the graph's thread, with a token that <c>Cancel</c>, <c>Dispose</c> and
+/// <c>CommandPolicy.CancelPrevious</c> cancel. Its failure is stored in <c>Error</c>; an
+/// <c>OperationCanceledException</c> after its token is cancelled clears <c>Error</c> instead. <c>ICommand.Execute</c>
+/// discards the execution's task, so a failure reaches only <c>Error</c>.
+/// </para>
+/// </remarks>
+/// <example>
+/// <code lang="csharp">
+/// save = bindings.Command((_, token) =&gt; repo.SaveAsync(draft.Value, token), () =&gt; IsValid &amp;&amp; !load.IsRunning);
+/// load = bindings.Command((_, token) =&gt; repo.LoadAsync(token), () =&gt; !save.IsRunning);
+/// busy = bindings.Computed("IsBusy", () =&gt; save.IsRunning || load.IsRunning);
+/// </code>
+/// </example>
+[<Sealed>]
+type ReactiveCommand
+    internal (graph: Graph, execute: obj -> CancellationToken -> Task, canExecute: Func<bool>, policy: CommandPolicy, sync: bool, standalone: bool) as self
+    =
+    let changedHandlers = ContextHandlers<PropertyChangedEventHandler>()
+    let canExecuteHandlers = ContextHandlers<EventHandler>()
+    let canRunArgs = PropertyChangedEventArgs "CanRun"
+    let isRunningArgs = PropertyChangedEventArgs "IsRunning"
+    let errorArgs = PropertyChangedEventArgs "Error"
+
+    /// <summary>The token sources of the executions in flight. Graph thread only.</summary>
+    let flights = ResizeArray<CancellationTokenSource>()
+
+    /// <summary>The token source of the latest execution; only that execution writes <c>error</c>.</summary>
+    let mutable latest: CancellationTokenSource = null
+
+    let mutable detach: unit -> unit = ignore
+
+    [<VolatileField>]
+    let mutable canRun = false
+
+    [<VolatileField>]
+    let mutable isRunning = false
+
+    [<VolatileField>]
+    let mutable lastError: exn = null
+
+    [<VolatileField>]
+    let mutable armRequested = false
+
+    [<VolatileField>]
+    let mutable disposed = false
+
+    (*FOR-REVIEW `armed` is one signal per command beyond the note's three nodes. It keeps the notify pass from
+      evaluating `Enabled` before the view model's constructor has assigned every command the predicate reads (the
+      reviewer's sample hazard). The alternative, arming through the bindings' `version` signal, re-runs every slot
+      of the bindings on each arm. *)
+    let struct (owner, armed, running, error, enabled) =
+        graph.CreateRoot (
+            Func<Owner, _>(fun owner ->
+                let armed = Signal<bool>(graph, false)
+                let running = Signal<int>(graph, 0)
+                let error = Signal<exn>(graph, null)
+
+                let enabled =
+                    new Memo<bool> (
+                        graph,
+                        Func<bool voption, bool>(fun _ ->
+                            (isNull canExecute || canExecute.Invoke ())
+                            && (policy <> CommandPolicy.Disable
+                                || running.Value = 0))
+                    )
+
+                struct (owner, armed, running, error, enabled))
+        )
+
+    let readEnabled () =
+        match enabled.TryValue with
+        | Ready v -> v
+        | _ -> false
+
+    let live () =
+        not disposed
+
+    let arm () =
+        if not armRequested && not disposed then
+            armRequested <- true
+
+            graph.Dispatch (
+                Action (fun () ->
+                    if not disposed then
+                        armed.Value <- true)
+            )
+
+    (*FOR-REVIEW A callback registered on an execution's token that throws makes `Cancel` throw an AggregateException.
+      It is dropped here, so `ExecuteAsync`, `Cancel` and `Dispose` never fail because of a user's registration. The
+      alternative is to surface it as the command's `Error`. *)
+    let cancelAll () =
+        for cts in flights.ToArray () do
+            try
+                cts.Cancel ()
+            with _ ->
+                ()
+
+    let release () =
+        disposed <- true
+        changedHandlers.Clear ()
+        canExecuteHandlers.Clear ()
+        detach ()
+
+    do
+        owner.OnCleanup (
+            Action (fun () ->
+                release ()
+                cancelAll ())
+        )
+
+    /// <summary>The failure recorded for an execution of <c>task</c> under <c>cts</c>, or null.</summary>
+    let failureOf (task: Task) (cts: CancellationTokenSource) : exn =
+        let failure =
+            if task.IsFaulted then
+                let inner = task.Exception.InnerExceptions
+
+                if inner.Count = 1 then inner[0] else task.Exception :> exn
+            elif task.IsCanceled then
+                try
+                    task.GetAwaiter().GetResult()
+                    null
+                with ex ->
+                    ex
+            else
+                null
+
+        match failure with
+        | :? OperationCanceledException when cts.IsCancellationRequested -> null
+        | _ -> failure
+
+    /// <summary>Applies the outcome of <c>task</c>, the execution under <c>cts</c>. Graph thread only.</summary>
+    let finish (cts: CancellationTokenSource) (completion: TaskCompletionSource<obj>) (task: Task) =
+        flights.Remove cts |> ignore
+
+        if not disposed then
+            let failure = failureOf task cts
+
+            graph.Batch (
+                Func<unit>(fun () ->
+                    running.Value <- running.Peek - 1
+
+                    if obj.ReferenceEquals (latest, cts) then
+                        error.Value <- failure)
+            )
+        else
+            // Observes the exception, so it reaches no UnobservedTaskException handler.
+            task.Exception |> ignore
+
+        if obj.ReferenceEquals (latest, cts) then
+            latest <- null
+
+        cts.Dispose ()
+
+        if not (isNull completion) then
+            if task.IsFaulted then
+                completion.TrySetException task.Exception.InnerExceptions
+                |> ignore
+            elif task.IsCanceled then
+                completion.TrySetCanceled () |> ignore
+            else
+                completion.TrySetResult null |> ignore
+
+    /// <summary>Starts an execution when the command is enabled. Graph thread only.</summary>
+    let launch (parameter: obj) (completion: TaskCompletionSource<obj>) =
+        if policy = CommandPolicy.CancelPrevious then
+            cancelAll ()
+
+        let cts = new CancellationTokenSource ()
+        flights.Add cts
+        latest <- cts
+        running.Value <- running.Peek + 1
+
+        let task =
+            try
+                match graph.Untrack (Func<Task>(fun () -> execute parameter cts.Token)) with
+                | null -> Task.CompletedTask
+                | task -> task
+            with ex ->
+                Task.FromException ex
+
+        if task.IsCompleted then
+            finish cts completion task
+        else
+            task.ContinueWith (
+                Action<Task>(fun t -> graph.Dispatch (Action (fun () -> finish cts completion t))),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default
+            )
+            |> ignore
+
+    let start (parameter: obj) (completion: TaskCompletionSource<obj>) =
+        try
+            arm ()
+
+            if
+                disposed
+                || not (graph.Untrack (Func<bool>(readEnabled)))
+            then
+                if not (isNull completion) then
+                    completion.TrySetResult null |> ignore
+            elif sync then
+                graph.Batch (Func<unit>(fun () -> launch parameter completion))
+            else
+                launch parameter completion
+        with ex ->
+            if not (isNull completion) then
+                completion.TrySetException ex |> ignore
+
+    /// <summary>
+    /// Reads the command's nodes, tracked, stores the new state, and returns the changed properties as flags. Graph
+    /// thread only.
+    /// </summary>
+    let refresh () =
+        if disposed || not armed.Value then
+            0
+        else
+            let nextCanRun = readEnabled ()
+            let nextRunning = running.Value > 0
+            let nextError = error.Value
+            let mutable changes = 0
+
+            if nextCanRun <> canRun then
+                canRun <- nextCanRun
+                changes <- changes ||| 1
+
+            if nextRunning <> isRunning then
+                isRunning <- nextRunning
+                changes <- changes ||| 2
+
+            if not (obj.ReferenceEquals (nextError, lastError)) then
+                lastError <- nextError
+                changes <- changes ||| 4
+
+            changes
+
+    let raiseChanges (changes: int) (errors: ResizeArray<exn>) =
+        let from = box self
+
+        if changes &&& 1 <> 0 then
+            canExecuteHandlers.Raise ((fun h -> h.Invoke (from, EventArgs.Empty)), live, errors)
+            changedHandlers.Raise ((fun h -> h.Invoke (from, canRunArgs)), live, errors)
+
+        if changes &&& 2 <> 0 then
+            changedHandlers.Raise ((fun h -> h.Invoke (from, isRunningArgs)), live, errors)
+
+        if changes &&& 4 <> 0 then
+            changedHandlers.Raise ((fun h -> h.Invoke (from, errorArgs)), live, errors)
+
+    let notify () =
+        let changes = refresh ()
+
+        if changes <> 0 then
+            graph.Untrack (
+                Func<unit>(fun () ->
+                    let errors = ResizeArray<exn>()
+                    raiseChanges changes errors
+
+                    if errors.Count > 0 then
+                        ExceptionDispatchInfo.Capture(errors[0]).Throw())
+            )
+
+    do
+        if standalone then
+            Api.runWithOwner owner (fun () -> new Effect (graph, Action notify))
+            |> ignore
+
+    /// <summary>An execution body running <c>execute</c> and returning a completed task.</summary>
+    static member internal Synchronous(execute: Action<obj>) : obj -> CancellationToken -> Task =
+        fun parameter _ ->
+            execute.Invoke parameter
+            Task.CompletedTask
+
+    member internal _.Refresh() =
+        refresh ()
+
+    member internal _.RaiseChanges(changes: int, errors: ResizeArray<exn>) =
+        raiseChanges changes errors
+
+    /// <summary>Called when the command is disposed, on the disposing thread.</summary>
+    member internal _.Detach
+        with set (value: unit -> unit) = detach <- value
+
+    member _.Graph = graph
+
+    /// <summary>The root scope of the command's nodes; disposed by <c>Dispose</c>.</summary>
+    member _.Owner = owner
+
+    /// <summary>
+    /// The derived predicate: <c>canExecute ()</c>, and under <c>CommandPolicy.Disable</c> no execution in flight.
+    /// </summary>
+    member _.Enabled = enabled
+
+    /// <summary>
+    /// <c>Enabled</c> when it is ready, and false while it is pending or failed. On the graph's thread the read is
+    /// tracked.
+    /// </summary>
+    /// <remarks>Off the graph's thread, or after disposal, <c>CanRun</c> is the value last notified.</remarks>
+    member _.CanRun: bool =
+        if graph.IsOnGraphThread && not disposed then
+            readEnabled ()
+        else
+            canRun
+
+    /// <summary>True while an execution is in flight. On the graph's thread the read is tracked.</summary>
+    /// <remarks>Off the graph's thread, or after disposal, <c>IsRunning</c> is the value last notified.</remarks>
+    member _.IsRunning: bool =
+        if graph.IsOnGraphThread && not disposed then
+            running.Value > 0
+        else
+            isRunning
+
+    /// <summary>
+    /// The latest execution's failure, or null after it succeeds or is cancelled. On the graph's thread the read is
+    /// tracked.
+    /// </summary>
+    /// <remarks>Off the graph's thread, or after disposal, <c>Error</c> is the value last notified.</remarks>
+    member _.Error: exn =
+        if graph.IsOnGraphThread && not disposed then
+            error.Value
+        else
+            lastError
+
+    /// <summary>
+    /// Starts an execution with <c>parameter</c> when the command is enabled, through <c>Graph.Dispatch</c>. The task
+    /// completes with the execution, after <c>IsRunning</c> and <c>Error</c> are updated.
+    /// </summary>
+    /// <remarks>
+    /// A disabled or disposed command returns a completed task. A failed execution faults the task, and a cancelled one
+    /// cancels it.
+    /// </remarks>
+    member _.ExecuteAsync([<Optional; DefaultParameterValue(null: obj)>] parameter: obj) : Task =
+        if disposed then
+            Task.CompletedTask
+        else
+            let completion =
+                TaskCompletionSource<obj>(TaskCreationOptions.RunContinuationsAsynchronously)
+
+            graph.Dispatch (Action (fun () -> start parameter completion))
+            completion.Task :> Task
+
+    /// <summary>
+    /// Starts an execution with <c>parameter</c> as <c>ExecuteAsync</c> does, and discards its task. A failure is stored
+    /// in <c>Error</c> only.
+    /// </summary>
+    member _.Execute([<Optional; DefaultParameterValue(null: obj)>] parameter: obj) : unit =
+        if not disposed then
+            graph.Dispatch (Action (fun () -> start parameter null))
+
+    /// <summary>Cancels the token of every execution in flight, through <c>Graph.Dispatch</c>.</summary>
+    member _.Cancel() =
+        graph.Dispatch (Action cancelAll)
+
+    /// <summary>The value of <c>CanRun</c> last notified. Safe to call from any thread.</summary>
+    member _.CanExecute(_parameter: obj) : bool =
+        arm ()
+        canRun
+
+    /// <summary>
+    /// Raised when <c>CanExecute</c> changes, on the graph's thread or posted to the context current when the handler
+    /// subscribed.
+    /// </summary>
+    [<CLIEvent>]
+    member _.CanExecuteChanged =
+        { new IDelegateEvent<EventHandler> with
+            member _.AddHandler h =
+                canExecuteHandlers.Add h
+                arm ()
+
+            member _.RemoveHandler h =
+                canExecuteHandlers.Remove h
+        }
+
+    /// <summary>
+    /// Raised as <c>"CanRun"</c>, <c>"IsRunning"</c> and <c>"Error"</c>, on the graph's thread or posted to the context
+    /// current when the handler subscribed.
+    /// </summary>
+    [<CLIEvent>]
+    member _.PropertyChanged =
+        { new IDelegateEvent<PropertyChangedEventHandler> with
+            member _.AddHandler h =
+                changedHandlers.Add h
+                arm ()
+
+            member _.RemoveHandler h =
+                changedHandlers.Remove h
+        }
+
+    /// <summary>
+    /// Cancels the executions in flight, disposes the command's nodes and drops every handler. Idempotent; dispatched to
+    /// the graph's thread when called from another.
+    /// </summary>
+    member _.Dispose() =
+        if not disposed then
+            release ()
+            graph.Dispatch (Action owner.Dispose)
+
+    interface ICommand with
+        member this.CanExecute(parameter) =
+            this.CanExecute parameter
+
+        member this.Execute(parameter) =
+            this.Execute parameter
+
+        [<CLIEvent>]
+        member this.CanExecuteChanged = this.CanExecuteChanged
+
+    interface INotifyPropertyChanged with
+        [<CLIEvent>]
+        member this.PropertyChanged = this.PropertyChanged
+
+    interface IDisposable with
+        member this.Dispose() =
+            this.Dispose ()
 
 /// <summary>
 /// <c>INotifyPropertyChanged</c> and <c>INotifyDataErrorInfo</c> over graph nodes, for XAML view models. Each registered
@@ -257,6 +702,7 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
     let errorsHandlers = ContextHandlers<EventHandler<DataErrorsChangedEventArgs>>()
     let gate = obj ()
     let mutable slots: IBoundSlot[] = [||]
+    let mutable commands: ReactiveCommand[] = [||]
 
     [<VolatileField>]
     let mutable loading = false
@@ -303,7 +749,7 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
                 current
                 |> Array.exists (fun s -> not (isNull s.Error)))
 
-    let raiseAll (notes: Notifications) =
+    let raiseAll (notes: Notifications) (commandChanges: ResizeArray<struct (ReactiveCommand * int)>) =
         let errors = ResizeArray<exn>()
         let from = source ()
 
@@ -312,6 +758,10 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
 
         for args in notes.ErrorsChanged do
             errorsHandlers.Raise ((fun h -> h.Invoke (from, args)), live, errors)
+
+        if not (isNull commandChanges) then
+            for struct (command, changes) in commandChanges do
+                command.RaiseChanges (changes, errors)
 
         if errors.Count > 0 then
             ExceptionDispatchInfo.Capture(errors[0]).Throw()
@@ -339,12 +789,26 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
             hasErrors <- nextErrors
             notes.Changed.Add hasErrorsArgs
 
+        let currentCommands = commands
+        let mutable commandChanges = null
+
+        if currentCommands.Length > 0 then
+            for command in currentCommands do
+                let changes = command.Refresh ()
+
+                if changes <> 0 then
+                    if isNull commandChanges then
+                        commandChanges <- ResizeArray ()
+
+                    commandChanges.Add (struct (command, changes))
+
         if
             not disposed
             && (notes.Changed.Count > 0
-                || notes.ErrorsChanged.Count > 0)
+                || notes.ErrorsChanged.Count > 0
+                || not (isNull commandChanges))
         then
-            graph.Untrack (Func<unit>(fun () -> raiseAll notes))
+            graph.Untrack (Func<unit>(fun () -> raiseAll notes commandChanges))
 
     do
         inScope (fun () -> new Effect (graph, Action notify))
@@ -367,6 +831,26 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
         loading <- nextLoading
         hasErrors <- nextErrors
         version.Value <- version.Peek + 1
+
+    let registerCommand (command: ReactiveCommand) =
+        lock gate (fun () -> commands <- Array.append commands [| command |])
+
+        command.Detach <-
+            fun () ->
+                lock gate (fun () ->
+                    commands <-
+                        commands
+                        |> Array.filter (fun c -> not (obj.ReferenceEquals (c, command))))
+
+        version.Value <- version.Peek + 1
+        command
+
+    let createCommand (execute: obj -> CancellationToken -> Task) (canExecute: Func<bool>) policy sync =
+        if disposed then
+            raise (ObjectDisposedException (nameof ReactiveBindings))
+
+        inScope (fun () -> new ReactiveCommand (graph, execute, canExecute, policy, sync, false))
+        |> registerCommand
 
     let bindSignal (name: string) (signal: Signal<'T>) =
         let bound = BoundSignal<'T>(graph, owner, name, signal)
@@ -427,6 +911,40 @@ type ReactiveBindings(sender: obj, graph: Graph) as self =
     /// <exception cref="T:System.ObjectDisposedException">The bindings are disposed.</exception>
     member _.Writable<'T>(name: string, signal: Signal<'T>) : BoundSignal<'T> =
         bindSignal name signal
+
+    /// <summary>
+    /// A command running <c>execute</c>, enabled while <c>canExecute ()</c> is true and <c>policy</c> allows. The
+    /// bindings' notifying effect raises its events, and <c>Dispose</c> disposes it.
+    /// </summary>
+    /// <remarks>
+    /// <c>canExecute</c> re-runs when a value it read changes, as a memo's body does; a null <c>canExecute</c> is always
+    /// true. <c>execute</c> receives the parameter and a token cancelled by <c>Cancel</c>, <c>Dispose</c> and
+    /// <c>CommandPolicy.CancelPrevious</c>.
+    /// </remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    /// <exception cref="T:System.ObjectDisposedException">The bindings are disposed.</exception>
+    member _.Command
+        (
+            execute: Func<obj, CancellationToken, Task>,
+            [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>,
+            [<Optional; DefaultParameterValue(CommandPolicy.Disable)>] policy: CommandPolicy
+        ) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        createCommand (fun parameter token -> execute.Invoke (parameter, token)) canExecute policy false
+
+    /// <summary>
+    /// A command running <c>execute</c> synchronously, enabled while <c>canExecute ()</c> is true. The writes
+    /// <c>execute</c> makes are batched.
+    /// </summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    /// <exception cref="T:System.ObjectDisposedException">The bindings are disposed.</exception>
+    member _.Command(execute: Action<obj>, [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        createCommand (ReactiveCommand.Synchronous execute) canExecute CommandPolicy.Disable true
 
     /// <summary>
     /// Runs <c>body</c> with the graph active and <c>Owner</c> as its scope, so the nodes it creates are disposed with

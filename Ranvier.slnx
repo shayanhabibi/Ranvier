@@ -15,10 +15,12 @@
   <Folder Name="/src/">
     <Project Path="src/Ranvier/Ranvier.fsproj" />
     <Project Path="src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
+    <Project Path="src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ranvier.Tests/Ranvier.Tests.fsproj" />
     <Project Path="tests/Ranvier.CSharp.Tests/Ranvier.CSharp.Tests.csproj" />
+    <Project Path="tests/Ranvier.AotSmoke/Ranvier.AotSmoke.fsproj" />
   </Folder>
   <Folder Name="/bench/">
     <Project Path="bench/Ranvier.Benchmarks/Ranvier.Benchmarks.fsproj" />

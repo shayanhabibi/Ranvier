@@ -61,6 +61,12 @@ type TraceEventKind =
     | RunEnd = 22
     /// <summary>A walker frame was unwound without its pop.</summary>
     | WalkAbandoned = 23
+    /// <summary>
+    /// A change reached an async memo while a flight is in progress under <c>FinishCurrent</c>, and a trailing run is
+    /// owed. <c>Other</c>: the puller, or 0. <c>Arg</c>: the flight in progress. <c>Cause</c>: the first dirty
+    /// <c>Mark</c> since the previous run, or 0.
+    /// </summary>
+    | RunDeferred = 24
     /// <summary>A flush started. <c>Arg</c>: the flush number.</summary>
     | FlushStart = 30
     /// <summary>A flush ended. <c>Arg</c>: the flush number.</summary>
@@ -82,7 +88,8 @@ type TraceEventKind =
     | FlightStart = 41
     /// <summary>
     /// An async value settled. <c>Arg</c>: the flight number, or 0 for an async source. <c>Flag</c>: 1 when the node
-    /// stays pending on a newer run. <c>Cause</c>: the <c>FlightStart</c>, or 0.
+    /// stays pending on a newer run suspended on a pending source, 2 when it stays pending on a trailing run owed under
+    /// <c>FinishCurrent</c>. <c>Cause</c>: the <c>FlightStart</c>, or 0.
     /// </summary>
     | Settle = 42
     /// <summary>An async value failed. <c>Flag</c>: 1 when cancelled. Other fields as for <c>Settle</c>.</summary>
@@ -125,6 +132,8 @@ type TraceDropReason =
     | Disposed = 2
     /// <summary>A failure arrived while the node's newest run waits on a pending source.</summary>
     | Suspended = 3
+    /// <summary>A failure arrived while a trailing run is owed under <c>FinishCurrent</c>.</summary>
+    | Trailing = 4
 
 /// <summary>The case names of the trace enums, on .NET and under Fable. A value outside the cases gives its number.</summary>
 module internal TraceNames =
@@ -152,6 +161,7 @@ module internal TraceNames =
         | TraceEventKind.Moved -> "Moved"
         | TraceEventKind.RunEnd -> "RunEnd"
         | TraceEventKind.WalkAbandoned -> "WalkAbandoned"
+        | TraceEventKind.RunDeferred -> "RunDeferred"
         | TraceEventKind.FlushStart -> "FlushStart"
         | TraceEventKind.FlushEnd -> "FlushEnd"
         | TraceEventKind.BatchEnter -> "BatchEnter"
@@ -192,6 +202,7 @@ module internal TraceNames =
         | TraceDropReason.Superseded -> "Superseded"
         | TraceDropReason.Disposed -> "Disposed"
         | TraceDropReason.Suspended -> "Suspended"
+        | TraceDropReason.Trailing -> "Trailing"
         | other -> string (int other)
 #else
         string value

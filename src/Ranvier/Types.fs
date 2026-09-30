@@ -29,8 +29,25 @@ type ThreadAffinity =
     /// proven affinity some other way.
     /// </summary>
     | Unchecked
+    /// <summary>
+    /// Any thread may enter the graph, one at a time, on the synchronisation context current at construction. An entry
+    /// from another context raises, and an entry while another thread is inside the graph raises.
+    /// </summary>
+    /// <remarks>
+    /// For a Blazor Server circuit, whose work items run on its context but on varying pool threads. Work posted
+    /// by a thread outside the graph, settles included, is queued to the dispatcher. Under Fable it behaves as
+    /// <c>Unchecked</c>.
+    /// </remarks>
+    | Serialised
 
-/// <summary>What an async memo does with a flight that a newer run has superseded.</summary>
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | Guarded -> "Guarded"
+        | Unchecked -> "Unchecked"
+        | Serialised -> "Serialised"
+
+/// <summary>What an async memo does when a source changes while a flight is in progress.</summary>
 type FlightPolicy =
     /// <summary>
     /// Cancels the superseded flight's token and discards its result. The memo is Pending until the newest flight settles.
@@ -49,6 +66,25 @@ type FlightPolicy =
     /// pending source, the memo stays Pending: a Ready outcome becomes the <c>Peek</c> value and a Failed outcome is discarded.
     /// </remarks>
     | Queue
+    /// <summary>
+    /// Lets the flight in progress finish, then runs the body once more against the current inputs. Every change during
+    /// the flight folds into that one trailing run.
+    /// </summary>
+    /// <remarks>
+    /// A change during a flight runs no body and starts no flight. When the flight settles with a change owed, a Ready
+    /// outcome becomes the <c>Peek</c> value and the next <c>Previous</c>, a Failed outcome is discarded, and the memo
+    /// stays Pending until the trailing flight settles. The trailing run starts at the memo's next read. A flight that
+    /// settles with no change owed applies as under <c>KeepLatest</c>.
+    /// </remarks>
+    | FinishCurrent
+
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | CancelPrevious -> "CancelPrevious"
+        | KeepLatest -> "KeepLatest"
+        | Queue -> "Queue"
+        | FinishCurrent -> "FinishCurrent"
 
 /// <summary>
 /// Supplies the cutoff comparer for a node's value type.
@@ -87,7 +123,12 @@ type INode =
 /// Deliberately NOT cached. Caching the exception object saves nothing on .NET:
 /// fresh throws measured cheaper than cached ones on .NET 9, 10 and 11 alike.
 /// </remarks>
-exception NotReadyException of source: INode
+exception NotReadyException of source: INode with
+    /// <summary><c>NotReadyException</c>, then the source's <c>ToString</c> text, or <c>null</c>.</summary>
+    override this.Message =
+        match box this.source with
+        | null -> "NotReadyException null"
+        | source -> "NotReadyException " + source.ToString ()
 
 
 /// <summary>
@@ -97,6 +138,7 @@ exception NotReadyException of source: INode
 /// The work stays in the inbox, and the dispatcher chooses the thread the drain runs on. Under <c>Guarded</c>, a drain
 /// off the owning thread raises <c>InvalidOperationException</c> to the <c>Graph.Dispatch</c> caller and the work stays
 /// queued. Under <c>Unchecked</c>, a dispatcher that drains off-thread, such as <c>ImmediateDispatcher</c>, runs graph code there.
+/// Under <c>Serialised</c>, a drain that finds another thread inside the graph leaves the work for that thread's exit to post.
 /// </remarks>
 type IGraphDispatcher =
     abstract Post: drain: Action -> unit
@@ -283,7 +325,7 @@ type GraphOptions =
     member this.WithEquality(equality: IEqualityPolicy) =
         { this with Equality = equality }
 
-    /// <summary>These options, with <c>policy</c> deciding what a newer flight does to an older one.</summary>
+    /// <summary>These options, with <c>policy</c> deciding what a change during a flight does.</summary>
     member this.WithFlightPolicy(policy: FlightPolicy) =
         { this with FlightPolicy = policy }
 
@@ -297,6 +339,28 @@ type GraphOptions =
             Dispatcher = Some dispatcher
         }
 
+    /// <summary>The record's fields, one per line, in F# record syntax.</summary>
+    override this.ToString() =
+        let text (value: obj) =
+            match value with
+            | null -> "null"
+            | value -> value.ToString ()
+
+        let dispatcher =
+            match this.Dispatcher with
+            | Some dispatcher -> "Some " + text dispatcher
+            | None -> "None"
+
+        "{ Equality = "
+        + text this.Equality
+        + "\n  FlightPolicy = "
+        + this.FlightPolicy.ToString ()
+        + "\n  ThreadAffinity = "
+        + this.ThreadAffinity.ToString ()
+        + "\n  Dispatcher = "
+        + dispatcher
+        + " }"
+
 /// <summary>
 /// Engine's internal read path and user's opt-in escape hatch.
 /// </summary>
@@ -306,6 +370,32 @@ type Reading<'T> =
     | Pending
     /// <summary>The node failed. <c>error</c> is a non-null exception on both targets.</summary>
     | Failed of error: exn
+
+    /// <summary>
+    /// The case name and its payload: a <c>string</c> value in double quotes, <c>null</c> as <c>null</c>, and any other
+    /// payload as its <c>string</c> text, which formats a number in the invariant culture. A <c>Ready</c> payload text
+    /// containing a space is wrapped in parentheses unless it opens with a bracket or a quote.
+    /// </summary>
+    override this.ToString() =
+        let text (value: obj) =
+            match value with
+            | null -> "null"
+            | :? string as s -> "\"" + s + "\""
+            | value -> string value
+
+        match this with
+        | Ready value ->
+            let payload = text (box value)
+
+            if
+                payload.Contains " "
+                && "([{\"".IndexOf payload[0] < 0
+            then
+                "Ready (" + payload + ")"
+            else
+                "Ready " + payload
+        | Pending -> "Pending"
+        | Failed error -> "Failed " + text error
 
 #if !FABLE_COMPILER
     /// <summary>True with the value when the reading is <c>Ready</c>.</summary>

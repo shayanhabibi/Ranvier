@@ -206,6 +206,55 @@ let tests =
                 Expect.equal m.Runs 1 "the second read hit the cache"
                 Expect.equal m.ObserverCount 1 "and recorded one edge, not two"
             }
+
+            test "TrackStatus tracks a pending source for a reader of any value type" {
+                let g = new Graph ()
+                let text = AsyncSource<string> g
+                let count = AsyncSource<int> g
+                let sources: INode[] = [| text; count |]
+
+                let anyPending =
+                    Make.Memo (
+                        g,
+                        fun _ ->
+                            sources
+                            |> Array.exists (fun node ->
+                                g.TrackStatus node &&& Status.Pending
+                                <> Status.None)
+                    )
+
+                Expect.isTrue anyPending.Value "both sources start pending"
+
+                text.Settle "ready"
+                Expect.isTrue anyPending.Value "one source is still pending"
+
+                count.Settle 1
+                Expect.isFalse anyPending.Value "the reader re-ran when the last pending source settled"
+            }
+
+            test "TrackStatus brings a stale memo up to date before reporting its status" {
+                let g = new Graph ()
+                let upstream = AsyncSource<int> g
+                let gate = Signal (g, false)
+                let m = Make.Memo (g, (fun _ -> if gate.Value then upstream.Value else 0))
+                let failing = Make.Memo (g, (fun _ -> if gate.Value then failwith "boom" else 0))
+
+                Expect.equal (g.TrackStatus m) Status.None "a settled memo"
+
+                gate.Value <- true
+                Expect.equal (g.TrackStatus m) Status.Pending "the memo recomputed and now reads a pending source"
+                Expect.equal (g.TrackStatus failing) Status.Error "a failed memo reports its error without raising"
+            }
+
+            test "TrackStatus of an effect is untracked" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let e = new Effect (g, (fun () -> s.Value |> ignore))
+                let m = Make.Memo (g, (fun _ -> g.TrackStatus e))
+
+                Expect.equal m.Value Status.None "the effect ran"
+                Expect.equal m.SourceCount 0 "the memo read no source"
+            }
 #if !FABLE_COMPILER
 
             // .NET only: a JavaScript rethrow keeps the stack of the original `Error`.

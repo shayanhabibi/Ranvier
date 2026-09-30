@@ -528,4 +528,23 @@ public class BindingTests
         Assert.Equal(5, count.Value);
         Assert.Equal(["Count"], names);
     });
+
+    [Fact]
+    public void ASerialisedSetOutsideTheGraphAppliesAtTheNextDrain() => WithoutContext(() =>
+    {
+        using var graph = new Graph(GraphOptions.Default
+            .WithThreadAffinity(ThreadAffinity.Serialised)
+            .WithDispatcher(new ManualDispatcher()));
+        using var bindings = new ReactiveBindings(null!, graph);
+        var count = bindings.Writable("Count", 1);
+        var names = Record(bindings);
+
+        count.Value = 5;
+
+        Assert.Equal(1, count.Value);
+        Assert.Equal(1, graph.PendingWork);
+        graph.Pump();
+        Assert.Equal(5, count.Value);
+        Assert.Equal(["Count"], names);
+    });
 }

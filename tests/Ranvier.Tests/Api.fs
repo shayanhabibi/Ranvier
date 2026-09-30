@@ -99,6 +99,20 @@ let tests =
                     // threads would hand this thread a graph it may not touch.
                     Expect.isFalse seenElsewhere "and on no other")
             }
+
+            // .NET only: an out parameter.
+            test "TryGetCurrent returns the graph TryCurrent resolves" {
+                use g = new Graph ()
+                let mutable found = Unchecked.defaultof<Graph>
+
+                g.Run (fun () ->
+                    let mutable inside = Unchecked.defaultof<Graph>
+                    Expect.isTrue (Graph.TryGetCurrent &inside) "a graph is active"
+                    Expect.isTrue (obj.ReferenceEquals (inside, g)) "the active graph")
+
+                Expect.isFalse (Graph.TryGetCurrent &found) "nothing is active outside the run"
+                Expect.isNull (box found) "and the out value is null"
+            }
 #endif
 
             test "untrack reads without creating an edge" {

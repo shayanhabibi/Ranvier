@@ -20,7 +20,10 @@
         <Compile Include="Suspension.fs" />
         <Compile Include="Lifetimes.fs" />
         <Compile Include="Projections.fs" />
+        <Compile Include="DeltaReaders.fs" />
         <Compile Include="Comparisons.fs" />
+        <Compile Include="Commands.fs" />
+        <Compile Include="Models.fs" />
         <Compile Include="Probe.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
@@ -34,6 +37,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
+        <ProjectReference Include="..\..\src\Ranvier.Elmish\Ranvier.Elmish.fsproj" />
+        <ProjectReference Include="..\..\src\Ranvier.CSharp\Ranvier.CSharp.fsproj" />
     </ItemGroup>
 
 </Project>

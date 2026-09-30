@@ -2,6 +2,7 @@ namespace Ranvier.CSharp
 
 open System
 open System.Collections.Generic
+open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 open Ranvier
@@ -49,6 +50,22 @@ type Reactive =
         Api.createMemo (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous))
 
     /// <summary>
+    /// A value seeded by <c>seed ()</c> that accepts local edits through <c>Value</c>. An edit is dropped once the seed
+    /// produces an unequal value.
+    /// </summary>
+    /// <remarks><c>IsEdited</c> reports whether an edit is in force, and <c>Reset ()</c> drops it.</remarks>
+    static member Editable<'T>(seed: Func<'T>) : Editable<'T> =
+        Api.createEditable (fun _ -> seed.Invoke ())
+
+    /// <summary>
+    /// A value seeded by <c>seed ()</c> that accepts local edits through <c>Value</c>. An edit stays in force until
+    /// <c>Reset ()</c>, whatever the seed produces.
+    /// </summary>
+    /// <remarks><c>Upstream</c> reads the seed's current value while an edit is in force.</remarks>
+    static member Draft<'T>(seed: Func<'T>) : Editable<'T> =
+        Api.createDraft (fun _ -> seed.Invoke ())
+
+    /// <summary>
     /// A derived value that owns the nodes <c>compute</c> creates. They are disposed before each re-run.
     /// </summary>
     static member OwningMemo<'T>(compute: Func<'T>) : Memo<'T> =
@@ -74,7 +91,8 @@ type Reactive =
         Api.createAsync (fun _ token -> compute.Invoke token)
 
     /// <summary>
-    /// <c>Async</c>, with the value last published: read every input, then await <c>previous.Settled</c>.
+    /// <c>Async</c>, with the value last published: read every input, then await <c>previous.SettledOr (seed)</c> or
+    /// <c>previous.TrySettled ()</c>.
     /// </summary>
     static member Async<'T>(compute: Func<Previous<'T>, CancellationToken, Task<'T>>) : AsyncMemo<'T> =
         Api.createAsync (fun previous token -> compute.Invoke (previous, token))
@@ -102,6 +120,76 @@ type Reactive =
     /// <summary>A value that shows <c>fallback ()</c> while <c>body</c> is pending and <c>recover error</c> while it fails.</summary>
     static member Boundary<'T>(body: Func<'T>, fallback: Func<'T>, recover: Func<exn, 'T>) : Boundary<'T> =
         Api.createBoundary (fun _ -> fallback.Invoke ()) (fun ex _ -> recover.Invoke ex) body.Invoke
+
+    /// <summary>
+    /// A command running <c>execute</c>, enabled while <c>canExecute ()</c> is true and <c>policy</c> allows. The command
+    /// raises its events from an effect of its own, owned by the current scope.
+    /// </summary>
+    /// <remarks>
+    /// <c>canExecute</c> re-runs when a value it read changes, as a memo's body does; a null <c>canExecute</c> is always
+    /// true. <c>execute</c> receives the parameter and a token cancelled by <c>Cancel</c>, <c>Dispose</c> and
+    /// <c>CommandPolicy.CancelPrevious</c>.
+    /// </remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    static member Command
+        (
+            execute: Func<obj, CancellationToken, Task>,
+            [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>,
+            [<Optional; DefaultParameterValue(CommandPolicy.Disable)>] policy: CommandPolicy
+        ) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        new ReactiveCommand (Graph.Current, (fun parameter token -> execute.Invoke (parameter, token)), canExecute, policy, false, true)
+
+    /// <summary>
+    /// A command running <c>execute</c> synchronously, enabled while <c>canExecute ()</c> is true. The writes
+    /// <c>execute</c> makes are batched.
+    /// </summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    static member Command(execute: Action<obj>, [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        new ReactiveCommand (Graph.Current, ReactiveCommand.Synchronous execute, canExecute, CommandPolicy.Disable, true, true)
+
+    /// <summary>A memo that is true while any of <c>sources</c> is pending.</summary>
+    /// <remarks>
+    /// The memo reads each source's status with <c>Graph.TrackStatus</c>, so it re-runs when a source it read changes, and
+    /// a failed source counts as settled.
+    /// </remarks>
+    static member AnyPending([<ParamArray>] sources: INode[]) : Memo<bool> =
+        let graph = Graph.Current
+        let sources = Array.copy sources
+
+        Api.createMemo (fun _ ->
+            sources
+            |> Array.exists (fun node ->
+                graph.TrackStatus node &&& Status.Pending
+                <> Status.None))
+
+    /// <summary>
+    /// <c>Suspense</c> whose <c>fallback</c> receives the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    /// <remarks>Returning its argument keeps the last value shown while <c>body</c> reloads.</remarks>
+    static member Suspense<'T>(body: Func<'T>, fallback: Func<'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createSuspense (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous)) body.Invoke
+
+    /// <summary>
+    /// <c>ErrorBoundary</c> whose <c>recover</c> receives the error and the boundary's last value, or <c>seed</c> before
+    /// its first.
+    /// </summary>
+    static member ErrorBoundary<'T>(body: Func<'T>, recover: Func<exn, 'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createErrorBoundary (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous)) body.Invoke
+
+    /// <summary>
+    /// <c>Boundary</c> whose handlers receive the boundary's last value, or <c>seed</c> before its first.
+    /// </summary>
+    static member Boundary<'T>(body: Func<'T>, fallback: Func<'T, 'T>, recover: Func<exn, 'T, 'T>, seed: 'T) : Boundary<'T> =
+        Api.createBoundary
+            (fun previous -> fallback.Invoke (ValueOption.defaultValue seed previous))
+            (fun ex previous -> recover.Invoke (ex, ValueOption.defaultValue seed previous))
+            body.Invoke
 
     /// <summary>Runs <c>body</c> without recording anything it reads.</summary>
     static member Untrack<'T>(body: Func<'T>) : 'T =

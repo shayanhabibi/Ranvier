@@ -25,27 +25,27 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | Owners.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
-| Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
+| Async.fs | 30 | 22 | 7 | 30 | 22 | 7 | 2 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
-| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
+| Threading.fs | 3 | 3 | 3 | 3 | 3 | 3 | 26 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 9 | 0 |
-| Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
+| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 10 | 0 |
+| Tracing.fs | 2 | 2 | 2 | 66 | 62 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
-| Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
+| Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 2 | 0 |
 | FanOut.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
 | Reentrancy.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Cutoff.fs | 16 | 14 | 14 | 16 | 14 | 14 | 0 | 0 |
 | SuspensionEdges.fs | 21 | 20 | 20 | 21 | 20 | 20 | 0 | 0 |
 | Scopes.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
 | Propagation.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
-| Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Reads.fs | 14 | 14 | 14 | 14 | 14 | 14 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
-| Projections.fs | 78 | 78 | 78 | 78 | 78 | 78 | 10 | 0 |
+| Projections.fs | 102 | 102 | 102 | 102 | 102 | 102 | 10 | 0 |
 | Lookups.fs | 31 | 31 | 31 | 31 | 31 | 31 | 0 | 0 |
 | MemoScopes.fs | 24 | 24 | 22 | 24 | 24 | 22 | 0 | 0 |
 | MemoPurity.fs | 13 | 13 | 13 | 13 | 13 | 13 | 0 | 0 |
@@ -54,8 +54,12 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | MapSemantics.fs | 42 | 42 | 41 | 42 | 42 | 41 | 0 | 1 |
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
-| PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| PreviousValues.fs | 11 | 11 | 11 | 11 | 11 | 11 | 14 | 0 |
+| Texts.fs | 5 | 5 | 5 | 5 | 5 | 5 | 1 | 0 |
+| FailureOrigins.fs | 16 | 16 | 15 | 16 | 16 | 15 | 2 | 0 |
+| Editables.fs | 17 | 17 | 17 | 17 | 17 | 17 | 1 | 0 |
+| MvuBridge.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
+| **Total** | 784 | 766 | 722 | 860 | 838 | 789 | 87 | 1 |
 
 ## Tests.fs
 
@@ -229,6 +233,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | untraced | a superseded flight does not publish | passed | failed | Async results arrive on a later microtask |
 | untraced | Queue applies every result in the order the flights started | failed | failed | A `Queue` flight applies on a later microtask |
 | untraced | Queue shows an applied outcome while a later flight is in progress | failed | failed | A `Queue` flight applies on a later microtask |
+| untraced | FinishCurrent folds the changes during a flight into one trailing run | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent discards a failure that settles with a run owed | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent applies a flight with no change during it as KeepLatest does | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent does not hold a run back behind a body suspended on a pending source | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent starts the trailing run for an effect that reads the memo | passed | failed | Async results arrive on a later microtask |
 | untraced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | untraced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | untraced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
@@ -247,6 +256,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | a superseded flight does not publish | passed | failed | Async results arrive on a later microtask |
 | traced | Queue applies every result in the order the flights started | failed | failed | A `Queue` flight applies on a later microtask |
 | traced | Queue shows an applied outcome while a later flight is in progress | failed | failed | A `Queue` flight applies on a later microtask |
+| traced | FinishCurrent folds the changes during a flight into one trailing run | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent discards a failure that settles with a run owed | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent applies a flight with no change during it as KeepLatest does | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent does not hold a run back behind a body suspended on a pending source | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent starts the trailing run for an effect that reads the memo | passed | failed | Async results arrive on a later microtask |
 | traced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | traced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | traced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
@@ -256,12 +270,14 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | a cancellableTask body stops a superseded flight at its next bind | IcedTasks' cancellableTask compiles for .NET only. |
+| FinishCurrent hands the finished flight's value to the trailing run as Previous | reads Settled's completion synchronously, and under Fable it is a promise. |
 
-<details><summary>6 passed in every build and delivery that runs them</summary>
+<details><summary>7 passed in every build and delivery that runs them</summary>
 
 - a flight starts only when something reads it
 - CancelPrevious cancels the superseded token
 - KeepLatest leaves the superseded flight running
+- FinishCurrent disposed with a run owed runs nothing more
 - a body that throws before awaiting settles as Failed
 - disposing cancels the flight in progress
 - a settle after disposal does not publish
@@ -336,11 +352,19 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Unchecked affinity lets an off-thread stale read through | JavaScript has one thread. |
 | an activation inside an async body is invisible to the starting thread while suspended | JavaScript has one thread. |
 | graphs owned by separate threads update in parallel | JavaScript has one thread. |
+| Serialised: a free graph accepts a write and a stale read from another thread | JavaScript has one thread. |
+| Serialised: a thread entering while another is inside the graph raises | JavaScript has one thread. |
+| Serialised: disposing a root while another thread is inside the graph raises and leaves the root live | JavaScript has one thread. |
+| Serialised: an entry outside the construction context raises | JavaScript has one thread. |
+| Serialised: a settle from outside the graph is queued, even on the graph's context | JavaScript has one thread. |
+| Serialised: work posted from inside the graph runs inline | JavaScript has one thread. |
+| Serialised: a drain that finds the graph held leaves the work, and the holder posts it again | JavaScript has one thread. |
 
-<details><summary>2 passed in every build and delivery that runs them</summary>
+<details><summary>3 passed in every build and delivery that runs them</summary>
 
 - an on-thread settle runs inline and queues nothing
 - a graph with no ambient context defers
+- Serialised: writes, reads and effects run as on any graph
 
 </details>
 
@@ -393,6 +417,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | {name}: overlapping flights release their registrations once the last one settles | JavaScript exposes no forced collection. |
 | {name}: disposing the memo cancels the flight in progress after an earlier flight settled | JavaScript exposes no forced collection. |
 | {name}: a flight that never settles is released when the memo is disposed | JavaScript exposes no forced collection. |
+| a failed read swallowed inside a {name} is released when it ends | JavaScript exposes no forced collection. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
@@ -411,6 +436,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | why through an async memo walks past the settle to the flight's run | passed | failed | Async results arrive on a later microtask |
 | traced | why steps, history runs and snapshot nodes carry recorded values | failed | failed | Trace records carry less |
 | traced | valueText renders a value as one line | failed | failed | Trace records carry less |
+| traced | FinishCurrent records a deferred run and a settle held for the trailing run | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent drops a failure that settles with a run owed as Trailing | passed | failed | Async results arrive on a later microtask |
 | traced | waitingOn reports superseded, settled and failed flights | passed | failed | Async results arrive on a later microtask |
 
 | Excluded | Reason |
@@ -539,6 +566,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | the active graph is per thread | JavaScript has one thread. |
+| TryGetCurrent returns the graph TryCurrent resolves | JavaScript has one thread. |
 
 <details><summary>7 passed in every build and delivery that runs them</summary>
 
@@ -682,7 +710,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Reads.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>14 passed in every build and delivery that runs them</summary>
 
 - Peek on a never-read memo does not run the body
 - Peek does not recompute a stale memo
@@ -695,6 +723,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - TryValue on a pending source reports rather than throws
 - a fresh memo is Uninitialized until something reads it
 - reading a memo twice in one body is one edge and one computation
+- TrackStatus tracks a pending source for a reader of any value type
+- TrackStatus brings a stale memo up to date before reporting its status
+- TrackStatus of an effect is untracked
 
 </details>
 
@@ -791,7 +822,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a view stops following when the scope that created it re-runs | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 | AsObservableCollection over a pending pass resets once when the pass settles | AsObservableCollection returns an ObservableCollection, which the library omits under Fable. |
 
-<details><summary>78 passed in every build and delivery that runs them</summary>
+<details><summary>102 passed in every build and delivery that runs them</summary>
 
 - the key order follows the source
 - a projection nothing reads is never recomputed
@@ -871,6 +902,30 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a reader of Snapshot over a pending pass runs once when the pass settles
 - a reader of Keys and Get of filter then map over a pending pass runs once when the pass settles
 - a reader of Keys and Get of sortBy over a pending pass runs once when the pass settles
+- the changes between two reads account for the key sets (seed 7)
+- the changes between two reads account for the key sets (seed 1234)
+- the changes between two reads account for the key sets (seed 99991)
+- the first read reports a reset with the current keys
+- a read with nothing changed returns the cached empty delta
+- a removal and an addition read as Removed and Added
+- a key removed in one pass and re-added in a later one reads as Replaced, and its old scope was cleaned
+- a key added and removed between two reads is absent from Changes
+- a removal whose cleanup throws still leaves the next read consistent
+- a read of a pending pass raises, and the read after the settle reports the changes once
+- a reader past max(64, N) unread changes reads a reset
+- a disposed projection gives a reset with empty keys
+- a removal whose cleanup disposes the projection gives a reset with empty keys
+- disposing the last reader, or its owner, stops recording
+- groupBy groups follow the law (seed 11)
+- index projection keys follow the law (seed 11)
+- filter keys follow the law while predicates fail and recover (seed 11)
+- sortBy keys follow the law while sort keys fail and recover (seed 11)
+- groupBy groups follow the law (seed 4242)
+- index projection keys follow the law (seed 4242)
+- filter keys follow the law while predicates fail and recover (seed 4242)
+- sortBy keys follow the law while sort keys fail and recover (seed 4242)
+- a filter key whose predicate starts failing reads as Removed, and as Added once it recovers
+- a new sortBy key whose sort key fails reads as no change, and is removed without a change
 
 </details>
 
@@ -1264,6 +1319,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 | Excluded | Reason |
 | --- | --- |
+| a seeded memo receives the seed, then the value last published | Fable drops the Memo constructors. |
+| a seeded owning memo owns the nodes its body creates | Fable drops the Memo constructors. |
+| the Memo constructor call forms resolve beside the seeded overloads | Fable drops the Memo constructors. |
 | a default-policy prev is complete at launch | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | %A{policy} | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | a read of Settled off the graph thread never caches a value older than the one published | reads the prev task's completion synchronously, and under Fable it is a promise. |
@@ -1276,7 +1334,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Queue loses a read made after awaiting prev | reads the prev task's completion synchronously, and under Fable it is a promise. |
 | Queue resumes a body awaiting prev outside applyResult | reads the prev task's completion synchronously, and under Fable it is a promise. |
 
-<details><summary>8 passed in every build and delivery that runs them</summary>
+<details><summary>11 passed in every build and delivery that runs them</summary>
 
 - the first run receives ValueNone
 - a later run receives the value last published
@@ -1286,5 +1344,102 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a failed run leaves prev at the last settled value
 - a failed first run passes ValueNone to the next run
 - returning prev triggers the cutoff
+- a seeded Suspense fallback receives the seed, then the last value
+- a seeded Errors recover receives the error and the seed, then the last value
+- a seeded Catching boundary passes the seed, then its last value, to both handlers
+
+</details>
+
+## Texts.fs
+
+| Excluded | Reason |
+| --- | --- |
+| NotReadyException's message names the exception | Fable gives an F# exception an empty message. |
+
+<details><summary>5 passed in every build and delivery that runs them</summary>
+
+- ThreadAffinity and FlightPolicy print their case names
+- a Reading prints its case and payload, quoting a string
+- GraphOptions prints its fields one per line
+- a missing key's message holds the key's text
+- a duplicate key's message holds the key's text
+
+</details>
+
+## FailureOrigins.fs
+
+| Build | Failed | Inline | Promise | Difference |
+| --- | --- | --- | --- | --- |
+| untraced | a faulted flight originates at the async memo | passed | failed | Async results arrive on a later microtask |
+| traced | a faulted flight originates at the async memo | passed | failed | Async results arrive on a later microtask |
+
+| Excluded | Reason |
+| --- | --- |
+| a throwing comparer is the origin of the failure | a custom comparer policy and stack traces. |
+| every reader rethrows with the origin's frames and its own | a custom comparer policy and stack traces. |
+
+<details><summary>15 passed in every build and delivery that runs them</summary>
+
+- a memo whose body throws is its own origin
+- the origin passes unchanged through every reader
+- the origin is null while the node is not failed, and clears on recovery
+- a wrapping exception originates at the wrapper
+- a failed async source is the origin of its readers' failure
+- an effect reports the origin of the failure it read
+- an error boundary reports where the caught failure came from
+- a boundary body that throws is the origin of what it catches
+- a recover that rethrows keeps the upstream origin, and a new exception originates at the boundary
+- a failed projection row originates at the projection
+- a failed projection pass originates at the projection
+- a projection whose source rethrows a failed read reports the upstream node
+- a fold over a failed row reports the row's origin
+- a lookup over a failed source reports the upstream node
+- a failed read swallowed by a body leaves the next failure its own
+
+</details>
+
+## Editables.fs
+
+| Excluded | Reason |
+| --- | --- |
+| an edit of an int allocates no more than a write through a chain of two memos | JavaScript exposes no allocation counter. |
+
+<details><summary>17 passed in every build and delivery that runs them</summary>
+
+- an editable reads the seed until edited, then the edit
+- an upstream change drops the edit of an editable
+- A -> B -> A observed drops the edit
+- A -> B -> A inside a batch keeps the edit
+- A -> B -> A with nothing reading the seed keeps the edit
+- a seed that re-runs to an equal value keeps the edit and wakes no reader
+- a seed returning a new but equal record drops the edit under the default policy
+- a seed returning its previous record keeps the edit
+- an equal edit wakes no reader
+- Reset drops the edit
+- IsEdited wakes its reader on edit, on reset and when upstream drops the edit
+- the seed receives its own last value
+- a draft keeps its edit across upstream changes until Reset
+- an edit while the seed is pending belongs to the last settled value
+- a pending seed that settles to a new value drops the edit
+- an edit before the seed first settles is dropped by an editable and kept by a draft
+- disposing the owner detaches the editable from its seed
+
+</details>
+
+## MvuBridge.fs
+
+| Excluded | Reason |
+| --- | --- |
+| a dispatch from another thread is queued until the graph pumps | JavaScript has one thread. |
+
+<details><summary>7 passed in every build and delivery that runs them</summary>
+
+- Dispatch applies update to the model
+- an update that returns its argument wakes nothing
+- a selector wakes its readers only when its part changes
+- a nested selector re-runs only when its parent memo changes
+- commands run after the write, with Dispatch
+- initial commands run before withCmd returns
+- a dispatch from an effect leaves the effect unsubscribed from the model
 
 </details>
