@@ -9,6 +9,16 @@ open Ranvier
 let private isNode (expected: obj) (origin: INode) =
     obj.ReferenceEquals (origin, expected)
 
+/// <summary>An exception with <c>inner</c> as its <c>InnerException</c>.</summary>
+let private wrapped (inner: exn) : exn =
+#if FABLE_COMPILER
+    let error = InvalidOperationException "wrapped"
+    Platform.setInner error inner
+    error
+#else
+    InvalidOperationException ("wrapped", inner)
+#endif
+
 let private failedWith (reading: Reading<'T>) =
     match reading with
     | Failed ex -> ex
@@ -94,7 +104,7 @@ let tests =
                             try
                                 a.Value
                             with ex ->
-                                raise (InvalidOperationException ("wrapped", ex))
+                                raise (wrapped ex)
                     )
 
                 let error = failedWith b.TryValue

@@ -31,7 +31,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 9 | 0 |
+| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 10 | 0 |
 | Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
@@ -55,7 +55,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| FailureOrigins.fs | 16 | 16 | 15 | 16 | 16 | 15 | 2 | 0 |
+| **Total** | 718 | 700 | 661 | 792 | 770 | 728 | 72 | 1 |
 
 ## Tests.fs
 
@@ -393,6 +394,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | {name}: overlapping flights release their registrations once the last one settles | JavaScript exposes no forced collection. |
 | {name}: disposing the memo cancels the flight in progress after an earlier flight settled | JavaScript exposes no forced collection. |
 | {name}: a flight that never settles is released when the memo is disposed | JavaScript exposes no forced collection. |
+| a failed read swallowed inside a {name} is released when it ends | JavaScript exposes no forced collection. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
@@ -1286,5 +1288,37 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a failed run leaves prev at the last settled value
 - a failed first run passes ValueNone to the next run
 - returning prev triggers the cutoff
+
+</details>
+
+## FailureOrigins.fs
+
+| Build | Failed | Inline | Promise | Difference |
+| --- | --- | --- | --- | --- |
+| untraced | a faulted flight originates at the async memo | passed | failed | Async results arrive on a later microtask |
+| traced | a faulted flight originates at the async memo | passed | failed | Async results arrive on a later microtask |
+
+| Excluded | Reason |
+| --- | --- |
+| a throwing comparer is the origin of the failure | a custom comparer policy and stack traces. |
+| every reader rethrows with the origin's frames and its own | a custom comparer policy and stack traces. |
+
+<details><summary>15 passed in every build and delivery that runs them</summary>
+
+- a memo whose body throws is its own origin
+- the origin passes unchanged through every reader
+- the origin is null while the node is not failed, and clears on recovery
+- a wrapping exception originates at the wrapper
+- a failed async source is the origin of its readers' failure
+- an effect reports the origin of the failure it read
+- an error boundary reports where the caught failure came from
+- a boundary body that throws is the origin of what it catches
+- a recover that rethrows keeps the upstream origin, and a new exception originates at the boundary
+- a failed projection row originates at the projection
+- a failed projection pass originates at the projection
+- a projection whose source rethrows a failed read reports the upstream node
+- a fold over a failed row reports the row's origin
+- a lookup over a failed source reports the upstream node
+- a failed read swallowed by a body leaves the next failure its own
 
 </details>
