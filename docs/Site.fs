@@ -287,21 +287,10 @@ let private ogImages (options: OgImageOptions) =
         |> OgImage.withSize 1200 630
     )
 
-/// The shipped C# grammar, loaded as <c>c_sharp</c> to match its wasm's <c>tree_sitter_c_sharp</c> export, and
-/// written with <c>csharp</c>, <c>cs</c> or <c>c#</c> fences.
+/// The shipped C# grammar (<c>c_sharp</c>, after its wasm's <c>tree_sitter_c_sharp</c> export), also written with
+/// <c>csharp</c>, <c>cs</c> or <c>c#</c> fences.
 let private csharpGrammar (options: TreeSitterOptions) =
-    let dir = Path.Combine (__SOURCE_DIRECTORY__, "obj", "tree-sitter", "c_sharp")
-    let wasm = Path.Combine (dir, "grammar.wasm.gz")
-    let queries = Path.Combine (dir, "highlights.scm")
-    Directory.CreateDirectory dir |> ignore
-    File.WriteAllBytes (wasm, TreeSitter.bundledGrammar "csharp")
-    File.WriteAllBytes (queries, TreeSitter.bundledQueries "csharp")
-
-    let grammar =
-        { TreeSitter.bundled "csharp" with
-            Language = "c_sharp"
-            Source = TreeSitterGrammarSource.Files (wasm, queries)
-        }
+    let grammar = TreeSitter.bundled "c_sharp"
 
     options
     |> TreeSitter.grammars (
