@@ -364,6 +364,11 @@ null analysis quiet.
   enabled. The body runs untracked, with a token that `Cancel`, `Dispose` and `CommandPolicy.CancelPrevious` cancel.
   Under `Disable`, `CanExecuteChanged` has been raised with `false` before the body starts, so a second click does
   nothing. The returned task completes with the execution, after `IsRunning` and `Error` are updated.
+- **Serialised graphs.** Under `ThreadAffinity.Serialised`, `Execute` and `ExecuteAsync` start the execution inline only
+  on the thread inside the graph. A call from anywhere else, a button handler on the construction context included, is
+  queued and starts at the next drain. A graph constructed with no `SynchronizationContext` drains only when
+  `graph.Pump()` runs, so the execution, and the task `ExecuteAsync` returned, wait until then. See
+  [Serialised hosts](../concepts/contracts.md#serialised-hosts).
 - **Failures.** A failed execution sets `Error` to its exception, and the next successful one clears it. An
   `OperationCanceledException` after the command cancelled the token clears it too. `ICommand.Execute`, which a
   button calls, discards the task: a failure reaches `Error` only, never the `SynchronizationContext`.

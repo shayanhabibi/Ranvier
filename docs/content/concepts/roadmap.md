@@ -39,6 +39,13 @@ These are implemented and covered by tests.
   locally, and forms as records of signals. See [Editable values and forms](../guide/forms.md).
 - **MVU bridge.** The `Ranvier.Elmish` package: `Mvu`, which reads an Elmish-style model through selector memos. See
   [Migrating from Elmish](../guide/elmish.md).
+- **Projection key readers.** `NewKeyReader` reports the keys added, removed and replaced since a reader last
+  looked, and the order they now hold. See [Reading changes](../guide/collections.fsx#reading-changes).
+- **Serialised thread affinity.** `ThreadAffinity.Serialised` admits one thread at a time on the construction
+  context, for hosts such as Blazor Server. See [Serialised hosts](contracts.md#serialised-hosts) and
+  [Blazor Server](../guide/blazor-server.md).
+- **Failure provenance.** `ErrorOrigin` on a failed node and `CaughtFrom` on an error boundary report the node a
+  failure originated in. See [Finding where a failure came from](contracts.md#finding-where-a-failure-came-from).
 
 ## In progress
 
@@ -53,10 +60,7 @@ None of these is available. Each one is an open question about whether and how i
 - **A drop-while-running flight policy.** A policy that ignores a new run while one is in progress, as R3's
   `Drop` and CommunityToolkit's `AsyncRelayCommand` do.
 - **Debounce and throttle.** As a flight policy or as a combinator.
-- **Projection delta readers.** Readers that report the keys added, removed and changed since they last
-  looked, then value changes, then views that apply deltas instead of re-reading their upstream keys.
-- **A serialised affinity mode for Blazor Server.** A graph whose work may run on several threads, one at a
-  time, queued as the renderer queues its own work.
-- **Failure provenance.** Reporting which node raised the failure that a boundary or a failed memo holds.
+- **Projection value readers and delta views.** Key readers ship; the next stages are readers that report the
+  rows whose values changed, then views that apply deltas instead of re-reading their upstream keys.
 
 The [Ecosystem](ecosystem.md) page lists the current gaps these items address.

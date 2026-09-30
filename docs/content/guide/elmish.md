@@ -84,6 +84,10 @@ run before `withCommands` returns.
 - A `Dispatch` from another thread is queued and applied on the graph's thread, as
   [`Graph.Dispatch`](async-and-pending.md#threading-and-dispatch) queues work. A command that completes on the thread pool can call
   `dispatch` directly.
+- Under `ThreadAffinity.Serialised`, a `Dispatch` runs inline only on the thread inside the graph. A `Dispatch` from
+  anywhere else, including a thread on the construction context, is queued and applied at the next drain. A graph
+  constructed with no `SynchronizationContext` drains only when `graph.Pump ()` runs, so the message stays queued until
+  then. See [Serialised hosts](../concepts/contracts.md#serialised-hosts).
 
 ## Selectors and their cost
 

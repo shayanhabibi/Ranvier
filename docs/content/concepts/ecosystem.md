@@ -38,8 +38,9 @@ API is designed for F#. Evaluate it with that in mind.
 A mature F# incremental computation library, used by the Aardvark platform. Its adaptive collections
 (`aset`, `alist`, `amap`) pass deltas from one stage to the next. Ranvier's
 [projections](../guide/collections.fsx) are keyed collections with `filter`, `map`, `sortBy`, `groupBy` and
-fold views. Each view re-reads its upstream keys on a membership or order change, and delta readers are still
-in design. Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
+fold views. Each view re-reads its upstream keys on a membership or order change. A key reader reports the keys
+added, removed and replaced, and the new order; readers of value changes and views that apply deltas are still in
+design. Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
 visible in the code. If you need delta-based incremental collections or a proven F# library today, use Adaptive.
 
 ### SignalsDotnet
@@ -171,17 +172,17 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   ([equality cutoff](../guide/getting-started.md#equality-cutoff)).
 - **Blazor.** A boundary maps onto a component. Blazor has no built-in signals, and
   [dotnet/aspnetcore#67329](https://github.com/dotnet/aspnetcore/issues/67329), an open proposal, asks for
-  them. Blazor Server needs the serialised affinity mode listed under current gaps.
+  them. For Blazor Server, `ThreadAffinity.Serialised` admits the circuit's work one thread at a time; see
+  [Blazor Server](../guide/blazor-server.md).
 
 ## Current gaps
 
 - No framework-specific UI packages yet. The .NET UI bindings are `ReactiveBindings` (`INotifyPropertyChanged` and
   `INotifyDataErrorInfo`), `ReactiveCommand` (`ICommand` with a derived `CanExecute`) and
   `Projection.AsObservableCollection`.
-- No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
 - No debounce or throttle, and no flight policy that drops a new run while one is in progress.
-- Projections publish their current state only. Delta readers, which report the keys added, removed and
-  changed since a reader last looked, are in design.
+- Projection key readers report membership and order changes only. Readers of row value changes, and views that
+  apply deltas instead of re-reading their upstream keys, are in design.
 - The Fable target is implemented and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 
 The [roadmap](roadmap.md) lists which of these are under consideration.

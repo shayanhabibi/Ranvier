@@ -160,4 +160,5 @@ renderer's dispatcher, and after the second quote settles, the component shows:
 Under `Serialised`, `Dispatch` runs work inline only on the thread inside the graph. From an event handler,
 which runs outside the graph, it queues the work for the next drain. A C# `BoundSignal` setter goes through
 `Dispatch`, so a read right after the set returns the previous value until that drain. Write signals
-directly from event handlers when the new value must be visible at once.
+directly from event handlers when the new value must be visible at once. `Mvu.Dispatch` (see
+[Migrating from Elmish](elmish.md#dispatch-and-threads)) and `ReactiveCommand.Execute` queue the same way.
