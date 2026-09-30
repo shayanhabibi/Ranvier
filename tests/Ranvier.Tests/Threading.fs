@@ -699,7 +699,7 @@ let tests =
             test "Serialised: writes, reads and effects run as on any graph" {
                 let g = new Graph (GraphOptions.Default.WithThreadAffinity Serialised)
                 let s = Signal (g, 1)
-                let m = Memo (g, (fun _ -> s.Value * 10))
+                let m = Make.Memo (g, (fun _ -> s.Value * 10))
                 let seen = ResizeArray ()
                 g.Run (fun () -> createEffect (fun () -> seen.Add m.Value))
 

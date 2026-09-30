@@ -27,7 +27,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
 | Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
-| Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
+| Threading.fs | 3 | 3 | 3 | 3 | 3 | 3 | 25 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| **Total** | 703 | 685 | 647 | 777 | 755 | 714 | 75 | 1 |
 
 ## Tests.fs
 
@@ -336,11 +336,18 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Unchecked affinity lets an off-thread stale read through | JavaScript has one thread. |
 | an activation inside an async body is invisible to the starting thread while suspended | JavaScript has one thread. |
 | graphs owned by separate threads update in parallel | JavaScript has one thread. |
+| Serialised: a free graph accepts a write and a stale read from another thread | JavaScript has one thread. |
+| Serialised: a thread entering while another is inside the graph raises | JavaScript has one thread. |
+| Serialised: an entry outside the construction context raises | JavaScript has one thread. |
+| Serialised: a settle from outside the graph is queued, even on the graph's context | JavaScript has one thread. |
+| Serialised: work posted from inside the graph runs inline | JavaScript has one thread. |
+| Serialised: a drain that finds the graph held leaves the work, and the holder posts it again | JavaScript has one thread. |
 
-<details><summary>2 passed in every build and delivery that runs them</summary>
+<details><summary>3 passed in every build and delivery that runs them</summary>
 
 - an on-thread settle runs inline and queues nothing
 - a graph with no ambient context defers
+- Serialised: writes, reads and effects run as on any graph
 
 </details>
 
