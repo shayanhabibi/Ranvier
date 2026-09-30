@@ -15,6 +15,7 @@ let tests =
                 Expect.equal (CancelPrevious.ToString ()) "CancelPrevious" "CancelPrevious"
                 Expect.equal (KeepLatest.ToString ()) "KeepLatest" "KeepLatest"
                 Expect.equal (FlightPolicy.Queue.ToString ()) "Queue" "Queue"
+                Expect.equal (FinishCurrent.ToString ()) "FinishCurrent" "FinishCurrent"
             }
 
             test "a Reading prints its case and payload, quoting a string" {
