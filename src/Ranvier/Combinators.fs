@@ -346,7 +346,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality> internal (graph: Gr
         for struct (groupKey, group) in adds do
             let source = Signal<Projection<'K, 'V>>(graph, group.View)
             let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>>(groupKey, source)
-            this.Entries.Set (groupKey, entry)
+            this.AddEntry (groupKey, entry)
             entry.Reader <- fun () -> source.Value
             entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun _ -> this.RunRow entry), ScopeMode.ValueRow)
 

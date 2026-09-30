@@ -310,6 +310,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     let entries = Platform.KeyMap<'K, RowEntry<'K, 'V>>()
 
+    /// <summary>The live key readers, and null while none exists.</summary>
+    let mutable log: KeyLog<'K> = null
+
     let beacon = ProjectionBeacon (graph, this)
 
     /// <summary>
@@ -452,6 +455,16 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member internal _.PassKeys = passKeys
     member internal _.Seen = seen
 
+    /// <summary>Stores the row of an added key, and records the addition for the key readers.</summary>
+    member internal _.AddEntry(key: 'K, entry: RowEntry<'K, 'V>) =
+        entries.Set (key, entry)
+
+        if not (isNull log) then
+            log.Record (key, KeyChange.Added)
+
+    /// <summary>Whether a key reader is live.</summary>
+    member internal _.HasKeyReaders = not (isNull log)
+
     /// <summary>
     /// The row computation's body: the reader, reported to the pending
     /// summary.
@@ -548,6 +561,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </summary>
     member private _.Retire(entry: RowEntry<'K, 'V>) =
         entry.Live <- false
+
+        if not (isNull log) then
+            log.Record (entry.Key, KeyChange.Removed)
 
         if entry.Watched then
             entry.Watched <- false
@@ -1311,6 +1327,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
             entries.Clear ()
             inFlight.Clear ()
+
+            if not (isNull log) then
+                log.Reset ()
+
             scope.Dispose ()
 
             if not (isNull (box passScope)) then
@@ -1318,6 +1338,38 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
             if keys.Peek.Length > 0 then
                 graph.RunBatch (fun () -> keys.Value <- Array.empty)
+
+    /// <summary>
+    /// A new reader of the projection's membership and order, owned by the calling scope. Its first <c>Read</c> reports a
+    /// reset; each later one reports the keys added, removed or replaced since the previous read.
+    /// </summary>
+    /// <remarks>
+    /// Each addition or removal costs one map update per live reader. A disposed projection gives a reader whose first read
+    /// reports a reset with empty <c>Keys</c>.
+    /// </remarks>
+    member this.NewKeyReader() : ProjectionReader<'K> =
+        //FOR-REVIEW On a disposed projection this returns a reader (first read: reset, empty Keys) instead of raising ObjectDisposedException as AsObservableCollection does; Keys on a disposed projection reads empty rather than raising.
+        let reader = new ProjectionReader<'K> (this)
+
+        if not disposed then
+            if isNull log then
+                log <- KeyLog<'K>()
+
+            log.Add reader
+
+        reader.Link <- graph.CurrentOwner.AttachLinked reader
+        reader
+
+    interface IKeyLogHost<'K> with
+        member this.ReadKeys() = this.Keys
+        member _.LiveCount = entries.Count
+
+        member _.Detach reader =
+            if not (isNull log) then
+                log.Remove reader
+
+                if log.Count = 0 then
+                    log <- null
 
     interface IDisposable with
         member this.Dispose() =
@@ -1376,7 +1428,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
     member private this.NewRow(key: 'K, item: 'T) =
         let entry = ItemRow<'T, 'K, 'V>(key, Signal<'T>(graph, item))
         Tracer.Part (graph, (entry.Item :> INode).Id, (this :> INode).Id, box key)
-        this.Entries.Set (key, entry)
+        this.AddEntry (key, entry)
         entry
 
     member private this.Compute(entry: RowEntry<'K, 'V>) : 'V voption -> 'V =

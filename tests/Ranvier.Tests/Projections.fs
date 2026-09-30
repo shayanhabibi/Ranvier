@@ -2015,3 +2015,331 @@ let summaryTests =
             }
 #endif
         ]
+
+/// <summary>The keys of <c>delta</c> whose change is <c>change</c>.</summary>
+let private keysWith (change: KeyChange) (delta: ProjectionDelta<int>) =
+    delta.Changes
+    |> Seq.filter (fun pair -> pair.Value = change)
+    |> Seq.map _.Key
+    |> Set.ofSeq
+
+/// <summary>
+/// Checks a delta against its key arrays: the changes turn <c>PreviousKeys</c> into <c>Keys</c> as sets, and
+/// <c>Positional</c> replays <c>PreviousKeys</c> into <c>Keys</c>.
+/// </summary>
+let private expectLaw (label: string) (delta: ProjectionDelta<int>) =
+    let previous = Set.ofArray delta.PreviousKeys
+    let current = Set.ofArray delta.Keys
+    let added = keysWith KeyChange.Added delta
+    let removed = keysWith KeyChange.Removed delta
+    let replaced = keysWith KeyChange.Replaced delta
+
+    if delta.IsReset then
+        Expect.equal delta.Changes.Count 0 $"{label}: a reset carries no changes"
+    else
+        Expect.equal (previous - removed + added) current $"{label}: previous - removed + added = keys"
+        Expect.isTrue (Set.intersect added previous).IsEmpty $"{label}: an added key is new"
+        Expect.isTrue (Set.intersect removed current).IsEmpty $"{label}: a removed key is gone"
+        Expect.isTrue (Set.isSubset replaced (Set.intersect previous current)) $"{label}: a replaced key is in both"
+
+        Expect.isFalse (Seq.contains KeyChange.Changed (delta.Changes |> Seq.map _.Value)) $"{label}: a key reader reports membership only"
+
+    Expect.sequenceEqual (replay delta.PreviousKeys delta.Positional) delta.Keys $"{label}: Positional replays the order"
+
+/// <summary>
+/// Drives <c>passes</c> random writes of <c>items</c> through <c>project</c>, with two readers read at random intervals
+/// and checked against the law after every read.
+/// </summary>
+let private randomPasses (seed: int) (passes: int) (project: Signal<int[]> -> Projection<int, 'V>) =
+    use g = new Graph ()
+    use _ = g.Activate ()
+    let rng = Lcg seed
+    let universe = [| 1..24 |]
+    let items = createSignal (shuffle rng universe |> Array.take 12)
+    let proj = project items
+    createEffect (fun () -> proj.Keys |> ignore)
+    let readers = [| proj.NewKeyReader (); proj.NewKeyReader () |]
+    let resets = Array.zeroCreate<int> readers.Length
+
+    for pass in 1..passes do
+        let current = items.Peek
+
+        items.Value <-
+            match rng.Next 4 with
+            | 0 ->
+                shuffle rng universe
+                |> Array.take (rng.Next universe.Length)
+            | 1 -> perturb rng 2 current
+            | 2 -> current |> Array.filter (fun _ -> rng.Next 4 > 0)
+            | _ ->
+                let absent =
+                    universe
+                    |> Array.filter (fun k -> not (Array.contains k current))
+
+                perturb
+                    rng
+                    1
+                    (Array.append
+                        current
+                        (shuffle rng absent
+                         |> Array.take (min 3 absent.Length)))
+
+        for r in 0 .. readers.Length - 1 do
+            if rng.Next 3 = 0 then
+                let delta = readers[r].Read()
+
+                if delta.IsReset then
+                    resets[r] <- resets[r] + 1
+
+                expectLaw $"seed {seed}, pass {pass}, reader {r}" delta
+                Expect.sequenceEqual delta.Keys proj.Keys $"pass {pass}, reader {r}: Keys is the projection's order"
+
+    for r in 0 .. readers.Length - 1 do
+        expectLaw $"seed {seed}, final, reader {r}" (readers[r].Read())
+        Expect.isLessThanOrEqual resets[r] 1 $"reader {r}: only the first read resets"
+
+[<Tests>]
+let deltaReaderTests =
+    testList
+        "Projection key readers"
+        [
+            for seed in [ 7; 1234; 99991 ] do
+                test $"the changes between two reads account for the key sets (seed {seed})" {
+                    randomPasses seed 200 (fun items -> createProjection id (fun x -> x * 10) (fun () -> items.Value))
+                }
+
+            test "the first read reports a reset with the current keys" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                let reader = proj.NewKeyReader ()
+
+                let delta = reader.Read ()
+                Expect.isTrue delta.IsReset "the first read resets"
+                Expect.sequenceEqual delta.Keys [ 1; 2; 3 ] "the current keys"
+                Expect.isEmpty delta.PreviousKeys "no previous keys"
+                Expect.equal delta.Changes.Count 0 "no changes on a reset"
+            }
+
+            test "a read with nothing changed returns the cached empty delta" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                let first = reader.Read ()
+                Expect.isTrue first.IsEmpty "nothing changed"
+                Expect.isTrue (obj.ReferenceEquals (first, reader.Read ())) "the same delta, allocated once"
+            }
+
+            test "a removal and an addition read as Removed and Added" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 1; 3; 4 ]
+                let delta = reader.Read ()
+
+                Expect.equal (keysWith KeyChange.Removed delta) (set [ 2 ]) "2 left"
+                Expect.equal (keysWith KeyChange.Added delta) (set [ 4 ]) "4 arrived"
+                Expect.isTrue delta.OrderChanged "the order moved"
+                Expect.isFalse delta.IsEmpty "the delta carries changes"
+                expectLaw "remove and add" delta
+            }
+
+            test "a key removed in one pass and re-added in a later one reads as Replaced, and its old scope was cleaned" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let cleaned = ResizeArray<int>()
+
+                let proj =
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            let x = item ()
+                            onCleanup (fun () -> cleaned.Add x)
+                            fun () -> x)
+                        (fun () -> items.Value)
+
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 1; 3 ]
+                items.Value <- [ 1; 2; 3 ]
+                let delta = reader.Read ()
+
+                Expect.equal
+                    (List.ofSeq delta.Changes
+                     |> List.map (fun p -> p.Key, p.Value))
+                    [ 2, KeyChange.Replaced ]
+                    "one replaced key"
+
+                Expect.sequenceEqual cleaned [ 2 ] "the first row's scope ran its cleanup"
+                expectLaw "replaced" delta
+            }
+
+            test "a key added and removed between two reads is absent from Changes" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 1; 2; 3; 4 ]
+                items.Value <- [ 1; 2; 3 ]
+                let delta = reader.Read ()
+
+                Expect.equal delta.Changes.Count 0 "the churn cancels"
+                Expect.sequenceEqual delta.Keys [ 1; 2; 3 ] "the current keys"
+                Expect.isEmpty delta.Positional "the order is unchanged"
+                expectLaw "churn" delta
+            }
+
+            test "a removal whose cleanup throws still leaves the next read consistent" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3; 4 ]
+
+                let proj =
+                    createProjectionWith
+                        id
+                        (fun item ->
+                            let x = item ()
+
+                            onCleanup (fun () ->
+                                if x = 2 then
+                                    failwith "cleanup failed")
+
+                            fun () -> x)
+                        (fun () -> items.Value)
+
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                items.Value <- [ 4; 3; 5 ]
+                let delta = reader.Read ()
+
+                Expect.equal (keysWith KeyChange.Removed delta) (set [ 1; 2 ]) "both removals recorded"
+                Expect.equal (keysWith KeyChange.Added delta) (set [ 5 ]) "the addition recorded"
+                expectLaw "throwing cleanup" delta
+            }
+
+            test "a read of a pending pass raises, and the read after the settle reports the changes once" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let first = createAsyncSource<int list>()
+                first.Settle [ 1; 2 ]
+                let current = createSignal first
+                let proj = createProjection id id (fun () -> current.Value.Value)
+                let reader = proj.NewKeyReader ()
+                let deltas = ResizeArray<ProjectionDelta<int>>()
+                let raised = ref 0
+
+                createEffect (fun () ->
+                    try
+                        deltas.Add (reader.Read ())
+                    with :? NotReadyException ->
+                        raised.Value <- raised.Value + 1)
+
+                Expect.equal deltas.Count 1 "the first run reads the reset"
+                let next = createAsyncSource<int list>()
+                current.Value <- next
+                Expect.equal raised.Value 1 "the pending pass raises to the reader"
+                Expect.equal deltas.Count 1 "and returns nothing"
+
+                next.Settle [ 2; 3 ]
+                Expect.equal deltas.Count 2 "the reader runs once per settle"
+                let delta = deltas[1]
+                Expect.equal (keysWith KeyChange.Removed delta) (set [ 1 ]) "1 left"
+                Expect.equal (keysWith KeyChange.Added delta) (set [ 3 ]) "3 arrived"
+                expectLaw "after the settle" delta
+            }
+
+            test "a reader past max(64, N) unread changes reads a reset" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1..100 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                createEffect (fun () -> proj.Keys |> ignore)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                for n in 99..-1..30 do
+                    items.Value <- [ 1..n ]
+
+                let delta = reader.Read ()
+                Expect.isTrue delta.IsReset "the reader fell behind"
+                Expect.equal delta.Changes.Count 0 "no changes on a reset"
+                Expect.sequenceEqual delta.Keys [ 1..30 ] "the current keys"
+
+                items.Value <- [ 1..29 ]
+                let next = reader.Read ()
+                Expect.isFalse next.IsReset "the reader records again"
+                Expect.equal (keysWith KeyChange.Removed next) (set [ 30 ]) "the next removal"
+            }
+
+            test "a disposed projection gives a reset with empty keys" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                let reader = proj.NewKeyReader ()
+                reader.Read () |> ignore
+
+                proj.Dispose ()
+                let delta = reader.Read ()
+                Expect.isTrue delta.IsReset "a reset"
+                Expect.isEmpty delta.Keys "no keys"
+                Expect.sequenceEqual delta.PreviousKeys [ 1; 2; 3 ] "the keys of the previous read"
+            }
+
+            test "disposing the last reader, or its owner, stops recording" {
+                use g = new Graph ()
+                use _ = g.Activate ()
+                let items = createSignal [ 1; 2; 3 ]
+                let proj = createProjection id id (fun () -> items.Value)
+                Expect.isFalse proj.HasKeyReaders "precondition: no reader"
+
+                let a = proj.NewKeyReader ()
+                let b = proj.NewKeyReader ()
+                Expect.isTrue proj.HasKeyReaders "readers record"
+                (a :> IDisposable).Dispose()
+                Expect.isTrue proj.HasKeyReaders "one reader left"
+                (b :> IDisposable).Dispose()
+                (b :> IDisposable).Dispose()
+                Expect.isFalse proj.HasKeyReaders "the last reader left"
+                Expect.throwsT<ObjectDisposedException> (fun () -> b.Read () |> ignore) "a disposed reader cannot read"
+
+                let owner =
+                    createRoot (fun owner ->
+                        proj.NewKeyReader () |> ignore
+                        owner)
+
+                Expect.isTrue proj.HasKeyReaders "the owned reader records"
+                owner.Dispose ()
+                Expect.isFalse proj.HasKeyReaders "the owner's disposal removed it"
+            }
+
+            for seed in [ 11; 4242 ] do
+                test $"groupBy groups follow the law (seed {seed})" {
+                    randomPasses seed 150 (fun items ->
+                        createProjection id id (fun () -> items.Value)
+                        |> Projection.groupBy (fun n -> n % 7)
+                        :> Projection<int, Projection<int, int>>)
+                }
+
+                test $"index projection keys follow the law (seed {seed})" {
+                    randomPasses seed 150 (fun items -> createIndexProjection id (fun () -> items.Value))
+                }
+        ]

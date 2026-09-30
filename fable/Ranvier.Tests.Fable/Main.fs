@@ -47,7 +47,13 @@ let all =
             testList "Reads.fs" [ Ranvier.Tests.Reads.tests ]
             testList "Batching.fs" [ Ranvier.Tests.Batching.tests ]
             testList "AsyncEdges.fs" [ Ranvier.Tests.AsyncEdges.tests ]
-            testList "Projections.fs" [ Ranvier.Tests.Projections.tests; Ranvier.Tests.Projections.summaryTests ]
+            testList
+                "Projections.fs"
+                [
+                    Ranvier.Tests.Projections.tests
+                    Ranvier.Tests.Projections.summaryTests
+                    Ranvier.Tests.Projections.deltaReaderTests
+                ]
             testList "Lookups.fs" [ Ranvier.Tests.Lookups.tests ]
             testList "MemoScopes.fs" [ Ranvier.Tests.MemoScopes.tests ]
             testList "MemoPurity.fs" [ Ranvier.Tests.MemoPurity.tests ]

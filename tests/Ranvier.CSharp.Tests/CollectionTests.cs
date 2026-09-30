@@ -130,4 +130,68 @@ public class CollectionTests
             ],
             actions);
     }
+
+    [Fact]
+    public void KeyReaderReportsMembershipChanges()
+    {
+        using var active = new Graph().Activate();
+        var todos = Signal(Initial);
+        var rows = Projection(() => todos.Value, t => t.Id, t => t.Title);
+        using var reader = rows.NewKeyReader();
+
+        var first = reader.Read();
+        Assert.True(first.IsReset);
+        Assert.Equal([1, 2, 3], first.Keys);
+
+        todos.Value = [Initial[2], Initial[0], new Todo(4, "review", false, 1m)];
+        var delta = reader.Read();
+
+        var added = new List<int>();
+        var removed = new List<int>();
+
+        foreach (var (key, change) in delta.Changes)
+        {
+            switch (change)
+            {
+                case KeyChange.Added:
+                    added.Add(key);
+                    break;
+                case KeyChange.Removed:
+                    removed.Add(key);
+                    break;
+                default:
+                    Assert.Fail($"unexpected {change} for {key}");
+                    break;
+            }
+        }
+
+        Assert.Equal([4], added);
+        Assert.Equal([2], removed);
+        Assert.True(delta.OrderChanged);
+        Assert.Equal([1, 2, 3], delta.PreviousKeys);
+        Assert.Equal([3, 1, 4], delta.Keys);
+
+        var mirror = new List<int>(delta.PreviousKeys);
+
+        foreach (var edit in delta.Positional)
+        {
+            switch (edit)
+            {
+                case PositionalChange<int>.RemoveAt r:
+                    mirror.RemoveAt(r.index);
+                    break;
+                case PositionalChange<int>.InsertAt i:
+                    mirror.Insert(i.index, i.key);
+                    break;
+                case PositionalChange<int>.Move m:
+                    var moved = mirror[m.oldIndex];
+                    mirror.RemoveAt(m.oldIndex);
+                    mirror.Insert(m.newIndex, moved);
+                    break;
+            }
+        }
+
+        Assert.Equal(delta.Keys, mirror);
+        Assert.True(reader.Read().IsEmpty);
+    }
 }
