@@ -28,7 +28,8 @@ type MapFlags =
             | Some "policy=cancel-previous" -> Ok "CancelPrevious"
             | Some "policy=keep-latest" -> Ok "KeepLatest"
             | Some "policy=queue" -> Ok "Queue"
-            | Some flag -> Error $"%s{flag}: the policy is cancel-previous, keep-latest or queue."
+            | Some "policy=finish-current" -> Ok "FinishCurrent"
+            | Some flag -> Error $"%s{flag}: the policy is cancel-previous, keep-latest, queue or finish-current."
 
         let groups =
             match

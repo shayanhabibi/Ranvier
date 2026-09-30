@@ -25,14 +25,14 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | AmbientGraph.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | Owners.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
 | Equality.fs | 25 | 24 | 24 | 25 | 24 | 24 | 8 | 0 |
-| Async.fs | 24 | 16 | 6 | 24 | 16 | 6 | 1 | 0 |
+| Async.fs | 30 | 22 | 7 | 30 | 22 | 7 | 2 | 0 |
 | Boundaries.fs | 27 | 27 | 23 | 27 | 27 | 23 | 1 | 0 |
 | Threading.fs | 2 | 2 | 2 | 2 | 2 | 2 | 19 | 0 |
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 9 | 0 |
-| Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
+| Tracing.fs | 2 | 2 | 2 | 66 | 62 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
 | Api.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| **Total** | 708 | 690 | 647 | 784 | 762 | 714 | 70 | 1 |
 
 ## Tests.fs
 
@@ -229,6 +229,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | untraced | a superseded flight does not publish | passed | failed | Async results arrive on a later microtask |
 | untraced | Queue applies every result in the order the flights started | failed | failed | A `Queue` flight applies on a later microtask |
 | untraced | Queue shows an applied outcome while a later flight is in progress | failed | failed | A `Queue` flight applies on a later microtask |
+| untraced | FinishCurrent folds the changes during a flight into one trailing run | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent discards a failure that settles with a run owed | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent applies a flight with no change during it as KeepLatest does | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent does not hold a run back behind a body suspended on a pending source | passed | failed | Async results arrive on a later microtask |
+| untraced | FinishCurrent starts the trailing run for an effect that reads the memo | passed | failed | Async results arrive on a later microtask |
 | untraced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | untraced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | untraced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
@@ -247,6 +252,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | a superseded flight does not publish | passed | failed | Async results arrive on a later microtask |
 | traced | Queue applies every result in the order the flights started | failed | failed | A `Queue` flight applies on a later microtask |
 | traced | Queue shows an applied outcome while a later flight is in progress | failed | failed | A `Queue` flight applies on a later microtask |
+| traced | FinishCurrent folds the changes during a flight into one trailing run | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent discards a failure that settles with a run owed | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent applies a flight with no change during it as KeepLatest does | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent does not hold a run back behind a body suspended on a pending source | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent starts the trailing run for an effect that reads the memo | passed | failed | Async results arrive on a later microtask |
 | traced | a failed flight settles as Failed | passed | failed | Async results arrive on a later microtask |
 | traced | a body suspended on a pending source waits on the node, not a task | passed | failed | Async results arrive on a later microtask |
 | traced | pending propagates into a memo and an effect | passed | failed | Async results arrive on a later microtask |
@@ -256,12 +266,14 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Excluded | Reason |
 | --- | --- |
 | a cancellableTask body stops a superseded flight at its next bind | IcedTasks' cancellableTask compiles for .NET only. |
+| FinishCurrent hands the finished flight's value to the trailing run as Previous | reads Settled's completion synchronously, and under Fable it is a promise. |
 
-<details><summary>6 passed in every build and delivery that runs them</summary>
+<details><summary>7 passed in every build and delivery that runs them</summary>
 
 - a flight starts only when something reads it
 - CancelPrevious cancels the superseded token
 - KeepLatest leaves the superseded flight running
+- FinishCurrent disposed with a run owed runs nothing more
 - a body that throws before awaiting settles as Failed
 - disposing cancels the flight in progress
 - a settle after disposal does not publish
@@ -411,6 +423,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | traced | why through an async memo walks past the settle to the flight's run | passed | failed | Async results arrive on a later microtask |
 | traced | why steps, history runs and snapshot nodes carry recorded values | failed | failed | Trace records carry less |
 | traced | valueText renders a value as one line | failed | failed | Trace records carry less |
+| traced | FinishCurrent records a deferred run and a settle held for the trailing run | passed | failed | Async results arrive on a later microtask |
+| traced | FinishCurrent drops a failure that settles with a run owed as Trailing | passed | failed | Async results arrive on a later microtask |
 | traced | waitingOn reports superseded, settled and failed flights | passed | failed | Async results arrive on a later microtask |
 
 | Excluded | Reason |

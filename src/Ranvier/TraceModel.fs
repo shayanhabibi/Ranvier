@@ -535,7 +535,7 @@ module TraceModel =
         for e in events do
             if e.Node = node && e.Cause <> 0 then
                 match e.Kind with
-                | TraceEventKind.Settle -> states[e.Cause] <- TraceFlightState.Settled (e.Seq, e.Flag = 1)
+                | TraceEventKind.Settle -> states[e.Cause] <- TraceFlightState.Settled (e.Seq, e.Flag <> 0)
                 | TraceEventKind.Fail -> states[e.Cause] <- TraceFlightState.Failed (e.Seq, e.Flag = 1)
                 | TraceEventKind.FlightDrop -> states[e.Cause] <- TraceFlightState.Dropped (e.Seq, enum<TraceDropReason> e.Flag)
                 | _ -> ()

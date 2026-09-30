@@ -1021,11 +1021,12 @@ type internal Tracer =
 
     /// <summary>
     /// Records the result of flight number <c>flight</c> of node <c>id</c>: <c>Settle</c> for <c>outcome</c> 0,
-    /// <c>Fail</c> for 1, a cancelled <c>Fail</c> for 2. <c>held</c> marks a <c>Settle</c> that leaves the node pending.
+    /// <c>Fail</c> for 1, a cancelled <c>Fail</c> for 2. <c>held</c> marks a <c>Settle</c> that leaves the node pending:
+    /// 1 on a run suspended on a pending source, 2 on a trailing run owed under <c>FinishCurrent</c>, 0 otherwise.
     /// <c>payload</c> is the value or the exception.
     /// </summary>
     [<Conditional("RANVIER_TRACE")>]
-    static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: bool, payload: obj) =
+    static member FlightSettled(graph: obj, id: int, flight: int, outcome: int, held: int, payload: obj) =
 #if RANVIER_TRACE
         let log = Tracer.LogOf graph
 
@@ -1035,9 +1036,41 @@ type internal Tracer =
             else
                 TraceEventKind.Fail
 
-        let flag = if outcome = 2 || held then 1 else 0
+        let flag = if outcome = 2 then 1 else held
         let seq = log.Append (kind, id, 0, flight, flag, log.FlightOf (id, flight), payload)
         log.NoteSettle (id, seq)
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Records <c>RunDeferred</c> for node <c>id</c>: a change arrived while flight number <c>flight</c> is in progress
+    /// under <c>FinishCurrent</c>.
+    /// </summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member RunDeferred(graph: obj, id: int, flight: int) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let walker = log.Walker
+        let puller = if walker <> 0 then walker else log.Current
+
+        log.Append (TraceEventKind.RunDeferred, id, puller, flight, 0, log.FirstDirty id, null)
+        |> ignore
+#else
+        ()
+#endif
+
+    /// <summary>
+    /// Opens the notification for node <c>id</c>'s owed trailing run, closed by <c>Notified</c>. The cause is the node's
+    /// latest settle, else none.
+    /// </summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member TrailingRun(graph: obj, id: int) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let settle = log.SettleOf id
+        log.NoteSettle (id, 0)
+        log.PushCause settle
 #else
         ()
 #endif

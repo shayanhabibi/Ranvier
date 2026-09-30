@@ -30,7 +30,7 @@ type ThreadAffinity =
     /// </summary>
     | Unchecked
 
-/// <summary>What an async memo does with a flight that a newer run has superseded.</summary>
+/// <summary>What an async memo does when a source changes while a flight is in progress.</summary>
 type FlightPolicy =
     /// <summary>
     /// Cancels the superseded flight's token and discards its result. The memo is Pending until the newest flight settles.
@@ -49,6 +49,17 @@ type FlightPolicy =
     /// pending source, the memo stays Pending: a Ready outcome becomes the <c>Peek</c> value and a Failed outcome is discarded.
     /// </remarks>
     | Queue
+    /// <summary>
+    /// Lets the flight in progress finish, then runs the body once more against the current inputs. Every change during
+    /// the flight folds into that one trailing run.
+    /// </summary>
+    /// <remarks>
+    /// A change during a flight runs no body and starts no flight. When the flight settles with a change owed, a Ready
+    /// outcome becomes the <c>Peek</c> value and the next <c>Previous</c>, a Failed outcome is discarded, and the memo
+    /// stays Pending until the trailing flight settles. The trailing run starts at the memo's next read. A flight that
+    /// settles with no change owed applies as under <c>KeepLatest</c>.
+    /// </remarks>
+    | FinishCurrent
 
 /// <summary>
 /// Supplies the cutoff comparer for a node's value type.
@@ -283,7 +294,7 @@ type GraphOptions =
     member this.WithEquality(equality: IEqualityPolicy) =
         { this with Equality = equality }
 
-    /// <summary>These options, with <c>policy</c> deciding what a newer flight does to an older one.</summary>
+    /// <summary>These options, with <c>policy</c> deciding what a change during a flight does.</summary>
     member this.WithFlightPolicy(policy: FlightPolicy) =
         { this with FlightPolicy = policy }
 
