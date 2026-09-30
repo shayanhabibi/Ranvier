@@ -153,7 +153,7 @@ against a fresh traced graph.
 | --- | --- |
 | `timeline` | Adds the play, step and scrub bar. |
 | `replay` | Runs every control in order, for the timeline to play back; implies `timeline`. |
-| `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest` or `queue`. |
+| `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest`, `queue` or `finish-current`. |
 | `groups=` | How collections draw: `expand` (default), a box with a row per key, or `collapse`, one node. |
 | `id=`, `show=` | As on `solid` fences. |
 

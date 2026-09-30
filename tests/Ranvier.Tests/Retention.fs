@@ -37,6 +37,7 @@ let private flightPolicies =
         "CancelPrevious", CancelPrevious
         "KeepLatest", KeepLatest
         "Queue", FlightPolicy.Queue
+        "FinishCurrent", FinishCurrent
     ]
 
 let private graphWith policy =

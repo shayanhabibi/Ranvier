@@ -148,8 +148,13 @@ let tests =
                 | Error problems -> failtestf "rejected: %A" problems
             }
 
-            test "policy=queue and policy=keep-latest render their policies" {
-                for flag, policy in [ "policy=queue", "Queue"; "policy=keep-latest", "KeepLatest" ] do
+            test "policy=queue, policy=keep-latest and policy=finish-current render their policies" {
+                for flag, policy in
+                    [
+                        "policy=queue", "Queue"
+                        "policy=keep-latest", "KeepLatest"
+                        "policy=finish-current", "FinishCurrent"
+                    ] do
                     match MapFence.compile "cart" [ flag ] cart with
                     | Ok output -> Expect.stringContains output.Render $"Ranvier.FlightPolicy.%s{policy} [|" flag
                     | Error problems -> failtestf "rejected: %A" problems
@@ -158,7 +163,7 @@ let tests =
             test "an unknown or empty policy is rejected at the opening line" {
                 for flag in [ "policy=fifo"; "policy=" ] do
                     match MapFence.compile "cart" [ flag ] cart with
-                    | Error [ 0, message ] -> Expect.stringContains message "cancel-previous, keep-latest or queue" flag
+                    | Error [ 0, message ] -> Expect.stringContains message "cancel-previous, keep-latest, queue or finish-current" flag
                     | other -> failtestf "%s: %A" flag other
             }
 

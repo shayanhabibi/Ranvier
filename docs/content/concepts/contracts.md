@@ -116,7 +116,7 @@ Recovery happens through re-runs alone.
 | Thrown by | Result |
 | --- | --- |
 | A memo body | The memo fails. |
-| An async body, or its task faulting or being cancelled | The async value fails. Under `CancelPrevious` and `KeepLatest`, a superseded flight's outcome is discarded. |
+| An async body, or its task faulting or being cancelled | The async value fails. Under `CancelPrevious` and `KeepLatest`, a superseded flight's outcome is discarded. Under `FinishCurrent`, a failure that settles while a trailing run is owed is discarded. |
 | An effect body | Recorded on the effect's `Status` and `Error`. Every effect queued behind it in the flush still runs. |
 | A boundary's `fallback` or `recover` | The boundary fails with that exception. |
 | A cleanup | Recorded, and the remaining cleanups and disposals still run. A `createRoot` scope keeps the error in its own `Errors`; a computation's scope records it in `graph.Root.Errors`. |

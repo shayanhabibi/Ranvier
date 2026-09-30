@@ -1,8 +1,11 @@
 # FinishCurrent flight policy: design
 
-**Status:** proposal, not implemented. Needs a maintainer decision (§9). Line references are to
-`src/Ranvier/Core.fs` and `src/Ranvier/Types.fs` at `c631f23`. Costs are read from the code; no numbers were
-measured. §5 names the benchmark that checks them.
+**Status:** implemented on `worktree-wf_c46b5816-3af-2`, pending benchmark gate. Maintainer decisions (§9, from
+`docs/.ai/wave-b/decisions.md`): trailing run only, no pure drop; named `FinishCurrent`; per-memo override later, not
+now. Line references are to `src/Ranvier/Core.fs` and `src/Ranvier/Types.fs` at `c631f23`, with the reviewer's
+corrections applied; the code has moved since (the shared-token retirement fix added `flying`, `running` and
+`retireIfQuiet`), so re-locate by name. Costs are read from the code; no numbers were measured. §5 names the
+benchmark that checks them, and §10 records how the implementation differs from this note.
 
 ## 1. Goal
 
@@ -42,7 +45,7 @@ type FlightPolicy =
 | Flight settles, nothing owed | Applied as under `KeepLatest`: Ready or Error, readers woken. |
 | Flight settles Completed, run owed | `value` written (becomes `Peek` and the next `Previous`), status stays Pending, freshness Dirty, readers woken. The next pull runs the trailing flight. |
 | Flight settles Faulted or Canceled, run owed | Outcome discarded (`FlightDrop`), status stays Pending, trailing run as above. |
-| Body suspends on a pending source (`NotReadyException`, `Core.fs:3538-3545`) | No flight started, so nothing is in progress; the next change runs normally. |
+| Body suspends on a pending source (`NotReadyException`, `Core.fs:3540-3547`) | No flight started, so nothing is in progress; the next change runs normally. |
 | Dispose during a flight | Unchanged: token cancelled, `ObjectDisposedException` (`Core.fs:3669-3700`). The owed run is dropped. |
 
 `Previous.Settled` is complete whenever the body runs, as under `CancelPrevious` (`Core.fs:3187`): one flight is in
@@ -53,7 +56,7 @@ runs it on its next read.
 
 A pure drop, with no trailing run, is **not** proposed. Its settled value would pair with inputs the graph has left,
 and the memo would publish that value as Ready until an unrelated change arrived. That is the stale pairing the
-generation check exists to prevent (`Core.fs:3252-3257`).
+generation check exists to prevent (comment `Core.fs:3249-3254`, field `3255`).
 
 ## 4. How it works
 
@@ -77,11 +80,11 @@ Changes:
    ```
    With the `queued` encoding, the first test reads a field that is 0 whenever no `Queue` chain is pending, so the
    policy load runs only under `Queue` with results outstanding or under `FinishCurrent` with a flight in progress.
-2. **`Launch`** (`Core.fs:3470-3479`): `FinishCurrent` joins the `KeepLatest | Queue` arm (one CTS, created once).
+2. **`Launch`** (`Core.fs:3470-3480`): `FinishCurrent` joins the `KeepLatest | Queue` arm (one CTS, created once).
    At the settle attachment (`Core.fs:3557-3564`) it joins the `KeepLatest` arm and sets `queued <- 1` first.
 3. **`applyResult`** (`Core.fs:3340-3389`): `FinishCurrent` joins the `CancelPrevious | KeepLatest` arm of the first
    match (`gen = generation` holds, since a deferred change bumps nothing) and the no-op arm of the second. An owed run
-   reuses the existing `suspended` arms (`Core.fs:3357-3365`), which already write a Completed value without waking
+   reuses the existing `suspended` arms (`Core.fs:3357-3367`), which already write a Completed value without waking
    and drop a failure:
    ```fsharp
    let owed = queued = 2                    // only FinishCurrent sets 2
@@ -93,9 +96,13 @@ Changes:
        observers.NotifyDirty ()
        graph.RequestFlush ()
    ```
-   Under `Queue` this code would clobber `queued`, so under the `queued` encoding it sits inside the `FinishCurrent`
-   arm; with a dedicated field it runs unconditionally and costs one field test per applied result.
-4. **`fail`** (`Core.fs:3497-3505`): unchanged; a synchronous failure starts no flight.
+   Under `Queue` this code would clobber `queued`, so under the `queued` encoding the owed bookkeeping needs its own
+   `FinishCurrent` arm in both matches on the policy: it cannot share the `CancelPrevious | KeepLatest` arm of the
+   first match. With a dedicated field it runs unconditionally and costs one field test per applied result.
+5. **Trace.** Reusing the `suspended` arms also reuses `Tracer.FlightSettled (..., held = true, ...)`, which sets
+   `Settle.Flag = 1` and would present an owed-run settle the same as a settle held by a pending source. The owed
+   settle takes its own flag value, and a failure discarded for an owed run its own `TraceDropReason` (§10).
+4. **`fail`** (`Core.fs:3497-3506`): unchanged; a synchronous failure starts no flight.
 
 `MarkDirty` (`Core.fs:3642-3653`) is unchanged. It still notifies dependents on every change during a flight; they
 re-run and read Pending, as they do under the other policies today.
@@ -108,7 +115,7 @@ re-run and read Pending, as they do under the other policies today.
 | --- | --- |
 | Signal write, memo recompute, flush, effect run | None. No code on these paths changes. |
 | `AsyncMemo.Start` (once per flight launch) | One `int` field test (`queued <> 0`), false for `CancelPrevious` and `KeepLatest`. Under `Queue` with results outstanding, one policy tag compare. |
-| `Launch`, `applyResult` | None with the `queued` encoding: the new case joins existing arms of matches on `FlightPolicy`, which compile to a switch on `Tag`. With a dedicated field, one field test per applied result. |
+| `Launch`, `applyResult` | None with the `queued` encoding: the new case joins existing arms of matches on `FlightPolicy`, which compile to a switch on `Tag`, and the owed bookkeeping sits in its own `FinishCurrent` arms. With a dedicated field, one field test per applied result. |
 | Memory per `AsyncMemo` | None with the `queued` encoding; at most one byte (possibly one 8-byte slot) with a new field. |
 | Allocations | None. |
 
@@ -118,7 +125,7 @@ flight starts (N body runs, N flights, and under `CancelPrevious` N CTS allocati
 trailing flight.
 
 **Benchmark to settle it.** No existing case launches flights repeatedly; `SettleBenchmarks`
-(`bench/Ranvier.Benchmarks/Suspension.fs:114-140`) settles an `AsyncSource`. Add `FlightBenchmarks` to
+(`bench/Ranvier.Benchmarks/Suspension.fs:114-135`) settles an `AsyncSource`. Add `FlightBenchmarks` to
 `Suspension.fs` with `[<Params(CancelPrevious, KeepLatest, Queue, FinishCurrent)>]`:
 
 - `RelaunchSettled`: write a signal an async memo reads, whose body returns a completed task; read the memo. Run on
@@ -168,7 +175,7 @@ Questions for the maintainer:
 3. Design a per-memo policy override next? (yes / no)
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections (applied)
 
 Verdict: needs fixes
 
@@ -176,3 +183,37 @@ Verdict: needs fixes
 - Line references drift by 1-2 lines: 'generation check ... (`Core.fs:3252-3257`)' → comment 3249-3254, field 3255; 'NotReadyException, `Core.fs:3538-3545`' → 3540-3547; 'suspended arms (`Core.fs:3357-3365`)' → 3357-3367; '`fail` (`Core.fs:3497-3505`)' → 3497-3506; '`Launch` (`Core.fs:3470-3479`)' → 3470-3480; '`SettleBenchmarks` (`bench/Ranvier.Benchmarks/Suspension.fs:114-140`)' → 114-135 (the file has 135 lines at c631f23).
 - Reusing the `suspended` arm for an owed run also reuses its trace call `Tracer.FlightSettled (graph, id, gen, 0, true, box v)`, whose `held` flag sets Flag=1 (Trace.fs:1038). Trace queries will present an owed-run settle the same as a settle held by a pending source. Say that either a separate flag value is needed or the traced semantics change. This fits alongside the new RunDeferred event.
 - §5: 'Under `Queue` with results outstanding, one policy tag compare' is correct. Add that under the `queued` encoding the FinishCurrent owed bookkeeping in `applyResult` needs its own match arm (it cannot share the `CancelPrevious | KeepLatest` arm as the §4 text says and still sit 'inside the FinishCurrent arm'). The cost stays zero for other policies.
+
+## 10. Implementation and deviations
+
+Implemented as §4 with the `queued` encoding (0 idle, 1 in flight, 2 in flight with a run owed). Differences:
+
+- **Source retirement.** The shared-token fix that landed after this note retires the shared
+  `CancellationTokenSource` once no flight holds it (`retireIfQuiet`). `FinishCurrent` joins it with
+  `queued = 0`, so under `FinishCurrent` every flight settles into a quiet memo and the next flight allocates a new
+  source: one source per flight, as `CancelPrevious` pays, never cancelled. §5's "a deferred change allocates
+  nothing" still holds.
+- **`suspended`.** `owed` is folded into the existing `suspended` test (`owed || pendingSources...`): one local
+  `bool` test per applied result for every policy, in place of duplicating the four outcome arms. Tagged
+  `FOR-REVIEW` for the benchmark gate.
+- **Wake after an owed settle.** In its own `FinishCurrent when owed && not disposed` arm of the final policy match,
+  per the reviewer: marks the memo `Dirty`, notifies observers dirty and requests a flush. The inline-settle path
+  (`launching`) cannot owe a run, since `queued` is set to 1 immediately before the settle attaches.
+- **Trace.** `Tracer.FlightSettled` takes `held: int`. `Settle.Flag` is 1 for a settle held by a run suspended on a
+  pending source and 2 for one held by an owed trailing run; `TraceFlightState.Settled`'s `held` is `Flag <> 0`. A
+  failure discarded with a run owed records `FlightDrop` with the new `TraceDropReason.Trailing = 4`, not
+  `Suspended`. The new `TraceEventKind.RunDeferred = 24` records the deferred change (`Other`: the puller, `Arg`:
+  the flight in progress, `Cause`: the first dirty mark). The owed notification's cause is the held settle
+  (`Tracer.TrailingRun`).
+- **Benchmarks.** `FlightBenchmarks` in `Suspension.fs` takes the policy as a string `Params` (union cases are not
+  attribute constants) and uses a separate trigger per memo, so `RelaunchSettled` marks nothing else. `Writes`
+  (`1`, `10`) also multiplies the `RelaunchSettled` cases. The master side of the A/B run must drop
+  `"FinishCurrent"` from `Params`.
+- **Tests.** `Async.fs` (seven `FinishCurrent` cases, covering §8's list plus an effect-driven trailing run; the `Previous` case is .NET-only because it reads `Settled`'s
+  completion synchronously),
+  `Tracing.fs` (`RunDeferred`, `Settle.Flag = 2`, `TraceDropReason.Trailing`), and `FinishCurrent` joins the policy
+  loops of `Retention.fs` and `AsyncEdges.fs`. `Ranvier.CSharp.Tests` reaches it as `FlightPolicy.FinishCurrent`.
+- **Signal maps.** `policy=finish-current` added to the map fence flags (`docs/maps`).
+- **Docs.** `guide/async-and-pending.md` (policy table, `FinishCurrent` paragraph, name mapping, cost and previous
+  value), `concepts/async-graph.md`, `concepts/contracts.md`, `concepts/roadmap.md`, `guide/tracing.md`,
+  `guide/signal-maps.md` and `benchmarks/suspension.md`.

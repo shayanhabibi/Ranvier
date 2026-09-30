@@ -207,3 +207,90 @@ type FlightPolicyBenchmarks() =
         tick <- tick + 1
         cancelTrigger.Value <- tick
         cancelPrevious.TryValue
+
+/// <summary>
+/// Repeated flight launches under each <c>FlightPolicy</c>, including changes that arrive while a flight is in
+/// progress.
+/// </summary>
+/// <remarks>
+/// <c>RelaunchSettled</c> writes a trigger the body reads and reads the memo; the body returns a completed task, so
+/// every flight settles on launch. <c>WritesDuringFlight</c> starts a flight whose task stays open, writes and reads
+/// <c>Writes</c> more times, then completes every open task, reading after each round, until none remains.
+/// </remarks>
+[<MemoryDiagnoser; BenchmarkCategory "Suspension">]
+type FlightBenchmarks() =
+    let mutable settledTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable heldTrigger: Signal<int> = Unchecked.defaultof<Signal<int>>
+    let mutable settled: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let mutable held: AsyncMemo<int> = Unchecked.defaultof<AsyncMemo<int>>
+    let open' = ResizeArray<TaskCompletionSource<int>>()
+    let mutable tick = 0
+
+    /// <summary>The case name of the graph's <c>FlightPolicy</c>.</summary>
+    //FOR-REVIEW FinishCurrent does not exist on master: the master side of the A/B gate needs this value removed from Params.
+    [<Params("CancelPrevious", "KeepLatest", "Queue", "FinishCurrent")>]
+    member val Policy = "CancelPrevious" with get, set
+
+    /// <summary>The writes made while the first flight of a <c>WritesDuringFlight</c> iteration is in progress.</summary>
+    [<Params(1, 10)>]
+    member val Writes = 1 with get, set
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        let policy =
+            match this.Policy with
+            | "KeepLatest" -> KeepLatest
+            | "Queue" -> FlightPolicy.Queue
+            | "FinishCurrent" -> FinishCurrent
+            | _ -> CancelPrevious
+
+        let graph = new Graph (GraphOptions.Default.WithFlightPolicy policy)
+        settledTrigger <- Signal (graph, 0)
+        heldTrigger <- Signal (graph, 0)
+
+        settled <- new AsyncMemo<int> (graph, fun _ _ -> Task.FromResult settledTrigger.Value)
+
+        held <-
+            new AsyncMemo<int> (
+                graph,
+                fun _ _ ->
+                    heldTrigger.Value |> ignore
+                    let source = TaskCompletionSource<int>()
+                    open'.Add source
+                    source.Task
+            )
+
+        settled.TryValue |> ignore
+
+    /// <summary>Launches one flight that settles on launch.</summary>
+    [<Benchmark(Baseline = true)>]
+    member _.RelaunchSettled() =
+        tick <- tick + 1
+        settledTrigger.Value <- tick
+        settled.TryValue
+
+    /// <summary>
+    /// Starts a flight, makes <c>Writes</c> changes while it is in progress, then settles every flight the changes
+    /// started.
+    /// </summary>
+    [<Benchmark>]
+    member this.WritesDuringFlight() =
+        tick <- tick + 1
+        heldTrigger.Value <- tick
+        held.TryValue |> ignore
+
+        for _ in 1 .. this.Writes do
+            tick <- tick + 1
+            heldTrigger.Value <- tick
+            held.TryValue |> ignore
+
+        while open'.Count > 0 do
+            let round = open'.ToArray ()
+            open'.Clear ()
+
+            for source in round do
+                source.SetResult tick
+
+            held.TryValue |> ignore
+
+        held.TryValue
