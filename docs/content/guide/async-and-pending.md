@@ -624,10 +624,12 @@ A graph belongs to the thread that constructed it. The rules:
 | Creating a node, `Batch`, `Untrack`, `Flush`, `CreateRoot`, `OnCleanup`, `Dispose` | Guarded. From another thread each raises `InvalidOperationException` before it changes the graph. |
 | `.Value`, `TryValue` | Guarded when the read recomputes a stale memo or boundary. A read of a current value is not guarded. |
 | `Peek` | Not guarded. |
-| `Graph.Current` | Flows with the async context of `graph.Activate ()`. A guarded graph is current on the activating thread only; an `Unchecked` graph is current on every thread the activating context reaches. The `create*` functions elsewhere raise `No ambient graph on this thread`. |
+| `Graph.Current` | Flows with the async context of `graph.Activate ()`. A guarded graph is current on the activating thread only; an `Unchecked` or `Serialised` graph is current on every thread the activating context reaches. The `create*` functions elsewhere raise `No ambient graph on this thread`. |
 
 `ThreadAffinity = Unchecked` removes the guard. Use it only when every write is known to arrive on
-one thread.
+one thread. `ThreadAffinity = Serialised` suits a host that runs its work one item at a time on a
+synchronisation context but on varying threads, such as a Blazor Server circuit; see
+[Blazor Server](blazor-server.md).
 
 The write guard's message names both threads:
 

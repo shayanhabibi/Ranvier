@@ -1293,7 +1293,8 @@ type Graph(options: GraphOptions) =
     /// A stack rather than an assignment, so a library that activates its own
     /// graph for the length of a call cannot strand its caller's. On .NET the
     /// activation flows with the execution context, so it may span an <c>await</c>. A guarded graph is ambient on the
-    /// activating thread only; an <c>Unchecked</c> graph is ambient on every thread its execution context reaches.
+    /// activating thread only; an <c>Unchecked</c> or <c>Serialised</c> graph is ambient on every thread its execution
+    /// context reaches.
     /// </remarks>
     member this.Activate() =
         let cell = AmbientSlot.Cell
@@ -1660,7 +1661,8 @@ type Graph(options: GraphOptions) =
 #endif
 
     /// <summary>
-    /// Raises if the caller is not on the thread that owns this graph.
+    /// Raises if the caller is not on the thread that owns this graph. Under <c>Serialised</c>, raises if another
+    /// thread is inside the graph, or if the caller is outside it and runs off the construction context.
     /// </summary>
     /// <remarks>
     /// The failure this prevents is the worst one available here: two threads
