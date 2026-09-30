@@ -733,11 +733,16 @@ let tests =
                 let context = SynchronizationContext ()
                 let g = serialisedUnder context
                 let s = within context (fun () -> Signal (g, 0))
+                let source = within context (fun () -> Signal (g, 1))
+                let stale = within context (fun () -> Memo (g, (fun _ -> source.Value * 10)))
+                within context (fun () -> stale.Value |> ignore)
+                within context (fun () -> source.Value <- 2)
                 let held = holdFlush context g
 
                 let entries: (string * (unit -> unit)) list =
                     [
                         "A signal write", (fun () -> s.Value <- 1)
+                        "A stale read", (fun () -> stale.Value |> ignore)
                         "A batch", (fun () -> g.Batch (fun () -> ()) |> ignore)
                         "A flush", (fun () -> g.Flush ())
                         "Creating a node", (fun () -> Signal (g, 0) |> ignore)
@@ -771,6 +776,56 @@ let tests =
                 Expect.equal s.Peek 0 "the rejected write did not land"
                 within context (fun () -> s.Value <- 2)
                 Expect.equal s.Peek 2 "the graph accepts writes once the other thread leaves"
+                Expect.equal (within context (fun () -> stale.Value)) 20 "and stale reads"
+                Expect.isFalse g.IsOnGraphThread "the rejected entries left the graph free"
+            }
+#endif
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript has one thread.
+            test "Serialised: disposing a root while another thread is inside the graph raises and leaves the root live" {
+                let context = SynchronizationContext ()
+                let g = serialisedUnder context
+                let s = within context (fun () -> Signal (g, 0))
+                let runs = ref 0
+
+                let root =
+                    within context (fun () ->
+                        g.Run (fun () ->
+                            createRoot (fun owner ->
+                                createEffect (fun () ->
+                                    s.Value |> ignore
+                                    runs.Value <- runs.Value + 1)
+
+                                owner)))
+
+                let held = holdFlush context g
+
+                let caught =
+                    try
+                        within context (fun () ->
+                            try
+                                root.Dispose ()
+                                None
+                            with ex ->
+                                Some ex.Message)
+                    finally
+                        held.Release.Set ()
+                        held.Worker.Join ()
+
+                match caught with
+                | Some text -> Expect.stringContains text "Disposing a root ran on thread" "the operation is named"
+                | None -> failtest "a root was disposed while another thread was inside the graph"
+
+                Expect.isFalse root.IsDisposed "the rejected dispose left the root live"
+                within context (fun () -> s.Value <- 1)
+                Expect.equal runs.Value 2 "the root's effect still runs"
+
+                within context (fun () -> root.Dispose ())
+                Expect.isTrue root.IsDisposed "a retry disposes the root"
+                within context (fun () -> s.Value <- 2)
+                Expect.equal runs.Value 2 "the disposed root's effect no longer runs"
+                Expect.isFalse g.IsOnGraphThread "the graph is free after the teardown"
             }
 #endif
 

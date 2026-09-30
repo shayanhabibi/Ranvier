@@ -202,8 +202,17 @@ Verdict: needs fixes
   `NextId`, so a top-level node creation verifies the context and that no other thread is inside, then proceeds
   unheld. A node created inside `createRoot`, a body or a batch is held by that entry. The public
   `AssertOnGraphThread` has the same check-only meaning under `Serialised`.
-- **Root scope disposal holds.** `ILateRunner.RunDetached` (a `RootScope`'s disposal and late children) acquires
-  under `Serialised` only; `Guarded` still checks per disposed node, as before.
+- **Root scope disposal holds.** `Owner.Dispose` on a `RootScope` acquires through `ILateRunner.HoldTeardown`
+  before it marks the scope disposed, so a rejected `Dispose` leaves the root live and a retry tears it down.
+  `ILateRunner.RunDetached` (late children of a disposed root) acquires as well. Both acquire under `Serialised`
+  only; `Guarded` still checks per disposed node, as before.
+- **Release fences.** `Graph.Release` frees the graph with `Interlocked.Exchange`, a full fence, before it reads
+  the inbox. A volatile store followed by the inbox's volatile loads could reorder and lose the wakeup against a
+  drain whose CAS found the graph held.
+- **Stale reads from a second thread.** `Graph.Deferring` is false under `Serialised` on every thread other than
+  the holder (FOR-REVIEW at `Graph.Deferring`). Without it, a stale read during the holder's flush saw `current`
+  set, skipped `EnterPull` and refreshed the memo unheld. The cost is one branch on stale reads inside a body for
+  every affinity.
 - **Null context.** A graph constructed with no `SynchronizationContext` captures null; the context check then
   passes on every thread without a context, and the concurrent-entry check still applies. The .NET tests use this.
 - **Trace queries.** `Trace.*`'s thread gate calls `AssertOnGraphThread` under `Serialised` (a free graph on the
@@ -224,6 +233,7 @@ Verdict: needs fixes
   Serialised 76 ns (short job, error bars of 10-60 ns). `Serialised` pays two acquire/release pairs per
   `Recompute` (the write and the stale read), more than §6's single-bracket estimate.
 - **Tests.** `tests/Ranvier.Tests/Threading.fs` (`Serialised: ...`): concurrent entry from two threads raises for
-  each entry point, an entry off the construction context raises, a settle from outside the graph is queued even
+  each entry point (stale reads included), a root `Dispose` rejected while another thread holds the graph leaves
+  the root live and a retry disposes it, an entry off the construction context raises, a settle from outside the graph is queued even
   on the context, work posted from inside runs inline, and a drain that finds the graph held is re-posted by the
   holder. One smoke test runs under Fable. `tests/Ranvier.CSharp.Tests` covers the deferred `BoundSignal` set.

@@ -855,18 +855,40 @@ and Owner internal (sink: Owner) =
     /// A root scope's teardown runs untracked, with effects deferred until it
     /// returns, and owns every node its cleanups create.
     /// </remarks>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// A root scope of a <c>Serialised</c> graph is disposed outside the construction context, or while another
+    /// thread is inside the graph. The scope stays live.
+    /// </exception>
     member this.Dispose() =
         if not disposed then
-            disposed <- true
-            Tracer.OwnerDispose this
-
             match box this with
-            | :? RootScope as r -> (r.Runner: ILateRunner).RunDetached(this, this.DisposeScope)
-            | _ -> this.DisposeScope ()
+            | :? RootScope as r ->
+                let runner = r.Runner
+                let held = runner.HoldTeardown ()
 
-            if not (isNull parentLink) then
-                parentLink.Detach ()
-                parentLink <- null
+                try
+                    this.TearDown runner
+                finally
+                    if held then
+                        runner.ReleaseTeardown ()
+            | _ -> this.TearDown Unchecked.defaultof<ILateRunner>
+
+    /// <summary>
+    /// Marks the scope disposed, disposes its children and unlinks it from its parent. A root scope passes its
+    /// <c>runner</c>, which runs the teardown detached; any other scope passes null.
+    /// </summary>
+    member private this.TearDown(runner: ILateRunner) =
+        disposed <- true
+        Tracer.OwnerDispose this
+
+        if isNull (box runner) then
+            this.DisposeScope ()
+        else
+            runner.RunDetached (this, this.DisposeScope)
+
+        if not (isNull parentLink) then
+            parentLink.Detach ()
+            parentLink <- null
 
     interface IDisposable with
         member this.Dispose() =
@@ -898,6 +920,20 @@ and internal ILateRunner =
     /// recorded on <c>owner</c>.
     /// </summary>
     abstract RunDetached: owner: Owner * f: (unit -> unit) -> unit
+
+    /// <summary>
+    /// Holds a <c>Serialised</c> graph for a root scope's teardown.
+    /// </summary>
+    /// <returns>True when the caller must pair it with <c>ReleaseTeardown</c>.</returns>
+    /// <exception cref="T:System.InvalidOperationException">
+    /// The caller runs outside the construction context, or another thread holds the graph.
+    /// </exception>
+    abstract HoldTeardown: unit -> bool
+
+    /// <summary>
+    /// Frees a graph held by <c>HoldTeardown</c>.
+    /// </summary>
+    abstract ReleaseTeardown: unit -> unit
 
 /// <summary>
 /// The scope <c>Graph.CreateRoot</c> hands out.
@@ -1397,7 +1433,8 @@ type Graph(options: GraphOptions) =
     /// </summary>
     member internal this.Release() =
 #if !FABLE_COMPILER
-        Volatile.Write (&holder, 0)
+        // A full fence: the inbox check below observes every enqueue whose drain found the graph held by this thread.
+        Interlocked.Exchange (&holder, 0) |> ignore
 
         //FOR-REVIEW The note has the releasing thread drain the inbox itself before it clears `holder`. Posting a drain instead keeps user work out of the `finally` of a failing entry, at the cost of one context hop for a settle that arrived while the graph was held.
         if not inbox.IsEmpty then
@@ -1800,9 +1837,19 @@ type Graph(options: GraphOptions) =
     /// <summary>
     /// True inside a stale read, or while a computation's body runs outside
     /// <c>untrack</c>. False inside <c>untrack</c> within a body, where the flush is
-    /// deferred as well.
+    /// deferred as well. Under <c>Serialised</c>, false on every thread other than the holder, so a stale read from
+    /// such a thread enters the graph through <c>EnterPull</c>.
     /// </summary>
-    member internal _.Deferring = pullDepth > 0 || not (isNull (box current))
+    //FOR-REVIEW The `serialised` test adds one branch to every stale read inside a body on Guarded and Unchecked graphs. Without it, a stale read from a second thread during the holder's flush saw `current` set and refreshed the memo unheld.
+    member internal _.Deferring =
+        (pullDepth > 0 || not (isNull (box current)))
+#if !FABLE_COMPILER
+        && not (
+            serialised
+            && Volatile.Read &holder
+               <> Platform.currentThreadId ()
+        )
+#endif
 
     /// <summary>
     /// Marks the start of a stale read. The outermost one makes this graph
@@ -1926,6 +1973,12 @@ type Graph(options: GraphOptions) =
             finally
                 if held then
                     this.Release ()
+
+        member this.HoldTeardown() =
+            serialised && this.Acquire "Disposing a root"
+
+        member this.ReleaseTeardown() =
+            this.Release ()
 
     /// <summary>
     /// Runs <c>teardown</c> untracked, with effects deferred and <c>owner</c> as the
