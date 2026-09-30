@@ -296,11 +296,12 @@ Ranvier does not implement these policies:
 | Run every flight, apply results in completion order | `Parallel` | none |
 | Run the first and the last change | `ThrottleFirstLast` | none |
 
-CommunityToolkit's `AsyncRelayCommand` has no counterpart. `AllowConcurrentExecutions` is a gate on
-`CanExecute` for a command with no result: `false` reports the command as not executable while it
-runs, and `true` lets executions overlap. An async memo has no `CanExecute`: every change starts a
-new flight, or under `FinishCurrent` a trailing one. Debounce and throttle are not implemented
-either, as a policy or as a combinator.
+CommunityToolkit's `AsyncRelayCommand` has no async-memo counterpart. `AllowConcurrentExecutions` is a
+gate on `CanExecute` for a command with no result: `false` reports the command as not executable while
+it runs, and `true` lets executions overlap. An async memo has no `CanExecute`: every change starts a
+new flight, or under `FinishCurrent` a trailing one. For commands, C# has `ReactiveCommand`, whose
+`CommandPolicy.Disable` matches `AllowConcurrentExecutions = false`; see [C#](csharp.md#commands).
+Debounce and throttle are not implemented either, as a policy or as a combinator.
 
 Cancellation costs one `CancellationTokenSource` per flight under `CancelPrevious`: each launch cancels
 and disposes the superseded flight's source and allocates the next. Under `KeepLatest` and `Queue`,

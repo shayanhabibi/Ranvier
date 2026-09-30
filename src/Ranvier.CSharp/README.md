@@ -55,6 +55,8 @@ and cancels the token of the one in progress; `IsSearching` and `Error` follow t
 `ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
 memos and signals, inside any existing view model; `ReactiveObject` is a base class over it. See the
 [C# guide](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/csharp.md#binding-to-xaml).
+`ReactiveCommand` is an `ICommand` whose `CanExecute` and busy state come from graph nodes; see
+[Commands](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/csharp.md#commands).
 
 ## Tracing
 

@@ -1,7 +1,8 @@
 # Reactive commands for C#: design
 
-**Status:** proposal, not implemented. Line references are to `c631f23`. The maintainer should review it before
-implementation, because each command adds graph nodes and the design adds one optional member to core.
+**Status:** implemented on `worktree-wf_c46b5816-3af-4`, pending benchmark gate. Line references are to `c631f23`.
+Decisions taken (`docs/.ai/wave-b/decisions.md`): default policy `Disable`; public `Graph.TrackStatus(INode)` in core;
+`Queue` and `Parallel` not in the first cut. §11 records where the implementation departs from this note.
 
 ## 1. Goal
 
@@ -20,7 +21,7 @@ Ranvier has no command type today (research §14; `concepts/ecosystem.md:100-101
 ## 2. Proposed API (Ranvier.CSharp)
 
 ```csharp
-public enum CommandPolicy { Disable, CancelPrevious, Queue, Parallel }
+public enum CommandPolicy { Disable, CancelPrevious }   // Queue and Parallel: later, on request
 
 public sealed class ReactiveCommand : ICommand, INotifyPropertyChanged, IDisposable
 {
@@ -44,6 +45,9 @@ public static ReactiveCommand Command(Func<object?, CancellationToken, Task> exe
     Func<bool>? canExecute = null, CommandPolicy policy = CommandPolicy.Disable);
 public static Memo<bool> AnyPending(params INode[] sources);
 ```
+
+The predicate of `save` reads `load`, which is assigned after `save`. The first evaluation of a predicate is lazy
+(§11), so the sample works in this order.
 
 ```csharp
 save = bindings.Command((_, t) => repo.SaveAsync(draft.Value, t), () => IsValid && !load.IsRunning);
@@ -76,10 +80,11 @@ quoting = AnyPending(quote, stock, shipping);
   it re-reads `Enabled` untracked. When the command is disabled, it returns a completed task. Otherwise it applies
   the policy:
   - **`Disable`:** increments `running`. `Enabled` goes false, and the write outside a batch flushes before the
-    body starts, so the button is disabled before a second click can arrive (measured in §5).
+    body starts, so the button is disabled before a second click can arrive (tested by
+    `ADisableCommandIsDisabledBeforeItsBodyStarts` in `tests/Ranvier.CSharp.Tests/CommandTests.cs`).
   - **`CancelPrevious`:** cancels the previous execution's token and starts a new execution.
-  - **`Queue`:** chains the new execution after the previous execution's task.
-  - **`Parallel`:** applies no coordination.
+  - **`Queue`** (not shipped): chains the new execution after the previous execution's task.
+  - **`Parallel`** (not shipped): applies no coordination.
 
   The body runs untracked (`Graph.Untrack`, `Core.fs:1655`). On completion, one batch decrements `running` and
   writes `error`, through `Dispatch` when the completion arrives on another thread. An
@@ -94,14 +99,14 @@ quoting = AnyPending(quote, stock, shipping);
   not throw (`Core.fs:2608-2614`). A heterogeneous `INode[]` needs a non-generic tracked read. `ISource` is
   internal (`Core.fs:42`), and `Ranvier.CSharp` has no `InternalsVisibleTo` (`Types.fs:333-336`), so the design
   adds `Graph.TrackStatus(node: INode) : Status` to core:
-  - For a source: `UpdateIfNecessary` (`Core.fs:59`), then track the source, then return `Status`.
+  - For a source: `UpdateIfNecessary` (`Core.fs:58`), then track the source, then return `Status`.
   - For any other node: return `Status` untracked.
 
 ## 4. Policy vocabulary
 
 The command does not reuse `FlightPolicy` (`Types.fs:34-50`), for three reasons:
 
-- `FlightPolicy` is graph-wide: `AsyncMemo` reads it from `graph.Options` (`Core.fs:3344, 3385, 3470, 3557`).
+- `FlightPolicy` is graph-wide: `AsyncMemo` reads it from `graph.Options` (`Core.fs:3344, 3385, 3470, 3498, 3557`).
 - `KeepLatest` discards a result, and a command has no result.
 - The CommunityToolkit default, `AllowConcurrentExecutions = false`, has no counterpart in `FlightPolicy`.
 
@@ -135,8 +140,8 @@ sources settled and false after. Each write triggered its own effect run (202,00
 - **`CanExecute(object)`.** One volatile read and no allocation.
 - **Core hot paths.** Write, recompute and flush are unchanged. `Graph.TrackStatus` runs only when `AnyPending`
   calls it.
-- **Code that does not use commands.** It pays nothing. A `ReactiveBindings` without commands adds one
-  empty-array length check to each notify pass.
+- **Code that does not use commands.** Code without commands pays one empty-array length check per notify pass of a
+  `ReactiveBindings`; nothing elsewhere.
 - **Benchmarks that would settle it.** A new `CommandBenchmarks` class in `bench/Ranvier.Benchmarks` needs a
   `ProjectReference` to `Ranvier.CSharp`; today the project references only `Ranvier`
   (`Ranvier.Benchmarks.fsproj:36`). It would contain:
@@ -149,7 +154,10 @@ sources settled and false after. Each write triggered its own effect run (202,00
 - `Ranvier.CSharp` targets only net10.0, net8.0 and netstandard2.1 (`Ranvier.CSharp.fsproj:4`). `ICommand`,
   `INotifyPropertyChanged` and `SynchronizationContext` are .NET types, so nothing here reaches Fable. An F# command
   would be a separate design; its signal and memo core would port.
-- `Graph.TrackStatus` uses only `ISource` and `Status`, and compiles under Fable without `#if`.
+- `Graph.TrackStatus` uses only `ISource` and `Status`. The "for a source" branch is an interface type test, which
+  Fable compiles to false, so it needs the same workaround as `Tracer.IdOf` in `Trace.fs`: under `#if FABLE_COMPILER`
+  it probes for the `UpdateIfNecessary` member with `Platform.hasMember`. The three `TrackStatus` tests in
+  `tests/Ranvier.Tests/Reads.fs` pass under Fable, traced and untraced.
 - The design uses no reflection and no dynamic code. `ICommand` ships in netstandard2.1. Neither project sets
   `IsAotCompatible` today, and nothing in this design prevents setting it.
 
@@ -179,12 +187,46 @@ No. `Ranvier.CSharp` has no entries in `docs/.ai/public-api-baseline.txt`, so th
 
 ## 10. Questions for the maintainer
 
-1. Should the default policy be `Disable` or `CancelPrevious`?
-2. Should core gain a public `Graph.TrackStatus(INode)` so that `AnyPending` accepts an `INode[]`? (yes/no)
-3. Should `Queue` and `Parallel` ship in the first cut? (yes/no)
+1. Should the default policy be `Disable` or `CancelPrevious`? **Decided: `Disable`.**
+2. Should core gain a public `Graph.TrackStatus(INode)` so that `AnyPending` accepts an `INode[]`? (yes/no) **Decided: yes.**
+3. Should `Queue` and `Parallel` ship in the first cut? (yes/no) **Decided: no.**
 
 
-## Reviewer corrections (not yet applied)
+## 11. As implemented
+
+Deviations from the sections above, and choices the note left open:
+
+- **Lazy first evaluation.** A command holds a fourth node, `armed`, a `Signal<bool>`. The notify pass reads nothing
+  else of a command until `armed` is true. The first `CanExecute` call, `CanExecuteChanged` or `PropertyChanged`
+  subscription, or execution arms the command. This is the fix for the reviewer's sample hazard: the predicate is
+  first evaluated after the view model's constructor has assigned every command. `CanExecute` reports `false` before
+  arming, and the first arm raises `CanExecuteChanged` when the predicate is true. Tagged `FOR-REVIEW` in
+  `Bindings.fs` for the extra signal per command.
+- **Only the latest execution writes `Error`.** Under `CancelPrevious`, a superseded execution that completes after
+  the newer one leaves `Error` alone, so a late cancellation cannot clear the newer execution's failure.
+- **The task from `ExecuteAsync`** completes after `IsRunning` and `Error` are updated, not with the body's task
+  itself. It is faulted or cancelled as the body's task was, and completes at once when the command is disabled or
+  disposed. `ICommand.Execute` allocates no completion source and so leaves nothing unobserved.
+- **A public `Execute(object)`** beside the explicit `ICommand.Execute`, for C# callers holding a `ReactiveCommand`.
+- **The synchronous `Action<object>` overload** runs the increment, the body and the completion in one batch: a
+  synchronous execution raises only its outcome, not a disabled/enabled pair. `Reactive.Command` has the overload too.
+- **`Reactive.fs` compiles after `Bindings.fs`**, so `Reactive.Command` can return the command type.
+- **Token callbacks that throw** during `Cancel`, `Dispose` or a `CancelPrevious` launch are dropped (tagged
+  `FOR-REVIEW`).
+- **Per-execution allocation** is higher than §5 estimates. A `--short` sanity run of the new
+  `bench/Ranvier.Benchmarks/Commands.fs` (not a gate) measured about 1.1 KB per `ExecuteAsync` for a standalone
+  command and 1.6 KB for a hosted one with no slots: the token source, the completion source, the dispatch and batch
+  closures, and the notification lists of two notify passes. Create and dispose measured about 2 KB for either form.
+  The quiet-machine phase should settle both.
+- **Benchmarks.** `CommandLifecycleBenchmarks.CreateAndDispose` and `CommandExecuteBenchmarks.ExecuteCompleted`
+  (each standalone and hosted) and `CommandSlotsBenchmarks.ExecuteWithSlots` (1, 10, 100 slots); the benchmark project
+  now references `Ranvier.CSharp`.
+- **Public API baseline.** `docs/.ai/public-api-baseline.txt` is not updated on this branch (§7): it is regenerated
+  from master after the merge, and will gain the `Graph.TrackStatus` line then.
+- **Docs.** `docs/content/guide/csharp.md#commands`; the ecosystem gap, the roadmap entry and the
+  `AsyncRelayCommand` paragraph of `async-and-pending.md` now point to it.
+
+## Reviewer corrections (applied)
 
 Verdict: needs fixes
 

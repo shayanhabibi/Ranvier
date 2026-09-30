@@ -2,6 +2,7 @@ namespace Ranvier.CSharp
 
 open System
 open System.Collections.Generic
+open System.Runtime.InteropServices
 open System.Threading
 open System.Threading.Tasks
 open Ranvier
@@ -102,6 +103,53 @@ type Reactive =
     /// <summary>A value that shows <c>fallback ()</c> while <c>body</c> is pending and <c>recover error</c> while it fails.</summary>
     static member Boundary<'T>(body: Func<'T>, fallback: Func<'T>, recover: Func<exn, 'T>) : Boundary<'T> =
         Api.createBoundary (fun _ -> fallback.Invoke ()) (fun ex _ -> recover.Invoke ex) body.Invoke
+
+    /// <summary>
+    /// A command running <c>execute</c>, enabled while <c>canExecute ()</c> is true and <c>policy</c> allows. The command
+    /// raises its events from an effect of its own, owned by the current scope.
+    /// </summary>
+    /// <remarks>
+    /// <c>canExecute</c> re-runs when a value it read changes, as a memo's body does; a null <c>canExecute</c> is always
+    /// true. <c>execute</c> receives the parameter and a token cancelled by <c>Cancel</c>, <c>Dispose</c> and
+    /// <c>CommandPolicy.CancelPrevious</c>.
+    /// </remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    static member Command
+        (
+            execute: Func<obj, CancellationToken, Task>,
+            [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>,
+            [<Optional; DefaultParameterValue(CommandPolicy.Disable)>] policy: CommandPolicy
+        ) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        new ReactiveCommand (Graph.Current, (fun parameter token -> execute.Invoke (parameter, token)), canExecute, policy, false, true)
+
+    /// <summary>
+    /// A command running <c>execute</c> synchronously, enabled while <c>canExecute ()</c> is true. The writes
+    /// <c>execute</c> makes are batched.
+    /// </summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>execute</c> is null.</exception>
+    static member Command(execute: Action<obj>, [<Optional; DefaultParameterValue(null: Func<bool>)>] canExecute: Func<bool>) : ReactiveCommand =
+        if isNull execute then
+            nullArg "execute"
+
+        new ReactiveCommand (Graph.Current, ReactiveCommand.Synchronous execute, canExecute, CommandPolicy.Disable, true, true)
+
+    /// <summary>A memo that is true while any of <c>sources</c> is pending.</summary>
+    /// <remarks>
+    /// The memo reads each source's status with <c>Graph.TrackStatus</c>, so it re-runs when a source it read changes, and
+    /// a failed source counts as settled.
+    /// </remarks>
+    static member AnyPending([<ParamArray>] sources: INode[]) : Memo<bool> =
+        let graph = Graph.Current
+        let sources = Array.copy sources
+
+        Api.createMemo (fun _ ->
+            sources
+            |> Array.exists (fun node ->
+                graph.TrackStatus node &&& Status.Pending
+                <> Status.None))
 
     /// <summary>Runs <c>body</c> without recording anything it reads.</summary>
     static member Untrack<'T>(body: Func<'T>) : 'T =

@@ -176,7 +176,8 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 ## Current gaps
 
 - No framework-specific UI packages yet. The .NET UI bindings are `ReactiveBindings` (`INotifyPropertyChanged` and
-  `INotifyDataErrorInfo`) and `Projection.AsObservableCollection`; commands with a derived `CanExecute` are not covered.
+  `INotifyDataErrorInfo`), `ReactiveCommand` (`ICommand` with a derived `CanExecute`) and
+  `Projection.AsObservableCollection`.
 - The C# package, [Ranvier.CSharp](../guide/csharp.md), still exposes `ValueOption` in a few places, such as
   `Previous<T>.Settled`.
 - No serialised-but-multi-threaded affinity mode, which Blazor Server needs.
