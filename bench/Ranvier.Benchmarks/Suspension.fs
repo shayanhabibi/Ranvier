@@ -166,7 +166,7 @@ type FlightPolicyBenchmarks() =
         let superseded = this.Flight = "Superseded"
 
         let memo =
-            new AsyncMemo<int>(
+            new AsyncMemo<int> (
                 graph,
                 fun _ _ ->
                     let n = trigger.Value

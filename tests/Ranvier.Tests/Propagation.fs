@@ -81,7 +81,9 @@ let tests =
                     )
 
                 let seen = ResizeArray ()
-                new Effect (g, (fun () -> seen.Add d.Value)) |> ignore
+
+                new Effect (g, (fun () -> seen.Add d.Value))
+                |> ignore
 
                 a.Value <- 2
                 a.Value <- 3
