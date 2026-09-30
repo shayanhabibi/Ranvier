@@ -1,6 +1,8 @@
 module Ranvier.Tests.Retention
 
 open System
+open System.Threading
+open System.Threading.Tasks
 open Expecto
 open Ranvier
 
@@ -29,6 +31,45 @@ let private aliveOf (refs: ResizeArray<WeakReference>) =
     refs
     |> Seq.filter (fun r -> r.IsAlive)
     |> Seq.length
+
+let private flightPolicies =
+    [
+        "CancelPrevious", CancelPrevious
+        "KeepLatest", KeepLatest
+        "Queue", FlightPolicy.Queue
+    ]
+
+let private graphWith policy =
+    new Graph (
+        { GraphOptions.Default with
+            FlightPolicy = policy
+        }
+    )
+
+/// <summary>
+/// Starts <c>count</c> flights of an async memo under <c>policy</c>, one per write and read. <c>body</c> receives the
+/// flight's number, its token and a fresh payload, tracked in the returned weak references.
+/// </summary>
+let private runFlights policy count (body: int -> CancellationToken -> obj -> Task<int>) =
+    let g = graphWith policy
+    let s = Signal (g, 0)
+    let refs = ResizeArray<WeakReference>()
+
+    let a =
+        Make.AsyncMemo<int> (
+            g,
+            fun _ token ->
+                let n = s.Value
+                let payload = obj ()
+                refs.Add (WeakReference payload)
+                body n token payload
+        )
+
+    for i in 1..count do
+        s.Value <- i
+        a.TryValue |> ignore
+
+    g, a, refs
 #endif
 
 [<Tests>]
@@ -144,4 +185,98 @@ let tests =
                 owner.Dispose ()
                 Expect.sequenceEqual log [ 3; 2; 1; 0 ] "cleanups first, in reverse, then children"
             }
+
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
+            for name, policy in flightPolicies do
+                test $"{name}: an undisposed token registration is released once its flight settles" {
+                    let g, a, refs =
+                        runFlights policy 2_000 (fun n token payload ->
+                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            Task.FromResult n)
+
+                    Expect.isLessThan (aliveOf refs) 20 "a settled flight's registrations must not live as long as the memo"
+                    GC.KeepAlive a
+                    g.Dispose ()
+                }
+
+                test $"{name}: a body that throws before returning its task releases its registration" {
+                    let g, a, refs =
+                        runFlights policy 2_000 (fun _ token payload ->
+                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            failwith "thrown before the task")
+
+                    Expect.isLessThan (aliveOf refs) 20 "a synchronous failure must not hold its registration until disposal"
+                    GC.KeepAlive a
+                    g.Dispose ()
+                }
+
+                test $"{name}: overlapping flights release their registrations once the last one settles" {
+                    let pending = ResizeArray<TaskCompletionSource<int>>()
+                    let tokens = ResizeArray<CancellationToken>()
+
+                    let g, a, refs =
+                        runFlights policy 2_000 (fun n token payload ->
+                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            tokens.Add token
+                            let source = TaskCompletionSource<int>()
+
+                            // Settles the previous flight while this body runs, so a flight is always in progress.
+                            if pending.Count > 0 then
+                                pending[pending.Count - 1].TrySetResult (n - 1)
+                                |> ignore
+
+                            pending.Add source
+                            source.Task)
+
+                    Expect.isFalse tokens[tokens.Count - 1].IsCancellationRequested "the flight in progress keeps a live token"
+                    pending[pending.Count - 1].TrySetResult 0 |> ignore
+                    Expect.isLessThan (aliveOf refs) 20 "every flight settled, so every registration is released"
+                    GC.KeepAlive a
+                    g.Dispose ()
+                }
+
+                test $"{name}: disposing the memo cancels the flight in progress after an earlier flight settled" {
+                    let g = graphWith policy
+                    let s = Signal (g, 0)
+                    let tokens = ResizeArray<CancellationToken>()
+
+                    let a =
+                        Make.AsyncMemo<int> (
+                            g,
+                            fun _ token ->
+                                let n = s.Value
+                                tokens.Add token
+
+                                if n = 0 then
+                                    Task.FromResult n
+                                else
+                                    TaskCompletionSource<int>().Task
+                        )
+
+                    a.TryValue |> ignore
+                    s.Value <- 1
+                    a.TryValue |> ignore
+                    a.Dispose ()
+                    Expect.isTrue tokens[1].IsCancellationRequested "the pending flight's token is cancelled"
+                    g.Dispose ()
+                }
+
+                test $"{name}: a flight that never settles is released when the memo is disposed" {
+                    let g, a, refs =
+                        runFlights policy 2_000 (fun _ token payload ->
+                            let source = TaskCompletionSource<int>()
+
+                            token.Register (fun () ->
+                                GC.KeepAlive payload
+                                source.TrySetCanceled () |> ignore)
+                            |> ignore
+
+                            source.Task)
+
+                    a.Dispose ()
+                    Expect.isLessThan (aliveOf refs) 20 "disposal cancels every flight in progress"
+                    g.Dispose ()
+                }
+#endif
         ]

@@ -289,12 +289,23 @@ runs, and `true` lets executions overlap. An async memo has no `CanExecute` and 
 flight. Debounce and throttle are not implemented either, as a policy or as a combinator.
 
 Cancellation costs one `CancellationTokenSource` per flight under `CancelPrevious`: each launch cancels
-and disposes the superseded flight's source and allocates the next, whether or not the superseded
-flight is still in progress. `KeepLatest` and `Queue` allocate one source per memo, at its first
-flight, and cancel it only when the memo is disposed. A body that ignores its token pays that
-allocation and a `Cancel` with no registered callbacks. A body that registers on the token, as
-`HttpClient` does, also pays for the callbacks the `Cancel` runs. The token belongs to the async memo
-alone: signals, memos and effects carry none, and their reads take no token.
+and disposes the superseded flight's source and allocates the next. Under `KeepLatest` and `Queue`,
+overlapping flights share one source. It is disposed, without being cancelled, once every flight that
+holds it has settled, and the next flight allocates another; disposing the memo cancels it. A body
+that ignores its token pays that allocation and a `Cancel` with no registered callbacks. A body that registers on the
+token, as `HttpClient` does, also pays for the callbacks the `Cancel` runs. The token
+belongs to the async memo alone: signals, memos and effects carry none, and their reads take no token.
+
+A registration on the token lives as long as its source. `use _ = token.Register ...`, and every API
+that takes the token and completes (`Task.Delay`, `HttpClient`, `SemaphoreSlim.WaitAsync`,
+`cancellableTask` binds), releases its registration when the operation ends. A registration left
+undisposed is released with the source: under `CancelPrevious` at the next launch, under `KeepLatest`
+and `Queue` once the flights sharing the source have all settled, so a stream of overlapping flights
+keeps each one's registration until the stream goes quiet. A flight that completes only on
+cancellation stays in progress under `KeepLatest` and `Queue` until the memo is disposed, together
+with everything its task and registrations hold; use `CancelPrevious` for such bodies. Work that
+outlives its flight and keeps the token sees a disposed source once the source is released: it is
+not cancelled when the memo is disposed, and `token.WaitHandle` throws `ObjectDisposedException`.
 `FlightPolicyBenchmarks` in the [suspension bench](../benchmarks/suspension.md#flightpolicybenchmarks)
 compares a launch under `CancelPrevious` with one under `KeepLatest`.
 

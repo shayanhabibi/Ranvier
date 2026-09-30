@@ -3254,7 +3254,17 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// </summary>
     let mutable generation = 0
 
+    /// <summary>
+    /// The source of the flight token. Under <c>CancelPrevious</c> each flight gets its own. Under <c>KeepLatest</c>
+    /// and <c>Queue</c> the flights in progress share one, disposed once every flight holding it has settled.
+    /// </summary>
     let mutable cts: CancellationTokenSource = null
+
+    /// <summary>The number of flights started and not yet settled, under <c>KeepLatest</c>.</summary>
+    let mutable flying = 0
+
+    /// <summary>The number of bodies executing. The shared source is retained while it is nonzero.</summary>
+    let mutable running = 0
 
     /// <summary>
     /// The end of the serialised chain, under <c>Queue</c>.
@@ -3336,6 +3346,23 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                 Platform.resolve waiter (lastSettled ())
             | _ -> ()
 
+    /// <summary>Disposes the flight token's source without cancelling it. The next flight allocates another.</summary>
+    let retireSource () =
+        if not (isNull cts) then
+            cts.Dispose ()
+            cts <- null
+
+    /// <summary>
+    /// Retires the shared source under <c>KeepLatest</c> and <c>Queue</c> once no body is executing and every flight
+    /// holding it has settled. Registrations left on the token are released with it.
+    /// </summary>
+    let retireIfQuiet () =
+        if running = 0 then
+            match graph.Options.FlightPolicy with
+            | FlightPolicy.Queue when queued = 0 -> retireSource ()
+            | KeepLatest when flying = 0 -> retireSource ()
+            | _ -> ()
+
     /// <summary>Applies the result of the run numbered <c>gen</c>. Runs on the graph thread.</summary>
     let applyResult (gen: int) (outcome: Platform.FlightOutcome<'T>) =
         // `Queue` applies every result in the order the flights started,
@@ -3345,8 +3372,12 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
             | FlightPolicy.Queue ->
                 queued <- queued - 1
                 true
-            | CancelPrevious
-            | KeepLatest -> gen = generation
+            | KeepLatest ->
+                flying <- flying - 1
+                gen = generation
+            | CancelPrevious -> gen = generation
+
+        retireIfQuiet ()
 
         let suspended =
             not (isNull pendingSources)
@@ -3505,6 +3536,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                 error <- ex
                 status <- Status.Error
 
+        running <- running + 1
+
         try
             try
                 // A flight dropped for a pending read or a violation gets a
@@ -3529,6 +3562,8 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
 
                 flight <- started
             finally
+                running <- running - 1
+
                 if disposed then
                     sources.Clear (this :> IComputation)
                 else
@@ -3560,13 +3595,17 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                     chained <- chained + 1
                     let outcome = Platform.outcomeOf flight
                     tail <- Platform.after tail (fun () -> Platform.apply outcome (publishQueued gen))
-                | CancelPrevious
-                | KeepLatest -> Platform.whenSettled flight settle |> ignore
+                | KeepLatest ->
+                    flying <- flying + 1
+                    Platform.whenSettled flight settle |> ignore
+                | CancelPrevious -> Platform.whenSettled flight settle |> ignore
             finally
                 launching <- false
 
             Tracer.RunEnd (graph, id, status)
         else
+            // A run that failed or suspended before starting a flight leaves no settle to retire the source.
+            retireIfQuiet ()
             Tracer.RunEnd (graph, id, status)
 
     member private this.EnsureCurrent() =
@@ -3683,9 +3722,11 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
                 graph.Retire scope
 
             if not (isNull cts) then
-                cts.Cancel ()
-                cts.Dispose ()
+                // Detached before the cancel: a flight settled inline by it runs `retireSource`.
+                let source = cts
                 cts <- null
+                source.Cancel ()
+                source.Dispose ()
 
             if status.HasFlag Status.Pending then
                 if not (isNull pendingSources) then
