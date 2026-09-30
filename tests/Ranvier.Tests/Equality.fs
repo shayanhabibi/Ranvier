@@ -25,7 +25,7 @@ type CaseInsensitivePolicy() =
                     String.Equals (string (box a), string (box b), StringComparison.OrdinalIgnoreCase)
 
                 member _.GetHashCode a =
-                    (string (box a)).ToLowerInvariant().GetHashCode ()
+                    (string (box a)).ToLowerInvariant().GetHashCode()
             }
 
 let private structural =
@@ -68,7 +68,8 @@ let private date () =
 let private dateOffset () =
     DateTimeOffset (2024, 1, 2, 3, 4, 5, TimeSpan.FromHours 2.0)
 
-let private money () = Decimal.Parse "1.5"
+let private money () =
+    Decimal.Parse "1.5"
 
 #if !FABLE_COMPILER
 /// <summary>

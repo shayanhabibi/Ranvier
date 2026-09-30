@@ -56,7 +56,7 @@ let private runFlights policy count (body: int -> CancellationToken -> obj -> Ta
     let refs = ResizeArray<WeakReference>()
 
     let a =
-        Make.AsyncMemo<int> (
+        Make.AsyncMemo<int>(
             g,
             fun _ token ->
                 let n = s.Value
@@ -192,7 +192,9 @@ let tests =
                 test $"{name}: an undisposed token registration is released once its flight settles" {
                     let g, a, refs =
                         runFlights policy 2_000 (fun n token payload ->
-                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            token.Register (fun () -> GC.KeepAlive payload)
+                            |> ignore
+
                             Task.FromResult n)
 
                     Expect.isLessThan (aliveOf refs) 20 "a settled flight's registrations must not live as long as the memo"
@@ -203,7 +205,9 @@ let tests =
                 test $"{name}: a body that throws before returning its task releases its registration" {
                     let g, a, refs =
                         runFlights policy 2_000 (fun _ token payload ->
-                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            token.Register (fun () -> GC.KeepAlive payload)
+                            |> ignore
+
                             failwith "thrown before the task")
 
                     Expect.isLessThan (aliveOf refs) 20 "a synchronous failure must not hold its registration until disposal"
@@ -217,20 +221,25 @@ let tests =
 
                     let g, a, refs =
                         runFlights policy 2_000 (fun n token payload ->
-                            token.Register (fun () -> GC.KeepAlive payload) |> ignore
+                            token.Register (fun () -> GC.KeepAlive payload)
+                            |> ignore
+
                             tokens.Add token
                             let source = TaskCompletionSource<int>()
 
                             // Settles the previous flight while this body runs, so a flight is always in progress.
                             if pending.Count > 0 then
-                                pending[pending.Count - 1].TrySetResult (n - 1)
+                                pending[pending.Count - 1].TrySetResult(n - 1)
                                 |> ignore
 
                             pending.Add source
                             source.Task)
 
                     Expect.isFalse tokens[tokens.Count - 1].IsCancellationRequested "the flight in progress keeps a live token"
-                    pending[pending.Count - 1].TrySetResult 0 |> ignore
+
+                    pending[pending.Count - 1].TrySetResult 0
+                    |> ignore
+
                     Expect.isLessThan (aliveOf refs) 20 "every flight settled, so every registration is released"
                     GC.KeepAlive a
                     g.Dispose ()
@@ -242,7 +251,7 @@ let tests =
                     let tokens = ResizeArray<CancellationToken>()
 
                     let a =
-                        Make.AsyncMemo<int> (
+                        Make.AsyncMemo<int>(
                             g,
                             fun _ token ->
                                 let n = s.Value
