@@ -13,8 +13,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# The steps run the commands `build.fsx test` and `build.fsx test-fable` run. The build CLI itself exits
-# non-zero when its output is redirected: its timing summary raises "Console width must be greater than zero".
+# The steps run the commands `build.fsx test`, `build.fsx test-fable` and `build.fsx --dry-format` run. The build
+# CLI itself exits non-zero when its output is redirected: its timing summary raises "Console width must be greater
+# than zero".
 
 jobs:
   dotnet:
@@ -31,6 +32,23 @@ jobs:
         run: dotnet test tests/Ranvier.Tests -c Release
       - name: Test Ranvier.CSharp.Tests
         run: dotnet test tests/Ranvier.CSharp.Tests -c Release
+      # The trace log and its queries compile in only with RanvierTrace, and their tests with them.
+      - name: Test Ranvier.Tests, traced
+        run: dotnet test tests/Ranvier.Tests -c Release -p:RanvierTrace=true
+
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Restore tools
+        run: dotnet tool restore
+      # Tracked F# sources only: `build.fsx --dry-format` also globs untracked output such as dist/.
+      - name: Check formatting
+        run: dotnet fantomas --check $(git ls-files '*.fs')
 
   fable:
     name: Fable tests
