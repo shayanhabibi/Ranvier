@@ -1513,8 +1513,7 @@ let tests =
                 let b = Item 1
                 let items = createSignal [ a; b ]
 
-                let proj =
-                    createProjection id (fun (x: Item) -> x.N) (fun () -> items.Value)
+                let proj = createProjection id (fun (x: Item) -> x.N) (fun () -> items.Value)
 
                 Expect.equal proj.Count 2 "two items, two keys"
                 items.Value <- [ b ]
@@ -1590,7 +1589,8 @@ let tests =
                 createEffect (fun () ->
                     seen.Add (
                         try
-                            [ for k in proj.Keys -> $"%d{k}:%d{proj.Get k}" ] |> String.concat " "
+                            [ for k in proj.Keys -> $"%d{k}:%d{proj.Get k}" ]
+                            |> String.concat " "
                         with _ ->
                             "error"
                     ))
@@ -1604,10 +1604,7 @@ let tests =
                 Expect.sequenceEqual [ for k in proj.Keys -> proj.Get k ] [ 10; 20; 30; 990 ] "and every row"
                 Expect.sequenceEqual created [ 1; 2; 3; 99 ] "each factory ran once"
 
-                Expect.sequenceEqual
-                    seen
-                    [ "1:10"; "error"; "1:10 2:20 3:30 99:990" ]
-                    "the reader never saw a partial set of rows"
+                Expect.sequenceEqual seen [ "1:10"; "error"; "1:10 2:20 3:30 99:990" ] "the reader never saw a partial set of rows"
             }
 
             test "a record key matches its row by structure" {

@@ -42,7 +42,8 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
 
-                let c, owner = g.CreateRoot (fun owner -> Make.Memo (g, (fun _ -> s.Value * 2)), owner)
+                let c, owner =
+                    g.CreateRoot (fun owner -> Make.Memo (g, (fun _ -> s.Value * 2)), owner)
 
                 Expect.equal c.TryValue (Ready 2) "live"
                 owner.Dispose ()

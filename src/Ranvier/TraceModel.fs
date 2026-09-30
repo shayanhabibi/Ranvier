@@ -237,7 +237,8 @@ module TraceModel =
 
     /// <summary>
     /// A value as one line of at most 60 characters: an exception as its type name and message, a string as itself,
-    /// and any other value as its <c>%A</c> text.
+    /// and any other value as its <c>%A</c> text. On .NET an anonymous record reads <c>{| ... |}</c> under every
+    /// FSharp.Core version.
     /// </summary>
     let valueText (value: obj) : string =
         let lines (text: string) =
@@ -274,7 +275,23 @@ module TraceModel =
 
                     joined.Append parts[i] |> ignore
 
-                joined.ToString ()
+                let text = joined.ToString ()
+
+#if FABLE_COMPILER
+                text
+#else
+                // FSharp.Core releases differ in whether %A brackets an anonymous record with "{|".
+                if
+                    v.GetType().Name.StartsWith("<>f__AnonymousType", StringComparison.Ordinal)
+                    && text.StartsWith ("{ ", StringComparison.Ordinal)
+                    && text.EndsWith (" }", StringComparison.Ordinal)
+                then
+                    "{| "
+                    + text.Substring (2, text.Length - 4)
+                    + " |}"
+                else
+                    text
+#endif
 
         if line.Length > 60 then
             line.Substring (0, 59) + "…"
@@ -811,7 +828,9 @@ module TraceModel =
                 let kind = enum<TraceNodeKind> e.Arg
                 let label = labelAt i e.Node
                 let site = siteOf e.Payload
-                let path = child (parentPath e.Other) (segment label site (TraceNames.nodeKind kind))
+
+                let path =
+                    child (parentPath e.Other) (segment label site (TraceNames.nodeKind kind))
 
                 let k =
                     (s.Incarnations.TryFind path
@@ -970,7 +989,9 @@ module TraceModel =
                 | Some n ->
                     let label = string e.Payload
                     let old = n.Path
-                    let path = child (parentPath n.Owner) (segment (Some label) n.Site (TraceNames.nodeKind n.Kind))
+
+                    let path =
+                        child (parentPath n.Owner) (segment (Some label) n.Site (TraceNames.nodeKind n.Kind))
 
                     let k =
                         (s.Incarnations.TryFind path
@@ -1484,7 +1505,14 @@ module TraceModel =
 
             first <- false
 
-            sb.Append("{\"id\":").Append(n.Id).Append(",\"kind\":\"").Append(TraceNames.nodeKind n.Kind).Append("\",\"owner\":").Append(n.Owner).Append
+            sb
+                .Append("{\"id\":")
+                .Append(n.Id)
+                .Append(",\"kind\":\"")
+                .Append(TraceNames.nodeKind n.Kind)
+                .Append("\",\"owner\":")
+                .Append(n.Owner)
+                .Append
                 ",\"path\":"
             |> ignore
 

@@ -20,7 +20,10 @@ type MapFlags =
         let replay = List.contains "replay" flags
 
         let policy =
-            match flags |> List.tryFind (fun f -> f.StartsWith "policy=") with
+            match
+                flags
+                |> List.tryFind (fun f -> f.StartsWith "policy=")
+            with
             | None
             | Some "policy=cancel-previous" -> Ok "CancelPrevious"
             | Some "policy=keep-latest" -> Ok "KeepLatest"
@@ -28,7 +31,10 @@ type MapFlags =
             | Some flag -> Error $"%s{flag}: the policy is cancel-previous, keep-latest or queue."
 
         let groups =
-            match flags |> List.tryFind (fun f -> f.StartsWith "groups=") with
+            match
+                flags
+                |> List.tryFind (fun f -> f.StartsWith "groups=")
+            with
             | None
             | Some "groups=expand" -> Ok "Expand"
             | Some "groups=collapse" -> Ok "Collapse"
@@ -78,35 +84,38 @@ module MapFence =
     let private indent = 8
 
     let private binding =
-        Regex(@"^let\s+(?:mutable\s+)?(?<name>[A-Za-z_][\w']*)\s*(?::[^=]*)?=\s*(?<rest>.*)$", RegexOptions.Compiled)
+        Regex (@"^let\s+(?:mutable\s+)?(?<name>[A-Za-z_][\w']*)\s*(?::[^=]*)?=\s*(?<rest>.*)$", RegexOptions.Compiled)
 
     // Effects and roots return no node to label, and a lookup is labelled through its owner.
     let private node =
-        Regex(@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b)\w*\b", RegexOptions.Compiled)
+        Regex (@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b)\w*\b", RegexOptions.Compiled)
 
-    let private lookup =
-        Regex(@"^create(?:Lookup|Selector)\b", RegexOptions.Compiled)
+    let private lookup = Regex (@"^create(?:Lookup|Selector)\b", RegexOptions.Compiled)
 
-    let private controls = Regex(@"^controls\b", RegexOptions.Compiled)
+    let private controls = Regex (@"^controls\b", RegexOptions.Compiled)
 
     let private blank (line: string) =
-        let t = line.Trim()
+        let t = line.Trim ()
         t = "" || t.StartsWith "//"
 
     /// <summary>A line at column zero that opens a new binding or statement.</summary>
     let private opens (line: string) =
-        line.Length > 0 && (Char.IsLetter line[0] || line[0] = '_')
+        line.Length > 0
+        && (Char.IsLetter line[0] || line[0] = '_')
 
     /// <summary>The module holding a fence's scenario.</summary>
     let moduleName (cellId: string) =
-        "Map_" + Regex.Replace(cellId, @"[^A-Za-z0-9_]", "_")
+        "Map_"
+        + Regex.Replace (cellId, @"[^A-Za-z0-9_]", "_")
 
     /// <summary>The top-level items of <c>lines</c> as (first, last) indices, trailing blank and comment lines excluded.</summary>
     let private items (lines: string[]) =
         let starts =
-            [ for i in 0 .. lines.Length - 1 do
-                  if opens lines[i] then
-                      i ]
+            [
+                for i in 0 .. lines.Length - 1 do
+                    if opens lines[i] then
+                        i
+            ]
 
         starts
         |> List.mapi (fun k start ->
@@ -151,9 +160,18 @@ module MapFence =
         let m = binding.Match lines[first]
         let rest = m.Groups["rest"]
 
-        if first = last && m.Success && lookup.IsMatch rest.Value then
+        if
+            first = last
+            && m.Success
+            && lookup.IsMatch rest.Value
+        then
             let name = m.Groups["name"].Value
-            Some(name, lines[first].Substring(0, rest.Index) + $"Trace.named \"%s{name}\" (fun () -> %s{rest.Value})")
+
+            Some (
+                name,
+                lines[first].Substring(0, rest.Index)
+                + $"Trace.named \"%s{name}\" (fun () -> %s{rest.Value})"
+            )
         else
             None
 
@@ -164,19 +182,20 @@ module MapFence =
     /// </summary>
     /// <returns>The module's code, its spans and the bindings, or problems at fence lines.</returns>
     let scenario (cellId: string) (code: string) : Result<string * MapSpan list * (string * int * int) list, (int * string) list> =
-        let lines =
-            code.Split '\n'
-            |> Array.map _.TrimEnd('\r')
+        let lines = code.Split '\n' |> Array.map _.TrimEnd('\r')
 
         match items lines with
         | [] -> Error [ 1, "A map fence holds a scenario that ends with `controls [ ... ]`." ]
         | found when not (controls.IsMatch lines[fst (List.last found)]) ->
-            Error [ snd (List.last found) + 1, "A map fence ends with `controls [ ... ]`, which lists the map's buttons." ]
+            Error
+                [
+                    snd (List.last found) + 1, "A map fence ends with `controls [ ... ]`, which lists the map's buttons."
+                ]
         | found ->
             let output = ResizeArray<string>()
             let spans = ResizeArray<MapSpan>()
             let bindings = ResizeArray<string * int * int>()
-            let pad = String(' ', indent)
+            let pad = String (' ', indent)
 
             let pinned (line: string) =
                 spans.Add
@@ -200,7 +219,7 @@ module MapFence =
                         }
 
                     for line in lines[first..last] do
-                        output.Add(if line.Trim() = "" then "" else pad + line)
+                        output.Add (if line.Trim () = "" then "" else pad + line)
 
             pinned $"module %s{moduleName cellId} ="
             pinned "    open Ranvier"
@@ -225,10 +244,10 @@ module MapFence =
                         }
 
                     output.Add $"%s{pad}Trace.label (graph', %s{name}, \"%s{name}\")"
-                    bindings.Add(name, first + 1, last + 1)
+                    bindings.Add (name, first + 1, last + 1)
                 | None ->
                     match namedLookup lines (first, last) with
-                    | Some(name, line) ->
+                    | Some (name, line) ->
                         copy copied (first - 1)
                         copied <- first + 1
 
@@ -240,12 +259,12 @@ module MapFence =
                                 Indent = indent
                             }
 
-                        output.Add(pad + line)
-                        bindings.Add(name, first + 1, last + 1)
+                        output.Add (pad + line)
+                        bindings.Add (name, first + 1, last + 1)
                     | None -> ()
 
             copy copied (lines.Length - 1)
-            Ok(String.concat "\n" output, List.ofSeq spans, List.ofSeq bindings)
+            Ok (String.concat "\n" output, List.ofSeq spans, List.ofSeq bindings)
 
     let private render (source: string) (flags: MapFlags) (bindings: (string * int * int) list) =
         let bindings =

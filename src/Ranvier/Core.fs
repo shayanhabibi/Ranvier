@@ -783,7 +783,8 @@ and Owner internal (sink: Owner) =
     /// including <c>Graph.Root</c> and a scope constructed with <c>new Owner ()</c>,
     /// runs it inline in the caller's tracking context.
     /// </remarks>
-    member this.OnCleanup(f: Action) = this.AddCleanup f.Invoke
+    member this.OnCleanup(f: Action) =
+        this.AddCleanup f.Invoke
 
     member internal this.AddCleanup(f: unit -> unit) =
         if disposed then
@@ -1255,7 +1256,10 @@ type Graph(options: GraphOptions) =
         match Graph.Ambient with
         | :? Graph as g -> g
         | _ ->
-            raise (InvalidOperationException "No ambient graph on this thread. Activate one with `use _ = graph.Activate ()`, or construct nodes against an explicit graph.")
+            raise (
+                InvalidOperationException
+                    "No ambient graph on this thread. Activate one with `use _ = graph.Activate ()`, or construct nodes against an explicit graph."
+            )
 
     /// <summary>
     /// Makes this the ambient graph until the returned handle is disposed,
@@ -1354,7 +1358,8 @@ type Graph(options: GraphOptions) =
     /// Creates a nested scope, runs <c>body</c> inside it, and hands back the owner
     /// so the caller can dispose the whole subtree at once.
     /// </summary>
-    member this.CreateRoot(body: Func<Owner, 'T>) = this.RunRoot body.Invoke
+    member this.CreateRoot(body: Func<Owner, 'T>) =
+        this.RunRoot body.Invoke
 
     member internal this.RunRoot(body: Owner -> 'T) =
         this.AssertOnGraphThread "Creating a root"
@@ -1375,7 +1380,8 @@ type Graph(options: GraphOptions) =
     /// On a disposed scope <c>f</c> runs immediately, untracked and with effects
     /// deferred, as a teardown runs it.
     /// </summary>
-    member this.OnCleanup(f: Action) = this.AddCleanup f.Invoke
+    member this.OnCleanup(f: Action) =
+        this.AddCleanup f.Invoke
 
     member internal this.AddCleanup(f: unit -> unit) =
         this.AssertOnGraphThread "Registering a cleanup"
@@ -1438,7 +1444,8 @@ type Graph(options: GraphOptions) =
     /// job is to be skipped, not to be fast. See
     /// docs/.ai/RESEARCH-loony-synchronization.md §4.3.
     /// </remarks>
-    member this.Dispatch(work: Action) = this.Post work.Invoke
+    member this.Dispatch(work: Action) =
+        this.Post work.Invoke
 
     member internal this.Post(work: unit -> unit) =
         if this.IsOnGraphThread then
@@ -1666,7 +1673,8 @@ type Graph(options: GraphOptions) =
     /// Defers the flush until <c>body</c> returns, so a group of writes produces one
     /// effect run rather than one per write.
     /// </summary>
-    member this.Batch(body: Func<'T>) = this.RunBatch body.Invoke
+    member this.Batch(body: Func<'T>) =
+        this.RunBatch body.Invoke
 
     member internal this.RunBatch(body: unit -> 'T) =
         this.AssertOnGraphThread "A batch"
@@ -3460,7 +3468,12 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// otherwise.
     /// </summary>
     new(graph: Graph, compute: Func<Previous<'T>, CancellationToken, Task<'T>>, owning: bool) as this =
-        new AsyncMemo<'T> (graph, (fun previous token -> compute.Invoke (previous, token)), (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
+        new AsyncMemo<'T> (
+            graph,
+            (fun previous token -> compute.Invoke (previous, token)),
+            (if owning then ScopeMode.Owning else ScopeMode.PureAsync)
+        )
+
         then this.Attach ()
 #endif
 

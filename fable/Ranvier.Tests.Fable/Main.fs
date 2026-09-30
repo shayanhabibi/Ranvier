@@ -13,7 +13,8 @@ let private install (mode: string) (source: obj) : string = jsNative
 [<Emit("process.env.RANVIER_FABLE_DELIVERY ?? 'promise'")>]
 let private requested: string = jsNative
 
-install requested (System.Threading.Tasks.TaskCompletionSource<unit> ()) |> ignore
+install requested (System.Threading.Tasks.TaskCompletionSource<unit>())
+|> ignore
 
 // Every [<Tests>] value of tests/Ranvier.Tests, in compile order, under the name of its file.
 let all =
@@ -54,7 +55,20 @@ let all =
             testList "DischargeReentry.fs" [ Ranvier.Tests.DischargeReentry.tests ]
             testList "MapSemantics.fs" [ Ranvier.Tests.MapSemantics.tests ]
             testList "Lenses.fs" [ Ranvier.Tests.Lenses.tests ]
-            testList "Combinators.fs" [ Ranvier.Tests.Combinators.filterTests; Ranvier.Tests.Combinators.chooseTests; Ranvier.Tests.Combinators.mapTests; Ranvier.Tests.Combinators.sortByTests; Ranvier.Tests.Combinators.sliceTests; Ranvier.Tests.Combinators.chainTests; Ranvier.Tests.Combinators.mapWithTests; Ranvier.Tests.Combinators.groupByTests; Ranvier.Tests.Combinators.chainPendingTests; Ranvier.Tests.Combinators.foldTests ]
+            testList
+                "Combinators.fs"
+                [
+                    Ranvier.Tests.Combinators.filterTests
+                    Ranvier.Tests.Combinators.chooseTests
+                    Ranvier.Tests.Combinators.mapTests
+                    Ranvier.Tests.Combinators.sortByTests
+                    Ranvier.Tests.Combinators.sliceTests
+                    Ranvier.Tests.Combinators.chainTests
+                    Ranvier.Tests.Combinators.mapWithTests
+                    Ranvier.Tests.Combinators.groupByTests
+                    Ranvier.Tests.Combinators.chainPendingTests
+                    Ranvier.Tests.Combinators.foldTests
+                ]
             testList "PreviousValues.fs" [ Ranvier.Tests.PreviousValues.tests; Ranvier.Tests.PreviousValues.asyncTests ]
         ]
 
