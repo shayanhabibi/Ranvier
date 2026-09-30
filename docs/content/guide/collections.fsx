@@ -43,6 +43,7 @@ The source is a function returning a sequence, usually a signal's value.
 #load "../../../src/Ranvier/Positional.fs"
 #load "../../../src/Ranvier/Trace.fs"
 #load "../../../src/Ranvier/Core.fs"
+#load "../../../src/Ranvier/Deltas.fs"
 #load "../../../src/Ranvier/Projections.fs"
 #load "../../../src/Ranvier/Api.fs"
 #load "../../../src/Ranvier/Combinators.fs"
@@ -306,6 +307,44 @@ list control keeps its unchanged items:
 Each change costs O(N log N): the effect compares every row against a copy of the previous contents.
 
 The updates stop when the calling scope is disposed or re-runs, or when the projection is disposed.
+
+## Reading changes
+
+`NewKeyReader ()` returns a reader of the projection's membership and order, owned by the calling scope.
+Each `Read ()` reports the keys added, removed or replaced since the reader's previous read, in time
+proportional to the changes.
+*)
+
+let reader = titles.NewKeyReader ()
+reader.Read () |> ignore // the first read reports a reset
+
+todos.Value <- (todos.Value |> List.filter (fun t -> t.Id <> 1)) @ [ { Id = 5; Title = "Rest" } ]
+
+let delta = reader.Read ()
+[ for change in delta.Changes -> change.Key, change.Value ] |> List.sortBy fst
+
+(**
+
+```text
+[(1, Removed); (5, Added)]
+```
+
+- `Changes` holds one `KeyChange` per key: `Added`, `Removed`, or `Replaced` for a key removed and
+  re-added between two reads. A key added and then removed between two reads cancels out. The order is
+  unspecified; `Keys` gives the order.
+- `Keys` and `PreviousKeys` are the key arrays at this read and at the previous one. `OrderChanged` is
+  false when both are the same array.
+- `Positional` lists the `RemoveAt`, `InsertAt` and `Move` edits that turn `PreviousKeys` into `Keys`,
+  computed on first use in O(N log N).
+- `IsReset` is true on the first read, after the projection is disposed, and once more than
+  `max(64, N)` changes are unread. `Changes` is then empty: rebuild from `Keys`.
+- `Read` is a tracked read of `Keys`, so an effect that reads the reader wakes on every change it
+  reports. While the pass is pending or failed, `Read` raises what `Keys` raises and keeps the changes
+  for the next read.
+
+A key reader reports membership and order; read row values with `Get` for the keys in `Changes`. Each
+reader costs one map update per added or removed key, and a projection without readers pays one null
+check.
 
 ## Lookups
 

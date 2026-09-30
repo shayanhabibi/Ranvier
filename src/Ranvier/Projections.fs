@@ -310,6 +310,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     let entries = Platform.KeyMap<'K, RowEntry<'K, 'V>>()
 
+    /// <summary>The live key readers, and null while none exists.</summary>
+    let mutable log: KeyLog<'K> = null
+
     let beacon = ProjectionBeacon (graph, this)
 
     /// <summary>
@@ -358,6 +361,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </summary>
     let passKeys = ResizeArray<'K>()
     let seen = Platform.KeySet<'K>()
+
+    /// <summary>
+    /// The keys of this pass that keep their row and stay out of <c>Keys</c>. Null until the first such key.
+    /// </summary>
+    let mutable hidden: Platform.KeySet<'K> = Unchecked.defaultof<_>
+
+    /// <summary>The <c>hidden</c> keys of the last applied pass. Null exactly while <c>hidden</c> is.</summary>
+    let mutable lastHidden: Platform.KeySet<'K> = Unchecked.defaultof<_>
 
     /// <summary>
     /// Keys whose row is pending.
@@ -451,6 +462,54 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
     member internal _.PassKeys = passKeys
     member internal _.Seen = seen
+
+    /// <summary>
+    /// Leaves the last key of <c>PassKeys</c> out of <c>Keys</c> while keeping its row. The key readers see the key as
+    /// removed until a pass includes it again.
+    /// </summary>
+    member internal _.HideLast() =
+        let last = passKeys.Count - 1
+        let key = passKeys[last]
+        passKeys.RemoveAt last
+
+        if isNull (box hidden) then
+            hidden <- Platform.KeySet<'K>()
+            lastHidden <- Platform.KeySet<'K>()
+
+        hidden.Add key |> ignore
+
+    /// <summary>
+    /// Records for the key readers each key that entered or left the hidden keys with its row intact, then makes this
+    /// pass's hidden keys the last applied ones.
+    /// </summary>
+    member private _.SettleHidden() =
+        if not (isNull log) then
+            // A key added by this pass and hidden records Added then Removed, which cancel.
+            hidden.Iterate (fun key ->
+                if not (lastHidden.Contains key) then
+                    log.Record (key, KeyChange.Removed))
+
+            lastHidden.Iterate (fun key ->
+                if
+                    not (hidden.Contains key)
+                    && not (isNull (entries.Find key))
+                then
+                    log.Record (key, KeyChange.Added))
+
+        let swap = lastHidden
+        lastHidden <- hidden
+        hidden <- swap
+        hidden.Clear ()
+
+    /// <summary>Stores the row of an added key, and records the addition for the key readers.</summary>
+    member internal _.AddEntry(key: 'K, entry: RowEntry<'K, 'V>) =
+        entries.Set (key, entry)
+
+        if not (isNull log) then
+            log.Record (key, KeyChange.Added)
+
+    /// <summary>Whether a key reader is live.</summary>
+    member internal _.HasKeyReaders = not (isNull log)
 
     /// <summary>
     /// The row computation's body: the reader, reported to the pending
@@ -549,6 +608,13 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private _.Retire(entry: RowEntry<'K, 'V>) =
         entry.Live <- false
 
+        if
+            not (isNull log)
+            && (isNull (box lastHidden)
+                || not (lastHidden.Contains entry.Key))
+        then
+            log.Record (entry.Key, KeyChange.Removed)
+
         if entry.Watched then
             entry.Watched <- false
             (entry.Row :> ISource).RemoveObserver watch
@@ -577,6 +643,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         passKeys.Clear ()
         seen.Clear ()
+
+        if not (isNull (box hidden)) then
+            hidden.Clear ()
+
         this.Pass.ClearStaged ()
         removed.Clear ()
         let previousStatus = status
@@ -697,6 +767,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </summary>
     member private this.ApplyAdditions() =
         this.Pass.CreateAdded ()
+
+        if not (isNull (box hidden)) then
+            this.SettleHidden ()
+
         this.Pass.CommitWrites ()
         this.Pass.ClearStaged ()
         publishKeys ()
@@ -1311,6 +1385,14 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
             entries.Clear ()
             inFlight.Clear ()
+
+            if not (isNull (box hidden)) then
+                hidden.Clear ()
+                lastHidden.Clear ()
+
+            if not (isNull log) then
+                log.Reset ()
+
             scope.Dispose ()
 
             if not (isNull (box passScope)) then
@@ -1318,6 +1400,38 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
             if keys.Peek.Length > 0 then
                 graph.RunBatch (fun () -> keys.Value <- Array.empty)
+
+    /// <summary>
+    /// A new reader of the projection's membership and order, owned by the calling scope. Its first <c>Read</c> reports a
+    /// reset; each later one reports the keys added, removed or replaced since the previous read.
+    /// </summary>
+    /// <remarks>
+    /// Each addition or removal costs one map update per live reader. A disposed projection gives a reader whose first read
+    /// reports a reset with empty <c>Keys</c>.
+    /// </remarks>
+    member this.NewKeyReader() : ProjectionReader<'K> =
+        //FOR-REVIEW On a disposed projection this returns a reader (first read: reset, empty Keys) instead of raising ObjectDisposedException as AsObservableCollection does; Keys on a disposed projection reads empty rather than raising.
+        let reader = new ProjectionReader<'K> (this)
+
+        if not disposed then
+            if isNull log then
+                log <- KeyLog<'K>()
+
+            log.Add reader
+
+        reader.Link <- graph.CurrentOwner.AttachLinked reader
+        reader
+
+    interface IKeyLogHost<'K> with
+        member this.ReadKeys() = this.Keys
+        member _.LiveCount = entries.Count
+
+        member _.Detach reader =
+            if not (isNull log) then
+                log.Remove reader
+
+                if log.Count = 0 then
+                    log <- null
 
     interface IDisposable with
         member this.Dispose() =
@@ -1380,7 +1494,7 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
     member private this.NewRow(key: 'K, item: 'T) =
         let entry = ItemRow<'T, 'K, 'V>(key, Signal<'T>(graph, item))
         Tracer.Part (graph, (entry.Item :> INode).Id, (this :> INode).Id, box key)
-        this.Entries.Set (key, entry)
+        this.AddEntry (key, entry)
         entry
 
     member private this.Compute(entry: RowEntry<'K, 'V>) : 'V voption -> 'V =

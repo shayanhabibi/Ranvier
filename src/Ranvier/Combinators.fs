@@ -134,7 +134,7 @@ type internal FilterView<'K, 'V, 'U when 'K: equality>
                         this.Visit (key, key)
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         heldOut.Publish upstream
 
@@ -243,7 +243,7 @@ type internal SortView<'K, 'V, 'S when 'K: equality and 'S: comparison>(graph: G
                         ranks.Add entry.Row.Peek
                 | Failed _ ->
                     this.Visit (key, key)
-                    this.PassKeys.RemoveAt (this.PassKeys.Count - 1)
+                    this.HideLast ()
 
         if not (unchanged ()) then
             sorted <- false
@@ -346,7 +346,7 @@ type Grouping<'G, 'K, 'V when 'G: equality and 'K: equality> internal (graph: Gr
         for struct (groupKey, group) in adds do
             let source = Signal<Projection<'K, 'V>>(graph, group.View)
             let entry = ItemRow<Projection<'K, 'V>, 'G, Projection<'K, 'V>>(groupKey, source)
-            this.Entries.Set (groupKey, entry)
+            this.AddEntry (groupKey, entry)
             entry.Reader <- fun () -> source.Value
             entry.Row <- Memo<Projection<'K, 'V>>.Create(graph, (fun _ -> this.RunRow entry), ScopeMode.ValueRow)
 

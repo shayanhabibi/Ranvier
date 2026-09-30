@@ -1,6 +1,6 @@
 # Delta readers, stages 2 to 4: companion note
 
-**Status:** proposal, not implemented. Companion to `projection-delta-reader.md` (the design); it does not replace it.
+**Status:** stage 2 implemented on `worktree-wf_c46b5816-3af-3`, pending benchmark gate. Stages 3 and 4 are open. Companion to `projection-delta-reader.md` (the design); it does not replace it.
 Line references are to `src/Ranvier/*.fs` at `c631f23`. No benchmark was run for this note; §5 names the cases that
 settle each cost.
 
@@ -19,19 +19,21 @@ never create one.
 | `publishKeys` writes `keys` only when order or membership moved | `Projections.fs:424-438`; `WriteExcept (…, puller)` at 437 | yes |
 | A failed diff leaves the next pass to diff against what was applied | comment at `Projections.fs:590-592` | yes |
 | Adds go through one `NewRow` | `RowsOf.NewRow` (`Projections.fs:1374-1378`) **and** `Grouping.CreateAdded` (`Combinators.fs:345-351`), which calls `Entries.Set` itself | **no: two sites** |
-| `RunRow` sees the previous value in `entry.Row.Peek` | still true (`Projections.fs:459-475`), and the compute now also receives it (below) | yes |
+| `RunRow` sees the previous value in `entry.Row.Peek` | still true (`Projections.fs:459-475`); the row memo also receives the previous value, and `RunRow` does not (below) | yes |
 | `AsObservableCollection` clears and re-adds on every run | replaced by stage 1 (below) | **obsolete** |
 | `[1..5]` to `[1;2;3;5;4]` is `Move(4,3)` | the shipped diff gives `Move(3,4)` (`tests/Ranvier.Tests/Projections.fs:1097`) | **typo in design §6** |
-| `Positional` is `PositionalChange<'K>[]` | `Positional.diff` returns `ResizeArray` (`Positional.fs:30`); `PositionalChange` is `internal` (`Positional.fs:5`) | differs |
+| `Positional` is `PositionalChange<'K>[]` | `Positional.diff` returns `ResizeArray` (`Positional.fs:79`); `PositionalChange` is `internal` (`Positional.fs:5`) | differs |
 | Views run `Enumerate` over `upstream.Keys` per pass, O(N) | `Combinators.fs:842`, `MapView` at 46-57 | yes |
 
 ## 3. What changed since the design
 
 1. **Stage 1 shipped as option C.** `AsObservableCollection` (`Projections.fs:1195-1276`) reads every row tracked on each
    run (1221), diffs its mirror with `Positional.diff` (1243), and raises `Replace` per value moved under the graph's
-   equality. Each run costs O(N) plus O(N log N), and never raises `Reset` after the first population.
-2. **Previous-value computes landed.** A row's compute is `'V voption -> 'V` (`Projections.fs:1380`) and ignores the
-   argument. Stage 3 can log `Changed` by comparing the new value with that argument instead of `entry.Row.Peek`.
+   equality. Each run costs O(N) plus O(N log N), and raises `Reset` only on the first population and after a run
+   that threw partway through its edits.
+2. **Previous-value computes landed.** A row's compute is `'V voption -> 'V` (`Projections.fs:1380`). The row memo
+   receives the previous value; `Compute` is `fun _ -> this.RunRow entry`, so `RunRow` does not. Stage 3 has to thread
+   the argument into `RunRow` before it can log `Changed` by comparing against it instead of `entry.Row.Peek`.
 3. **Per-row taps already exist.** `ProjectionFold` attaches a `FoldRow` observer to each row (`Combinators.fs:489-527`,
    attach at 714) and detects a replaced row by entry reference (`Combinators.fs:689`). This is the tap model of
    design §5, working, for `foldGroup`. Its `Diff` is O(N) in `Keys` (`Combinators.fs:675-718`) and is the first internal
@@ -182,8 +184,8 @@ No. Stage 2 adds `KeyChange`, `ProjectionDelta<'K>`, `ProjectionReader<'K>`, `Pr
 
 ## 10. Stages 3 and 4, re-scoped
 
-- **Stage 3, value readers.** Reuse `FoldRow`'s observer pattern for taps; log `Changed` in `RunRow` by comparing with
-  the compute's previous-value argument (`Projections.fs:1380`). Add the stamp `ISource` of design §5 here. Rebuild
+- **Stage 3, value readers.** Reuse `FoldRow`'s observer pattern for taps; thread the row memo's previous-value argument
+  into `RunRow` (`Projections.fs:1380` discards it today) and log `Changed` there by comparing with it. Add the stamp `ISource` of design §5 here. Rebuild
   `AsObservableCollection` on `NewReader`, which turns its O(N) per run into O(c). Move `foldGroup`'s `Diff`
   (`Combinators.fs:676`) onto a key reader.
 - **Stage 4, `ApplyDelta`.** Unchanged from the design, starting with `MapView`; add `SliceView` to the list.
@@ -200,7 +202,7 @@ reviewed with its own benchmark results.
 3. Reader type `ProjectionReader<'K>`, without `'V`? (yes/no)
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections (applied to the body above)
 
 Verdict: needs fixes
 
@@ -208,3 +210,63 @@ Verdict: needs fixes
 - '`Positional.diff` returns `ResizeArray` (`Positional.fs:30`)': the function is at Positional.fs:79. Line 30 is inside the Fenwick-tree helper `sumBelow`.
 - '`AsObservableCollection` ... never raises `Reset` after the first population' is wrong. On an exception partway through the edits, the `with _ ->` arm sets `populated.Value <- false` (Projections.fs:1257-1260), so the next run calls `view.Clear ()` (1238), which raises Reset. Correct: '...raises Reset only on the first population and after a run that threw partway'.
 - '`RunRow` sees the previous value in `entry.Row.Peek` | still true, and the compute now also receives it' and §10 'log `Changed` in `RunRow` by comparing with the compute's previous-value argument (`Projections.fs:1380`)': `Compute` is `fun _ -> this.RunRow entry`, which discards the argument, and `RunRow(entry)` takes none. Stage 3 has to thread the argument into RunRow. Say 'the row memo receives it; RunRow does not'.
+
+## Implementation record (stage 2)
+
+Code: `src/Ranvier/Deltas.fs` (`KeyChange`, `ProjectionDelta<'K>`, `ProjectionReader<'K>`, the internal accumulator
+`KeyChanges<'K>` and `KeyLog<'K>`), hooks in `src/Ranvier/Projections.fs` (`log` field, `AddEntry`, `Retire`, `Dispose`,
+`NewKeyReader`) and `Grouping.CreateAdded` in `src/Ranvier/Combinators.fs`. `PositionalChange<'K>` is public; the
+`Positional` module stays internal. Tests: `deltaReaderTests` in `tests/Ranvier.Tests/Projections.fs` (also in the Fable
+run) and `KeyReaderReportsMembershipChanges` in `tests/Ranvier.CSharp.Tests/CollectionTests.cs`. User docs: "Reading
+changes" in `docs/content/guide/collections.fsx`, and the Collections section of `docs/content/guide/csharp.md`.
+
+Deviations from §4 to §8:
+
+- **Accumulator shape.** A reader's changes are a `KeyChanges<'K>`: a `ResizeArray<KeyValuePair<'K, KeyChange>>` plus
+  a `KeyMap<'K, int>` of one-past-index slots, rather than a bare `KeyMap<'K, KeyChange>`. The list is `Changes`
+  itself, so the handover stays O(1) and `Changes` needs no copy; a dropped key (`Added` then `Removed`) is a swap
+  with the last pair. The slot map also keeps `Added = 0` distinct from an absent key, which a `KeyMap` of the enum
+  cannot on .NET (default 0) or Fable (null).
+- **Recording starts at the first read.** A new reader is flagged for reset, and a flagged reader records nothing, so
+  changes between `NewKeyReader` and the first `Read` are never stored.
+- **`PreviousKeys` on a reset** is the keys of the reader's previous read (empty on the first read), so `Positional`
+  replays on a reset too.
+- **`OrderChanged`** is the reference test of §4.1. It is also true when the order moved and moved back between two
+  reads (a new array with equal content); `Positional` is then empty. Documented on the member.
+- **`OrderChanged` on empty arrays** is false when both arrays are empty, whatever their identity: under Fable
+  `Array.empty` is not a shared instance, so the reference test alone would report an empty projection as reordered.
+- **`IsEmpty`** is `not IsReset && Changes.Count = 0 && not OrderChanged`.
+- **Hidden keys (review fix).** §4.1 assumes a key has a row exactly while it is in `Keys`. `filter` and `sortBy` break
+  that: a key whose predicate or sort key fails keeps its row and stays out of `Keys`. Those views now call
+  `Projection.HideLast` in place of dropping the last pass key, which records the key in a `hidden` set (allocated with
+  its `lastHidden` twin at the first hidden key). After `CreateAdded`, `SettleHidden` records `Removed` for a surviving key
+  that became hidden and `Added` for one that left the hidden set (a new hidden key records `Added` then `Removed`,
+  which cancel), and `Retire` records nothing for a key hidden at the last applied pass. A projection that never hides a
+  key pays one null check per applied pass. Law tests over `filter` and `sortBy` with failing predicates and sort keys
+  cover it.
+- **Cap.** `N` in `max(64, N)` is the live key count as each change arrives, so a write that removes most keys of a
+  large projection reads as a reset while the same write in reverse (refilling) does not. Documented on
+  `ProjectionReader`; the committed cap test depends on it.
+- **Cleanup that disposes the projection.** A removal whose cleanup disposes the projection stops `ApplyDiff` after the
+  removals; the next read is a reset with empty `Keys`, and later reads are empty. Covered by a test.
+- **Registration order.** `NewKeyReader` registers the reader with the log, then attaches it to
+  `graph.CurrentOwner`, so an owner that is already disposed releases (and unregisters) the reader at once.
+  A disposed projection hands back an unregistered reader whose first read is a reset with empty `Keys` (tagged
+  FOR-REVIEW: `AsObservableCollection` raises `ObjectDisposedException` instead).
+- **Projection `Dispose`** flags every reader for reset and leaves them registered; the reader's own `Dispose` (or its
+  owner's) unregisters it, and the last one sets `log` back to null. `HasKeyReaders` (internal) exposes that for test 7.
+- **`Dispose` under Fable.** With `[<AttachMembers>]`, an explicit `Dispose` member collides with
+  `IDisposable.Dispose`, so the explicit member is compiled on .NET only; under Fable the interface member is the
+  attached `Dispose`. For the same reason the accumulator's own count is `Size`, not `Count`.
+- **Test 4 (throwing cleanup).** An owner swallows a cleanup's exception into `Owner.Errors`, so a throwing cleanup
+  does not fail the pass. The test still checks that both removals and the addition are recorded and that law 1 holds.
+- **Benchmarks.** `ProjectionBenchmarks.ChurnOneKey` (8/64/512, no reader) uses its own `Churn` fixture through a
+  targeted `[<GlobalSetup(Target = "ChurnOneKey")>]`, so `EditOneItem`/`Reorder` keep their setup, and the file uses no
+  new API and compiles against master for the A/B. `bench/Ranvier.Benchmarks/DeltaReaders.fs` holds
+  `DeltaReaderBenchmarks` (N = 64/512/10 000): `ReadAfterOneRemoval` against the baseline `SetDiffAfterOneRemoval`,
+  both toggling key N/2 out and back in on alternate invocations (one membership change per write), and `ReadIdle`;
+  and `DeltaReaderChurnBenchmarks` (`ChurnOneKey`, Readers 1/4 by Items 8/64/512), each reader read by its own effect.
+- **Sanity run only** (fsi Stopwatch loop, not BenchmarkDotNet, noisy machine): `ReadIdle` allocates 0 B; a
+  non-empty read allocates about 400 B per reader (a fresh accumulator, tagged FOR-REVIEW); at N = 10 000 the reader
+  path was about half the set-diff path, which is dominated by the O(N) pass common to both. The A/B gate is still
+  owed.

@@ -20,6 +20,7 @@
         <Compile Include="Suspension.fs" />
         <Compile Include="Lifetimes.fs" />
         <Compile Include="Projections.fs" />
+        <Compile Include="DeltaReaders.fs" />
         <Compile Include="Comparisons.fs" />
         <Compile Include="Probe.fs" />
         <Compile Include="Program.fs" />
