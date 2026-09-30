@@ -31,7 +31,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Edges.fs | 5 | 5 | 5 | 5 | 5 | 5 | 0 | 0 |
 | Invalidation.fs | 4 | 4 | 4 | 4 | 4 | 4 | 0 | 0 |
 | Lifetime.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
-| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 4 | 0 |
+| Retention.fs | 2 | 2 | 2 | 2 | 2 | 2 | 9 | 0 |
 | Tracing.fs | 2 | 2 | 2 | 64 | 60 | 57 | 1 | 0 |
 | TraceModelTests.fs | 0 | 0 | 0 | 12 | 12 | 12 | 2 | 0 |
 | Observers.fs | 24 | 24 | 24 | 24 | 24 | 24 | 0 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 64 | 1 |
+| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
 
 ## Tests.fs
 
@@ -388,6 +388,11 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | a disposed memo is not retained by its owner | JavaScript exposes no forced collection. |
 | a disposed root is not retained by its parent | JavaScript exposes no forced collection. |
 | a torn-down subtree is released even while its signal lives on | JavaScript exposes no forced collection. |
+| {name}: an undisposed token registration is released once its flight settles | JavaScript exposes no forced collection. |
+| {name}: a body that throws before returning its task releases its registration | JavaScript exposes no forced collection. |
+| {name}: overlapping flights release their registrations once the last one settles | JavaScript exposes no forced collection. |
+| {name}: disposing the memo cancels the flight in progress after an earlier flight settled | JavaScript exposes no forced collection. |
+| {name}: a flight that never settles is released when the memo is disposed | JavaScript exposes no forced collection. |
 
 <details><summary>2 passed in every build and delivery that runs them</summary>
 
