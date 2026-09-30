@@ -1,7 +1,8 @@
 # Debounce and throttle: design
 
-**Status:** proposal, not implemented. Needs a maintainer decision (§9). Line references are to `src/Ranvier/*.fs`
-at `c631f23`. Costs are read from the code; no numbers were measured. §5 names the benchmarks that check them.
+**Status:** deferred: after FinishCurrent and its benchmarks. Reviewer corrections applied (wave B decisions:
+not implemented now). Line references are to `src/Ranvier/*.fs` at `c631f23`, except those marked "at `b693a42`".
+Costs are read from the code; no numbers were measured. §5 names the benchmarks that check them.
 
 ## 1. Goal
 
@@ -50,19 +51,30 @@ let results = createAsync (fun _ ct -> search settled.Value ct)
 
 ## 3. Semantics
 
-- **`debounce d`.** Holds the source's value at construction. Each change to anything `source` reads re-arms the timer
-  for `d`. When the timer fires, `source` runs, tracked, and its result is written through the graph's equality
-  cutoff; readers wake only if it moved.
-- **`throttle i`** (leading and trailing). A change with no window open runs `source` at once and opens a window of
-  `i`. Changes inside the window are owed. At the window's end an owed change runs `source` once and opens the next
-  window; otherwise the window closes.
-- **Readers see a settled value, never Pending.** The node keeps its last value while the timer runs. A reader that
-  wants a spinner from the first keystroke compares `settled.Value` against `query.Value`.
-- **A failing or pending `source`** fails or suspends the node, as a memo body does: its readers see the error or
-  Pending until the next fire.
-- **Threads.** The timer callback runs on the clock's thread. It goes through `Graph.Post` (`Core.fs:1443-1452`) and
-  lands in the inbox like a flight completion (`docs/content/concepts/contracts.md:30`). Under `ManualDispatcher` it
-  applies on the next pump. A `ManualClock` advanced on the graph thread applies inline.
+- **`debounce d`.** Holds the source's value at construction. When the timer fires, `source` runs, tracked, and its
+  result is written through the graph's equality cutoff; readers wake only if it moved.
+  - A signal read directly by `source` re-arms the timer for `d` on every write, so the fire lands `d` after the last
+    write of a burst.
+  - A read through a computed node (memo, async memo) re-arms the timer on that node's first change only.
+    `Memo.MarkDirty` and `MarkCheck` notify observers on the Clean transition alone (`Core.fs:2544-2564`; `AsyncMemo`
+    at `3642-3653`). `Timed` does not pull on Check (§4), so the intermediate node stays Check until the fire, and
+    later writes in the window stop at it. The fire then lands `d` after the first change: trailing-throttle timing.
+  - The fix is open (§9, question 4): pull the Check in the flush, as an effect does (the intermediate node's work
+    returns on every write); document the difference; or restrict `source` to signal reads.
+- **`throttle i`** (leading and trailing). A change with no window open schedules a leading run into the flush, as an
+  effect's run is scheduled, and opens a window of `i`. The change arrives through `MarkDirty`, inside write
+  propagation while an observer set is walked, so running `source` there would re-enter the graph. Changes inside the
+  window are owed. At the window's end an owed change runs `source` once and opens the next window; otherwise the
+  window closes.
+- **Readers see the last settled value while the timer runs.** A reader that wants a spinner from the first keystroke
+  compares `settled.Value` against `query.Value`.
+- **Exception: a failing `source`.** A fire whose `source` throws fails the node, as a memo body does; its readers see
+  the error until the next fire moves it.
+- **A pending `source`** keeps the node's last value. The node never reports Pending. The source's later settle
+  reaches the node as a change and re-arms the timer.
+- **Threads.** The timer callback runs on the clock's thread. It goes through `Graph.Post` (`Core.fs:1450-1459` at
+  `b693a42`) and lands in the inbox like a flight completion (`docs/content/concepts/contracts.md:30`). Under
+  `ManualDispatcher` it applies on the next pump. A `ManualClock` advanced on the graph thread applies inline.
 - **Dispose** disarms and disposes the timer. A callback already posted finds the node disposed and does nothing.
 
 ## 4. How it works
@@ -77,8 +89,10 @@ A `Check` that later resolves to no change still re-arms the timer; the fire the
 nothing wakes. Evaluating `source` on each `Check` instead would put the source's work back on every write, which is
 the work debounce exists to skip.
 
-The fire callback and the posted work are allocated once per node and reused; `ClockTimer.Arm` on .NET maps to
-`ITimer.Change` or `Threading.Timer.Change`, which re-arm without allocating.
+The fire callback and the posted work closure are allocated once per node and reused; `ClockTimer.Arm` on .NET maps
+to `ITimer.Change` or `Threading.Timer.Change`, which re-arm without allocating. A fire off the graph thread still
+allocates per fire: `Graph.Post` builds `Action this.PumpFromDispatcher` on each call (`Core.fs:1459` at `b693a42`),
+and the inbox enqueue and `SynchronizationContext.Post` allocate as well.
 
 Under Fable, `Clock.System` uses `Fable.Core.JS.setTimeout` and `clearTimeout`. `ManualClock` is plain F# (a sorted list
 of due timers), so the same test runs on both targets.
@@ -92,7 +106,7 @@ of due timers), so the same test runs on both targets.
 | Write, recompute, flush, flight | None. No existing node changes. |
 | Per node | None. |
 | Per graph | One reference (`GraphOptions.Clock`) if the clock goes on `GraphOptions`; none if it is a combinator argument. |
-| Startup | `Clock.System` is created on first use. |
+| Startup | With the clock on `GraphOptions`, every default graph touches `Clock.System`: `GraphOptions.Default` (`Types.fs:274-280`) is a property that builds a new record on each access. Every app pays the static initialisation once, whether or not it debounces. Small, but not zero. |
 
 **Code that uses them.**
 
@@ -100,8 +114,10 @@ of due timers), so the same test runs on both targets.
 | --- | --- |
 | Construction | One node (same shape as a `Memo`: observer set, source list, value) plus one timer object and two cached closures. |
 | Source write, `debounce` | One `MarkDirty` call on the node plus one timer re-arm. On .NET, `Change` takes the timer queue's lock. Under Fable, `clearTimeout` plus `setTimeout`. |
+| Source write, `throttle`, no window open | One scheduled leading run, one flush to run it, one timer arm. |
 | Source write, `throttle`, window open | One field write. |
-| Fire | One `Graph.Post` (inline on the graph thread; one inbox entry otherwise), one `source` run, one cutoff comparison, one flush if the value moved. |
+| Fire, on the graph thread | One inline `Graph.Post`, one `source` run, one cutoff comparison, one flush if the value moved. |
+| Fire, off the graph thread | As above, plus per fire: one `Action` for the pump (`Graph.Post`), one inbox enqueue and the dispatcher's own post (`SynchronizationContext.Post` allocates). |
 
 The re-arm is the one cost without a precedent in the library: it runs inside write propagation, once per write per
 debounced node. Benchmarks that settle it, added to `bench/Ranvier.Benchmarks` as `Timed.fs`:
@@ -136,7 +152,7 @@ debounced node. Benchmarks that settle it, added to `bench/Ranvier.Benchmarks` a
   wrong node: the delay belongs upstream of the fetch, where a sync source is shielded too. A memo that wants it gets
   it by reading a `Timed` node.
 - **Build from `createSignal` plus `createEffectOn` plus a timer.** Works with public API today and is the fallback
-  recipe for docs, but costs three nodes per debounced value and a flush per write to run the effect.
+  recipe for docs, but costs two nodes plus a timer per debounced value and a flush per write to run the effect.
 - **Clock as a combinator argument** (`debounceWith clock delay source`) instead of a `GraphOptions` field. Non-breaking
   and zero per-graph cost, but every call site in a test has to thread the fake clock; a graph option swaps it once,
   as `Dispatcher` does (`Types.fs:262-267`).
@@ -158,15 +174,21 @@ Questions for the maintainer:
 1. Clock on `GraphOptions` (breaking) rather than per call? (yes / no)
 2. Debounced node Pending while its timer runs? (yes / no; proposal: no)
 3. Ship `throttle` with `debounce`, or `debounce` alone first? (both / debounce)
+4. A `source` that reads through a computed node re-arms on its first change only (§3). Pull the Check in the flush,
+   document the trailing-throttle timing, or restrict `source` to signal reads? (pull / document / signals)
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections (applied)
 
-Verdict: needs fixes
+Applied to the body above on `b693a42`:
 
-- Severity: substantive (semantics). 'Each change to anything `source` reads re-arms the timer' does not hold when `source` reads through a computed node. `Memo.MarkDirty`/`MarkCheck` notify observers only on the Clean→Check/Dirty transition (Core.fs:2544-2564: 'Only on the Clean transition'); the same holds for `AsyncMemo.MarkDirty` (3642-3653). Because `Timed` deliberately does not pull on Check, an intermediate memo stays Check after the first write, and later writes in the window never reach `Timed`. The timer then fires `d` after the first change, not the last: throttle-trailing behaviour, not debounce. Only direct signal reads re-arm on every write. The design needs to pull the Check (the cost it rejects), accept and document the difference, or restrict `source` to signals.
-- 'Readers see a settled value, never Pending' contradicts the next bullet, 'A failing or pending `source` ... readers see the error or Pending until the next fire'. Pick one: either a pending source keeps the last value (and the node never shows Pending), or state the exception to the first bullet.
-- 'throttle i ... A change with no window open runs `source` at once': a change arrives through MarkDirty, inside write propagation, while an observer set is being walked. Running user code there re-enters the graph mid-propagation. The leading-edge run must be scheduled into the flush (as an effect is), and the cost table's 'Source write, throttle, window open: One field write' then misses the scheduled run and flush.
-- Cost model: 'The fire callback and the posted work are allocated once per node and reused' holds only for the work closure. An off-thread fire goes through `Graph.Post`, which allocates `Action this.PumpFromDispatcher` on every call (Core.fs:1452); `SynchronizationContext.Post` and the ConcurrentQueue enqueue allocate as well. The Fire row should list these per-fire allocations off the graph thread.
-- 'Startup: `Clock.System` is created on first use': if `GraphOptions.Default` sets `Clock = Clock.System`, then `static member Default` (Types.fs:274-280) is a property that builds a new record on each access, so every default graph touches Clock.System. Every app pays the static initialisation, not only apps that use debounce. It is small, but the row is wrong as written.
-- Minor: 'costs three nodes per debounced value' for the signal-plus-effect recipe: `createSignal` + `createEffectOn` is two nodes plus a timer.
+- Debounce through a computed node fires `d` after the first change, not the last: stated in §3, with the options as
+  §9 question 4.
+- "Never Pending" against "a pending source suspends the node": a pending source keeps the last value; a failing
+  source is the stated exception (§3).
+- The throttle leading run is scheduled into the flush, not run inside write propagation; the cost table gains its row
+  (§3, §5).
+- Per-fire allocations off the graph thread (`Graph.Post`'s `Action`, the enqueue, the dispatcher post) are listed (§4,
+  §5).
+- The Startup row: every default graph touches `Clock.System` through `GraphOptions.Default` (§5).
+- The signal-plus-effect recipe costs two nodes plus a timer (§8).

@@ -1,9 +1,11 @@
 # C# access to tracing: design
 
-**Status:** mostly shipped. `Ranvier.CSharp.Tracing` (`src/Ranvier.CSharp/Tracing.fs`) and the "Tracing" section of
-`guide/csharp.md` already mirror the F# queries. The gap line in `concepts/ecosystem.md:102` ("has no tracing") is
-out of date. This note maps the three questions from research §8 to the existing surface, and proposes one query for
-the question that has no answer yet. Line references are to `c631f23`.
+**Status:** implemented. `Ranvier.CSharp.Tracing` (`src/Ranvier.CSharp/Tracing.fs`) and the "Tracing" section of
+`guide/csharp.md` mirror the F# queries. `Trace.errorOrigin` (§3) is **not added**: the `ErrorOrigin` property from
+[failure provenance](failure-provenance.md) answers "where did this error come from" in every build, traced or not, and
+C# reaches it through the property (wave B decision). The stale gap line in `concepts/ecosystem.md` ("has no tracing")
+is already gone at `b693a42`. This note maps the three questions from research §8 to the existing surface. Line
+references are to `c631f23`, except those marked "at `b693a42`".
 
 ## 1. What F# tracing offers, and the C# mirror
 
@@ -22,14 +24,16 @@ the question that has no answer yet. Line references are to `c631f23`.
 | `reconcile` :140 | `Reconcile` :153 | traced |
 | `dumpText`, `dump` :237, :245 | `DumpText`, `Dump` :160-166 | traced |
 
-C# receives rendered text from `Trace.render` (`TraceApi.fs:192`), never the F# records. Those records carry
-`string option` and `int list` (`TraceEvents.fs:227-231`), so rendering keeps options off the C# surface.
+C# receives rendered text from `Trace.render` (`TraceApi.fs:192`), never the option-bearing records (`TraceOrigin`,
+`Why`), which carry `string option` and `int list` (`TraceEvents.fs:227-231`). `Events` returns `TraceEvent[]`, an F#
+struct record (`TraceEvents.fs:206-217`) whose fields hold no options.
 
 ## 2. The three questions
 
 - **What is alive?** `Snapshot` answers it: the owner tree, with each node's status, run count and sources.
 - **Why did this run?** `Why`, `History` and `WhyNot` answer it.
-- **Where did this error come from?** No query answers it.
+- **Where did this error come from?** No trace query answers it. The `ErrorOrigin` property from failure provenance
+  answers it in every build (§3).
 
 The gap was measured with an FSI script against a traced Debug build of `c631f23`. The graph was:
 
@@ -53,9 +57,19 @@ The log already holds the answer:
 - A failed read propagates the same exception instance. The memo cutoff compares errors by reference
   (`Core.fs:2393`, `4009`), and `captureFailure` reuses the held capture (`Platform.fs:337-349`).
 - `Moved` records the exception as its payload (`Core.fs:2405`, `3291`, `4027`).
-- An async failure is a `Fail` event whose payload is the exception (`TraceModel.fs:375`).
+- An async failure is a `Fail` event whose payload is the exception, recorded by `Tracer.FlightSettled` and
+  `Tracer.SourceSettled` (`Trace.fs:1028-1040, 1063-1075` at `b693a42`); `why` reads that payload at
+  `TraceModel.fs:375`.
+- Effects and projections are outside this: an `Effect` records its failure only through its `RunEnd` status
+  (`Core.fs:2876-2879`; `EffectOn` at `3029-3047`), and projections log `Moved` with a null payload
+  (`Projections.fs:436, 610, 650`).
 
-## 3. Proposal: `errorOrigin`
+## 3. `errorOrigin`: not added
+
+The wave B decision drops this query. The `ErrorOrigin` property proposed in `failure-provenance.md` §3 sits on
+`Memo`, `AsyncMemo`, `Boundary`, `Effect`, `Projection` and `AsyncSource`, compiles in untraced builds, and covers the
+effects and projections a payload search misses (§2). A traced-only query would repeat it. The proposal below is kept
+as the record of what was considered.
 
 ```fsharp
 // TraceApi.fs, traced builds
@@ -101,8 +115,10 @@ error /view: Exception: bad input
 
 ## 5. Fable, AOT and trimming
 
-- The F# `errorOrigin` compares object payloads by reference, and Fable's traced build records payloads
-  (`guide/tracing.md`, Limits). The query and its rendering port without `#if`.
+- The F# `errorOrigin` compares object payloads by reference. Fable's traced build records payloads: `TraceLog`
+  stores `Payload` on every append with no Fable branch (`Trace.fs:105-122` at `b693a42`), including the `Moved`
+  value (`Tracer.Moved`, `Trace.fs:975`) and the `Fail` exception (`Tracer.FlightSettled`, `Tracer.SourceSettled`).
+  The query and its rendering port without `#if`.
 - The C# members are .NET only and use no reflection. CI AOT-checks the untraced build only
   (`aot-trim-analysis.md` §7, decision 2 in `wave-b/decisions.md`): traced builds are development builds. A traced
   NativeAOT publish of both assemblies currently reports 0 warnings (`aot-trim-analysis.md` §11), and nothing in this
@@ -114,10 +130,10 @@ No. Traced-only members fall outside `public-api-baseline.txt`, which records th
 
 ## 7. Documentation changes
 
-- `concepts/ecosystem.md:102-103`: remove "has no tracing" and keep the `ValueOption` clause (see
-  `csharp-valueoption-removal.md`).
-- `guide/tracing.md`: add a section, "Where did this error come from".
-- `guide/csharp.md`: add `ErrorOrigin` to the tracing table.
+- `concepts/ecosystem.md`: the "has no tracing" clause is already gone at `b693a42`; the `ValueOption` gap line stays
+  (see `csharp-valueoption-removal.md`).
+- `guide/tracing.md` and `guide/csharp.md`: no change here. "Where did this error come from" is documented with the
+  `ErrorOrigin` property by failure provenance.
 
 ## 8. Alternatives
 
@@ -130,21 +146,29 @@ No. Traced-only members fall outside `public-api-baseline.txt`, which records th
 
 ## 9. Recommendation
 
-**Do**, small: add `Trace.errorOrigin` with the three C# overloads, and fix the stale gap line.
+Originally: add `Trace.errorOrigin` with the three C# overloads, and fix the stale gap line.
+
+Decided (wave B): `Trace.errorOrigin` is not added; `ErrorOrigin` from failure provenance covers it. The gap line was
+already fixed. Nothing else remains in this note.
 
 ## 10. Questions for the maintainer
 
-1. Should `Trace.errorOrigin` be added, with its C# mirror? (yes/no)
-2. Should `ErrorOrigin(graph, Exception)` be included? (yes/no)
-3. Should the error origin also appear in `History` lines for error runs? (yes/no)
+1. Should `Trace.errorOrigin` be added, with its C# mirror? Decided: no.
+2. Should `ErrorOrigin(graph, Exception)` be included? Moot.
+3. Should the error origin also appear in `History` lines for error runs? Moot for this note; a follow-up could render
+   `ErrorOrigin` in `History` once failure provenance lands.
 
 
-## Reviewer corrections (not yet applied)
+## Reviewer corrections
 
-Verdict: needs fixes
+Applied on `b693a42`:
 
-- Severity: moderate. §2 'The log already holds the answer' and the node overload 'takes the payload of the node's last `Moved` or `Fail` that is an exception' do not cover effects or projections. `Effect` records its failure only through `RunEnd` status (Core.fs:2876-2879; EffectOn at 3029-3047), and projections log `Moved` with a null payload (Projections.fs:436, 610, 650). `ErrorOrigin(graph, effect)` and `ErrorOrigin(graph, projection)` would therefore find no exception. The node overload should read `Effect.Error`/`Projection.Error` from the node and fall back to the exception overload, or the note should state the limit.
-- §5 'Fable's traced build records payloads (`guide/tracing.md`, Limits)': the Limits section says nothing about payloads, and its 'No values' bullet ('The log records that a node moved, not its old or new value') points the other way. Cite the recording code (e.g. `Tracer.Moved` payload at Core.fs:2405 and `FlightSettled`/`SourceSettled` at Trace.fs:1028-1073), and confirm that the Fable build keeps the payload.
-- §1 'C# receives rendered text from `Trace.render` ..., never the F# records' conflicts with the table row '`events` :46 | `Events` :51', which returns `TraceEvent[]`, an F# struct record (TraceEvents.fs:206-217). Correct: 'never the option-bearing records (`TraceOrigin`, `Why`); `Events` returns `TraceEvent[]`, whose fields hold no options'.
-- §2 'An async failure is a `Fail` event whose payload is the exception (`TraceModel.fs:375`)': TraceModel.fs:375 is where `why` reads the payload. The event is recorded by `Tracer.FlightSettled` / `Tracer.SourceSettled` (Trace.fs:1028-1040, 1063-1073).
-- §5 'Traced builds are development builds, so AOT does not target them' conflicts with aot-trim-analysis.md §7, which proposes an AOT CI publish 'with -p:RanvierTrace=true'. Align the two notes. *(Applied: §5 now states the untraced-only decision; aot-trim-analysis.md §11 drops the traced CI publish.)*
+- Effects and projections carry no exception payload: stated in §2, and covered by the `ErrorOrigin` property that
+  replaces the query (§3).
+- The Fable payload claim now cites the recording code (`TraceLog.append`, `Tracer.Moved`, `Tracer.FlightSettled`,
+  `Tracer.SourceSettled`) instead of `guide/tracing.md` Limits; the Fable build keeps the payload (§5).
+- §1 names the option-bearing records and states that `Events` returns `TraceEvent[]`, whose fields hold no options.
+- §2 cites `Tracer.FlightSettled` / `Tracer.SourceSettled` as the recorders of `Fail`, with `TraceModel.fs:375` as the
+  reader.
+- §5 states the untraced-only AOT decision, aligned with `aot-trim-analysis.md` §11, which drops the traced CI
+  publish (applied with the AOT/trim work).
