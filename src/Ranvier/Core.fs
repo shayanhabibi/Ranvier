@@ -3974,7 +3974,7 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// <remarks>
     /// The async memo itself for a faulted or cancelled flight, a throwing body, a purity violation or disposal while
     /// pending; the upstream node when the body rethrew the exception of a failed read before its first await that
-    /// suspends. A read after that await reports the async memo.
+    /// suspends. A failure read after that await can report the async memo instead.
     /// </remarks>
     member _.ErrorOrigin: INode = Failure.OriginOf failure
 

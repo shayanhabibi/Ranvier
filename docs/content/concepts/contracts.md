@@ -133,9 +133,35 @@ constructed directly. See
 
 ### Finding where a failure came from
 
-The exception object carries no reference to the node that raised it. `.Value` rethrows it with `raise`,
-which replaces its stack trace with the reader's, so the original throw site survives only until the first
-read. To trace a failure back:
+A failed node reports the node the failure originated in as `ErrorOrigin`, and an error boundary reports the origin
+of `Caught` as `CaughtFrom`. Both are null while the node holds no failure. `ErrorOrigin` is an untracked read, like
+`Status`; `CaughtFrom` is tracked and brings the boundary current, like `Caught`.
+
+| Node | `ErrorOrigin` |
+| --- | --- |
+| `Memo`, `Boundary`, `Effect` | The node itself when its body, comparer or purity check raised the exception; otherwise the origin of the failed read it rethrew. |
+| `AsyncMemo` | The async memo for a faulted or cancelled flight, a throwing body or disposal while pending; the origin of a failed read rethrown before the first `await` that suspends. A failure read after that `await` can report the async memo instead. |
+| `AsyncSource` | The source, after `Fail`. |
+| `Projection` | The projection when its source, `keyOf` or a duplicate key failed the pass; otherwise the origin of the failed read the source rethrew. |
+
+A reader that rethrows a failed read keeps its origin, through any number of memos, effects, boundaries and
+projections. A boundary's `recover` that rethrows `ex` keeps the origin too. A node that throws a new exception,
+including one that wraps the failure as its `InnerException`, is the origin of the new exception.
+
+Rows, lookup cells and fold rows are internal nodes. A failed projection row reports its projection, and a fold over
+it reports the row's origin. A lookup is not a node: a failure raised by its `source` or `affected` function reports
+the lookup's internal source memo, and one raised by its key function or comparer reports the key's internal cell. In
+[traces](../guide/tracing.md) the cells appear as parts of the source memo.
+
+Two limits apply. A body that catches a failed read, reads another failed node and then rethrows the first
+exception is the origin of that exception. A failure delivered to a `Queue` flight's turn behind earlier flights
+reports the async memo.
+
+`.Value` rethrows the stored exception with its original stack trace. On .NET every reader on the path rethrows the
+same capture, so the trace shows the frames of the origin's throw followed by the frames of the last read. Under
+Fable the exception is rethrown as it was raised.
+
+Other tools for tracing a failure back:
 
 - a boundary's `Caught` and every failed node on the path hold the same instance
 - `PendingSources` on a memo or effect gives the source of its last pending read

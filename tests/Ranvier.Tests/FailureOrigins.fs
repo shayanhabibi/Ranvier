@@ -6,7 +6,8 @@ open Expecto
 open Ranvier
 
 /// <summary>True when <c>origin</c> is the node <c>expected</c>.</summary>
-let private isNode (expected: obj) (origin: INode) = obj.ReferenceEquals (origin, expected)
+let private isNode (expected: obj) (origin: INode) =
+    obj.ReferenceEquals (origin, expected)
 
 let private failedWith (reading: Reading<'T>) =
     match reading with
@@ -120,7 +121,7 @@ let tests =
 
             test "a faulted flight originates at the async memo" {
                 let g = new Graph ()
-                let a = Make.AsyncMemo<int>(g, (fun _ _ -> faulted<int> (exn "flight")))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> faulted<int>(exn "flight")))
                 let reader = Make.Memo (g, (fun _ -> a.Value + 1))
 
                 failedWith a.TryValue |> ignore
@@ -171,7 +172,9 @@ let tests =
                 let g = new Graph ()
                 let s = Signal (g, 1)
                 let a = Make.Memo (g, (fun _ -> if s.Value > 0 then failwith "boom" else s.Value))
-                let rethrowing = Boundary<int>.Errors(g, (fun () -> a.Value), (fun ex _ -> raise ex))
+
+                let rethrowing =
+                    Boundary<int>.Errors(g, (fun () -> a.Value), (fun ex _ -> raise ex))
 
                 let replacing =
                     Boundary<int>.Errors(g, (fun () -> a.Value), (fun _ _ -> raise (InvalidOperationException "replaced")))
@@ -319,7 +322,11 @@ let tests =
                 Expect.stringContains trace "throwFromOrigin" "the origin's throw site survives"
 
                 let marker = "--- End of stack trace from previous location ---"
-                let count = (trace.Length - trace.Replace(marker, "").Length) / marker.Length
+
+                let count =
+                    (trace.Length - trace.Replace(marker, "").Length)
+                    / marker.Length
+
                 Expect.equal count 1 "one capture, shared by every node on the path"
             }
 #endif
