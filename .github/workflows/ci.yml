@@ -35,6 +35,9 @@ jobs:
       # The trace log and its queries compile in only with RanvierTrace, and their tests with them.
       - name: Test Ranvier.Tests, traced
         run: dotnet test tests/Ranvier.Tests -c Release -p:RanvierTrace=true
+      - name: Check package compatibility
+        shell: pwsh
+        run: ./tests/check-package-compatibility.ps1
 
   # A NativeAOT publish over both assemblies, rooted: any IL2xxx/IL3xxx warning fails the publish, and the binary
   # exits non-zero when an exception or a ToString text differs from the JIT build's. Untraced build only.
