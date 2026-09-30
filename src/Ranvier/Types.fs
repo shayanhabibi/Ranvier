@@ -45,6 +45,7 @@ type ThreadAffinity =
         match this with
         | Guarded -> "Guarded"
         | Unchecked -> "Unchecked"
+        | Serialised -> "Serialised"
 
 /// <summary>What an async memo does when a source changes while a flight is in progress.</summary>
 type FlightPolicy =

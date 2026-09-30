@@ -12,6 +12,7 @@ let tests =
             test "ThreadAffinity and FlightPolicy print their case names" {
                 Expect.equal (Guarded.ToString ()) "Guarded" "Guarded"
                 Expect.equal (Unchecked.ToString ()) "Unchecked" "Unchecked"
+                Expect.equal (Serialised.ToString ()) "Serialised" "Serialised"
                 Expect.equal (CancelPrevious.ToString ()) "CancelPrevious" "CancelPrevious"
                 Expect.equal (KeepLatest.ToString ()) "KeepLatest" "KeepLatest"
                 Expect.equal (FlightPolicy.Queue.ToString ()) "Queue" "Queue"
