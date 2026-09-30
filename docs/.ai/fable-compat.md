@@ -55,7 +55,8 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| Texts.fs | 5 | 5 | 5 | 5 | 5 | 5 | 1 | 0 |
+| **Total** | 707 | 689 | 651 | 781 | 759 | 718 | 70 | 1 |
 
 ## Tests.fs
 
@@ -1286,5 +1287,21 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - a failed run leaves prev at the last settled value
 - a failed first run passes ValueNone to the next run
 - returning prev triggers the cutoff
+
+</details>
+
+## Texts.fs
+
+| Excluded | Reason |
+| --- | --- |
+| NotReadyException's message names the exception | Fable gives an F# exception an empty message. |
+
+<details><summary>5 passed in every build and delivery that runs them</summary>
+
+- ThreadAffinity and FlightPolicy print their case names
+- a Reading prints its case and payload, quoting a string
+- GraphOptions prints its fields one per line
+- a missing key's message holds the key's text
+- a duplicate key's message holds the key's text
 
 </details>

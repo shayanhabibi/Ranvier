@@ -56,7 +56,15 @@ module Trace =
             events
             |> Array.tryFindIndex (fun e -> e.Kind = TraceEventKind.NodeNew && e.Node = id)
         with
-        | None -> raise (System.ArgumentException ($"The graph's trace log holds no NodeNew for node {id}.", nameof node))
+        | None ->
+            raise (
+                System.ArgumentException (
+                    "The graph's trace log holds no NodeNew for node "
+                    + string id
+                    + ".",
+                    nameof node
+                )
+            )
         | Some i ->
             let created = events[i]
 
@@ -143,6 +151,11 @@ module Trace =
         let sources = TraceModel.sources events
         let observers = TraceModel.observers events
 
+        let ids (opening: string) (items: seq<int>) (closing: string) =
+            opening
+            + System.String.Join ("; ", items)
+            + closing
+
         [
             for set in log.EdgeSets do
                 let live = set.Ids
@@ -154,7 +167,13 @@ module Trace =
                         |> Option.defaultValue []
 
                     if List.ofArray live <> folded then
-                        yield $"sources of {set.Owner}: live %A{live}, folded %A{folded}"
+                        yield
+                            "sources of "
+                            + string set.Owner
+                            + ": live "
+                            + ids "[|" live "|]"
+                            + ", folded "
+                            + ids "[" folded "]"
                 else
                     let folded =
                         observers
@@ -162,7 +181,13 @@ module Trace =
                         |> Option.defaultValue Set.empty
 
                     if Set.ofArray live <> folded then
-                        yield $"observers of {set.Owner}: live %A{live}, folded %A{folded}"
+                        yield
+                            "observers of "
+                            + string set.Owner
+                            + ": live "
+                            + ids "[|" live "|]"
+                            + ", folded "
+                            + ids "set [" folded "]"
         ]
 
     let private logOf (graph: Graph) =

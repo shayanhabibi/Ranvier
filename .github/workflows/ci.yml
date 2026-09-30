@@ -36,6 +36,21 @@ jobs:
       - name: Test Ranvier.Tests, traced
         run: dotnet test tests/Ranvier.Tests -c Release -p:RanvierTrace=true
 
+  # A NativeAOT publish over both assemblies, rooted: any IL2xxx/IL3xxx warning fails the publish, and the binary
+  # exits non-zero when an exception or a ToString text differs from the JIT build's. Untraced build only.
+  aot:
+    name: NativeAOT smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Publish
+        run: dotnet publish tests/Ranvier.AotSmoke -c Release -r linux-x64 -o artifacts/aot
+      - name: Run
+        run: ./artifacts/aot/Ranvier.AotSmoke
+
   format:
     name: Formatting
     runs-on: ubuntu-latest

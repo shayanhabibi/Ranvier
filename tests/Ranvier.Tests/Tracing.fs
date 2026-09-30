@@ -1236,6 +1236,11 @@ let tests =
             test "valueText renders a value as one line" {
                 Expect.equal (TraceModel.valueText (box {| Sku = "tea"; Qty = 2 |})) "{| Qty = 2; Sku = \"tea\" |}" "a record joins its fields"
                 Expect.equal (TraceModel.valueText (box "a\nb")) "a b" "a string collapses its lines"
+#if !FABLE_COMPILER
+                Expect.equal (TraceModel.valueText (box [| 1; 2 |])) "[|1; 2|]" "an array lists its elements"
+                Expect.equal (TraceModel.valueText (box [ "a"; "b" ])) "[\"a\"; \"b\"]" "a list quotes its strings"
+                Expect.equal (TraceModel.valueText (box (Some 1))) "Some 1" "any other value as its %A text"
+#endif
                 let long = TraceModel.valueText (box [ 1..100 ])
                 Expect.equal long.Length 60 "a long value is truncated"
                 Expect.isTrue (long.EndsWith "…") "with an ellipsis"

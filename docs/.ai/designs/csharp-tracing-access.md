@@ -103,8 +103,10 @@ error /view: Exception: bad input
 
 - The F# `errorOrigin` compares object payloads by reference, and Fable's traced build records payloads
   (`guide/tracing.md`, Limits). The query and its rendering port without `#if`.
-- The C# members are .NET only and use no reflection. Traced builds are development builds, so AOT does not
-  target them, and nothing in this design prevents it.
+- The C# members are .NET only and use no reflection. CI AOT-checks the untraced build only
+  (`aot-trim-analysis.md` §7, decision 2 in `wave-b/decisions.md`): traced builds are development builds. A traced
+  NativeAOT publish of both assemblies currently reports 0 warnings (`aot-trim-analysis.md` §11), and nothing in this
+  design adds reflection to it.
 
 ## 6. Breaking?
 
@@ -145,4 +147,4 @@ Verdict: needs fixes
 - §5 'Fable's traced build records payloads (`guide/tracing.md`, Limits)': the Limits section says nothing about payloads, and its 'No values' bullet ('The log records that a node moved, not its old or new value') points the other way. Cite the recording code (e.g. `Tracer.Moved` payload at Core.fs:2405 and `FlightSettled`/`SourceSettled` at Trace.fs:1028-1073), and confirm that the Fable build keeps the payload.
 - §1 'C# receives rendered text from `Trace.render` ..., never the F# records' conflicts with the table row '`events` :46 | `Events` :51', which returns `TraceEvent[]`, an F# struct record (TraceEvents.fs:206-217). Correct: 'never the option-bearing records (`TraceOrigin`, `Why`); `Events` returns `TraceEvent[]`, whose fields hold no options'.
 - §2 'An async failure is a `Fail` event whose payload is the exception (`TraceModel.fs:375`)': TraceModel.fs:375 is where `why` reads the payload. The event is recorded by `Tracer.FlightSettled` / `Tracer.SourceSettled` (Trace.fs:1028-1040, 1063-1073).
-- §5 'Traced builds are development builds, so AOT does not target them' conflicts with aot-trim-analysis.md §7, which proposes an AOT CI publish 'with -p:RanvierTrace=true'. Align the two notes.
+- §5 'Traced builds are development builds, so AOT does not target them' conflicts with aot-trim-analysis.md §7, which proposes an AOT CI publish 'with -p:RanvierTrace=true'. Align the two notes. *(Applied: §5 now states the untraced-only decision; aot-trim-analysis.md §11 drops the traced CI publish.)*

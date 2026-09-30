@@ -13,6 +13,11 @@ module internal TraceSite =
     let private library = typeof<TraceEvent>.Assembly
 
     /// <summary>The frame's assembly name, or null.</summary>
+#if NET5_0_OR_GREATER
+    [<CodeAnalysis.UnconditionalSuppressMessage("Trimming",
+                                                "IL2026",
+                                                Justification = "A trimmed method yields null from GetMethod, which reads as no assembly.")>]
+#endif
     let private assemblyOf (frame: StackFrame) =
         match frame.GetMethod () with
         | null -> null

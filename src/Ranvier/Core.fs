@@ -1540,8 +1540,14 @@ type Graph(options: GraphOptions) =
 
     member private _.FailOffThread(operation: string) : unit =
         raise (
-            InvalidOperationException
-                $"%s{operation} ran on thread %d{Platform.currentThreadId ()}, but this graph is owned by thread %d{ownerThread}. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
+            InvalidOperationException (
+                operation
+                + " ran on thread "
+                + string (Platform.currentThreadId ())
+                + ", but this graph is owned by thread "
+                + string ownerThread
+                + ". Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way."
+            )
         )
 
     member internal this.Schedule(item: IScheduled) =

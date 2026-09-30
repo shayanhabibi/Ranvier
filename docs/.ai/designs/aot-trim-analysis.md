@@ -1,6 +1,7 @@
 # AOT and trim analysis: design
 
-**Status:** proposal, not implemented. Line references are to `c631f23`. All numbers were measured in a scratch worktree on
+**Status:** implemented on worktree-wf_c46b5816-3af-1 (no benchmark gate: no hot-path code changes). See §11 for what
+landed and how it differs from this note. Line references in §§2–8 are to `c631f23`. All numbers were measured in a scratch worktree on
 a 4-core Linux container with .NET SDK 10.0.112 and ILCompiler 10.0.12, restored from nuget.org. §7 names the CI case
 that keeps them current.
 
@@ -9,7 +10,9 @@ that keeps them current.
 Research §10 asks for an AOT and trim check in CI while the C# surface is still small. The target state:
 
 - A NativeAOT app that uses Ranvier and Ranvier.CSharp publishes with **zero** IL2xxx/IL3xxx warnings.
-- Every exception Ranvier throws keeps its type and message under NativeAOT.
+- Every exception Ranvier throws keeps its type under NativeAOT for primitive and `string` keys (§3.1 lists the text
+  changes). A key of a user record or union type still reaches FSharp.Core's formatter through its own generated
+  `ToString`, unless the key's assembly is also compiled reflection-free.
 - CI fails on any regression.
 
 ## 2. Findings on `master`
@@ -44,13 +47,16 @@ ILC attributes **none** of the warnings to Ranvier source. They are all in FShar
 
 The ILC dependency graph (`IlcGenerateDgmlFile`) traces them to three sources in Ranvier:
 
-1. **Printf-format strings.** `%A` in `Projections.fs:182, 1015, 1363, 1411, 1417` and `Combinators.fs:914`, and `%s`/`%d` in
-   `Core.fs:1530` and `Ranvier.CSharp/Bindings.fs:362`. A typed F# interpolated string compiles to `PrintfFormat`
+1. **Printf-format strings.** `%A` in `Projections.fs:182, 1015, 1363, 1417` and `Combinators.fs:914` (and the Fable-only
+   `Projections.fs:1411`), and `%d` in `Core.fs:1530`. `Bindings.fs:362` has only a `%s` hole on a string and already
+   compiles to `String.Concat`. A typed F# interpolated string compiles to `PrintfFormat`
    (graph edges from `Graph.AssertOnGraphThread` and `Projection.GetRow`). An untyped hole on a generic value (`{key}`)
    also compiles to `PrintfFormat`.
 2. **Compiler-generated `ToString`** on the public unions, records and exception: `ThreadAffinity` (`Types.fs:19`),
    `FlightPolicy` (`Types.fs:34`), `NotReadyException` (`Types.fs:90`, its `Message`), `GraphOptions` (`Types.fs:257`),
-   `Reading<'T>` (`Types.fs:304`). Each one calls `sprintf "%+A"`.
+   `Reading<'T>` (`Types.fs:304`). Each one calls `sprintf "%+A"`. The internal `PositionalChange<'T>` (`Positional.fs:5`),
+   `FlightOutcome<'T>` (`Platform.fs:87`) and, in Ranvier.CSharp, `Notifications` (`Bindings.fs:82`, the actual printf
+   edge from Ranvier.CSharp) do the same in `ToString` and `__DebugDisplay`.
 3. **`Projection.sumBy`** (`Combinators.fs:1183`) is `inline` with SRTP. Its compiled non-inline body calls
    `AdditionDynamic`/`GenericZeroDynamic`, which accounts for the three `prim-types.fs` warnings. Call sites use the
    inlined body and never reach it.
@@ -97,16 +103,19 @@ members fail or return garbage.
 
 1. **`--reflectionfree`** is the F# compiler's substitute for the missing analyzer. It turns `%A` into error FS3376
    (measured on the traced sites) and stops generating `%+A`-based `ToString`.
-2. **Replace the nine format-string sites** (§2.2 item 1, plus the three traced sites) with concatenation and `string key`.
+2. **Replace the seven format-string sites** (six on .NET plus the Fable-only 1411), plus the three traced sites, with
+   concatenation and `string key`.
 3. **Hand-write `ToString`** on `ThreadAffinity`, `FlightPolicy`, `GraphOptions` and `Reading<'T>`, and write the
-   `Message` of `NotReadyException`, with the text shown in the JIT column of §2.3. `Reading` quotes a `string` payload
-   the way `%A` does and uses `string v` for any other payload.
+   `Message` of `NotReadyException`, with the text shown in the JIT column of §2.3 for `int` and `string` payloads.
+   `Reading` quotes a `string` payload the way `%A` does and uses `string v` for any other payload, so other payloads
+   change as in §3.1 (`Ready 3.0` becomes `Ready 3`, `Ready (Some 1)` becomes `Ready Some(1)`).
 4. **`[<NoDynamicInvocation>]` on `sumBy`**. The compiled body then throws in place of the dynamic operator call.
 5. **Traced build:** `[<UnconditionalSuppressMessage("Trimming", "IL2026")>]` on `TraceSite.assemblyOf`, or
    `DiagnosticMethodInfo.Create` (.NET 9+) under `#if NET9_0_OR_GREATER`.
 
 Measured on steps 1, 2 and 4 applied to the untraced build: **0 warnings** in both the plain and the rooted variant. All
-four exceptions in §2.3 keep their JIT type and text. The app shrinks from 3,944,712 B to 2,957,448 B (−25%); the rooted
+four exceptions in §2.3 keep their JIT type; key text changes as in §3.1. Steps 3 and 5 were unmeasured when this note
+was written; §11 records the measurement with all five steps. The app shrinks from 3,944,712 B to 2,957,448 B (−25%); the rooted
 app from 5,058,984 B to 4,162,808 B. `Ranvier.Tests` passes 755/755 (net10.0, Release).
 
 ### 3.1 Message text changes
@@ -116,15 +125,15 @@ Measured with `sprintf "%A"` against `string`:
 | Key | `%A` today | `string key` |
 | --- | --- | --- |
 | `99`, `1.5`, a `Guid`, `[1; 2; 3]`, `set [1; 2]`, a user union | same | same |
+| `3.0`, `1L`, `'c'` | `3.0`, `1L`, `'c'` | `3`, `1`, `c` |
 | `"nope"` | `"nope"` | `nope` |
 | `(1, "a")` | `(1, "a")` | `(1, a)` |
 | `Some 1` | `Some 1` | `Some(1)` |
 | `[\|1; 2\|]` | `[\|1; 2\|]` | `System.Int32[]` |
-| user record | one line | the record's own `ToString` (multi-line `%+A`) |
+| user record | multi-line | same |
 
 `docs/content/guide/troubleshooting.md:217, 246, 282` write the key as `<k>` and need no change. No F# test asserts on
-the key text. Traced `valueText` (`TraceModel.fs:263`) changes the same way; its line join already handles
-multi-line `ToString` output.
+the key text. Traced `valueText` keeps `%A` (§11: the traced build is not compiled `--reflectionfree`).
 
 Without step 3, `--reflectionfree` changes observable text: `Ranvier.CSharp.Tests` fails 1 of 43 at
 `AsyncTests.cs:113`, which expects `Ready "Loading…"` and gets `Ranvier.Reading` + "`1[System.String]". Step 3 keeps that
@@ -135,8 +144,11 @@ test passing.
 - **Write, recompute, flush:** no change. Every edited site is on a throw path or in a `ToString`.
 - **Per-node memory and allocations:** no change. A throw builds its message with one `String.Concat` in place of a
   printf parse. On .NET the printf path caches the parsed format per call site; concatenation needs no cache.
-- **Code that does not use the feature:** the property adds only assembly metadata. `--reflectionfree` changes no code
-  outside the members listed in §3.
+- **Code that does not use the feature:** the property adds only assembly metadata. In the untraced build,
+  `--reflectionfree` changes the members listed in §3 and removes the generated `ToString` and `__DebugDisplay` of the
+  internal `PositionalChange`, `FlightOutcome` and `Notifications` types: no hot-path effect, but their debugger views
+  change. The traced build is compiled without the flag (§11), so its public trace records and unions keep their
+  generated `ToString` text.
 - **Build:** the net8.0 target now restores `Microsoft.NET.ILLink.Tasks` 8.0.31 (5 MB). Library build time is unchanged
   (18 s either way; no analyzer runs).
 - **Consumers:** trimmed and AOT apps shrink (§3). The `IsTrimmable` metadata lets a `TrimMode=partial` consumer trim
@@ -152,7 +164,8 @@ forwards `OtherFlags`. The Fable build compiles either way, because the Fable so
 ## 6. Breaking?
 
 - **Binary and source compatibility:** unchanged. The four `ToString()` lines in `docs/.ai/public-api-baseline.txt`
-  (82, 117, 204, 234) stay, because step 3 declares them by hand. Without step 3 those four lines disappear.
+  (82, 117, 204, 234) and `NotReadyException get_Message()` (160) stay, because step 3 declares them by hand. Without
+  step 3 those five lines disappear.
 - **Behaviour:** the key text in five exception messages changes as in §3.1. The package is at `0.1.0-preview.1`.
 
 ## 7. CI
@@ -166,17 +179,17 @@ publish (measured).
 aot:
   runs-on: ubuntu-latest
   steps: [checkout, setup-dotnet,
-          dotnet publish tests/Ranvier.AotSmoke -c Release -r linux-x64 && ./…/AotSmoke,
-          same with -p:RanvierTrace=true]
+          dotnet publish tests/Ranvier.AotSmoke -c Release -r linux-x64 && ./…/AotSmoke]
 ```
+
+Decision 2 (*untraced*) drops the traced publish this note first proposed.
 
 **Time:** a clean publish including the library build took 25 to 36 s here with a warm NuGet cache; the traced variant
 took 33 s. On CI, add the 13.8 MB `runtime.linux-x64.Microsoft.DotNet.ILCompiler` download and job setup. Estimate:
 2 to 3 minutes of compute in a parallel job, with no added wall-clock time while it finishes before the `.NET tests`
 job. `ubuntu-latest` ships clang, which the NativeAOT linker needs.
 
-The smoke project also settles any perf question: BenchmarkDotNet cannot see a difference on the hot path, which this
-change does not touch. No new benchmark is needed.
+No hot-path code changes (§4), so no benchmark is needed.
 
 ## 8. Alternatives
 
@@ -191,7 +204,8 @@ change does not touch. No new benchmark is needed.
 ## 9. Recommendation
 
 **Do now.** §2.3 is a correctness bug for any NativeAOT user, and the fix changes no hot path. Land steps 1 to 5 and the
-CI job together, so the job starts green and blocks regressions.
+CI job together, so the job starts green and blocks regressions. The 0-warning measurement in §3 covers steps 1, 2
+and 4; steps 3 and 5 were unmeasured when this was written (§11 measures all five).
 
 ## 10. Questions for the maintainer
 
@@ -199,8 +213,65 @@ CI job together, so the job starts green and blocks regressions.
 2. Should the traced build also be AOT-checked in CI, or untraced only? (*both* / *untraced*)
 3. Is `string key` acceptable text for the exception messages, dropping the quotes around string keys? (*yes* / *no*)
 
+Decided (`wave-b/decisions.md`): 1 *keep*, 2 *untraced*, 3 *yes*.
 
-## Reviewer corrections (not yet applied)
+## 11. Implementation
+
+Landed on `worktree-wf_c46b5816-3af-1`:
+
+- Steps 1–5 as in §3. Both `.fsproj` files set `RanvierAotClean=true`; `Directory.Build.targets` then passes
+  `--reflectionfree` and sets `IsAotCompatible` (net8.0 and later) **only when `RanvierTrace` is not `true`**. The
+  condition lives in the targets file because the Debug default for `RanvierTrace` is set there, after the project body.
+- `tests/Ranvier.AotSmoke` (in `Ranvier.slnx`, not packed): §7's settings, also compiled `--reflectionfree`. Its `main`
+  checks the §2.3 exception types and messages (missing `int` key, missing `string` key through
+  `Ranvier.CSharp.Reactive.Projection`, duplicate key, off-thread write, pending read) and the hand-written `ToString`
+  text.
+- CI job `aot` in `.github/workflows/ci.yml`: publish `-c Release -r linux-x64`, then run the binary. Untraced only.
+- Tests: `tests/Ranvier.Tests/Texts.fs` (the `ToString` text and the key text in two messages; the `NotReadyException`
+  message test is .NET only, because Fable gives an F# exception an empty message) and three `valueText` cases in
+  `Tracing.fs`.
+- Docs: `guide/installation.md` gains "Native AOT and trimming", with the claim scoped to primitive and `string` keys;
+  `concepts/roadmap.md` moves the item to Shipped.
+
+Measured locally (SDK 10.0.112, ILCompiler 10.0.x from nuget.org):
+
+| Publish | IL2xxx/IL3xxx warnings | Binary | Smoke checks |
+| --- | --- | --- | --- |
+| Untraced, both assemblies rooted | 0 | 4,204,192 B | 12/12 |
+| Traced (`-p:RanvierTrace=true`), rooted, compiled `--reflectionfree` (superseded, see below) | 0 | — | 12/12 |
+| Untraced plus one `sprintf "%d"` in the smoke app (gate check) | fails: IL2055, IL2060, IL2067, IL2070, IL2072, IL2075, IL2080, IL3050 as errors | — | — |
+
+A clean publish including the library build took 25 s. An IL scan of the built assemblies (untraced and traced, both
+libraries) finds no call to `PrintfFormat`, `PrintfModule` or `PrintFormatToString`.
+
+Deviations from the note:
+
+- **Two more traced sites.** `TraceApi.origin` (`{id}`) and `TraceModel.whyDepth` (`{node}`, `{run}`) used untyped `int`
+  holes, which compile to `PrintfFormat`; both now concatenate. The `reconcile` lines keep their `%A` shape by hand
+  (`[|1; 2|]`, `[1; 2]`, `set [1; 2]`).
+- **The traced build is not reflection-free.** Compiled `--reflectionfree`, the traced build turned the `ToString` of
+  its 16 public trace records and unions (`WhyRoot`, `WhyStep`, `Why`, `WhyNotReason`, `TraceRun`, `TraceHistory`,
+  `TraceFlightState`, `TraceFlight`, `TraceWaiting`, `TraceNodeStatus`, `TraceSnapshotNode`, `TraceSnapshotOwner`,
+  `TraceSnapshot`, `TraceDump`, `TraceEvent`, `TraceOrigin`) into bare type names (`Ranvier.WhyNotReason+Disposed` for
+  `Disposed 3`), against decision 1. The flag is therefore untraced-only, and the traced build also drops
+  `IsAotCompatible`: a NativeAOT publish of `Ranvier.Traced` warns again. Decision 2 already leaves the traced build
+  unchecked. Hand-writing those 16 `ToString` overrides is the alternative; a `FOR-REVIEW` tag in
+  `Directory.Build.targets` leaves the choice to the maintainer. C# is unaffected: `Tracing` returns rendered text.
+- **Traced `valueText`** keeps `sprintf "%A"` on both targets, so its text is unchanged from `master`. Fable compiles
+  `%A` (it does not apply `--reflectionfree`, which settles §5's open question).
+- **`Reading.ToString` parentheses.** A `Ready` payload whose text contains a space and opens with neither a bracket
+  nor a quote is wrapped in parentheses, as `%A` does: `Ready (Ready 3)`, `Ready (1, a)`. Remaining differences from
+  `%A`, beyond §3.1's: `Ready [|1; 2|]` reads `Ready System.Int32[]`, `Ready (1, "a")` reads `Ready (1, a)`,
+  `Ready 'c'` reads `Ready c`, and a `Failed` exception prints its `ToString` text.
+- **`TraceSite.assemblyOf`** takes `[<UnconditionalSuppressMessage>]` under `#if NET5_0_OR_GREATER`; netstandard2.1
+  has no such attribute and is never AOT-published.
+- **Culture.** `Reading.ToString` formats a non-string payload with `string`, which uses the invariant culture, as `%A`
+  did.
+- The traced build is not AOT-checked in CI (decision 2), and after the change above it no longer claims to be
+  AOT-compatible.
+
+
+## Reviewer corrections (applied above; kept for the record)
 
 Verdict: needs fixes
 

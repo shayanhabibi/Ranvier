@@ -70,6 +70,7 @@ let all =
                     Ranvier.Tests.Combinators.foldTests
                 ]
             testList "PreviousValues.fs" [ Ranvier.Tests.PreviousValues.tests; Ranvier.Tests.PreviousValues.asyncTests ]
+            testList "Texts.fs" [ Ranvier.Tests.Texts.tests ]
         ]
 
 Mocha.runTests all |> ignore

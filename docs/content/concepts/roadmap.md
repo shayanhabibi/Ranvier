@@ -31,6 +31,8 @@ These are implemented and covered by tests.
 - **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, and `ReactiveBindings` for
   `INotifyPropertyChanged` and `INotifyDataErrorInfo`. `AsObservableCollection` raises `Add`, `Remove`,
   `Move` and `Replace` changes in place of `Reset`. See [C#](../guide/csharp.md).
+- **Native AOT and trimming.** Both packages publish under Native AOT with no trim or AOT warnings, checked
+  in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
 
 ## In progress
 
@@ -42,8 +44,6 @@ These are implemented and covered by tests.
 
 None of these is available. Each one is an open question about whether and how it fits.
 
-- **AOT and trimming analysis in CI.** Checks that the libraries stay compatible with Native AOT and
-  trimming as the C# surface grows.
 - **A drop-while-running flight policy.** A policy that ignores a new run while one is in progress, as R3's
   `Drop` and CommunityToolkit's `AsyncRelayCommand` do.
 - **Debounce and throttle.** As a flight policy or as a combinator.

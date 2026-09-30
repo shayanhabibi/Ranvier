@@ -911,7 +911,7 @@ module Projection =
         let read key =
             match choices.Value.Get key with
             | Some value -> value
-            | None -> raise (System.Collections.Generic.KeyNotFoundException $"The projection has no key %A{key}.")
+            | None -> raise (System.Collections.Generic.KeyNotFoundException ("The projection has no key " + string key + "."))
 
         let view = new FilterView<'K, 'V, 'U> (graph, upstream, inclusion, read)
 
@@ -1180,6 +1180,7 @@ module Projection =
     /// let hours = rows |> Projection.sumBy (fun t -> t.Hours)
     /// </code>
     /// </example>
+    [<NoDynamicInvocation>]
     let inline sumBy (projection: 'V -> ^N) (upstream: Projection<'K, 'V>) : Memo< ^N > =
         upstream
         |> map projection
