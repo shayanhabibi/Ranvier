@@ -34,8 +34,14 @@ let private scenario code =
 /// The fence line a generated line maps back to, as the Solid plugin maps it.
 let private locate (spans: MapSpan list) (line: int) =
     spans
-    |> List.tryFind (fun s -> line >= s.Generated && line < s.Generated + s.Length)
-    |> Option.map (fun s -> if s.Indent = Int32.MaxValue then 0 else s.Body + line - s.Generated)
+    |> List.tryFind (fun s ->
+        line >= s.Generated
+        && line < s.Generated + s.Length)
+    |> Option.map (fun s ->
+        if s.Indent = Int32.MaxValue then
+            0
+        else
+            s.Body + line - s.Generated)
 
 [<Tests>]
 let tests =
@@ -45,7 +51,11 @@ let tests =
             test "a label follows the whole of a multi-line binding" {
                 let code, _, bindings = scenario cart
                 let lines = code.Split '\n'
-                let at = lines |> Array.findIndex (fun l -> l.Contains "Trace.label (graph', subtotal")
+
+                let at =
+                    lines
+                    |> Array.findIndex (fun l -> l.Contains "Trace.label (graph', subtotal")
+
                 Expect.equal (lines[at - 1].Trim()) "lines.Value |> List.sum)" "the label comes after the binding's last line"
                 Expect.contains bindings ("subtotal", 4, 6) "the binding spans its lines"
             }
@@ -92,7 +102,10 @@ let tests =
                     | Some _ -> ()
                     | None -> failtestf "generated line %d has no span" (i + 1)
 
-                let label = lines |> Array.findIndex (fun l -> l.Contains "Trace.label (graph', subtotal")
+                let label =
+                    lines
+                    |> Array.findIndex (fun l -> l.Contains "Trace.label (graph', subtotal")
+
                 Expect.equal (locate spans (label + 1)) (Some 6) "a label blames the binding's last line"
             }
 
@@ -100,7 +113,8 @@ let tests =
                 let code = "let a = createSignal 1\nlet b = createMemo (fun _ -> a.Value)\n\n"
 
                 Expect.equal
-                    (MapFence.scenario "x" code |> Result.mapError (List.map fst))
+                    (MapFence.scenario "x" code
+                     |> Result.mapError (List.map fst))
                     (Error [ 2 ])
                     "the problem sits at the last line of code"
             }
@@ -118,7 +132,7 @@ let tests =
                     Expect.stringEnds output.Render "|] false Ranvier.Docs.Maps.Grouping.Expand" "no timeline, collections expanded"
                 | Error problems -> failtestf "rejected: %A" problems
             }
-        
+
             test "replay renders the scenario, replayed" {
                 match MapFence.compile "cart" [ "replay" ] cart with
                 | Ok output ->

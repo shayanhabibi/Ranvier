@@ -246,7 +246,16 @@ let tests =
                     |> Map.map (fun _ n -> TraceModel.pathOf s n.Id, n.Label, n.Value, n.Status)
 
                 Expect.equal (view actual) (view expected) "paths, labels, values and statuses agree"
-                Expect.equal (MapModel.name { MapModel.start with Snapshot = actual } (a :> INode).Id) "a" "the name is the label"
+
+                Expect.equal
+                    (MapModel.name
+                        { MapModel.start with
+                            Snapshot = actual
+                        }
+                        (a :> INode).Id)
+                    "a"
+                    "the name is the label"
+
                 Expect.equal (MapModel.frames MapModel.start events).Length events.Length "one frame per event"
             }
 
@@ -261,7 +270,14 @@ let tests =
                     snapshot.Nodes.Values
                     |> Seq.find (fun n -> n.Kind = TraceNodeKind.Effect)
 
-                Expect.equal (MapModel.name { MapModel.start with Snapshot = snapshot } effect.Id) "effect" "the kind, in lower case"
+                Expect.equal
+                    (MapModel.name
+                        { MapModel.start with
+                            Snapshot = snapshot
+                        }
+                        effect.Id)
+                    "effect"
+                    "the kind, in lower case"
             }
 
             test "frames played in two batches reach the same scene as one" {
@@ -326,7 +342,12 @@ let tests =
                 Trace.label (g, total, "total")
                 createEffect (fun () -> total.Value |> ignore)
                 lines.Value <- [ "tea"; "jam"; "egg" ]
-                let collapse = { MapModel.start with Grouping = Collapse }
+
+                let collapse =
+                    { MapModel.start with
+                        Grouping = Collapse
+                    }
+
                 let frames = MapModel.frames collapse (Trace.events g)
                 let scene = (Array.last frames).After
                 let rowsId = (rows :> INode).Id
@@ -398,7 +419,12 @@ let tests =
                 Expect.contains (MapModel.edges scene) (rowsId, (snd boxed.Head).Head) "the item feeds the key's quote from the collection"
 
                 desk.Settle 3
-                let scene = (MapModel.frames MapModel.start (Trace.events g) |> Array.last).After
+
+                let scene =
+                    (MapModel.frames MapModel.start (Trace.events g)
+                     |> Array.last)
+                        .After
+
                 let tea, jam = fst boxed.Head, fst boxed[1]
                 Expect.isFalse (MapModel.pending scene tea) "the settled row is idle"
                 Expect.isTrue (MapModel.pending scene jam) "the other row is still pending"
@@ -418,8 +444,16 @@ let tests =
                         (fun () -> lines.Value :> seq<_>)
 
                 createEffect (fun () -> rows.Get "tea" |> ignore)
-                let collapse = { MapModel.start with Grouping = Collapse }
-                let scene = (MapModel.frames collapse (Trace.events g) |> Array.last).After
+
+                let collapse =
+                    { MapModel.start with
+                        Grouping = Collapse
+                    }
+
+                let scene =
+                    (MapModel.frames collapse (Trace.events g)
+                     |> Array.last)
+                        .After
 
                 let drawn =
                     scene.Snapshot.Nodes.Values
@@ -435,13 +469,25 @@ let tests =
                 use _ = g.Activate ()
                 let selected = createSignal 1
                 Trace.label (g, selected, "selected")
-                let isSelected = Trace.named "isSelected" (fun () -> createSelector (fun () -> selected.Value))
+
+                let isSelected =
+                    Trace.named "isSelected" (fun () -> createSelector (fun () -> selected.Value))
+
                 let row = createMemo (fun _ -> isSelected.Get 2)
                 Trace.label (g, row, "row")
                 createEffect (fun () -> row.Value |> ignore)
                 selected.Value <- 2
-                let collapse = { MapModel.start with Grouping = Collapse }
-                let scene = (MapModel.frames collapse (Trace.events g) |> Array.last).After
+
+                let collapse =
+                    { MapModel.start with
+                        Grouping = Collapse
+                    }
+
+                let scene =
+                    (MapModel.frames collapse (Trace.events g)
+                     |> Array.last)
+                        .After
+
                 let rowId = (row :> INode).Id
 
                 let sources =
@@ -457,13 +503,18 @@ let tests =
             }
 
             test "layout starts a node below the rows its layer's earlier nodes span" {
-                let placed = Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] Map.empty
+                let placed =
+                    Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] Map.empty
+
                 Expect.equal placed (Map [ 1, (0, 0); 2, (0, 3); 3, (0, 4) ]) "the box of 1 takes three rows"
             }
 
             test "layout orders observers by the row their edge leaves from" {
                 let sources = Map [ 2, [ 1, 2.0 ]; 3, [ 1, 1.0 ] ]
-                let placed = Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] sources
+
+                let placed =
+                    Layout.placeSpanned (fun id -> if id = 1 then 3 else 1) [ 1; 2; 3 ] sources
+
                 Expect.equal (placed[3], placed[2]) ((1, 1), (1, 2)) "each reader sits level with its row"
             }
 

@@ -212,12 +212,22 @@ module Trace =
             + string o.Seq
         | other ->
             raise (
-                System.ArgumentException ("Trace.render has no text form for " + other.GetType().Name + ".", nameof value)
+                System.ArgumentException (
+                    "Trace.render has no text form for "
+                    + other.GetType().Name
+                    + ".",
+                    nameof value
+                )
             )
 
     let private gate (graph: Graph) (operation: string) =
         if not graph.IsOnGraphThread then
-            raise (System.InvalidOperationException (operation + " ran off the graph's thread. Marshal it through Graph.Dispatch."))
+            raise (
+                System.InvalidOperationException (
+                    operation
+                    + " ran off the graph's thread. Marshal it through Graph.Dispatch."
+                )
+            )
 
         if isNull (box graph.CurrentComputation) then
             Tracer.AbandonStale (logOf graph)

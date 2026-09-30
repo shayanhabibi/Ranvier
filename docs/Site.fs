@@ -125,8 +125,7 @@ let apiOptions =
         Title = "API reference"
         Sources =
             [
-                for name in [ "Ranvier"; "Ranvier.CSharp" ] ->
-                    FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
+                for name in [ "Ranvier"; "Ranvier.CSharp" ] -> FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
             ]
     }
 
@@ -297,14 +296,16 @@ let private csharpGrammar (options: TreeSitterOptions) =
     File.WriteAllBytes (queries, TreeSitter.bundledQueries "csharp")
 
     let grammar =
-        {
-            TreeSitter.bundled "csharp" with
-                Language = "c_sharp"
-                Source = TreeSitterGrammarSource.Files (wasm, queries)
+        { TreeSitter.bundled "csharp" with
+            Language = "c_sharp"
+            Source = TreeSitterGrammarSource.Files (wasm, queries)
         }
 
     options
-    |> TreeSitter.grammars (TreeSitter.aliases [ "csharp"; "cs"; "c#" ] grammar :: options.Grammars)
+    |> TreeSitter.grammars (
+        TreeSitter.aliases [ "csharp"; "cs"; "c#" ] grammar
+        :: options.Grammars
+    )
 
 let reference =
     FSharpApi.collection "reference" DocFrontMatter.decoder apiOptions

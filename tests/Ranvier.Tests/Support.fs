@@ -29,30 +29,28 @@ let untracedOnly (test: Test) : Test =
 type Make =
     static member Memo(graph: Graph, compute: 'T voption -> 'T) : Memo<'T> =
 #if FABLE_COMPILER
-        Memo<'T>.Create (graph, compute, ScopeMode.Pure)
+        Memo<'T>.Create(graph, compute, ScopeMode.Pure)
 #else
         Memo (graph, compute)
 #endif
 
     static member Memo(graph: Graph, compute: 'T voption -> 'T, owning: bool) : Memo<'T> =
 #if FABLE_COMPILER
-        Memo<'T>.Create (graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
+        Memo<'T>.Create(graph, compute, (if owning then ScopeMode.Owning else ScopeMode.Pure))
 #else
         Memo (graph, compute, owning)
 #endif
 
     static member AsyncMemo<'T>(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>) : AsyncMemo<'T> =
 #if FABLE_COMPILER
-        AsyncMemo<'T>.Create (graph, compute, ScopeMode.PureAsync)
+        AsyncMemo<'T>.Create(graph, compute, ScopeMode.PureAsync)
 #else
         new AsyncMemo<'T> (graph, compute)
 #endif
 
-    static member AsyncMemo<'T>
-        (graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, owning: bool)
-        : AsyncMemo<'T> =
+    static member AsyncMemo<'T>(graph: Graph, compute: Previous<'T> -> CancellationToken -> Task<'T>, owning: bool) : AsyncMemo<'T> =
 #if FABLE_COMPILER
-        AsyncMemo<'T>.Create (graph, compute, (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
+        AsyncMemo<'T>.Create(graph, compute, (if owning then ScopeMode.Owning else ScopeMode.PureAsync))
 #else
         new AsyncMemo<'T> (graph, compute, owning)
 #endif

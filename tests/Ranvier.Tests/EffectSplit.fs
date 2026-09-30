@@ -137,7 +137,7 @@ let tests =
                 let flights = Dictionary<int, Flight<string>>()
 
                 let user =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             let f = Flight<string>()
@@ -169,7 +169,7 @@ let tests =
                 let flights = Dictionary<int, Flight<string>>()
 
                 let user =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             let f = Flight<string>()
@@ -197,7 +197,7 @@ let tests =
                 let g = new Graph ()
                 use _ = g.Activate ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
                 let log = ResizeArray ()
 
                 do
@@ -214,7 +214,7 @@ let tests =
                 let g = new Graph ()
                 use _ = g.Activate ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
                 let log = ResizeArray ()
 
                 do (createEffectOn (fun () -> a.Value) (fun v -> log.Add $"saw {v}"))
@@ -231,7 +231,7 @@ let tests =
                 let flights = Dictionary<int, Flight<string>>()
 
                 let user =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             let f = Flight<string>()
@@ -365,7 +365,7 @@ let tests =
                 let flights = Dictionary<int, Flight<string>>()
 
                 let user =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             let f = Flight<string>()

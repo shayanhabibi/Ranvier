@@ -33,7 +33,7 @@ let private recording (g: Graph) (trigger: Signal<int>) =
     let prevs = ResizeArray<Task<int voption>>()
 
     let a =
-        Make.AsyncMemo<int> (
+        Make.AsyncMemo<int>(
             g,
             fun prev _ ->
                 trigger.Value |> ignore
@@ -316,7 +316,7 @@ let asyncTests =
                 let handles = Collections.Generic.List<Previous<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun prev _ ->
                             trigger.Value |> ignore
@@ -419,7 +419,7 @@ let asyncTests =
                 let prevs = ResizeArray<Task<int voption>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun prev _ ->
                             trigger.Value |> ignore
@@ -456,7 +456,7 @@ let asyncTests =
                 let prevs = ResizeArray<Task<int voption>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun prev _ ->
                             if trigger.Value = 1 then
@@ -502,7 +502,7 @@ let asyncTests =
                 let bodies = ResizeArray<Task<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun prev _ ->
                             let n = trigger.Value
@@ -546,7 +546,7 @@ let asyncTests =
                 let resumedOn = ref 0
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun prev _ ->
                             let n = trigger.Value
