@@ -235,40 +235,10 @@ module TraceModel =
                 | Some e -> ValueSome e
                 | None -> ValueNone
 
-#if !FABLE_COMPILER
-    /// <summary>
-    /// The elements of <c>items</c> in <c>[a; b]</c> form, or <c>[|a; b|]</c> for an array, with each string element
-    /// quoted. The text is cut off after the first element that takes it past 60 characters.
-    /// </summary>
-    //FOR-REVIEW Replaces %A for collections so the traced build stays reflection-free. Differences from %A: a Map or Set loses its "map"/"set" prefix, a map entry reads [k, v], and a nested element uses its ToString (an inner array reads System.Int32[]).
-    let private sequenceText (items: Collections.IEnumerable) =
-        let array = items :? Array
-        let text = StringBuilder (if array then "[|" else "[")
-        let e = items.GetEnumerator ()
-        let mutable first = true
-
-        while text.Length <= 60 && e.MoveNext () do
-            if not first then
-                text.Append "; " |> ignore
-
-            first <- false
-
-            match e.Current with
-            | null -> text.Append "null" |> ignore
-            | :? string as s -> text.Append('"').Append(s).Append('"') |> ignore
-            | item -> text.Append (string item) |> ignore
-
-        if text.Length <= 60 then
-            text.Append (if array then "|]" else "]")
-            |> ignore
-
-        text.ToString ()
-#endif
-
     /// <summary>
     /// A value as one line of at most 60 characters: an exception as its type name and message, a string as itself,
-    /// a collection as its elements in list syntax, and any other value as its <c>ToString</c> text (<c>%A</c> text
-    /// under Fable). On .NET an anonymous record reads <c>{| ... |}</c> under every FSharp.Core version.
+    /// and any other value as its <c>%A</c> text. On .NET an anonymous record reads <c>{| ... |}</c> under every
+    /// FSharp.Core version.
     /// </summary>
     let valueText (value: obj) : string =
         let lines (text: string) =
@@ -290,17 +260,8 @@ module TraceModel =
             | :? float as f -> f.ToString ("R", Globalization.CultureInfo.InvariantCulture)
 #endif
             | v ->
-#if FABLE_COMPILER
-                let formatted = sprintf "%A" v
-#else
-                let formatted =
-                    match v with
-                    | null -> "<null>"
-                    | :? Collections.IEnumerable as items -> sequenceText items
-                    | v -> string v
-#endif
-                // A record's text puts each field on its own line; the join restores the "; " separator.
-                let parts = lines formatted
+                // %A puts each record field on its own line; the join restores the "; " separator.
+                let parts = lines (sprintf "%A" v)
                 let joined = StringBuilder ()
 
                 for i in 0 .. parts.Length - 1 do

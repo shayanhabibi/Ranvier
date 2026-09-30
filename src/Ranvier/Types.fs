@@ -349,7 +349,8 @@ type Reading<'T> =
 
     /// <summary>
     /// The case name and its payload: a <c>string</c> value in double quotes, <c>null</c> as <c>null</c>, and any other
-    /// payload as its <c>string</c> text, which formats a number in the invariant culture.
+    /// payload as its <c>string</c> text, which formats a number in the invariant culture. A <c>Ready</c> payload text
+    /// containing a space is wrapped in parentheses unless it opens with a bracket or a quote.
     /// </summary>
     override this.ToString() =
         let text (value: obj) =
@@ -359,7 +360,16 @@ type Reading<'T> =
             | value -> string value
 
         match this with
-        | Ready value -> "Ready " + text (box value)
+        | Ready value ->
+            let payload = text (box value)
+
+            if
+                payload.Contains " "
+                && "([{\"".IndexOf payload[0] < 0
+            then
+                "Ready (" + payload + ")"
+            else
+                "Ready " + payload
         | Pending -> "Pending"
         | Failed error -> "Failed " + text error
 

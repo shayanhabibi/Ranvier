@@ -21,6 +21,7 @@ let tests =
                 Expect.equal ((Ready 3).ToString()) "Ready 3" "an int payload"
                 Expect.equal ((Ready "x").ToString()) "Ready \"x\"" "a string payload, quoted"
                 Expect.equal ((Ready (null: string)).ToString()) "Ready null" "a null payload"
+                Expect.equal ((Ready (Ready 3)).ToString()) "Ready (Ready 3)" "a payload text with a space, in parentheses"
                 Expect.equal (Reading<int>.Pending.ToString()) "Pending" "Pending"
 
                 Expect.stringStarts ((Failed (InvalidOperationException "boom"): Reading<int>).ToString()) "Failed " "Failed, then the exception"
@@ -45,7 +46,7 @@ let tests =
             test "NotReadyException's message names the exception" {
                 use g = new Graph ()
                 let s = Signal (g, 0)
-                Expect.stringStarts (NotReadyException(s :> INode).Message) "NotReadyException " "the name, then the source"
+                Expect.equal (NotReadyException(s :> INode).Message) "NotReadyException Ranvier.Signal`1[System.Int32]" "the name, then the source"
             }
 #endif
 

@@ -64,7 +64,8 @@ dotnet nuget add source ./local-feed --name local
 
 On `net8.0` and `net10.0`, `Ranvier` and `Ranvier.CSharp` are marked trimmable and AOT-compatible. An app that
 publishes with `<PublishAot>true</PublishAot>` gets no IL2xxx or IL3xxx warnings from either assembly, and CI
-publishes a smoke app with both assemblies rooted to keep it that way.
+publishes a smoke app with both assemblies rooted to keep it that way. The traced build (`Ranvier.Traced`) makes no
+such claim: its trace types keep the generated, reflection-based `ToString`.
 
 A projection's exception messages include the key as its `string` text. For a primitive or `string` key, the
 exception keeps its documented type and message under Native AOT. A key of an F# record or union type prints
