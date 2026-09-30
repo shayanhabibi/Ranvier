@@ -53,7 +53,7 @@ let tests =
             test "a flight that is already complete never makes the reader pending" {
                 let g = new Graph ()
 
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed 42))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> completed 42))
 
                 // The continuation runs inline on an already-completed task, so
                 // the value is there before the first read returns. A reader
@@ -65,7 +65,7 @@ let tests =
             test "an effect over an already-complete flight runs once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed (s.Value * 10)))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> completed (s.Value * 10)))
                 let seen = ResizeArray<int>()
 
                 use _reader = new Effect (g, (fun () -> seen.Add a.Value))
@@ -79,7 +79,7 @@ let tests =
             test "a memo over an already-complete flight recomputes once per write" {
                 let g = new Graph ()
                 let s = Signal (g, 0)
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed (s.Value * 10)))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> completed (s.Value * 10)))
                 let m = Make.Memo (g, (fun _ -> a.Value + 1))
 
                 Expect.equal m.Value 1 "first read"
@@ -94,7 +94,7 @@ let tests =
                 let g = new Graph ()
 
                 let a =
-                    Make.AsyncMemo<int> (g, (fun _ _ -> faulted<int> (InvalidOperationException "nope")))
+                    Make.AsyncMemo<int>(g, (fun _ _ -> faulted<int>(InvalidOperationException "nope")))
 
                 match a.TryValue with
                 | Failed ex -> Expect.stringContains ex.Message "nope" "the reason survived"
@@ -107,7 +107,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -141,7 +141,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             let t = trigger.Value
@@ -185,7 +185,7 @@ let tests =
                 let flights = ResizeArray<TaskCompletionSource<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             trigger.Value |> ignore
@@ -215,7 +215,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "in flight"
 
@@ -233,7 +233,7 @@ let tests =
                 let gate = TaskCompletionSource<unit>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -255,7 +255,7 @@ let tests =
                 let trigger = Signal (g, 0)
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             if trigger.Value = 0 then
@@ -289,7 +289,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -331,7 +331,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
@@ -366,7 +366,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
@@ -404,7 +404,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             if trigger.Value = 1 then
@@ -444,7 +444,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -471,7 +471,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -495,11 +495,11 @@ let tests =
                 let fail = Signal (g, true)
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             if fail.Value then
-                                faulted<int> (InvalidOperationException "x")
+                                faulted<int>(InvalidOperationException "x")
                             else
                                 completed upstream.Value
                     )
@@ -516,7 +516,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 a.Dispose ()
@@ -532,7 +532,7 @@ let tests =
 
                 let owner =
                     g.CreateRoot (fun o ->
-                        a <- Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                        a <- Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
                         o)
 
                 let m = Make.Memo (g, (fun _ -> a.Value + 1))
@@ -567,7 +567,7 @@ let tests =
 
             test "disposing a settled async memo keeps its value" {
                 let g = new Graph ()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed 5))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> completed 5))
 
                 Expect.equal a.TryValue (Ready 5) "settled"
                 a.Dispose ()
@@ -578,7 +578,7 @@ let tests =
                 let g = new Graph ()
                 let flight = Flight<int>()
 
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 g.Dispose ()
@@ -596,7 +596,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -644,7 +644,7 @@ let tests =
                 let mutable flights = 0
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             let v = up.Value
@@ -676,7 +676,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             trigger.Value |> ignore
@@ -706,7 +706,7 @@ let tests =
                 let owner =
                     g.CreateRoot (fun owner ->
                         let a =
-                            Make.AsyncMemo<int> (
+                            Make.AsyncMemo<int>(
                                 g,
                                 fun _ token ->
                                     observed.Value <- token
@@ -781,7 +781,7 @@ let private faultLate (policy: FlightPolicy) (fault: LateFault) (marker: string)
     let flights = ResizeArray<TaskCompletionSource<int>>()
 
     let a =
-        Make.AsyncMemo<int> (
+        Make.AsyncMemo<int>(
             g,
             fun _ _ ->
                 trigger.Value |> ignore

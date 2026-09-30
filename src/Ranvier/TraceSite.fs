@@ -30,7 +30,9 @@ module internal TraceSite =
 
     let private inLibrarySource (file: string) =
         let file = file.Replace (Path.DirectorySeparatorChar, '/')
-        file.Contains "/src/Ranvier/" || file.Contains "/src/Ranvier.CSharp/"
+
+        file.Contains "/src/Ranvier/"
+        || file.Contains "/src/Ranvier.CSharp/"
 
     /// <summary>
     /// The <c>file:line</c> of the innermost frame with file info outside Ranvier, Ranvier.CSharp, FSharp.Core and

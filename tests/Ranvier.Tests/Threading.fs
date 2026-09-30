@@ -326,7 +326,7 @@ let tests =
                 let gate = new ManualResetEventSlim (false)
 
                 let query =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             Task.Run (fun () ->

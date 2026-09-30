@@ -215,7 +215,7 @@ let tests =
             test "a boundary over an AsyncMemo catches the flight" {
                 let g = new Graph ()
                 let source = TaskCompletionSource<int>()
-                let query = Make.AsyncMemo<int> (g, (fun _ _ -> source.Task))
+                let query = Make.AsyncMemo<int>(g, (fun _ _ -> source.Task))
 
                 let b = Boundary<int>.Suspense(g, (fun () -> query.Value), (fun _ -> 0))
 

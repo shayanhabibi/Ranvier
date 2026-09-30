@@ -64,7 +64,7 @@ let tests =
             test "reading an unsettled flight suspends" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "a flight in progress is pending"
                 Expect.equal a.Runs 1 "the read started the flight"
@@ -79,7 +79,7 @@ let tests =
                 let started = ref 0
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             incr started
@@ -99,7 +99,7 @@ let tests =
                 let requested = ResizeArray ()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             let v = s.Value
@@ -120,7 +120,7 @@ let tests =
                 let gate = TaskCompletionSource<unit>()
 
                 let a =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             let b = before.Value
@@ -161,7 +161,7 @@ let tests =
                 let cleaned = ref false
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -199,7 +199,7 @@ let tests =
                 use _reader = new Effect (g, (fun () -> seen.Add s.Value))
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -222,7 +222,7 @@ let tests =
                 let gate = TaskCompletionSource<unit>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -259,7 +259,7 @@ let tests =
                 let seen = ResizeArray<string>()
 
                 let b =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -269,7 +269,7 @@ let tests =
                     )
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -307,7 +307,7 @@ let tests =
                 let gateB = TaskCompletionSource<unit>()
 
                 let b =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -327,7 +327,7 @@ let tests =
                     )
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             task {
@@ -352,7 +352,7 @@ let tests =
                 let after = Signal (g, "a")
 
                 let a =
-                    Make.AsyncMemo<string> (
+                    Make.AsyncMemo<string>(
                         g,
                         fun _ _ ->
                             task {
@@ -376,7 +376,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    Make.AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
+                    Make.AsyncMemo<int>(g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 first.Settle 10
                 Expect.equal a.TryValue (Ready 10) "settled"
@@ -396,7 +396,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    Make.AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
+                    Make.AsyncMemo<int>(g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 Expect.equal a.TryValue Pending "first flight in progress"
                 s.Value <- 2
@@ -418,7 +418,7 @@ let tests =
                 let tokens = ResizeArray<CancellationToken>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             // The read is what links the edge; without it the
@@ -466,7 +466,7 @@ let tests =
                     }
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             let flight = body () token
@@ -506,7 +506,7 @@ let tests =
                 let tokens = ResizeArray<CancellationToken>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             // The read is what links the edge; without it the
@@ -537,7 +537,7 @@ let tests =
                 let second = Flight<int>()
 
                 let a =
-                    Make.AsyncMemo<int> (g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
+                    Make.AsyncMemo<int>(g, (fun _ _ -> if s.Value = 1 then first.Task else second.Task))
 
                 a.TryValue |> ignore
                 s.Value <- 2
@@ -565,7 +565,7 @@ let tests =
                 let flights = ResizeArray<Flight<int>>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ _ ->
                             s.Value |> ignore
@@ -588,7 +588,7 @@ let tests =
             test "a failed flight settles as Failed" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 Expect.equal a.TryValue Pending "precondition"
                 flight.Fail (exn "boom")
@@ -600,7 +600,7 @@ let tests =
 
             test "a body that throws before awaiting settles as Failed" {
                 let g = new Graph ()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> failwith "no flight"))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> failwith "no flight"))
 
                 match a.TryValue with
                 | Failed e -> Expect.equal e.Message "no flight" "a synchronous throw is a failure, not a flight"
@@ -611,7 +611,7 @@ let tests =
                 let g = new Graph ()
                 let upstream = AsyncSource<int>(g)
 
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> completed (upstream.Value * 2)))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> completed (upstream.Value * 2)))
 
                 Expect.equal a.TryValue Pending "suspended before it could start a flight"
 
@@ -627,7 +627,7 @@ let tests =
             test "pending propagates into a memo and an effect" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
                 let doubled = Make.Memo (g, (fun _ -> a.Value * 2))
                 let seen = ResizeArray ()
 
@@ -646,7 +646,7 @@ let tests =
                 let tokens = ResizeArray<CancellationToken>()
 
                 let a =
-                    Make.AsyncMemo<int> (
+                    Make.AsyncMemo<int>(
                         g,
                         fun _ token ->
                             tokens.Add token
@@ -662,7 +662,7 @@ let tests =
             test "a settle after disposal does not publish" {
                 let g = new Graph ()
                 let flight = Flight<int>()
-                let a = Make.AsyncMemo<int> (g, (fun _ _ -> flight.Task))
+                let a = Make.AsyncMemo<int>(g, (fun _ _ -> flight.Task))
 
                 a.TryValue |> ignore
                 a.Dispose ()

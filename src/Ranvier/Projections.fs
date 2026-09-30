@@ -1360,7 +1360,9 @@ type internal RowsOf<'T, 'K, 'V when 'K: equality>(graph: Graph, map: 'T -> 'V, 
         if not (this.Seen.Add key) then
             // Two items, one key: one of them would silently disappear. The
             // throw fails the pass, and reaches the boundary around the read.
-            raise (InvalidOperationException $"The projection produced the key %A{key} twice in one pass. Keys must be unique; check the keyOf function.")
+            raise (
+                InvalidOperationException $"The projection produced the key %A{key} twice in one pass. Keys must be unique; check the keyOf function."
+            )
 
         this.PassKeys.Add key
 

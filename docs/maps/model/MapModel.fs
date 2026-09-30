@@ -213,7 +213,10 @@ module MapModel =
         | None ->
             match snapshot.Nodes.TryFind node, scopeOf scene node with
             | Some _, Some { Host = h; Key = Some key } -> $"%s{name scene h}[%s{key}] %s{ownName snapshot node}"
-            | Some { Label = None; Owner = owner }, _ when scene.Parts |> Map.exists (fun _ part -> part.Host = node) ->
+            | Some { Label = None; Owner = owner }, _ when
+                scene.Parts
+                |> Map.exists (fun _ part -> part.Host = node)
+                ->
                 snapshot.Owners.TryFind owner
                 |> Option.bind _.Label
                 |> Option.defaultWith (fun () -> ownName snapshot node)
@@ -235,7 +238,8 @@ module MapModel =
     /// drawn to or from its collection, once.
     /// </summary>
     let edges (scene: Scene) : (int * int) list =
-        let shown id = id <> 0 && live scene id
+        let shown id =
+            id <> 0 && live scene id
 
         [
             for KeyValue (observer, sources) in scene.Snapshot.Sources do
@@ -429,6 +433,7 @@ module MapModel =
                             Parts = scene.Parts.Add (e.Node, part)
                         }
                     | _ -> scene
+
                 let held = placeholder events i
 
                 let snapshot =

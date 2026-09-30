@@ -17,11 +17,7 @@ module Layout =
     /// Each node's sources, with the rows below the source's own row its edge leaves from; sources outside
     /// <c>nodes</c> are ignored.
     /// </param>
-    let placeSpanned
-        (span: int -> int)
-        (nodes: int list)
-        (sources: Map<int, (int * float) list>)
-        : Map<int, int * int> =
+    let placeSpanned (span: int -> int) (nodes: int list) (sources: Map<int, (int * float) list>) : Map<int, int * int> =
         let known = Set.ofList nodes
 
         let portsOf id =
@@ -29,7 +25,8 @@ module Layout =
             |> Option.defaultValue []
             |> List.filter (fun (s, _) -> s <> id && known.Contains s)
 
-        let sourcesOf id = portsOf id |> List.map fst |> List.distinct
+        let sourcesOf id =
+            portsOf id |> List.map fst |> List.distinct
 
         let layers = System.Collections.Generic.Dictionary<int, int>()
 
@@ -86,5 +83,9 @@ module Layout =
 
     /// <summary><c>placeSpanned</c> with one row per node.</summary>
     let place (nodes: int list) (sources: Map<int, int list>) : Map<int, int * int> =
-        placeSpanned (fun _ -> 1) nodes (sources |> Map.map (fun _ -> List.map (fun s -> s, 0.0)))
+        placeSpanned
+            (fun _ -> 1)
+            nodes
+            (sources
+             |> Map.map (fun _ -> List.map (fun s -> s, 0.0)))
 #endif
