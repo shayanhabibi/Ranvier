@@ -230,6 +230,28 @@ Deviations from §3–§5, each tagged `FOR-REVIEW` at its site:
   from Elmish). The cost table on the Elmish page gives shapes, not numbers, until the full run.
 
 
+## 11. Package split
+
+`Mvu` moved out of `Ranvier` into its own project and package, `src/Ranvier.Elmish` (maintainer decision). `Editable`,
+`createEditable` and `createDraft` stay in `Ranvier`.
+
+- **Names.** The package, assembly and namespace are `Ranvier.Elmish`; the type stays `Mvu<'Model,'Msg>` and the module
+  `Mvu`. A type or module named `Elmish`, or one reusing Elmish's `Program` or `Cmd`, would clash with the Elmish
+  package's namespace and types in a file that opens both `Elmish` and `Ranvier.Elmish`. `Mvu` clashes with neither.
+- **Dependencies.** `Ranvier.Elmish` depends on `Ranvier` only, not on the Elmish package: a command is still
+  `('Msg -> unit) -> unit`. Its traced build packs as `Ranvier.Elmish.Traced` and depends on `Ranvier.Traced`. The
+  untraced build is reflection-free and AOT-compatible, and `tests/Ranvier.AotSmoke` roots it.
+- **Public API only.** The bridge no longer reaches `Ranvier` internals. `Dispatch` calls `Graph.Untrack` on the graph's
+  thread and `Graph.Dispatch` elsewhere, so it allocates one closure per on-thread dispatch where the core version
+  allocated one only inside a computation. `Select` uses the public `Memo` constructor on .NET and `createMemo` under
+  Fable, where that constructor does not exist; under Fable the memo belongs to `Graph.Current`. Both are tagged
+  `FOR-REVIEW` at their sites. `Ranvier.Benchmarks` builds its bridge with `Mvu.create` under `Graph.Activate`
+  instead of the internal constructor.
+- **Tests.** `tests/Ranvier.Tests/MvuBridge.fs` stays in the shared suite and opens `Ranvier.Elmish`; `Ranvier.Tests`
+  and `fable/Ranvier.Tests.Fable` reference the project.
+- **Public API baseline.** `tools/verify-trace.fsx` compares only the packed `Ranvier.dll` with
+  `docs/.ai/public-api-baseline.txt`, which never listed `Mvu`, so the move removes nothing from it.
+
 ## Reviewer corrections (applied)
 
 Verdict: needs fixes

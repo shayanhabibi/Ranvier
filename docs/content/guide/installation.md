@@ -24,6 +24,17 @@ or, with central package management:
 <PackageReference Include="Ranvier" Version="0.1.0-preview.1" />
 ```
 
+The MVU bridge, `Mvu`, ships as its own package, `Ranvier.Elmish`, which depends on `Ranvier`; see
+[Migrating from Elmish](elmish.md). C# projects use `Ranvier.CSharp`; see [C#](csharp.md).
+
+| Package | Namespace | Contents |
+| --- | --- | --- |
+| `Ranvier` | `Ranvier` | The reactive graph, projections, boundaries and editable values. |
+| `Ranvier.CSharp` | `Ranvier.CSharp` | Delegate-based factories, extension methods, `ReactiveBindings` and `ReactiveCommand`. |
+| `Ranvier.Elmish` | `Ranvier.Elmish` | `Mvu`, an Elmish-style model read through selector memos. |
+
+Each has a traced build under the same name with `.Traced` appended.
+
 Then open the namespace:
 
 ```fsharp
@@ -62,10 +73,10 @@ dotnet nuget add source ./local-feed --name local
 
 ## Native AOT and trimming
 
-On `net8.0` and `net10.0`, `Ranvier` and `Ranvier.CSharp` are marked trimmable and AOT-compatible. An app that
-publishes with `<PublishAot>true</PublishAot>` gets no IL2xxx or IL3xxx warnings from either assembly, and CI
-publishes a smoke app with both assemblies rooted to keep it that way. The traced build (`Ranvier.Traced`) makes no
-such claim: its trace types keep the generated, reflection-based `ToString`.
+On `net8.0` and `net10.0`, `Ranvier`, `Ranvier.CSharp` and `Ranvier.Elmish` are marked trimmable and AOT-compatible.
+An app that publishes with `<PublishAot>true</PublishAot>` gets no IL2xxx or IL3xxx warnings from any of them, and CI
+publishes a smoke app with all three assemblies rooted to keep it that way. The traced builds (`Ranvier.Traced` and the
+packages that depend on it) make no such claim: their trace types keep the generated, reflection-based `ToString`.
 
 A projection's exception messages include the key as its `string` text. For a primitive or `string` key, the
 exception keeps its documented type and message under Native AOT. A key of an F# record or union type prints

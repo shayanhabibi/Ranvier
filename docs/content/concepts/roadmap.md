@@ -33,11 +33,12 @@ These are implemented and covered by tests.
   and busy state come from graph nodes. `AsObservableCollection` raises `Add`, `Remove`,
   `Move` and `Replace` changes in place of `Reset`. Previous values reach C# through a seed or
   `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
-- **Native AOT and trimming.** Both packages publish under Native AOT with no trim or AOT warnings, checked
+- **Native AOT and trimming.** The packages publish under Native AOT with no trim or AOT warnings, checked
   in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
 - **F# application patterns.** `createEditable` and `createDraft` for values seeded from upstream and edited
-  locally, forms as records of signals, and `Mvu`, which reads an Elmish-style model through selector memos. See
-  [Editable values and forms](../guide/forms.md) and [Migrating from Elmish](../guide/elmish.md).
+  locally, and forms as records of signals. See [Editable values and forms](../guide/forms.md).
+- **MVU bridge.** The `Ranvier.Elmish` package: `Mvu`, which reads an Elmish-style model through selector memos. See
+  [Migrating from Elmish](../guide/elmish.md).
 
 ## In progress
 

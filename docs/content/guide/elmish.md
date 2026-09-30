@@ -11,6 +11,12 @@ Preview — Ranvier is pre-release; its APIs may change.
 the model it shows through selectors: memos that wake their readers only when their part changes. An application can
 move one view at a time, while the rest keeps its Elmish loop.
 
+`Mvu` ships in its own package, `Ranvier.Elmish`, which depends on `Ranvier`:
+
+```bash
+dotnet add package Ranvier.Elmish --prerelease
+```
+
 `Mvu` has no Elmish dependency. A command is a plain function of type `('Msg -> unit) -> unit`, and a command list has
 the shape of Elmish's `Cmd<'Msg>`, so Elmish commands pass through unchanged.
 
@@ -18,6 +24,7 @@ the shape of Elmish's `Cmd<'Msg>`, so Elmish commands pass through unchanged.
 
 ```fsharp
 open Ranvier
+open Ranvier.Elmish
 
 type Model = { Count: int; Name: string; Address: Address }
 and Address = { City: string; Zip: string }

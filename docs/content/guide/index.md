@@ -79,7 +79,7 @@ doubled = 10
 | Projections, lookups and selectors | Implemented, with factory map semantics. A node created inside a memo pulled by a projection row belongs to that memo. |
 | Fable/JavaScript | Implemented and tested under Node.js; no package published yet. See [Fable (JavaScript) target](../fable/index.md). |
 | Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
-| Editable values (`createEditable`, `createDraft`) and the MVU bridge (`Mvu`) | Implemented and tested; see [Editable values and forms](forms.md) and [Migrating from Elmish](elmish.md). |
+| Editable values (`createEditable`, `createDraft`) and the MVU bridge (`Mvu`, in the `Ranvier.Elmish` package) | Implemented and tested; see [Editable values and forms](forms.md) and [Migrating from Elmish](elmish.md). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
 
 ## Origin
