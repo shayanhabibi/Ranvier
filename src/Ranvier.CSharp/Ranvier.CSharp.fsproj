@@ -18,9 +18,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Bindings.fs" />
         <Compile Include="Reactive.fs" />
         <Compile Include="Extensions.fs" />
-        <Compile Include="Bindings.fs" />
         <Compile Include="Tracing.fs" />
         <None Include="README.md" Pack="true" PackagePath="\" />
         <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />

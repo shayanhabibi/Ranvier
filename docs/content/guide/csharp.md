@@ -277,8 +277,70 @@ A new view model can derive from `ReactiveObject` instead, which implements the 
   was current when it subscribed, posted there when the raise happens elsewhere. Setting a `Writable` property from
   another thread goes through `Graph.Dispatch`.
 - **Lifetime.** The bindings own a root scope under the scope current at construction. `Dispose`, or disposing that
-  scope, disposes the property memos and anything created through `bindings.Run`, and drops every handler. Signals
-  passed to `Writable` stay usable.
+  scope, disposes the property memos, the commands and anything created through `bindings.Run`, and drops every
+  handler. Signals passed to `Writable` stay usable.
+
+## Commands
+
+`bindings.Command` returns a `ReactiveCommand`, an `ICommand` whose `CanExecute` is a memo over the state it reads
+and whose busy state is a signal. It needs no `IsBusy` field and no `NotifyCanExecuteChanged` calls:
+
+```csharp
+public sealed class EditorViewModel : ReactiveObject
+{
+    readonly BoundSignal<string> draft;
+    readonly BoundValue<bool> isValid;
+    readonly BoundValue<bool> isBusy;
+
+    public EditorViewModel(Graph graph, IRepository repo) : base(graph)
+    {
+        draft = Bindings.Writable(nameof(Draft), "");
+        isValid = Bindings.Computed(nameof(IsValid), () => Draft.Length > 0);
+        Save = Bindings.Command((_, token) => repo.SaveAsync(draft.Value, token), () => IsValid && Load is { IsRunning: false });
+        Load = Bindings.Command((_, token) => repo.LoadAsync(token), () => !Save.IsRunning);
+        isBusy = Bindings.Computed(nameof(IsBusy), () => Save.IsRunning || Load.IsRunning);
+    }
+
+    public string Draft { get => draft.Value; set => draft.Value = value; }
+    public bool IsValid => isValid.Value;
+    public bool IsBusy => isBusy.Value;
+    public ReactiveCommand Save { get; }
+    public ReactiveCommand Load { get; }
+}
+```
+
+Each command is disabled while the other runs, and `IsBusy` covers both. The predicate of `Save` reads `Load`, which
+is created after it: a command first evaluates its predicate at the first `CanExecute` call, event subscription or
+execution, after the constructor has returned. The pattern `Load is { IsRunning: false }` only keeps the C# compiler's
+null analysis quiet.
+
+- **`CanExecute`.** True while the predicate returns true, and false while it reads a pending or failed node. Under
+  the default policy, `CommandPolicy.Disable`, it is also false while an execution runs. `CanExecute` returns the value
+  last notified, so any thread can call it.
+- **State.** `CanRun`, `IsRunning` and `Error` raise `PropertyChanged` on the command. On the graph's thread each is a
+  tracked read, so a `Computed` body or another command's predicate that reads it re-runs when it changes. `Enabled`
+  is the memo behind `CanRun`.
+- **Executing.** `ExecuteAsync(parameter)` marshals to the graph's thread and starts an execution when the command is
+  enabled. The body runs untracked, with a token that `Cancel`, `Dispose` and `CommandPolicy.CancelPrevious` cancel.
+  Under `Disable`, `CanExecuteChanged` has been raised with `false` before the body starts, so a second click does
+  nothing. The returned task completes with the execution, after `IsRunning` and `Error` are updated.
+- **Failures.** A failed execution sets `Error` to its exception, and the next successful one clears it. An
+  `OperationCanceledException` after the command cancelled the token clears it too. `ICommand.Execute`, which a
+  button calls, discards the task: a failure reaches `Error` only, never the `SynchronizationContext`.
+- **Policies.** `CommandPolicy.Disable` disables the command while an execution runs. `CommandPolicy.CancelPrevious`
+  keeps it enabled: a new execution cancels the token of the one in flight, and only the latest execution sets
+  `Error`.
+- **Threads.** `CanExecuteChanged` and `PropertyChanged` handlers run on the `SynchronizationContext` that was current
+  when they subscribed, as the bindings' handlers do.
+- **Lifetime.** The bindings dispose their commands. `command.Dispose()` disposes one earlier and cancels its
+  executions.
+
+`bindings.Command(parameter => …)` takes a synchronous `Action<object>`; its writes are batched. Outside a
+`ReactiveBindings`, `Reactive.Command` creates a command on `Graph.Current` with an effect of its own.
+
+`AnyPending(quote, stock, shipping)` is a memo that is true while any of its nodes is pending, whatever their value
+types. It reads each node with `graph.TrackStatus(node)`, a tracked read of a node's `Status` that returns a pending or
+failed status without raising.
 
 ## Options and threads
 

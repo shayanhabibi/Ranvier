@@ -1670,6 +1670,34 @@ type Graph(options: GraphOptions) =
         this.RunUntracked body.Invoke
 
     /// <summary>
+    /// The current status of <c>node</c>. A readable node (a signal, memo, async value, boundary or projection) is
+    /// brought up to date first, and inside a computation the read is tracked, as <c>TryValue</c> is.
+    /// </summary>
+    /// <remarks>
+    /// A pending or failed node returns its status without raising, so a computation can test nodes of any value type.
+    /// An effect or other unreadable node returns its status untracked.
+    /// </remarks>
+    member this.TrackStatus(node: INode) : Status =
+        let source =
+#if FABLE_COMPILER
+            // Fable compiles an interface type test to false: probe for the member instead.
+            if Platform.hasMember node "UpdateIfNecessary" then
+                node :?> ISource
+            else
+                Unchecked.defaultof<ISource>
+#else
+            match node with
+            | :? ISource as source -> source
+            | _ -> Unchecked.defaultof<ISource>
+#endif
+
+        if not (isNull (box source)) then
+            source.UpdateIfNecessary ()
+            this.Track source
+
+        node.Status
+
+    /// <summary>
     /// Defers the flush until <c>body</c> returns, so a group of writes produces one
     /// effect run rather than one per write.
     /// </summary>

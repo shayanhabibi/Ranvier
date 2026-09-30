@@ -42,7 +42,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | SuspensionEdges.fs | 21 | 20 | 20 | 21 | 20 | 20 | 0 | 0 |
 | Scopes.fs | 8 | 8 | 8 | 8 | 8 | 8 | 0 | 0 |
 | Propagation.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
-| Reads.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
+| Reads.fs | 14 | 14 | 14 | 14 | 14 | 14 | 0 | 0 |
 | Batching.fs | 11 | 11 | 11 | 11 | 11 | 11 | 0 | 0 |
 | AsyncEdges.fs | 25 | 22 | 7 | 25 | 22 | 7 | 4 | 0 |
 | Projections.fs | 78 | 78 | 78 | 78 | 78 | 78 | 10 | 0 |
@@ -55,7 +55,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
 | PreviousValues.fs | 8 | 8 | 8 | 8 | 8 | 8 | 11 | 0 |
-| **Total** | 702 | 684 | 646 | 776 | 754 | 713 | 69 | 1 |
+| **Total** | 705 | 687 | 649 | 779 | 757 | 716 | 69 | 1 |
 
 ## Tests.fs
 
@@ -682,7 +682,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 ## Reads.fs
 
-<details><summary>11 passed in every build and delivery that runs them</summary>
+<details><summary>14 passed in every build and delivery that runs them</summary>
 
 - Peek on a never-read memo does not run the body
 - Peek does not recompute a stale memo
@@ -695,6 +695,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - TryValue on a pending source reports rather than throws
 - a fresh memo is Uninitialized until something reads it
 - reading a memo twice in one body is one edge and one computation
+- TrackStatus tracks a pending source for a reader of any value type
+- TrackStatus brings a stale memo up to date before reporting its status
+- TrackStatus of an effect is untracked
 
 </details>
 
