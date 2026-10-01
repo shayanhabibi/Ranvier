@@ -306,6 +306,18 @@ let reference =
     |> Collection.title _.Title
     |> Collection.layout (Theme.layout theme)
 
+let private centerDirective =
+    Directive.create "center" Decode.node
+    |> Directive.render (fun ctx args contents ->
+        Html.div [
+            prop.style [
+                style.display.flex
+                style.justifyContent.center
+            ]
+            prop.children contents
+        ]
+        )
+
 let site =
     Site.create "Ranvier"
     |> Site.baseUrl baseUrl
@@ -315,7 +327,7 @@ let site =
     |> Markdown.register
     |> Literate.registerWith (fun options -> { options with Extensions = [ ".fsx" ] })
     |> TreeSitter.registerWith csharpGrammar
-    |> Directives.register []
+    |> Directives.register [ centerDirective ]
     |> Sitemap.register
     |> FSharpApi.register apiOptions
     |> LinkValidator.register
