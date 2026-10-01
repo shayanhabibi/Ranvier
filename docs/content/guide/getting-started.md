@@ -307,13 +307,20 @@ the memo runs the body at that read, and that run is the re-run: the memo holds 
 
 ### The previous value
 
-`compute` has the type `'T voption -> 'T`. Its argument is the value the memo last published:
-`ValueNone` on the first run, and `ValueSome` of the value `Peek` returns after that. A run can fold
-new inputs into it.
+`compute` receives the value the memo last published. Use it to accumulate a total, keep a running
+maximum, or reuse part of a previous result.
 
-The fold steps once per run, not once per write. Each write to a source of an observed memo outside
-a batch runs it once. A batch, or a memo nothing observes, collapses its writes into one run that
-folds the final inputs once.
+Its type is `'T voption -> 'T`:
+
+- `ValueNone` on the first run.
+- `ValueSome previous` after a value has been published. This is the same value `Peek` returns.
+
+A total advances **once per run**, using the inputs read in that run. Several writes in a batch,
+or before an unobserved memo is read, contribute only their final values.
+
+::::details Test your understanding
+
+What totals does the effect see? How many times does the memo run?
 
 ```fsharp
 let totals, totalRuns =
@@ -335,13 +342,25 @@ let totals, totalRuns =
 printfn "totals seen: %A, runs: %d" totals totalRuns
 ```
 
+:::details Answer
+
 ```text
 totals seen: [5; 15; 17], runs: 3
 ```
 
-Returning the previous value unchanged is an [equality cutoff](#equality-cutoff): the memo's readers
-stay clean. A new value that reuses parts of the previous one wakes the memo's readers, and a memo
-that selects a reused part cuts off there.
+The first run adds `5`. The next adds `10`. The batch contributes `2`, so the total becomes `17`;
+the intermediate `1` is never added.
+
+:::
+::::
+
+Returning the previous value unchanged triggers an [equality cutoff](#equality-cutoff): readers
+do not re-run just because the memo ran.
+
+::::details Test your understanding
+
+The memo below keeps the highest reading so far. Which values does the effect see? Does the memo
+run for readings that leave the maximum unchanged?
 
 ```fsharp
 let highs, highestRuns =
@@ -366,29 +385,58 @@ let highs, highestRuns =
 printfn "highs seen: %A, memo runs: %d" highs highestRuns
 ```
 
+:::details Answer
+
 ```text
 highs seen: [20; 25], memo runs: 5
 ```
 
-A run that suspends on a pending source, or fails, publishes nothing, so the next run receives the
-same previous value. Writes made while a source is pending are folded once, together, by the run
-that completes. Under `createMemoWith`, the nodes created by the previous run are disposed before
-`compute` runs, including any held in its value.
+The memo runs initially and for all four writes. The effect sees only `20` and `25`, because the
+other runs return the previous maximum.
+
+:::
+::::
+
+:::details Reusing part of a previous result
+
+A new value that reuses parts of the previous one wakes the memo's readers. A memo that selects
+a reused part can cut off propagation there.
+:::
+
+:::details Pending sources, failures and owned nodes
+
+A run that suspends on a pending source, or fails, publishes nothing. The next run receives the
+same previous value. Writes made while a source is pending are folded together once, by the run
+that completes.
+
+With `createMemoWith`, the previous run's nodes are disposed before `compute` runs, including any
+nodes held in the previous value.
+:::
+
+:::details Cost of passing the previous value
 
 Passing the previous value allocates nothing. In the [counter bench](../benchmarks/counters.md) it
 adds about 10 instructions to a memo run under .NET and about 40 under Node.js: 2 % and 4.5 % of a
 write through a chain of four memos.
+:::
 
-Effects keep the signature `unit -> unit`. A fold an effect needs belongs in a memo the effect
-reads.
+:::tip Accumulate in a memo
+Effects take `unit -> unit`. If an effect needs an accumulated value, keep it in a memo and read
+that memo from the effect.
+:::
 
 ## Effects
 
-`createEffect body` runs `body` once on construction, at the current flush: immediately outside a
-batch or flush, otherwise when the batch or the running flush reaches it. A write to anything the
-body read re-runs it on the flush at the end of that write, or at the end of the enclosing batch
-(see [Batch](#batch)). A write made from inside an effect body joins the flush already running, so the effects it wakes run
-before the outer write returns.
+`createEffect body` runs the body and tracks what it reads. When a tracked value changes, the
+effect runs again.
+
+Outside a batch or an existing flush, the first run is immediate, and effects triggered by a write
+run before that write returns. Inside a [batch](#batch), effects wait until the batch ends.
+
+::::details Test your understanding
+
+The first effect writes `fahrenheit`; the second reads it. In what order are the messages logged
+when `celsius` changes to `100`? Does the Fahrenheit effect run before the write returns?
 
 ```fsharp
 let effectLog =
@@ -412,6 +460,8 @@ let effectLog =
 effectLog |> List.iter (printfn "%s")
 ```
 
+:::details Answer
+
 ```text
 celsius effect: 0
 fahrenheit effect: 32
@@ -421,9 +471,30 @@ fahrenheit effect: 212
 -- write returned
 ```
 
-`createEffect` returns `unit`; the effect belongs to the enclosing scope (see
-[Scopes and disposal](#scopes-and-disposal)). To read an effect's `Status`, `Runs` or `Error`, or to
-dispose it on its own, construct it directly with `new Effect (graph, body)`.
+The Celsius effect writes `fahrenheit`, which schedules the Fahrenheit effect in the same flush.
+Both run before the outer write returns.
+
+:::
+::::
+
+:::details Creating or writing from inside a flush
+
+An effect created inside a batch or a running flush first runs when that batch or flush reaches it.
+A write inside an effect joins the flush already running; the effects it wakes run before the
+outer write returns.
+:::
+
+`createEffect` returns `unit`. Its lifetime is managed by the enclosing scope; see
+[Scopes and disposal](#scopes-and-disposal).
+
+:::tip Keep a handle when you need one
+Construct `new Effect (graph, body)` to inspect its `Status`, `Runs` or `Error`, or to dispose it
+individually.
+:::
+
+::::details Test your understanding
+
+How many times does this effect run? Does the write after disposal run it again?
 
 ```fsharp
 let handleRuns =
@@ -438,15 +509,27 @@ let handleRuns =
 printfn "runs: %d" handleRuns
 ```
 
+:::details Answer
+
 ```text
 runs: 2
 ```
 
+It runs on construction and on the first write. Disposal stops it responding to later writes.
+
+:::
+::::
+
 ## Equality cutoff
 
-A write equal to the current value is cut off: its readers keep their values and stay unscheduled.
-A memo that recomputes to a value equal to its previous one is cut off the same way, for the nodes
-below it. The cutoff applies at every level of a chain.
+A write equal to the current value stops there: it does not schedule its readers.
+
+A memo that recomputes to an equal value stops propagation in the same way. This can happen at
+any level of a chain.
+
+::::details Test your understanding
+
+The count starts at `2`. We write `2`, then `4`. How many times do the effect and `isEven` run?
 
 ```fsharp
 let cutoffRuns, parityRuns =
@@ -465,9 +548,17 @@ let cutoffRuns, parityRuns =
 printfn "effect runs: %d, isEven runs: %d" cutoffRuns parityRuns
 ```
 
+:::details Answer
+
 ```text
 effect runs: 1, isEven runs: 2
 ```
+
+The equal write of `2` stops at `count`. Writing `4` runs `isEven`, but its result is still `true`,
+so `label` and the effect do not run again.
+
+:::
+::::
 
 In the map, an equal write stops at `count`. A write that keeps the parity re-runs `isEven`, which recomputes to the same value and stops there. A write that flips the parity reaches the effect.
 
@@ -484,8 +575,14 @@ controls [
 ]
 ```
 
-`GraphOptions.Equality` chooses the comparison. The default, `JsIdentityPolicy`, follows JavaScript
-`===`. `StructuralPolicy` compares with `EqualityComparer<'T>.Default`.
+### Choosing equality
+
+`GraphOptions.Equality` sets the comparison for every signal and memo in the graph.
+
+- `JsIdentityPolicy`, the default, follows JavaScript `===`.
+- `StructuralPolicy` uses `EqualityComparer<'T>.Default`.
+
+:::details How the policies compare values on .NET
 
 | Value kind | `JsIdentityPolicy` (default) | `StructuralPolicy` |
 | --- | --- | --- |
@@ -495,8 +592,16 @@ controls [
 | `nan` over `nan` | Propagates (IEEE: `nan` equals nothing) | Cut off |
 | `0.0` over `-0.0` | Cut off | Cut off |
 
+:::
+
+:::tip Write a new object to propagate a change
 Under `JsIdentityPolicy`, mutating a referenced object in place and writing the same reference back
 is cut off. Write a new value to propagate a change.
+:::
+
+:::details Compare the policies on .NET
+
+This example counts the effect runs caused by each write, excluding the initial run.
 
 ```fsharp
 type Point = { X: int; Y: int }
@@ -534,9 +639,15 @@ nan over nan         default wakes: 1, structural wakes: 0
 0.0 over -0.0        default wakes: 0, structural wakes: 0
 ```
 
-The table below lists, per type, whether a write of an equal but separately built value is cut off.
-The default policy depends on the target, because value types such as `DateTime` and `decimal` compile
-to objects under Fable. Writing the same instance back is cut off for every type.
+:::
+
+:::details Differences between .NET and Fable
+
+The table below shows whether writing an equal but separately built value is cut off. Some value
+types, including `DateTime` and `decimal`, compile to objects under Fable, so the default comparison
+can differ between targets.
+
+Writing the same object instance back is cut off on both targets.
 
 | Type | Default on .NET | Default under Fable | `StructuralPolicy`, both targets |
 | --- | --- | --- | --- |
@@ -549,9 +660,15 @@ to objects under Fable. Writing the same instance back is cut off for every type
 | Records, tuples, lists, `Some` of a record | Propagates | Propagates | Cut off |
 | Class without custom equality | Propagates | Propagates | Propagates |
 
-The policy applies to every signal and memo in a graph. To override it, pass your own
-`IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` returns the comparer for each type
-of value and is called once when a node is created. A node cannot take its own comparer.
+:::
+
+:::details Define a custom equality policy
+
+Pass an `IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` supplies the comparer for
+each value type and is called once when a node is created. Individual nodes cannot take their own
+comparers.
+
+For example, this graph treats strings that differ only in case as equal:
 
 ```fsharp
 type CaseInsensitivePolicy() =
@@ -572,11 +689,19 @@ printfn "case-insensitive wakes: %d" caseInsensitiveWakes
 case-insensitive wakes: 0
 ```
 
+:::
+
 ## Dynamic dependencies
 
-A memo or effect collects its dependencies again on every run. A source read by a branch that is no
-longer taken stops waking the node, and the dependency returns when the branch is taken again.
-Reading a source twice in one run records one dependency.
+A memo or effect tracks its reads afresh on every run. If a branch stops reading a source, that
+source stops triggering the computation. Taking the branch again restores the dependency.
+
+Reading the same source twice in one run records one dependency.
+
+::::details Test your understanding
+
+The effect initially reads `first`. Which writes add an entry to the log after it switches to
+`second`? What happens when it switches back?
 
 ```fsharp
 let branchLog =
@@ -598,9 +723,17 @@ let branchLog =
 printfn "%A" branchLog
 ```
 
+:::details Answer
+
 ```text
 ["a"; "x"; "y"; "b"; "c"]
 ```
+
+Writing `"b"` to `first` adds nothing while the effect reads `second`. Switching back reads that
+stored `"b"` and restores the dependency on `first`.
+
+:::
+::::
 
 Toggle the branch to move the effect's edge between `first` and `second`. A write to the source off the branch wakes nothing.
 
@@ -619,9 +752,15 @@ controls [
 
 ## Untrack
 
-`untrack body` runs `body` and records no dependencies for the reads inside it. Calls nest, and
-tracking resumes when the outermost `untrack` returns. An untracked read of a stale memo still
-recomputes it, so the value is current.
+`untrack body` reads values without making them dependencies of the surrounding computation.
+Use it when you need a value but do not want changes to that value to trigger another run.
+
+Unlike `Peek`, an untracked read of `memo.Value` refreshes a stale memo.
+
+::::details Test your understanding
+
+Does writing `ignored` run the effect again? Does writing `tracked`? What value does the final
+untracked read of `doubled` return?
 
 ```fsharp
 let untrackRuns, untrackedMemoValue =
@@ -648,16 +787,33 @@ let untrackRuns, untrackedMemoValue =
 printfn "effect runs: %d, untracked stale memo read: %d" untrackRuns untrackedMemoValue
 ```
 
+:::details Answer
+
 ```text
 effect runs: 2, untracked stale memo read: 42
 ```
 
+The effect runs initially and when `tracked` changes. The read of `ignored` records no dependency.
+The final read recomputes `doubled`, so it returns `42`.
+
+:::
+::::
+
+:::details Nested untrack calls
+Calls nest. Tracking resumes after the outermost `untrack` returns.
+:::
+
 ## Batch
 
-`batch body` defers effects until the outermost batch ends and returns `body`'s result. Several
-writes inside a batch produce one run per effect, at the last values. A memo read inside the batch
-recomputes on the spot and sees the writes made so far. A batch that throws still ends: later writes
-flush normally, and the effects queued by its writes run at the next flush. `flush ()` runs the queued effects immediately, including inside a batch.
+`batch body` groups writes and defers effects until the outermost batch ends. Several writes
+produce one run per effect, using the final values. `batch` returns the body's result.
+
+**Memos still refresh when read inside a batch**, using the writes made so far.
+
+::::details Test your understanding
+
+After both names change, what does `full.Value` return inside the batch? When does the effect log
+the new name, and when is `"batch result"` logged?
 
 ```fsharp
 let batchLog =
@@ -682,12 +838,20 @@ let batchLog =
 batchLog |> List.iter (printfn "%s")
 ```
 
+:::details Answer
+
 ```text
 effect: Ada Lovelace
 memo inside the batch: Grace Hopper
 effect: Grace Hopper
 batch result
 ```
+
+Reading `full.Value` refreshes the memo inside the batch. The effect runs when the batch ends,
+before `batch` returns its result to the caller.
+
+:::
+::::
 
 In the map, two separate writes run the effect twice. The same two writes in a batch run it once.
 
@@ -708,20 +872,43 @@ controls [
 ]
 ```
 
+:::details Flushing early and handling exceptions
+
+`flush ()` runs queued effects immediately, including inside a batch.
+
+A batch that throws still ends. Later writes flush normally, and effects queued by the failed
+batch's writes run at the next flush.
+:::
+
 ## Scopes and disposal
 
-Every memo and effect belongs to an owner: the graph's `Root`, a scope created by `createRoot`, or
-the current run of an enclosing effect, owning memo or boundary. Disposing an owner runs its
-cleanups and then disposes its children, each in reverse creation order. Disposal is idempotent.
+Every memo and effect belongs to an owner. Disposing that owner runs its cleanups and disposes
+its children. Disposing it again is safe.
+
+The owner can be the graph's `Root`, a scope created by `createRoot`, or the current run of an
+enclosing effect, owning memo or boundary.
+
+### Create a scope
 
 - `createRoot body` creates a scope, runs `body` with its `Owner`, and returns `body`'s result.
-  `owner.Dispose ()` disposes everything created inside it.
-- `onCleanup f` registers `f` with the innermost scope. Inside an effect, owning memo or
-  boundary, `f` runs before the computation's next run and when it is disposed. Inside a
-  `createMemo` body it raises `InvalidOperationException`.
-- `graph.Dispose ()` disposes every node the graph owns.
-- A root created inside an effect belongs to that effect's current run and is disposed before the
-  next run.
+- `owner.Dispose ()` disposes everything created inside that scope.
+- `graph.Dispose ()` disposes every node the graph owns. Use `use graph = new Graph ()` to dispose
+  the graph automatically when the enclosing scope ends.
+
+### Register cleanup
+
+`onCleanup f` registers cleanup with the innermost scope. Inside an effect, owning memo or boundary,
+it runs **before the next run** and **on disposal**.
+
+:::info Pure memos
+`onCleanup` inside a `createMemo` body raises `InvalidOperationException`. Use `createMemoWith`
+when the computation needs to own nodes or cleanups.
+:::
+
+::::details Test your understanding
+
+When does each subscription get cleaned up? Does writing `"hopper"` after disposal create a
+new subscription?
 
 ```fsharp
 let scopeLog =
@@ -747,6 +934,8 @@ let scopeLog =
 scopeLog |> List.iter (printfn "%s")
 ```
 
+:::details Answer
+
 ```text
 subscribe ada
 unsubscribe ada
@@ -754,9 +943,31 @@ subscribe grace
 unsubscribe grace
 ```
 
-A cleanup that throws is recorded, and the remaining cleanups still run. A `createRoot` scope keeps
-the error in its own `Errors`; the scope of an effect or memo records it in `graph.Root.Errors`. A
-write made inside a cleanup is visible to the effect's next run and does not start another run.
+Changing the user cleans up the Ada subscription before subscribing to Grace. Disposing the owner
+cleans up Grace and removes the effect, so the last write does nothing.
+
+:::
+::::
+
+:::details Disposal order and nested roots
+
+An owner runs its cleanups first, then disposes its children. Each group runs in reverse creation
+order.
+
+A root created inside an effect belongs to that effect's current run. It is disposed before the
+effect's next run.
+:::
+
+:::details Cleanup failures
+
+A cleanup that throws has its error recorded; the remaining cleanups still run. A `createRoot`
+scope stores the error in its own `Errors`. An effect or memo's scope records it in
+`graph.Root.Errors`.
+:::
+
+:::details Writes made during cleanup
+
+A write inside a cleanup is visible to the effect's next run and does not start another run.
 
 ```fsharp
 let cleanupWriteSeen =
@@ -780,9 +991,17 @@ printfn "%A" cleanupWriteSeen
 [(0, 0); (1, 1)]
 ```
 
-A disposed memo keeps its last computed value, including when it was stale at disposal. It stops
-recomputing and stops waking its readers. An async memo disposed while pending reads as `Failed`
-with an `ObjectDisposedException`, and its readers are woken once to see it.
+:::
+
+### Read a disposed memo
+
+A disposed memo keeps its last computed value. It stops recomputing and stops waking its readers,
+even if it was stale when disposed.
+
+::::details Test your understanding
+
+The source changes from `1` to `2`, but the memo is disposed before another read. What value does
+it keep? How many times has it run?
 
 ```fsharp
 let disposedValue, disposedRuns =
@@ -798,11 +1017,24 @@ let disposedValue, disposedRuns =
 printfn "value after disposal: %d, runs: %d" disposedValue disposedRuns
 ```
 
+:::details Answer
+
 ```text
 value after disposal: 10, runs: 1
 ```
 
-Re-entrant changes during a flush converge:
+Disposal keeps the stored `10`; it does not refresh the memo to `20`.
+
+:::
+::::
+
+:::details Dispose an async memo while pending
+
+It reads as `Failed` with an `ObjectDisposedException`. Its readers are woken once to see the
+failure.
+:::
+
+:::details Changes made during a flush
 
 - An effect that disposes itself, or disposes an effect queued after it, stops that effect running.
 - An effect that writes a signal it reads re-runs until the value stops changing.
@@ -828,16 +1060,28 @@ printfn "converged at %d after %d runs" convergedAt convergeRuns
 converged at 3 after 4 runs
 ```
 
+:::
+
 ## Common mistakes
 
-> **Caution: calling an `Api` function with no active graph.** `createSignal`, `createMemo` and the
-> other `Api` functions throw `InvalidOperationException` ("No ambient graph on this thread...")
-> outside `graph.Activate ()` or `graph.Run`. The active graph is per thread, so a callback on a
-> thread-pool thread also has no active graph. See [Troubleshooting](troubleshooting.md).
+:::warning No active graph
 
-> **Caution: reading an effect's side effect inside a batch.** Effects run when the outermost batch
-> ends. Code inside the batch sees the state the effects left before the batch began. Read a memo
-> instead: memos recompute on read inside a batch.
+Call `Api` functions such as `createSignal` inside `graph.Run` or while a `graph.Activate ()`
+handle is in scope. Without an active graph, they throw `InvalidOperationException`.
+
+Activation is per thread: a thread-pool callback needs its own activation. See
+[Troubleshooting](troubleshooting.md).
+:::
+
+:::warning Reading an effect's side effect inside a batch
+
+Effects wait until the outermost batch ends. Inside the batch, a value written by an effect still
+has the state left by the previous run. Read a memo when you need a current derived value.
+:::
+
+::::details Test your understanding
+
+The signal changes to `5` inside the batch. What is `mirrored` inside the batch, and after it ends?
 
 ```fsharp
 let sideEffectInsideBatch, sideEffectAfterBatch =
@@ -857,21 +1101,42 @@ let sideEffectInsideBatch, sideEffectAfterBatch =
 printfn "inside the batch: %d, after the batch: %d" sideEffectInsideBatch sideEffectAfterBatch
 ```
 
+:::details Answer
+
 ```text
 inside the batch: 0, after the batch: 5
 ```
 
-> **Caution: leaving a root or graph undisposed.** A memo keeps a dependency on every source it
-> read, and an effect keeps running, until its owner is disposed. Dispose each `createRoot` owner
-> when its work ends, and dispose the graph with `use graph = new Graph ()` or `graph.Dispose ()`.
+The effect updates `mirrored` only when the batch ends.
 
-> **Caution: expecting `Peek` to refresh a stale memo.** `Peek` returns the last computed value. Use
-> `untrack (fun () -> memo.Value)` for an up-to-date value with no dependency.
+:::
+::::
 
-> **Caution: effect exceptions are invisible through `createEffect`.** An exception thrown by an
-> effect body is stored in `Effect.Error` and never escapes the write or the flush. The effects
-> queued after it still run. `createEffect` returns `unit`, so construct the effect with
-> `new Effect (graph, body)` when the error has to be observable.
+:::warning Leaving a root or graph undisposed
+
+A memo retains its source dependencies, and an effect keeps responding to changes, until its owner
+is disposed. Dispose each `createRoot` owner when its work ends. Dispose the graph with
+`use graph = new Graph ()` or `graph.Dispose ()`.
+:::
+
+:::warning Expecting Peek to refresh a stale memo
+
+`Peek` returns the last computed value. Use `untrack (fun () -> memo.Value)` for a current value
+without recording a dependency.
+:::
+
+:::warning Missing effect errors
+
+An exception in an effect body is stored in `Effect.Error`. It does not escape the write or flush,
+and later effects still run.
+
+`createEffect` returns `unit`. Use `new Effect (graph, body)` when you need to inspect errors.
+:::
+
+::::details Test your understanding
+
+When the first effect throws, does the write return? Does the second effect run? Where can you
+find the exception?
 
 ```fsharp
 let writeReturned, effectError, laterEffectRan =
@@ -890,16 +1155,24 @@ let writeReturned, effectError, laterEffectRan =
 printfn "write returned: %b, Effect.Error: %s, later effect ran: %b" writeReturned effectError laterEffectRan
 ```
 
+:::details Answer
+
 ```text
 write returned: true, Effect.Error: boom, later effect ran: true
 ```
 
+The write returns and the later effect runs. The failing effect keeps the exception in its `Error`
+property.
+
+:::
+::::
+
 ## Key types
 
-- `Graph`
-- `Signal<'T>`
-- `Memo<'T>`
-- `Effect`
-- `Owner`
-- `GraphOptions`
-- `Api` module
+- `Graph` — contains the reactive nodes and manages their lifetime.
+- `Signal<'T>` — a value you can read and write.
+- `Memo<'T>` — a value derived from tracked reads.
+- `Effect` — a computation that reacts to changes in tracked values.
+- `Owner` — a scope that owns nodes and cleanups.
+- `GraphOptions` — graph configuration, including the equality policy.
+- `Api` module — functions such as `createSignal`, `createMemo` and `createEffect` that use the active graph.
