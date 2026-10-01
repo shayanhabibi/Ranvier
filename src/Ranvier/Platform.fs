@@ -23,8 +23,7 @@ module internal Platform =
     /// Constant under Fable. With one thread the comparison is always true,
     /// which is exactly what <c>ThreadAffinity.Guarded</c> should conclude there.
     /// </summary>
-    let inline currentThreadId () =
-        0
+    let inline currentThreadId () = 0
 #else
     /// <summary>
     /// The calling thread's id, used only to compare a caller against the

@@ -243,7 +243,8 @@ let theme =
                 Html.text " · Built with Nacara"
             ]
     )
-    |> Theme.css ".partas-solid {
+    |> Theme.css
+        ".partas-solid {
     margin-block: 0 !important;
     padding: 0 !important;
     border-left: 0 !important;
@@ -314,43 +315,37 @@ let reference =
     |> Collection.title _.Title
     |> Collection.layout (Theme.layout theme)
 
-let private directives = [
-    Directive.create "center" Decode.node
-    |> Directive.render (fun ctx args contents ->
-        Html.div [
-            prop.style [
-                style.display.flex
-                style.justifyContent.center
-            ]
-            prop.children contents
-        ]
-        )
-    Directive.create "cards" Decode.node
-    |> Directive.render (fun ctx args contents ->
-        Html.div [
-            prop.className "rv-cards"
-            prop.children contents
-        ]
-        )
-    Directive.create "card" (Decode.object (fun get ->
-        {| title = get.Required.Field "title" Decode.string
-           href = get.Optional.Field "href" Decode.string |})
-    )
-    |> Directive.render (fun ctx args contents ->
-        Html.a [
-            prop.className "rv-card"
-            if args.href.IsSome then
-                prop.href args.href.Value
-            prop.children [
-                Html.strong [
-                    prop.className "rv-card__title"
-                    prop.text args.title
-                ]
-                contents
-            ]
-        ]
-        )
-]
+let private directives =
+    [
+        Directive.create "center" Decode.node
+        |> Directive.render (fun ctx args contents ->
+            Html.div
+                [
+                    prop.style [ style.display.flex; style.justifyContent.center ]
+                    prop.children contents
+                ])
+        Directive.create "cards" Decode.node
+        |> Directive.render (fun ctx args contents -> Html.div [ prop.className "rv-cards"; prop.children contents ])
+        Directive.create
+            "card"
+            (Decode.object (fun get ->
+                {|
+                    title = get.Required.Field "title" Decode.string
+                    href = get.Optional.Field "href" Decode.string
+                |}))
+        |> Directive.render (fun ctx args contents ->
+            Html.a
+                [
+                    prop.className "rv-card"
+                    if args.href.IsSome then
+                        prop.href args.href.Value
+                    prop.children
+                        [
+                            Html.strong [ prop.className "rv-card__title"; prop.text args.title ]
+                            contents
+                        ]
+                ])
+    ]
 
 
 let site =
