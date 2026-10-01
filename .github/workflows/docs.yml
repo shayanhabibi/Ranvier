@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '22'
       - name: Build the site
-        run: dotnet fsi build.fsx -- docs --quick
+        run: dotnet fsi build.fsx -- docs
       - uses: actions/upload-pages-artifact@v5
         with:
           path: docs/output
