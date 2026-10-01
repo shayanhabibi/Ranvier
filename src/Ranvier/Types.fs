@@ -120,7 +120,9 @@ type INode =
     abstract Id: int
     abstract Status: Status
 
-// TODO - performant throw would not include the stack trace
+// ~20% can be gained by using a preallocated exception which the CLR specially treats
+// by injecting 0 frames. Unfortunately, we cannot register our own preallocated exception,
+// and using a known preallocated exception is poor API.
 /// <summary>
 /// Thrown by a transparent read of a pending source, to abort the reading
 /// computation non-locally — including from inside helpers that know nothing
@@ -131,7 +133,8 @@ type INode =
 /// fresh throws measured cheaper than cached ones on .NET 9, 10 and 11 alike.
 /// </remarks>
 exception NotReadyException of source: INode with
-    override this.StackTrace = null
+    // Does not prevent CLR from evaluating stack
+    // override this.StackTrace = null
     /// <summary><c>NotReadyException</c>, then the source's <c>ToString</c> text, or <c>null</c>.</summary>
     override this.Message =
         match box this.source with

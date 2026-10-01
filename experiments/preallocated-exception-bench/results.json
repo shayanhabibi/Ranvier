@@ -1,0 +1,61 @@
+{
+  "runtime": "10.0.12",
+  "os": "Microsoft Windows NT 10.0.26200.0",
+  "iterations": 50000,
+  "results": [
+    {
+      "scenario": "baseline",
+      "status": "measured",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 100.882,
+      "median_bytes_op": 0.00336,
+      "diagnostics": "no candidate"
+    },
+    {
+      "scenario": "fresh",
+      "status": "measured",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 936.344,
+      "median_bytes_op": 192.00336,
+      "diagnostics": "no candidate"
+    },
+    {
+      "scenario": "cached",
+      "status": "measured",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 911.402,
+      "median_bytes_op": 72.00336,
+      "diagnostics": "type=Program\u002BProbe; hresult=0x80131500; immutable=False; StackTrace(exception) frames=1; Exception.StackTrace length=158"
+    },
+    {
+      "scenario": "override",
+      "status": "measured",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 913.64,
+      "median_bytes_op": 72.00336,
+      "diagnostics": "type=Program\u002BNoTrace; hresult=0x80131500; immutable=False; StackTrace(exception) frames=1; Exception.StackTrace length=0"
+    },
+    {
+      "scenario": "marshal-so",
+      "status": "candidate-is-not-runtime-immutable-singleton",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 0,
+      "median_bytes_op": 0,
+      "diagnostics": "type=System.StackOverflowException; hresult=0x800703E9; immutable=False; StackTrace(exception) frames=0; Exception.StackTrace length=-1"
+    },
+    {
+      "scenario": "marshal-oom",
+      "status": "candidate-is-not-runtime-immutable-singleton",
+      "immutable": false,
+      "rounds": 7,
+      "median_ns_op": 0,
+      "median_bytes_op": 0,
+      "diagnostics": "type=System.OutOfMemoryException; hresult=0x8007000E; immutable=False; StackTrace(exception) frames=0; Exception.StackTrace length=-1"
+    }
+  ]
+}

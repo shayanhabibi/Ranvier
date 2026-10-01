@@ -1,0 +1,1467 @@
+{
+  "runtime": ".NET 10.0.12",
+  "os": "Microsoft Windows 10.0.26200",
+  "architecture": "X64",
+  "logicalProcessors": 24,
+  "utc": "2026-10-01T03:14:12.3737186+00:00",
+  "iterations": 200000,
+  "warmup": 20000,
+  "environment": {
+    "DOTNET_TieredCompilation": "0",
+    "DOTNET_TieredPGO": "0",
+    "DOTNET_ReadyToRun": "0",
+    "DOTNET_gcServer": "0"
+  },
+  "verification": {
+    "verified": true,
+    "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+    "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1",
+    "sameInstanceAfterCollection": true,
+    "rows": [
+      {
+        "name": "cached",
+        "before": {
+          "type": "Program\u002BProbe",
+          "immutable": false,
+          "rawFrames": 0,
+          "renderedTraceLength": null
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "Program\u002BProbe",
+              "immutable": false,
+              "rawFrames": 2,
+              "renderedTraceLength": 322
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "Program\u002BProbe",
+              "immutable": false,
+              "rawFrames": 18,
+              "renderedTraceLength": 2930
+            }
+          }
+        ]
+      },
+      {
+        "name": "override",
+        "before": {
+          "type": "Program\u002BNoTrace",
+          "immutable": false,
+          "rawFrames": 0,
+          "renderedTraceLength": 0
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "Program\u002BNoTrace",
+              "immutable": false,
+              "rawFrames": 2,
+              "renderedTraceLength": 0
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "Program\u002BNoTrace",
+              "immutable": false,
+              "rawFrames": 18,
+              "renderedTraceLength": 0
+            }
+          }
+        ]
+      },
+      {
+        "name": "cached-oom",
+        "before": {
+          "type": "System.OutOfMemoryException",
+          "immutable": false,
+          "rawFrames": 0,
+          "renderedTraceLength": null
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": false,
+              "rawFrames": 2,
+              "renderedTraceLength": 322
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": false,
+              "rawFrames": 18,
+              "renderedTraceLength": 2930
+            }
+          }
+        ]
+      },
+      {
+        "name": "marshal-so",
+        "before": {
+          "type": "System.StackOverflowException",
+          "immutable": false,
+          "rawFrames": 0,
+          "renderedTraceLength": null
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "System.StackOverflowException",
+              "immutable": false,
+              "rawFrames": 2,
+              "renderedTraceLength": 322
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "System.StackOverflowException",
+              "immutable": false,
+              "rawFrames": 18,
+              "renderedTraceLength": 2930
+            }
+          }
+        ]
+      },
+      {
+        "name": "marshal-oom",
+        "before": {
+          "type": "System.OutOfMemoryException",
+          "immutable": false,
+          "rawFrames": 0,
+          "renderedTraceLength": null
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": false,
+              "rawFrames": 2,
+              "renderedTraceLength": 322
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": false,
+              "rawFrames": 18,
+              "renderedTraceLength": 2930
+            }
+          }
+        ]
+      },
+      {
+        "name": "native-oom",
+        "before": {
+          "type": "System.OutOfMemoryException",
+          "immutable": true,
+          "rawFrames": 0,
+          "renderedTraceLength": null
+        },
+        "after": [
+          {
+            "depth": 0,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": true,
+              "rawFrames": 0,
+              "renderedTraceLength": null
+            }
+          },
+          {
+            "depth": 16,
+            "diagnostic": {
+              "type": "System.OutOfMemoryException",
+              "immutable": true,
+              "rawFrames": 0,
+              "renderedTraceLength": null
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "scenario": "baseline",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 1.297,
+      "minNsOp": 1.2795,
+      "maxNsOp": 1.3065,
+      "medianBytesOp": 0,
+      "rawFrames": [
+        null
+      ],
+      "immutable": [
+        null
+      ],
+      "samples": [
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.284,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.297,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.3025,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.3065,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.301,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.297,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 0,
+          "nsOp": 1.2795,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "fresh",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 1078.472,
+      "minNsOp": 1073.4095,
+      "maxNsOp": 1088.4955,
+      "medianBytesOp": 296,
+      "rawFrames": [
+        2
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1078.472,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1084.0415,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1073.4095,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1073.7925,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1088.4955,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1084.749,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 0,
+          "nsOp": 1075.3465,
+          "bytesOp": 296,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "cached",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 1065.629,
+      "minNsOp": 1059.723,
+      "maxNsOp": 1086.446,
+      "medianBytesOp": 176,
+      "rawFrames": [
+        2
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1064.212,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1079.0395,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1063.299,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1086.446,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1059.723,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1065.629,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 0,
+          "nsOp": 1086.2525,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "override",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 1071.051,
+      "minNsOp": 1059.882,
+      "maxNsOp": 1073.731,
+      "medianBytesOp": 176,
+      "rawFrames": [
+        2
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1073.591,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1061.2345,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1071.051,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1073.731,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1065.7645,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1059.882,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 0,
+          "nsOp": 1073.4835,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "cached-oom",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 1069.6075,
+      "minNsOp": 1060.4135,
+      "maxNsOp": 1076.057,
+      "medianBytesOp": 176,
+      "rawFrames": [
+        2
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1067.6375,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1069.47,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1076.057,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1069.6075,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1071.1885,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1071.2055,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 0,
+          "nsOp": 1060.4135,
+          "bytesOp": 176,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 2,
+            "renderedTraceLength": 322
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "native-oom",
+      "depth": 0,
+      "rounds": 7,
+      "medianNsOp": 864.535,
+      "minNsOp": 851.7805,
+      "maxNsOp": 869.8035,
+      "medianBytesOp": 0,
+      "rawFrames": [
+        0
+      ],
+      "immutable": [
+        true
+      ],
+      "samples": [
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 855.939,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 869.8035,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 852.6395,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 851.7805,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 865.3275,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 864.535,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 0,
+          "nsOp": 866.498,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "baseline",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 1.2955,
+      "minNsOp": 1.2845,
+      "maxNsOp": 1.3435,
+      "medianBytesOp": 0,
+      "rawFrames": [
+        null
+      ],
+      "immutable": [
+        null
+      ],
+      "samples": [
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.3435,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.2875,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.295,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.296,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.2845,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.2955,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        },
+        {
+          "name": "baseline",
+          "depth": 16,
+          "nsOp": 1.2975,
+          "bytesOp": 0,
+          "diagnostic": null,
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "fresh",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 3610.531,
+      "minNsOp": 3585.567,
+      "maxNsOp": 3752.7605,
+      "medianBytesOp": 2376,
+      "rawFrames": [
+        18
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3596.1105,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3632.1175,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3711.141,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3586.5415,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3610.531,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3585.567,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "fresh",
+          "depth": 16,
+          "nsOp": 3752.7605,
+          "bytesOp": 2376,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "cached",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 3573.6655,
+      "minNsOp": 3542.0645,
+      "maxNsOp": 3606.5625,
+      "medianBytesOp": 2256,
+      "rawFrames": [
+        18
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3606.5625,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3543.6145,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3573.6655,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3590.8135,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3576.7635,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3568.4055,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached",
+          "depth": 16,
+          "nsOp": 3542.0645,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BProbe",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "override",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 3624.3895,
+      "minNsOp": 3568.5935,
+      "maxNsOp": 3664.06,
+      "medianBytesOp": 2256,
+      "rawFrames": [
+        18
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3598.7525,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3661.9965,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3637.3825,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3595.0765,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3624.3895,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3568.5935,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        },
+        {
+          "name": "override",
+          "depth": 16,
+          "nsOp": 3664.06,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "Program\u002BNoTrace",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 0
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "cached-oom",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 3609.898,
+      "minNsOp": 3579.242,
+      "maxNsOp": 3708.7195,
+      "medianBytesOp": 2256,
+      "rawFrames": [
+        18
+      ],
+      "immutable": [
+        false
+      ],
+      "samples": [
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3609.898,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3708.7195,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3652.6635,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3579.242,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3591.2775,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3584.323,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        },
+        {
+          "name": "cached-oom",
+          "depth": 16,
+          "nsOp": 3610.8685,
+          "bytesOp": 2256,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": false,
+            "rawFrames": 18,
+            "renderedTraceLength": 2930
+          },
+          "acquisition": null
+        }
+      ]
+    },
+    {
+      "scenario": "native-oom",
+      "depth": 16,
+      "rounds": 7,
+      "medianNsOp": 2944.606,
+      "minNsOp": 2914.973,
+      "maxNsOp": 3106.8945,
+      "medianBytesOp": 0,
+      "rawFrames": [
+        0
+      ],
+      "immutable": [
+        true
+      ],
+      "samples": [
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2914.973,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 3106.8945,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2944.606,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2950.511,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2928.746,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2927.508,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        },
+        {
+          "name": "native-oom",
+          "depth": 16,
+          "nsOp": 2988.1555,
+          "bytesOp": 0,
+          "diagnostic": {
+            "type": "System.OutOfMemoryException",
+            "immutable": true,
+            "rawFrames": 0,
+            "renderedTraceLength": null
+          },
+          "acquisition": {
+            "symbol": "coreclr!g_pPreallocatedOutOfMemoryException",
+            "pdbIdentity": "07FB51ECFD5748BE9DB932401E0670CD1"
+          }
+        }
+      ]
+    }
+  ]
+}
