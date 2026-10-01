@@ -178,15 +178,15 @@ public class CollectionTests
             switch (edit)
             {
                 case PositionalChange<int>.RemoveAt r:
-                    mirror.RemoveAt(r.index);
+                    mirror.RemoveAt(r.Index);
                     break;
                 case PositionalChange<int>.InsertAt i:
-                    mirror.Insert(i.index, i.key);
+                    mirror.Insert(i.Index, i.Key);
                     break;
                 case PositionalChange<int>.Move m:
-                    var moved = mirror[m.oldIndex];
-                    mirror.RemoveAt(m.oldIndex);
-                    mirror.Insert(m.newIndex, moved);
+                    var moved = mirror[m.OldIndex];
+                    mirror.RemoveAt(m.OldIndex);
+                    mirror.Insert(m.NewIndex, moved);
                     break;
             }
         }

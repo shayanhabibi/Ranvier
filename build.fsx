@@ -281,6 +281,12 @@ module Stage =
         let! watch = Options.watch
         return stage "docs" {
             quiet
+            stage "map expectations" {
+                run "dotnet fsi docs/maps/validation/Generate.fsx"
+                envVars [ ("RanvierTrace", "true") ]
+                run "dotnet fable docs/.nacara/map-validation/Checks.fsproj -o docs/.nacara/map-validation/out -e .mjs --noCache"
+                run "node docs/.nacara/map-validation/out/Main.mjs"
+            }
             run (
                 Cmd.ofString "dotnet"
                 |> Cmd.args [ "run"; "--project"; "docs/docs.fsproj"; "--" ]

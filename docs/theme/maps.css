@@ -115,6 +115,10 @@
   margin: 0; padding: .5rem 1rem; list-style: none; max-height: 9.5rem; overflow-y: auto;
   border-top: 1px solid var(--nacara-border);
   font-family: var(--nacara-font-mono, monospace); font-size: .75rem; line-height: 1.6; color: var(--nacara-text-muted); }
+.rv-map__caption {
+  margin: 0; padding: .625rem 1rem; border-top: 1px solid var(--nacara-border);
+  background: var(--rv-surface); color: var(--rv-text); line-height: 1.6; }
+.rv-map__caption:empty { display: none; }
 .rv-map__log:empty { display: none; }
 .rv-map__log li:last-child { color: var(--rv-text); }
 .rv-map__log li.is-error { color: var(--rv-error); }

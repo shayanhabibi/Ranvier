@@ -87,11 +87,12 @@ module MapFence =
     let private binding =
         Regex (@"^let\s+(?:mutable\s+)?(?<name>[A-Za-z_][\w']*)\s*(?::[^=]*)?=\s*(?<rest>.*)$", RegexOptions.Compiled)
 
-    // Effects and roots return no node to label, and a lookup is labelled through its owner.
+    // Lookups and editable values are labelled during creation.
     let private node =
-        Regex (@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b)\w*\b", RegexOptions.Compiled)
+        Regex (@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b|Editable\b|Draft\b)\w*\b", RegexOptions.Compiled)
 
-    let private lookup = Regex (@"^create(?:Lookup|Selector)\b", RegexOptions.Compiled)
+    let private named =
+        Regex (@"^create(?:Lookup|Selector|Editable|Draft)\b", RegexOptions.Compiled)
 
     let private controls = Regex (@"^controls\b", RegexOptions.Compiled)
 
@@ -156,30 +157,43 @@ module MapFence =
             else
                 None
 
-    /// <summary>The item's line with its <c>create…</c> call run in <c>Trace.named</c>, for a one-line lookup binding.</summary>
-    let private namedLookup (lines: string[]) (first: int, last: int) =
+    /// <summary>The binding with its lookup or editable creation wrapped in <c>Trace.named</c>.</summary>
+    let private namedBinding (lines: string[]) (first: int, last: int) =
         let m = binding.Match lines[first]
         let rest = m.Groups["rest"]
 
-        if
-            first = last
-            && m.Success
-            && lookup.IsMatch rest.Value
-        then
+        let value =
+            if rest.Value.Trim () <> "" then
+                rest.Value.Trim ()
+            else
+                lines[first + 1 .. last]
+                |> Array.tryFind (blank >> not)
+                |> Option.map _.Trim()
+                |> Option.defaultValue ""
+
+        if m.Success && named.IsMatch value then
             let name = m.Groups["name"].Value
 
-            Some (
-                name,
-                lines[first].Substring(0, rest.Index)
-                + $"Trace.named \"%s{name}\" (fun () -> %s{rest.Value})"
-            )
+            let wrapped =
+                lines[first..last]
+                |> Array.mapi (fun offset line ->
+                    let line =
+                        if offset = 0 then
+                            line.Substring(0, rest.Index).TrimEnd()
+                            + $" Trace.named \"%s{name}\" (fun () ->"
+                            + (if rest.Value = "" then "" else " " + rest.Value)
+                        else
+                            "    " + line
+
+                    if offset = last - first then line + ")" else line)
+
+            Some (name, wrapped)
         else
             None
 
     /// <summary>
     /// A module named by <c>moduleName cellId</c> whose <c>scenario</c> runs the fence's code against a graph and
-    /// returns its controls, with a <c>Trace.label</c> after each binding of a node and a one-line lookup binding run in
-    /// <c>Trace.named</c>.
+    /// returns its controls, with <c>Trace.label</c> after node bindings and <c>Trace.named</c> around lookup and editable creation.
     /// </summary>
     /// <returns>The module's code, its spans and the bindings, or problems at fence lines.</returns>
     let scenario (cellId: string) (code: string) : Result<string * MapSpan list * (string * int * int) list, (int * string) list> =
@@ -247,10 +261,10 @@ module MapFence =
                     output.Add $"%s{pad}Trace.label (graph', %s{name}, \"%s{name}\")"
                     bindings.Add (name, first + 1, last + 1)
                 | None ->
-                    match namedLookup lines (first, last) with
-                    | Some (name, line) ->
+                    match namedBinding lines (first, last) with
+                    | Some (name, wrapped) ->
                         copy copied (first - 1)
-                        copied <- first + 1
+                        copied <- last + 1
 
                         spans.Add
                             {
@@ -260,7 +274,18 @@ module MapFence =
                                 Indent = indent
                             }
 
-                        output.Add (pad + line)
+                        if last > first then
+                            spans.Add
+                                {
+                                    Generated = output.Count + 2
+                                    Length = last - first
+                                    Body = first + 2
+                                    Indent = indent + 4
+                                }
+
+                        for line in wrapped do
+                            output.Add (pad + line)
+
                         bindings.Add (name, first + 1, last + 1)
                     | None -> ()
 

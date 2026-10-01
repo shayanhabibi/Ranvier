@@ -7,12 +7,15 @@ order: 11
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-A test of async state decides when each flight lands. It completes each flight by hand, on the
-test's own thread, and reads `Pending`, `Ready` and `Failed` as values. The test needs no timers,
-sleeps or polling. For the behaviour these tests check, see [Async and pending](async-and-pending.md).
+Control when each async request completes, then assert its `Pending`, `Ready` or `Failed` state.
+Complete requests on the test thread to keep the tests deterministic.
 
+For the behaviour being tested, see [Async and pending](async-and-pending.md).
+
+:::details Runnable examples
 Every sample on this page is an [Expecto](https://github.com/haf/expecto) test, and each one runs in
 the Ranvier suite as `tests/Ranvier.Tests/TestingGuide.fs`.
+:::
 
 ```fsharp
 open System
@@ -24,10 +27,10 @@ open Ranvier
 
 ## The setup
 
-Build the graph with an explicit `ManualDispatcher`. The test thread owns the graph, and a flight
-completed on that thread applies at once. A result that arrives from another thread waits in the
-graph's inbox until the test calls `graph.Pump ()`, so no background thread changes the graph
-while an assertion runs.
+Use a `ManualDispatcher`. A request completed on the test thread applies immediately; work from
+another thread waits until the test calls `graph.Pump ()`.
+
+:::details Graph helper
 
 ```fsharp
 /// A graph under `policy` whose off-thread work waits for Pump.
@@ -40,9 +43,12 @@ let newGraph (policy: FlightPolicy) =
     )
 ```
 
-Replace the remote service with one that records each request and returns a
-`TaskCompletionSource` task. Each call is one flight. The test lands it by completing `Reply`, and
-reads the input and the cancellation token the flight received.
+:::
+
+Replace the remote service with a fake returning a `TaskCompletionSource` task. Record each
+request's input and cancellation token, then complete its `Reply` when the test chooses.
+
+:::details Fake search service
 
 ```fsharp
 /// A request to the fake service. The test lands it by completing `Reply`.
@@ -74,13 +80,17 @@ let search (graph: Graph) =
         query, calls, hits)
 ```
 
-Create the `TaskCompletionSource` without `TaskCreationOptions.RunContinuationsAsynchronously`.
-With that option the continuation runs on the thread pool, and the result waits for a pump.
+:::
+
+:::tip Complete continuations on the test thread
+Create `TaskCompletionSource` without `TaskCreationOptions.RunContinuationsAsynchronously`.
+That option sends the continuation to the thread pool, so the result waits for a pump.
+:::
 
 ## Landing each flight
 
-`TryValue` returns a `Reading<'T>` with structural equality, so each state is one `Expect.equal`. A
-`Failed` reading holds the original exception and compares it by reference.
+Assert `TryValue` directly with `Expect.equal`. Its `Reading<'T>` supports structural equality;
+a `Failed` reading compares the original exception by reference.
 
 ```fsharp
 testCase "the test decides when each flight lands"
@@ -104,6 +114,8 @@ testCase "the test decides when each flight lands"
 
 An `AsyncSource` needs no fake: `Settle` and `Fail` land it directly.
 
+:::details Test an AsyncSource directly
+
 ```fsharp
 testCase "an async source settles and fails by hand"
 <| fun () ->
@@ -122,10 +134,14 @@ testCase "an async source settles and fails by hand"
     Expect.equal greeting.TryValue (Ready "Hello, Ada") "a settle clears the failure"
 ```
 
+:::
+
 ## Superseded flights
 
 Start a second flight before the first lands, then land them in the order under test. Under
 `CancelPrevious`, the first flight's token is cancelled and its late result is discarded:
+
+:::details Check cancellation and a late result
 
 ```fsharp
 testCase "CancelPrevious discards the superseded flight"
@@ -144,8 +160,14 @@ testCase "CancelPrevious discards the superseded flight"
     Expect.equal hits.TryValue (Ready [ "b1" ]) "the newest flight lands"
 ```
 
-Under `Queue`, every result is applied in start order. An effect records each value it sees. Here
-the effect's re-run starts the second flight, and the second result lands first:
+:::
+
+Under `Queue`, results apply in start order even when they complete in reverse order.
+
+:::details Check queued results
+
+The effect records applied values and starts the second flight on its re-run. Complete the second
+request first, assert that it waits, then complete the first:
 
 ```fsharp
 testCase "Queue applies every flight in start order"
@@ -162,10 +184,14 @@ testCase "Queue applies every flight in start order"
     Expect.equal (List.ofSeq seen) [ [ "a1" ]; [ "b1" ] ] "both results, in start order"
 ```
 
+:::
+
 ## Boundaries
 
 A boundary's `Value` and `IsWaiting` are ordinary reads. This boundary keeps its last value while a
 refresh is in progress:
+
+:::details Assert the value and loading state together
 
 ```fsharp
 testCase "a boundary shows its fallback while a flight is in progress"
@@ -183,19 +209,24 @@ testCase "a boundary shows its fallback while a flight is in progress"
     Expect.equal (results.Value, results.IsWaiting) ([ "a1" ], true) "the last value while refreshing"
 ```
 
+:::
+
 ## Work on other threads
 
-Code under test that awaits real IO completes its flight on the thread pool. Under
-`ManualDispatcher` the result waits in the inbox: wait until `graph.PendingWork` is above zero, then
-call `graph.Pump ()` on the test thread. [Dispatcher selection](async-and-pending.md#dispatcher-selection)
-shows the sequence. Prefer a fake that the test completes, as above: the test then decides the
-order of results, and the thread pool plays no part.
+Prefer a fake completed by the test. It controls result order without involving the thread pool.
 
+:::details When the test must use real IO
+Wait until `graph.PendingWork` is above zero, then call `graph.Pump ()` on the test thread to apply
+the queued result. See [Dispatcher selection](async-and-pending.md#dispatcher-selection).
+:::
+
+:::warning Keep the test on the graph's thread
 Write each test as a synchronous `testCase`. In a `task` test, the code after an `await` can
 resume on another thread, and the graph's thread guard raises on the next write.
+:::
 
 ## Time
 
-Ranvier has no time-based policies yet: debounce and throttle are not in the library, as a flight
-policy or as a combinator; the [roadmap](../concepts/roadmap.md) lists them under consideration. A
-Ranvier graph reads no clock, so a test has no timer to fake.
+A Ranvier graph reads no clock, so these tests need no timer to fake. Debounce and throttle are
+under consideration in the [roadmap](../concepts/roadmap.md); neither is currently a flight policy
+or combinator.

@@ -8,14 +8,18 @@ description: Using Ranvier from C# through the Ranvier.CSharp package.
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-`Ranvier.CSharp` puts the F# `Api` behind C# names: `Reactive` holds one static factory per `Api` function, each
-taking `Func` and `Action` delegates, and extension methods cover `Graph.Run`, `Signal.Update` and the projection
-operators. The nodes it returns are the engine's own `Signal<T>`, `Memo<T>`, `AsyncMemo<T>` and `Projection<K, V>`.
+Create signals, derive values and react to changes from C# with `Ranvier.CSharp`.
+
+The `Reactive` factories take familiar `Func` and `Action` delegates. They return the engine's own
+nodes, including `Signal<T>`, `Memo<T>`, `AsyncMemo<T>` and `Projection<K, V>`. Extension methods
+provide `Graph.Run`, `Signal.Update` and the collection operators.
 
 ## At a glance
 
-A XAML view model with a derived value over an async source. It has no `IsBusy` field, no `try`/`catch` and no
-`OnPropertyChanged` calls:
+A city drives an async temperature request; a computed property formats the result for a XAML view.
+`ReactiveObject` handles property notifications, loading and errors.
+
+:::details A complete weather view model
 
 ```csharp
 public interface IWeatherService
@@ -47,8 +51,9 @@ public sealed class WeatherViewModel : ReactiveObject
 }
 ```
 
-`ReactiveObject` implements `INotifyPropertyChanged`, `INotifyDataErrorInfo` and `IDisposable`, and adds
-`IsLoading` and `HasErrors`. Bound to a view, it behaves as follows:
+:::
+
+Bound to a view, the example behaves as follows:
 
 - **Loading.** While the temperature is in flight, `IsLoading` is true and `Forecast` keeps its last value, or `null` before the first result. Setting
   `City` starts a new request.
@@ -58,8 +63,12 @@ public sealed class WeatherViewModel : ReactiveObject
 - **Retry.** `Retry` writes the signal the request reads, so the request runs again for the current city. The error
   clears while it loads, and the next result replaces it.
 
-The sample runs as a test in `tests/Ranvier.CSharp.Tests/HeadlineSampleTests.cs`. [Binding to XAML](#binding-to-xaml)
-covers the bindings in full.
+`ReactiveObject` implements `INotifyPropertyChanged`, `INotifyDataErrorInfo` and `IDisposable`,
+and exposes `IsLoading` and `HasErrors`. See [Binding to XAML](#binding-to-xaml) for the details.
+
+:::details Runnable sample
+The sample runs as a test in `tests/Ranvier.CSharp.Tests/HeadlineSampleTests.cs`.
+:::
 
 ## Setup
 
@@ -69,11 +78,13 @@ Reference `Ranvier.CSharp`; it brings `Ranvier` with it:
 dotnet add package Ranvier.CSharp --prerelease
 ```
 
-Or, built from source:
+:::details Reference a source build
 
 ```xml
 <ProjectReference Include="path/to/Ranvier/src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
 ```
+
+:::
 
 Import the factories statically:
 
@@ -84,6 +95,12 @@ using static Ranvier.CSharp.Reactive;
 ```
 
 ## A first graph
+
+A signal holds a value, a memo derives one, and an effect reacts to changes in what it reads.
+
+::::details Test your understanding
+
+What does the effect print on construction? What does it print when `count` changes to `2`?
 
 ```csharp
 var graph = new Graph();
@@ -98,15 +115,45 @@ graph.Run(() =>
 });
 ```
 
+:::details Answer
+
 ```text
 doubled 2
 doubled 4
 ```
 
-Every factory resolves the active graph, as the F# functions do. Call them inside `graph.Run`, or while a
+The first read computes `doubled` from `1`. The write refreshes it from `2` and runs the effect
+again before the write returns.
+
+:::
+::::
+
+:::info Activate the graph
+Every factory uses the active graph. Call factories inside `graph.Run`, or while a
 `using (graph.Activate ())` block is open.
+:::
+
+The map runs the same engine behaviour as the C# example. Set the count to `2` and watch
+the derived value update before the effect prints it.
+
+```fsharp map replay show=output
+let count = createSignal 1
+let doubled = createMemo (fun _ -> count.Value * 2)
+createEffect (fun () -> printfn "doubled %d" doubled.Value)
+
+controls [
+    button "Set count to 2" (fun () -> count.Value <- 2)
+    |> describe "The count write refreshes doubled to 4."
+    |> expect "The count write refreshes doubled to 4." (fun () -> doubled.Peek = 4)
+]
+```
 
 ## The factories
+
+Use `Signal` for writable state, `Memo` for derived state, and `Effect` for side effects.
+The remaining factories cover async values, boundaries, scopes and collections.
+
+:::details C# factories and their F# equivalents
 
 | C# | F# |
 | --- | --- |
@@ -130,22 +177,34 @@ Every factory resolves the active graph, as the F# functions do. Call them insid
 | `IndexProjection(source, map)` | `createIndexProjection` |
 | `Lookup(source, f, affected)`, `Selector(source)` | `createLookup`, `createSelector` |
 
-The overloads that take a `seed` pass the boundary's last value to `fallback` and `recover`, or `seed` before its
-first. A fallback that returns its argument keeps the last value shown while the body reloads:
+:::
+
+:::tip Keep the previous value while loading
+Boundary overloads that take a `seed` pass the last published value to their fallback and recovery
+handlers. Before the first value, they pass the seed.
+
+A fallback that returns its argument keeps the previous value visible while the body reloads:
 
 ```csharp
 var shown = Suspense(() => name.Value, previous => previous, "Loading");
 ```
 
+:::
+
+:::details Construct a boundary with an explicit graph
 `Boundary<T>.Suspense`, `Errors` and `Catching` take the graph explicitly, with the seed before the handlers.
+:::
 
 ## Async values
 
-`Async` takes a task factory. The token is cancelled when a newer flight supersedes the one it was given.
+`Async` takes a task factory. A new request cancels the token of the request it supersedes.
 
-A search view model: the results are derived from the query, and a boundary turns loading and failure into
-the text to show. `IsSearching` and `Error` read the boundary, so the view model holds no busy flag and no
-`try`/`catch`:
+A boundary turns loading, success and failure into values the view can display.
+
+:::details A search view model
+
+`Query` drives the request. `Summary` displays its results, a loading message or an error message.
+`IsSearching` and `Error` read the boundary's state.
 
 ```csharp
 public interface ISearchService
@@ -173,6 +232,8 @@ public sealed class SearchViewModel
 }
 ```
 
+:::
+
 Construct it inside `graph.Run`, and bind the view with an effect:
 
 ```csharp
@@ -183,15 +244,24 @@ graph.Run(() => Effect(() => Console.WriteLine(search.Summary.Value)));
 search.Query.Value = "ada";
 ```
 
-With the effect reading `Summary`, each write to `Query` starts a new search and cancels the token of the one in
-progress. While a search is in flight the effect prints `Searching…` and `IsSearching` is `true`; a failed search
-prints `Search failed: …` and sets `Error`; the next search that succeeds prints its results and clears `Error`.
-A flight that completes on the thread pool reaches the graph through its dispatcher, as described in
-[Async and pending](async-and-pending.md#threading-and-dispatch).
+With the effect observing `Summary`:
 
-Read every input before the first `await`: a read after it is not tracked. The overload taking `Previous<T>`
-receives the value last published. `previous.SettledOr(seed)` returns it, or `seed` before the first value;
-`previous.TrySettled()` returns `(HasValue, Value)`:
+- A write to `Query` starts a search and cancels the previous request's token.
+- While loading, the effect prints `Searching…` and `IsSearching` is `true`.
+- A failure prints `Search failed: …` and sets `Error`.
+- A later success prints the results and clears `Error`.
+
+:::warning Read inputs before awaiting
+Reads after the first `await` are not tracked. Read every reactive input before it so that changes
+can start a new request.
+:::
+
+:::details Use the previous async value
+
+The overload taking `Previous<T>` receives the value last published:
+
+- `previous.SettledOr(seed)` returns it, or the seed before the first value.
+- `previous.TrySettled()` returns `(HasValue, Value)`.
 
 ```csharp
 var total = Async<int>(async (previous, token) =>
@@ -204,7 +274,17 @@ var total = Async<int>(async (previous, token) =>
 Both return a `ValueTask` that is already complete under `CancelPrevious` and `KeepLatest`. Under `Queue` it
 completes once the flight started before this one is applied.
 
-`TryValue` reads a node without raising. `TryGetValue` and `TryGetError` take it apart:
+:::
+
+:::details Async completion and threads
+A request that completes on the thread pool reaches the graph through its dispatcher. See
+[Async and pending](async-and-pending.md#threading-and-dispatch).
+:::
+
+### Read without throwing
+
+`TryValue` lets you handle ready, failed and pending states explicitly. Use `TryGetValue` and
+`TryGetError` to take the result apart:
 
 ```csharp
 if (price.TryValue.TryGetValue(out var value)) Console.WriteLine(value);
@@ -214,7 +294,7 @@ else Console.WriteLine("pending");
 
 ## Collections
 
-The projection operators carry LINQ names and return live nodes. Each updates per changed row.
+Projection operators use LINQ names and return live nodes that update per changed row.
 
 ```csharp
 var rows = Projection(() => todos.Value, t => t.Id, t => t);
@@ -225,6 +305,8 @@ var remaining = rows.Count(t => !t.Done);
 var firstPage = open.Take(() => pageSize.Value);
 ```
 
+:::details Collection operators and their F# equivalents
+
 | C# | F# |
 | --- | --- |
 | `Where`, `Select`, `OrderBy`, `GroupBy` | `Projection.filter`, `map`, `sortBy`, `groupBy` |
@@ -234,11 +316,15 @@ var firstPage = open.Take(() => pageSize.Value);
 | `Aggregate(seed, folder)` | `Projection.fold` |
 | `Aggregate(zero, add, subtract)` | `Projection.foldGroup` |
 
-`rows.TryGetValue(key, out var row)` reads a row that may be absent; `Lookup` has the same method.
-`AsObservableCollection` binds a projection to a WPF, Avalonia or MAUI list.
+:::
 
-`rows.NewKeyReader()` returns an `IDisposable` reader whose `Read()` reports the keys added, removed or
-replaced since its previous read:
+Use `rows.TryGetValue(key, out var row)` for a row that may be absent. `Lookup` supports the same
+method. Use `AsObservableCollection` to bind a projection to a WPF, Avalonia or MAUI list.
+
+:::details Read collection changes directly
+
+`rows.NewKeyReader()` returns a disposable reader. Each `Read()` reports the keys added, removed
+or replaced since the previous read:
 
 ```csharp
 using var reader = rows.NewKeyReader();
@@ -259,15 +345,25 @@ foreach (var (key, change) in delta.Changes)
 `delta.IsReset` asks for a rebuild from `delta.Keys`, and `delta.Positional` lists the index edits from
 `PreviousKeys` to `Keys`.
 
+:::
+
 ## Binding to XAML
 
-`ReactiveBindings` raises `INotifyPropertyChanged` and `INotifyDataErrorInfo` for view-model properties backed by
-graph nodes. `Computed` registers a read-only property over a tracked `Func<T>`, and `Writable` a two-way property
-over a signal. A property raises `PropertyChanged` once per settled change: a write that leaves a derived value equal
-raises nothing for it, and a chain of derived properties needs no dependency declarations.
+`ReactiveBindings` connects graph nodes to view-model property and error notifications.
 
-It works inside an existing view model, whatever its base class. Construct it with the view model as the event
-sender and forward its events:
+- `Writable` registers a two-way property backed by a signal.
+- `Computed` registers a read-only property backed by a tracked `Func<T>`.
+
+A property raises `PropertyChanged` once per settled change. An equal derived result raises
+nothing, and derived properties track their dependencies automatically.
+
+For a new view model, derive from `ReactiveObject`. Its `Bindings` implement
+`INotifyPropertyChanged`, `INotifyDataErrorInfo` and `IDisposable` for you.
+
+:::details Add bindings to an existing view model
+
+Keep its base class. Construct `ReactiveBindings` with the view model as the event sender, then
+forward the events:
 
 ```csharp
 public sealed class OrderViewModel : ObservableObject, INotifyDataErrorInfo, IDisposable
@@ -301,29 +397,51 @@ public sealed class OrderViewModel : ObservableObject, INotifyDataErrorInfo, IDi
 }
 ```
 
-A new view model can derive from `ReactiveObject` instead, which implements the three interfaces through its
-`Bindings`.
+:::
 
-- **Loading and errors.** While a `Computed` property reads a pending source it keeps its last settled value
-  (`default` before the first) and its `IsLoading` is true. While it fails, `GetErrors` returns the error's message,
-  and `Error` holds the exception. The bindings' `IsLoading` and `HasErrors` cover every property and raise
-  `PropertyChanged` as `"IsLoading"` and `"HasErrors"`. `Computed(name, compute, loadingName)` also raises
-  `loadingName` for a per-property loading flag.
-- **Reading.** On the graph's thread, `Value` reads the node, so a `Computed` body that reads another property through
-  the view model tracks it, but sees its last settled value while it loads or fails. Read `Memo.Value` instead, as
-  `Total` does, to make the property load and fail with its input. From any other thread `Value` returns the value
-  last notified.
-- **Threads.** The notifying effect runs on the graph's thread. Each handler runs on the `SynchronizationContext` that
-  was current when it subscribed, posted there when the raise happens elsewhere. Setting a `Writable` property from
-  another thread goes through `Graph.Dispatch`.
-- **Lifetime.** The bindings own a root scope under the scope current at construction. `Dispose`, or disposing that
-  scope, disposes the property memos, the commands and anything created through `bindings.Run`, and drops every
-  handler. Signals passed to `Writable` stay usable.
+### Loading and errors
+
+While a computed property is loading, it keeps its last settled value (`default` before the first)
+and its `IsLoading` is true. On failure, `Error` holds the exception and `GetErrors` returns its
+message.
+
+The bindings' `IsLoading` and `HasErrors` cover all properties and raise notifications under those
+names. Pass `loadingName` to `Computed(name, compute, loadingName)` for a per-property loading
+notification too.
+
+:::tip Choose how dependent properties handle loading
+On the graph's thread, reading another bound property's `Value` tracks it but keeps using its last
+settled value while it loads or fails.
+
+Read its `Memo.Value` instead to make the dependent property load and fail with that input, as
+`Total` does in the example.
+:::
+
+:::details Threads and notifications
+
+The notifying effect runs on the graph's thread. Each event handler runs on the
+`SynchronizationContext` captured when it subscribed; notifications are posted there when raised
+elsewhere.
+
+From another thread, a bound property's `Value` returns the value last notified. Setting a
+`Writable` property goes through `Graph.Dispatch`.
+:::
+
+:::details What disposal owns
+
+The bindings create a root under the scope current at construction. Disposing the bindings or
+that scope disposes the property memos, commands and anything created through `bindings.Run`, and
+removes all handlers. Signals passed to `Writable` stay usable.
+:::
 
 ## Commands
 
-`bindings.Command` returns a `ReactiveCommand`, an `ICommand` whose `CanExecute` is a memo over the state it reads
-and whose busy state is a signal. It needs no `IsBusy` field and no `NotifyCanExecuteChanged` calls:
+`bindings.Command` returns a `ReactiveCommand` that implements `ICommand`. Its eligibility tracks
+the state read by its predicate; its busy state is a signal.
+
+:::details An editor with Save and Load commands
+
+Each command is disabled while the other runs. `IsBusy` combines both commands' running state.
 
 ```csharp
 public sealed class EditorViewModel : ReactiveObject
@@ -349,43 +467,79 @@ public sealed class EditorViewModel : ReactiveObject
 }
 ```
 
-Each command is disabled while the other runs, and `IsBusy` covers both. The predicate of `Save` reads `Load`, which
-is created after it: a command first evaluates its predicate at the first `CanExecute` call, event subscription or
-execution, after the constructor has returned. The pattern `Load is { IsRunning: false }` only keeps the C# compiler's
-null analysis quiet.
+:::
 
-- **`CanExecute`.** True while the predicate returns true, and false while it reads a pending or failed node. Under
-  the default policy, `CommandPolicy.Disable`, it is also false while an execution runs. `CanExecute` returns the value
-  last notified, so any thread can call it.
-- **State.** `CanRun`, `IsRunning` and `Error` raise `PropertyChanged` on the command. On the graph's thread each is a
-  tracked read, so a `Computed` body or another command's predicate that reads it re-runs when it changes. `Enabled`
-  is the memo behind `CanRun`.
-- **Executing.** `ExecuteAsync(parameter)` marshals to the graph's thread and starts an execution when the command is
-  enabled. The body runs untracked, with a token that `Cancel`, `Dispose` and `CommandPolicy.CancelPrevious` cancel.
-  Under `Disable`, `CanExecuteChanged` has been raised with `false` before the body starts, so a second click does
-  nothing. The returned task completes with the execution, after `IsRunning` and `Error` are updated.
-- **Serialised graphs.** Under `ThreadAffinity.Serialised`, `Execute` and `ExecuteAsync` start the execution inline only
-  on the thread inside the graph. A call from anywhere else, a button handler on the construction context included, is
-  queued and starts at the next drain. A graph constructed with no `SynchronizationContext` drains only when
-  `graph.Pump()` runs, so the execution, and the task `ExecuteAsync` returned, wait until then. See
-  [Serialised hosts](../concepts/contracts.md#serialised-hosts).
-- **Failures.** A failed execution sets `Error` to its exception, and the next successful one clears it. An
-  `OperationCanceledException` after the command cancelled the token clears it too. `ICommand.Execute`, which a
-  button calls, discards the task: a failure reaches `Error` only, never the `SynchronizationContext`.
-- **Policies.** `CommandPolicy.Disable` disables the command while an execution runs. `CommandPolicy.CancelPrevious`
-  keeps it enabled: a new execution cancels the token of the one in flight, and only the latest execution sets
-  `Error`.
-- **Threads.** `CanExecuteChanged` and `PropertyChanged` handlers run on the `SynchronizationContext` that was current
-  when they subscribed, as the bindings' handlers do.
-- **Lifetime.** The bindings dispose their commands. `command.Dispose()` disposes one earlier and cancels its
-  executions.
+### Eligibility and state
 
-`bindings.Command(parameter => …)` takes a synchronous `Action<object>`; its writes are batched. Outside a
-`ReactiveBindings`, `Reactive.Command` creates a command on `Graph.Current` with an effect of its own.
+`CanExecute` is true when the predicate permits execution. A pending or failed read makes it
+false. Under the default `CommandPolicy.Disable`, a running execution also makes it false.
 
-`AnyPending(quote, stock, shipping)` is a memo that is true while any of its nodes is pending, whatever their value
-types. It reads each node with `graph.TrackStatus(node)`, a tracked read of a node's `Status` that returns a pending or
-failed status without raising.
+`CanRun`, `IsRunning` and `Error` raise `PropertyChanged`. On the graph's thread, reading them in a
+computed property or another command's predicate tracks them. `Enabled` is the memo behind
+`CanRun`.
+
+:::details Predicates that refer to a later command
+
+In the example, `Save` reads `Load`, which is constructed after it. A command first evaluates its
+predicate on the first `CanExecute` call, event subscription or execution, after this constructor
+has returned. The pattern `Load is { IsRunning: false }` satisfies C# null analysis.
+:::
+
+### Execution and cancellation
+
+`ExecuteAsync(parameter)` marshals to the graph's thread and starts an enabled command. Its task
+completes after the execution finishes and `IsRunning` and `Error` have been updated.
+
+- `CommandPolicy.Disable` disables the command before its body starts, so a second click does nothing.
+- `CommandPolicy.CancelPrevious` keeps it enabled. A new execution cancels the previous token;
+  only the latest execution sets `Error`.
+
+The body runs untracked. `Cancel`, `Dispose` and `CancelPrevious` cancel its token.
+
+:::warning Inspect command errors
+A failed execution sets `Error`. A later success clears it, as does an `OperationCanceledException`
+after the command cancels its token.
+
+A button calls `ICommand.Execute`, which discards the task. Its failures reach `Error`, rather
+than escaping to the `SynchronizationContext`.
+:::
+
+:::details Commands on serialised graphs
+
+Under `ThreadAffinity.Serialised`, `Execute` and `ExecuteAsync` start inline only on the thread
+inside the graph. Other calls, including button handlers on the construction context, queue for
+the next drain.
+
+Without a captured `SynchronizationContext`, the graph drains only when `graph.Pump()` runs.
+The execution and its returned task wait until then. See
+[Serialised hosts](../concepts/contracts.md#serialised-hosts).
+:::
+
+:::details Command notifications and lifetime
+
+`CanExecute` returns the value last notified, so any thread can call it. `CanExecuteChanged` and
+`PropertyChanged` handlers run on the `SynchronizationContext` captured when they subscribed.
+
+The bindings dispose their commands. Use `command.Dispose()` to stop one earlier and cancel its
+executions.
+:::
+
+:::details Synchronous and standalone commands
+
+`bindings.Command(parameter => …)` takes a synchronous `Action<object>` and batches its writes.
+Outside `ReactiveBindings`, `Reactive.Command` creates a command on `Graph.Current` with an
+effect of its own.
+:::
+
+:::tip Combine pending states
+`AnyPending(quote, stock, shipping)` is true while any of those nodes is pending, even when their
+value types differ.
+:::
+
+:::details Track status without throwing
+`AnyPending` uses `graph.TrackStatus(node)`: a tracked read of `Status` that returns pending or
+failed states without throwing.
+:::
 
 ## Options and threads
 
@@ -402,9 +556,15 @@ var graph = new Graph(GraphOptions.Default
 
 ## Tracing
 
-`Tracing` wraps the [trace log](tracing.md) for C#. `Tracing.Named` and `Tracing.Label` compile in every
-build. The queries exist in a traced build only, from the `Ranvier.CSharp.Traced` package or a source build
-with `-p:RanvierTrace=true`, and return text:
+`Tracing` exposes the [trace log](tracing.md) through C# methods. Give nodes names, then query why
+they ran or what they are waiting on.
+
+:::info Use a traced build for queries
+Queries return text and require `Ranvier.CSharp.Traced` or a source build with
+`-p:RanvierTrace=true`. `Tracing.Named` and `Tracing.Label` compile in every build.
+:::
+
+:::details Name nodes and inspect their causes
 
 ```csharp
 var graph = new Graph();
@@ -425,6 +585,10 @@ graph.Run(() =>
 });
 ```
 
+:::
+
+:::details Tracing methods and their F# equivalents
+
 | C# | F# |
 | --- | --- |
 | `Named(label, () => …)` | `Trace.named` |
@@ -433,13 +597,25 @@ graph.Run(() =>
 | `Snapshot(graph)`, `Snapshot(graph, seq)` | `Trace.snapshot`, `Trace.snapshotAt`, rendered |
 | `Resolve`, `Reconcile`, `Events`, `DumpText`, `Dump` | `Trace.resolve`, `reconcile`, `events`, `dumpText`, `dump` |
 
-Each per-node query takes the node, or its identity path such as `"/changes"`. The path form reaches nodes
-without a handle, such as an `EffectOn`. `Tracing.Label` is `[Conditional("RANVIER_TRACE")]`: the call
-stays only in a project that defines `RANVIER_TRACE` itself.
+:::
+
+Each per-node query accepts a node or its identity path, such as `"/changes"`. Use a path to reach a
+node without a handle, such as an `EffectOn`.
+
+:::details Conditional labels
+`Tracing.Label` is `[Conditional("RANVIER_TRACE")]`. Its call is retained only when the calling
+project defines `RANVIER_TRACE`.
+:::
 
 ## Limits
 
-- **`Graph.Current` everywhere.** The factories read the thread's active graph; `Graph.TryGetCurrent(out var graph)`
-  reports whether one is active. The constructors take the graph explicitly: `new Memo<int>(graph, _ => …)`, and
-  `new Memo<int>(graph, seed, previous => …)` for a memo that receives its previous value, with `seed` before
-  compute. Each takes `owning` as a last argument.
+:::warning Factories need an active graph
+The factories use the calling thread's active graph. `Graph.TryGetCurrent(out var graph)` tells
+you whether one is active.
+:::
+
+:::details Construct a memo with an explicit graph
+Use `new Memo<int>(graph, _ => …)`, or `new Memo<int>(graph, seed, previous => …)` for a memo that
+receives its previous value. The seed comes before the compute function; `owning` is the last
+argument in both constructors.
+:::

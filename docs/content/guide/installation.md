@@ -7,6 +7,10 @@ order: 2
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
+Choose the package for your language, then continue with [Getting started](getting-started.md).
+
+## Supported targets
+
 :::center
 |**Target**|Supported|Recommended|
 |---:|:---:|:---:|
@@ -15,17 +19,14 @@ Preview — Ranvier is pre-release; its APIs may change.
 | `netstandard2.1` | Yes | No |
 :::
 
-:::warning
-Below .NET9 missing key optimisations in exception handling.
+:::tip Prefer .NET 10
+Targets below .NET 9 lack key exception-handling optimisations used by Ranvier.
 :::
 
 ## From NuGet
 
-Ranvier ships as the `Ranvier` NuGet package. Its versions are previews, so pass `--prerelease`:
-
-Each package has a traced-build package appended with `.Traced`.
-
-[//]: # (TODO - see traced)
+Install `Ranvier` for F#, `Ranvier.CSharp` for C#, or `Ranvier.Elmish` for the MVU bridge.
+Versions are previews, so pass `--prerelease`.
 
 ::::::tabs
 :::::tab Core
@@ -95,17 +96,18 @@ The MVU bridge, `Mvu`, ships as its own package, `Ranvier.Elmish`, which depends
 
 ## Native AOT and trimming
 
-:::warning
-Framework requirement: net8.0+
+On `net8.0` or later, `Ranvier`, `Ranvier.CSharp` and `Ranvier.Elmish` support trimming and Native
+AOT. CI tests both. Publish with `<PublishAot>true</PublishAot>`.
+
+:::warning Traced builds and AOT
+Traced packages retain reflection-based `ToString` implementations in their trace types. Their
+trimming and AOT compatibility remains an outstanding issue.
 :::
 
-CI/CD tests that `Ranvier`, `Ranvier.CSharp` and `Ranvier.Elmish` are trimmable and AOT-compatible.
-Publish with `<PublishAot>true</PublishAot>`.
+## Traced packages
 
-> The traced builds (`Ranvier.Traced` and the packages that depend on it) make no such claim: their trace types keep the
-generated, reflection-based `ToString`.
->
-> This is an outstanding issue.
+Each package has a `.Traced` variant for diagnostics. See [Tracing](tracing.md#from-nuget) for
+switching between traced and untraced builds.
 
 ## Next
 

@@ -8,10 +8,11 @@ description: Live, animated maps of the graph behind a docs example.
 Preview — signal maps follow the trace log, which may change before the first release.
 :::
 
-A signal map draws the graph an example builds and animates each event the [trace log](tracing.md)
-records: writes flash, marks travel along edges, runs light up, and flights start, settle, fail or
-drop. The map runs the real engine, compiled to JavaScript with tracing on, so what it shows is what
-the graph did.
+A signal map shows the graph behind an example. Writes flash, dependency marks travel along
+edges, computations light up, and async flights start, settle, fail or drop.
+
+Maps run the real engine compiled to JavaScript with tracing enabled. Their animations follow
+the [trace log](tracing.md).
 
 Maps appear throughout these docs beneath the examples they draw. This page explains how to read one
 and how to write one.
@@ -66,11 +67,11 @@ last run, as `Trace.why` renders it. The log beneath the buttons lists the lates
 
 ## Timelines and replays
 
-With `timeline`, the map records every event and adds play, step and a scrub bar; each tick on the
-bar is an animated event. The bar starts where the scenario's setup ends; the log opens with the setup's
-latest events. Two writes in quick succession start two flights here. The first is
-superseded: its ring fades and the log reads `drop shipping (superseded)`. Only the newest flight can
-settle.
+`timeline` adds **Play**, **Step** and a scrub bar. Each tick represents an event; the bar starts
+after setup, and the log initially shows setup's latest events.
+
+Try **Two quick writes** below. The first flight is superseded: its ring fades and the log shows
+`drop shipping (superseded)`. **Settle quote** answers the newest flight.
 
 ```fsharp map timeline
 let desk = Desk<int>()
@@ -102,9 +103,9 @@ controls [
 ]
 ```
 
-With `replay`, the page runs the scenario, then every control in order: a button once, an input once per
-replay value. The map opens with the graph as the scenario built it; press **Play** or drag the bar to watch
-them run.
+`replay` records the scenario and each control in order: each button once, and each input once
+per replay value. The map opens at the end of setup. Press **Play** or drag the scrub bar to watch
+the recorded actions.
 
 ```fsharp map replay
 let desk = Desk<int>()
@@ -124,8 +125,10 @@ controls [
 ]
 ```
 
-Under `policy=queue`, flights apply in the order they started. Setup and the two writes start three quotes. The
-newest is answered first, and waits; answering the older two applies all three, in order.
+### Replay queued flights
+
+Under `policy=queue`, flights apply in start order. Setup and two writes start three quotes.
+Watch the newest answer wait until the older two are answered; then all three apply in order.
 
 ```fsharp map replay policy=queue
 let desk = Desk<int>(queued = true)
@@ -149,6 +152,8 @@ A `map` fence holds plain Ranvier code and ends with `controls`. The page shows 
 The compiled copy labels each top-level `let x = create…` binding with its name and runs the code
 against a fresh traced graph.
 
+:::details Map fence options
+
 | Flag | Effect |
 | --- | --- |
 | `timeline` | Adds the play, step and scrub bar. |
@@ -156,6 +161,10 @@ against a fresh traced graph.
 | `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest`, `queue` or `finish-current`. |
 | `groups=` | How collections draw: `expand` (default), a box with a row per key, or `collapse`, one node. |
 | `id=`, `show=` | As on `solid` fences. |
+
+:::
+
+### Controls
 
 The helpers in scope:
 
@@ -171,15 +180,57 @@ The helpers in scope:
 - `Desk<'T>(queued = true)` keeps every request, in order. `Settle` and `Fail` answer the oldest; `SettleNewest`
   and `FailNewest` the newest. `desk.Pending` counts the requests waiting.
 
-A fence compiles with Fable, so its code must compile to JavaScript. A fence that does not end with
-`controls` is reported at its last line.
+### Explain and check a replay
+
+Use `describe` to give an action a caption. It stays visible while that action's events play,
+and scrubbing backwards restores the caption for the earlier action. This lets an output-only
+map explain what to watch without displaying its source.
+
+Use `expect` to check the state after an action. `dotnet fsi build.fsx -- docs` runs maps containing
+expectations under Fable and Node.js; a failed check stops the build and reports the page, fence line, control
+and your message. Replays also report failures in the map itself.
+
+```fsharp map replay show=output
+let count = createSignal 1
+let doubled = createMemo (fun _ -> count.Value * 2)
+createEffect (fun () -> doubled.Value |> ignore)
+
+controls [
+    button "Write 5" (fun () -> count.Value <- 5)
+    |> describe "The write refreshes doubled from 2 to 10."
+    |> expect "doubled settles at 10" (fun () -> doubled.Peek = 10)
+]
+```
+
+Author the action like this:
+
+```fsharp
+button "Write 5" (fun () -> count.Value <- 5)
+|> describe "The write refreshes doubled from 2 to 10."
+|> expect "doubled settles at 10" (fun () -> doubled.Peek = 10)
+```
+
+An input's caption and checks apply to every replay value. Chain `expect` calls to check several
+properties; they run in the order written. Use `Peek`, counters or captured output so a check
+does not force a lazy memo and change the behaviour you are demonstrating.
+
+Checks run after one turn of queued continuations, not after an arbitrary remote request.
+Use a `Desk` settlement or `AsyncSource.Settle` action to control async examples. Captions and
+expectations apply to replay actions; live controls keep their normal interactive behaviour.
+
+:::warning End the fence with controls
+A map fence must compile to JavaScript through Fable and end with `controls`. A missing
+`controls` is reported at the fence's last line.
+:::
 
 ## Collections
 
-A projection is drawn as a box: the projection's node on top, and a row beneath it for each key. A reader of one key
-draws its edge from that key's row; a reader of `Keys` draws it from the projection. The item a row reads runs inside
-the projection's node, and the log names it `rows[tea] item`. Move **Tea**, then add an egg: the tea row runs for the
-quantity, and a new row joins for the egg.
+A projection appears as a box with its node on top and one row per key below. An edge from a row
+means the reader reads that key; an edge from the projection means it reads `Keys`.
+
+Move **Tea**, then add an egg. The tea row updates for its new quantity, and a row is added for
+the egg. The item computation runs inside the projection node and appears as `rows[tea] item`
+in the log.
 
 ```fsharp map timeline
 let lines = createSignal [ "tea", 1; "jam", 2 ]
@@ -197,9 +248,11 @@ controls [
 ]
 ```
 
-A node created in `createProjectionWith`'s factory belongs to its key, and sits left of that key's row. Here each key
-quotes its own price. A row is pending while its quote is in flight, and the projection is pending while any row is:
-settle the quotes one at a time and watch the rows clear in turn.
+### Per-row async values
+
+A node created by a `createProjectionWith` factory belongs to its key and sits to the left of
+that row. Each row below requests its own price. Settle the quotes one at a time to watch the
+rows clear; the projection remains pending while any row is pending.
 
 ```fsharp map timeline
 let desk = Desk<int>(queued = true)
@@ -217,6 +270,8 @@ controls [
 ]
 ```
 
+### Lookups and selection
+
 A lookup is drawn the same way: a row per key read, beneath the memo of its state. Moving the selection marks only the
 rows of the two keys whose answer changed; the third row stays quiet.
 
@@ -233,10 +288,17 @@ controls [
 ]
 ```
 
-A lookup has no node of its own for `Trace.label` to name, so a `map` fence names a one-line `createLookup` or
-`createSelector` binding with `Trace.named`. Write a lookup on one line to see its name on the map.
+:::details Give a lookup its name on the map
 
-`groups=collapse` draws each collection as one node, with its rows and their nodes inside it. The first map, collapsed:
+A `map` fence wraps `createLookup`, `createSelector`, `createEditable` and `createDraft` bindings
+in `Trace.named`. Both single-line and multiline bindings receive their variable's name.
+
+:::
+
+### Collapse a collection
+
+`groups=collapse` draws each collection as one node containing its rows and their nodes.
+Here is the first collection map with its rows collapsed:
 
 ```fsharp map timeline groups=collapse
 let lines = createSignal [ "tea", 1; "jam", 2 ]
@@ -251,6 +313,8 @@ controls [
 ```
 
 ## A bespoke map
+
+:::details Build a SignalMap component directly
 
 `SignalMap` is an ordinary component. A `solid` fence can call it with any scenario: here the names
 come from `Trace.named` rather than from the `map` fence's labels. `SignalMap` takes the scenario, the graph's flight
@@ -275,6 +339,8 @@ module Thermo =
 
     let Thermometer () = SignalMap (Live scenario) FlightPolicy.CancelPrevious [||] false Grouping.Expand
 ```
+
+:::
 
 ## Edit a map
 
@@ -319,6 +385,10 @@ which takes a few seconds.
 
 ## Limits
 
+Keep maps small: beyond about ten nodes, edges cross and text shrinks.
+
+:::details Layout, values and tracing limits
+
 - **Small graphs.** Nodes are layered by longest path, with no crossing minimisation. Beyond about ten
   nodes, edges cross and text shrinks.
 - **Initial values are not drawn.** The log records a node's value when it moves, not when it is
@@ -333,6 +403,8 @@ which takes a few seconds.
   An error shows its message without its exception type.
 - **Last run only.** A click explains the most recent run; `Trace.history` and `Trace.whyNot` are
   not in the map.
+
+:::
 
 ## Next
 

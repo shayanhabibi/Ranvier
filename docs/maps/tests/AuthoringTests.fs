@@ -82,6 +82,32 @@ let tests =
                 Expect.contains bindings ("isSelected", 2, 2) "the binding is still highlighted"
             }
 
+            test "editable and draft bindings are named without requiring INode" {
+                for factory in [ "createEditable"; "createDraft" ] do
+                    for multiline in [ false; true ] do
+                        let binding =
+                            if multiline then
+                                $"let field =\n    %s{factory} (fun _ ->\n        upstream.Value)"
+                            else
+                                $"let field = %s{factory} (fun _ -> upstream.Value)"
+
+                        let code, spans, bindings =
+                            scenario ($"let upstream = createSignal 1\n%s{binding}\ncontrols []")
+
+                        Expect.stringContains code "let field = Trace.named \"field\" (fun () ->" "name the created nodes"
+                        Expect.isFalse (code.Contains "Trace.label (graph', field") "Editable is no node"
+                        let last = if multiline then 4 else 2
+                        Expect.contains bindings ("field", 2, last) "highlight the full binding"
+                        let generated = code.Split '\n'
+
+                        let first =
+                            generated
+                            |> Array.findIndex (fun line -> line.Contains "let field =")
+
+                        for offset in 0 .. last - 2 do
+                            Expect.equal (locate spans (first + offset + 1)) (Some (2 + offset)) "retain diagnostic locations"
+            }
+
             test "bindings of nodes are labelled, effects and plain values are not" {
                 let code, _, bindings = scenario cart
                 let names = bindings |> List.map (fun (n, _, _) -> n)

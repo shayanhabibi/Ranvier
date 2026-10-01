@@ -7,12 +7,20 @@ order: 9
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-Each heading is an exception message or symptom as it appears at runtime; search this page for the
-text you see. For the underlying contracts, see the guide pages linked from each entry, and
-[Contracts](../concepts/contracts.md) for threading, error recovery and ownership.
+Search for the exception message or symptom you see. Read its **Cause** and **Fix**, then expand
+the example if needed.
+
+Each entry links to the relevant guide. [Contracts](../concepts/contracts.md) covers threading,
+error recovery and ownership.
+
+:::details How the messages were checked
 
 Every exception entry was reproduced in F# Interactive, and its heading checked against the message
 the library throws.
+
+:::
+
+:::details Imports for the examples
 
 The examples open these namespaces:
 
@@ -21,6 +29,8 @@ open System
 open System.Threading.Tasks
 open Ranvier
 ```
+
+:::
 
 ## Exceptions
 
@@ -34,6 +44,8 @@ thread with no active graph. The functions resolve the graph per thread and requ
 **Fix.** Activate a graph around the calls, or pass the graph to a constructor such as
 `Signal (graph, 0)`. `Activate` returns a handle that restores the previous graph when disposed.
 C# callers write `using (graph.Activate ())`.
+
+:::details Example
 
 ```fsharp
 let appGraph = new Graph ()
@@ -50,13 +62,19 @@ doubled.Value
 4
 ```
 
+:::
+
 `appGraph.Run (fun () -> ...)` activates, runs the body and restores the previous graph in one call.
 The graph outlives the call, so effects created inside it keep running.
+
+:::details Creators inside lazy computations
 
 The message also arrives as a row's error or a memo's error. A projection's factory runs at the first
 read of the projection, and a memo's body at the first read of the memo. When that code calls an `Api`
 creator, the first read needs an active graph too. A factory that raised this way fails its row until
 the key is removed.
+
+:::
 
 See [Getting started](getting-started.md#the-graph).
 
@@ -74,6 +92,8 @@ on that thread and leaves the work queued.
 thread. On a thread with a `SynchronizationContext` (a UI thread), the graph posts the drain to that
 context and `Pump` is unnecessary.
 
+:::details Example
+
 ```fsharp
 let ownerGraph = new Graph ()
 let temperature = Signal (ownerGraph, 20)
@@ -89,6 +109,8 @@ temperature.Value
 ```text
 25
 ```
+
+:::
 
 `GraphOptions.ThreadAffinity = Unchecked` removes the check. Use it only when every write is already
 guaranteed to arrive on one thread.
@@ -132,6 +154,8 @@ escapes to the caller.
 
 **Fix.** Read `TryValue` or `Status` at the top level, or wrap the read in a suspense boundary.
 
+:::details Example
+
 ```fsharp
 let shopGraph = new Graph ()
 
@@ -152,6 +176,8 @@ before, after
 ((Pending, "loading"), (Ready 15, "15"))
 ```
 
+:::
+
 See [Async and pending](async-and-pending.md#boundaries).
 
 ### A memo created by createMemo created an owned node in its body: a memo, effect, async value, boundary, root, projection, lookup, selector or onCleanup.
@@ -170,6 +196,8 @@ and it fails with this message even when the body then throws an exception of it
 **Fix.** Use `createMemoWith`, or `Memo (graph, compute, true)`, when the memo creates nodes on
 purpose. Its nodes and cleanups are disposed before each re-run and with the memo. Otherwise create
 the node outside the memo and read it inside.
+
+:::details Example
 
 ```fsharp
 let owningGraph = new Graph ()
@@ -191,6 +219,8 @@ owningGraph.Run (fun () -> subscriptions.Value)
 "subscribed to news"
 ```
 
+:::
+
 See [Getting started](getting-started.md#pure-and-owning-memos).
 
 ### A projection row's reader created an owned node: a memo, effect, async value, boundary, root, projection, lookup, selector or onCleanup.
@@ -208,6 +238,8 @@ another node. The row fails even when the reader catches the creator's exception
 
 **Fix.** Use the factory form and create the node in the factory body, which runs once per key and
 whose nodes are disposed with the key. Return a reader that only reads.
+
+:::details Example
 
 ```fsharp
 let labelGraph = new Graph ()
@@ -231,6 +263,8 @@ labelGraph.Run (fun () -> labels.Get 2)
 "#2"
 ```
 
+:::
+
 The check covers the constructors as well as the `Api` creators: a reader that builds
 `Memo (graph, ...)` fails the same way.
 
@@ -249,6 +283,8 @@ caught by an enclosing error boundary. `Projection.Error` holds it when a schedu
 **Fix.** Key by a value unique to each item, such as an id. Key by position with
 `createIndexProjection` when the items carry no identity.
 
+:::details Example
+
 ```fsharp
 type Todo = { Id: int; Text: string }
 
@@ -266,6 +302,8 @@ todoTexts.Keys
 [|1; 2|]
 ```
 
+:::
+
 See [Collections](collections.fsx#identity).
 
 ### The projection's factory for key &lt;k&gt; read a pending source.
@@ -279,6 +317,8 @@ stays failed until its key is removed.
 
 **Fix.** Move the read into the reader the factory returns. The reader suspends while the source is
 pending and re-runs when it settles.
+
+:::details Example
 
 ```fsharp
 let rateGraph = new Graph ()
@@ -302,6 +342,8 @@ priced.Get 2
 20
 ```
 
+:::
+
 See [Collections](collections.fsx#the-factory-form).
 
 ### The projection has no key &lt;k&gt;.
@@ -313,6 +355,8 @@ projection raises this for every key, and `TryGet` returns `None`.
 
 **Fix.** Use `TryGet`, which returns `None` for an absent key, or iterate `Keys`.
 
+:::details Example
+
 ```fsharp
 let lookupGraph = new Graph ()
 let squares = lookupGraph.Run (fun () -> createProjection id (fun x -> x * x) (fun () -> [ 1; 2; 3 ]))
@@ -323,6 +367,8 @@ squares.TryGet 3, squares.TryGet 9
 ```text
 (Some 9, None)
 ```
+
+:::
 
 See [Collections](collections.fsx#reading-a-projection).
 
@@ -352,6 +398,8 @@ runs on the owning thread.
 **Fix.** Call `Pump` on the owning thread from the application's loop, or construct the graph on a
 thread with a `SynchronizationContext`.
 
+:::details Example
+
 ```fsharp
 let pumpGraph = new Graph ()
 let reply = AsyncSource<string> (pumpGraph)
@@ -369,10 +417,16 @@ beforePump, afterPump
 (Pending, Ready "done")
 ```
 
+:::
+
+:::details ImmediateDispatcher and off-thread settles
+
 Under the default `ThreadAffinity = Guarded`, a graph built with `ImmediateDispatcher` turns an
 off-thread settle into the `Pump ran on thread` exception and leaves the value `Pending` until the
 owning thread calls `Pump`. It drains on the settling thread only under `ThreadAffinity = Unchecked`,
 which is safe only when every write already arrives on one thread.
+
+:::
 
 See [Async and pending](async-and-pending.md#threading-and-dispatch).
 
@@ -383,6 +437,8 @@ with the next effect. `createEffect` returns `unit`, so its effect's error is un
 
 **Fix.** Construct the effect with `new Effect (graph, body)` and read `Error` and `Status`. The
 effect is still owned by the enclosing scope.
+
+:::details Example
 
 ```fsharp
 let effectGraph = new Graph ()
@@ -399,6 +455,8 @@ watcher.Status, watcher.Error.Message
 (Error, "too large")
 ```
 
+:::
+
 See [Getting started](getting-started.md#effects).
 
 ### A lookup returns an old value
@@ -408,6 +466,8 @@ See [Getting started](getting-started.md#effects).
 
 **Fix.** Return every key whose value can differ between the two states. An extra key costs one
 recomputation.
+
+:::details Example
 
 ```fsharp
 let changedKeys (prev: Map<string, int>) (next: Map<string, int>) =
@@ -439,6 +499,8 @@ List.ofSeq seen
 [1; 7]
 ```
 
+:::
+
 See [Collections](collections.fsx#lookups).
 
 ### An async memo does not re-run when a value read after await changes
@@ -450,6 +512,8 @@ inside a continuation is untracked.
 **Fix.** Read every reactive value before the first `await` and bind it to a local.
 
 `pumpUntil` is the helper defined in [Async and pending](async-and-pending.md#async-memos).
+
+:::details Example
 
 ```fsharp
 let queryGraph = new Graph ()
@@ -476,6 +540,8 @@ profile.TryValue
 Ready "user 2"
 ```
 
+:::
+
 The continuation after `Task.Yield` settles on the thread pool, so the example pumps the graph; see
 "An async value stays Pending forever" above.
 
@@ -489,6 +555,8 @@ re-run. The settle wakes the owner, and the re-run disposes the settled value an
 with a new flight.
 
 **Fix.** Create the async value outside the owner and read it inside the body.
+
+:::details Example
 
 ```fsharp
 let fetchGraph = new Graph ()
@@ -509,6 +577,8 @@ beforeReport, reportView.TryValue
 (Ready "loading", Ready "report: ready")
 ```
 
+:::
+
 See [Getting started](getting-started.md#pure-and-owning-memos).
 
 ### An effect did not run inside batch
@@ -518,6 +588,8 @@ read inside the batch is recomputed at the read.
 
 **Fix.** Read the effect's result after `batch` returns. Call `flush ()` inside the batch to run the
 queued effects early, which ends the batching of the writes made before it.
+
+:::details Example
 
 ```fsharp
 let batchGraph = new Graph ()
@@ -542,5 +614,7 @@ runsInside.Value, effectRuns
 ```text
 (1, [0; 2])
 ```
+
+:::
 
 See [Getting started](getting-started.md#batch).

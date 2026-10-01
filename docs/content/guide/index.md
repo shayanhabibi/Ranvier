@@ -7,20 +7,16 @@ order: 1
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-Fine-grained reactive computation for .NET.
+Build reactive state for .NET: update a value, and the computations that depend on it update too.
 
-* **Signals** hold values
-* **Memos** derive from Signals
-* **Effects** run when one of their Signals/Memos changes
+* **Signals** hold values you can read and write.
+* **Memos** derive values from tracked reads.
+* **Effects** run when a value they read changes.
 
-<br/>
-
-Alongside *dirtiness*, each node carries a second flag axis, the
-**pending channel** from Solid 2.0.
-
-:::note The pending axis
-When a node has an asynchronous dependency that is running, it is considered
-*in flight* and **pending**.
+:::tip Async state travels through the graph
+A node waiting on an async dependency is **pending**. Its readers can report loading, keep a
+previous result, or use a boundary's fallback. This pending channel follows Solid 2.0 and is
+independent of whether a value is out of date.
 :::
 
 ## A taste
@@ -47,22 +43,21 @@ doubled = 10
 ## What you get
 
 :::note Signals, memos and effects
-Glitch-free propagation and an equality cutoff at every level
+Readers see consistent values as changes propagate. An equal result stops propagation at that node.
 :::
 
 :::note Owners and cleanup
-Every memo and effect belong to a scope which implements `IDisposable`
+Every memo and effect belongs to a scope. Dispose the scope to release its nodes and run cleanups.
 :::
 
 :::tip Pending axis
-`AsyncSource`, async memos and flight policies mark a node as in flight,
-and its dependents read the pending flag alongside the value.
+`AsyncSource` and async memos report pending state alongside their values. Flight policies control
+what happens when inputs change during a request.
 :::
 
 :::tip Boundaries
-Suspense and ErrorBoundary computations catch the pending and failed state their body
-reads, directly or through memos. A Suspense boundary shows a fallback while its body is pending;
-an ErrorBoundary substitutes a recovered value when its body fails.
+A Suspense boundary supplies a fallback while its body is pending. An ErrorBoundary supplies a
+recovered value when its body fails. Both handle dependencies read directly or through memos.
 :::
 
 :::note Keyed and index projections
@@ -71,12 +66,12 @@ Per-row reactive values over a collection, keyed by identity or by position.
 
 
 :::note Lookups and selectors
-A pointwise derived value per key, and membership tests that wake the
-readers of the previous and new key.
+Lookups derive a value for each key you read. Selectors report which key is selected, triggering
+the readers of the previous and new selection.
 :::
 
 :::tip Thread-affinity guard
-Pluggable dispatchers for marshalling off-thread work onto the graph thread.
+Dispatchers move work from other threads onto the graph thread.
 :::
 
 ## Targets
@@ -85,19 +80,23 @@ Pluggable dispatchers for marshalling off-thread work onto the graph thread.
 
 ## Guide
 
-- [Installation](installation.md): how to get Ranvier before its first NuGet release.
+- [Installation](installation.md): preview packages, supported targets and Native AOT.
 - [Getting started](getting-started.md): graphs, signals, memos, effects, batching and scopes.
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
 - [Testing async state](testing.md): deterministic tests that decide when each flight lands.
 - [Blazor Server](blazor-server.md): one graph per circuit, with `ThreadAffinity.Serialised`.
 - [Collections](collections.fsx): keyed and index projections, lookups and selectors.
+- [Aggregates](aggregates.fsx): totals, counts and folds over collection rows.
 - [Editable values and forms](forms.md): values seeded from upstream and edited locally, and forms as records of signals.
 - [Tracing](tracing.md): why a node ran or did not run, where it was created, and the graph as it stands.
 - [Signal maps](signal-maps.md): how to read the live graph maps beneath the examples, and how to write one.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
 - [Migrating from Elmish](elmish.md): an MVU model read through selector memos, one view at a time.
+- [C#](csharp.md): C# factories, XAML bindings and reactive commands.
 
 ## Status
+
+:::details Implementation status and planned features
 
 | Area | Status |
 | --- | --- |
@@ -108,3 +107,5 @@ Pluggable dispatchers for marshalling off-thread work onto the graph thread.
 | Collection combinators (`Projection.filter`, `choose`, `map`, `mapWith`, `sortBy`, `groupBy`) | Implemented and tested, including pending and error behaviour; see [Collections](collections.fsx#combinator-views). |
 | Editable values (`createEditable`, `createDraft`) and the MVU bridge (`Mvu`, in the `Ranvier.Elmish` package) | Implemented and tested; see [Editable values and forms](forms.md) and [Migrating from Elmish](elmish.md). |
 | Reusable lens and prism values for deep writes | Not implemented; they wait on a need for reusable focus paths over collections. |
+
+:::

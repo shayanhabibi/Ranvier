@@ -5,6 +5,7 @@ open Expecto
 #if RANVIER_TRACE
 open System.Threading.Tasks
 open Ranvier.Docs.Maps
+open Ranvier
 
 let private outcome (t: Task<'T>) =
     if t.IsCanceled then
@@ -28,6 +29,95 @@ let tests =
                 Expect.equal (c.Steps |> List.map _.Log) [ None ] "one step, no log line"
                 c.Steps |> List.iter (fun s -> s.Run ())
                 Expect.equal pressed 1 "the step presses the button"
+            }
+
+            test "descriptions preserve controls and accompany every replay value" {
+                let written = ResizeArray<int>()
+
+                let c =
+                    slider "Qty" (1, 10) 1 [ 3; 5 ] written.Add
+                    |> describe "The subtotal follows quantity."
+
+                Expect.equal c.Label "Qty" "the widget label stays short"
+
+                Expect.equal
+                    (c.Steps |> List.map _.Caption)
+                    [ Some "The subtotal follows quantity."; Some "The subtotal follows quantity." ]
+                    "a caption per action"
+
+                c.Steps |> List.iter (fun s -> s.Run ())
+                Expect.equal (List.ofSeq written) [ 3; 5 ] "the actions still run"
+            }
+
+            test "expectations run after actions and fail with the author's message" {
+                let mutable value = 0
+
+                let c =
+                    button "Set" (fun () -> value <- 2)
+                    |> expect "value is two" (fun () -> value = 2)
+                    |> expect "value stays below three" (fun () -> value < 3)
+
+                let step = c.Steps.Head
+                Expect.throwsC (fun () -> Controls.check step) (fun ex -> Expect.stringContains ex.Message "value is two" "the failed expectation")
+                step.Run ()
+                Controls.check step
+                value <- 3
+
+                Expect.throwsC (fun () -> Controls.check step) (fun ex ->
+                    Expect.stringContains ex.Message "value is two" "checks remain in author order")
+            }
+
+            test "captions follow scrubbing and clear for undescribed actions" {
+                let marks = [ 4, Some "Write"; 8, Some "Read"; 12, None ]
+                Expect.equal (Replay.captionAt marks 3) None "setup has no action caption"
+                Expect.equal (Replay.captionAt marks 6) (Some "Write") "keep the caption through the action's events"
+                Expect.equal (Replay.captionAt marks 8) (Some "Read") "a new action replaces it"
+                Expect.equal (Replay.captionAt marks 12) None "an undescribed action clears it"
+                Expect.equal (Replay.captionAt marks 4) (Some "Write") "scrubbing backwards restores it"
+            }
+
+            test "replay verification checks async results after continuations settle" {
+                let scenario (_: Graph) =
+                    let desk = Desk<int>()
+                    let quote = createAsync (fun _ _ -> desk.Quote ())
+                    createEffect (fun () -> quote.TryValue |> ignore)
+
+                    controls
+                        [
+                            button "Answer" (fun () -> desk.Settle 4)
+                            |> expect "quote settles at four" (fun () -> quote.Peek = 4)
+                        ]
+
+                Replay.verify "async example" FlightPolicy.CancelPrevious scenario
+                |> Async.RunSynchronously
+            }
+
+            test "replay verification reports setup failures at the source fence" {
+                Expect.throwsC
+                    (fun () ->
+                        Replay.verify "guide/example.md:12" FlightPolicy.CancelPrevious (fun _ -> failwith "broken setup")
+                        |> Async.RunSynchronously)
+                    (fun ex ->
+                        Expect.stringContains ex.Message "guide/example.md:12" "source location"
+                        Expect.stringContains ex.Message "setup" "setup context")
+            }
+
+            test "replay verification reports the scenario and control on failure" {
+                let scenario (_: Graph) =
+                    controls
+                        [
+                            button "Write" ignore
+                            |> expect "wrong result" (fun () -> false)
+                        ]
+
+                Expect.throwsC
+                    (fun () ->
+                        Replay.verify "guide/example.md:12" FlightPolicy.CancelPrevious scenario
+                        |> Async.RunSynchronously)
+                    (fun ex ->
+                        Expect.stringContains ex.Message "guide/example.md:12" "source location"
+                        Expect.stringContains ex.Message "Write" "control label"
+                        Expect.stringContains ex.Message "wrong result" "expectation")
             }
 
             test "a slider has a step per replay value, in order" {

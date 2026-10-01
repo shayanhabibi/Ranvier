@@ -9,13 +9,22 @@ order: 5
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-How to derive a keyed collection whose rows are separately observable, and a pointwise lookup over
-an open key domain. For the node types rows are built from, see [Getting started](getting-started.md);
-for pending rows, the pending channel is described in [Async and pending](async-and-pending.md).
+Give each collection row its own reactive value, so an edit updates the readers of that row.
+Use a lookup when you need values for arbitrary keys rather than a fixed key set.
+
+For the basic nodes, see [Getting started](getting-started.md); for loading and errors, see
+[Async and pending](async-and-pending.md).
 
 The examples on this page run inside an active graph, as in [Getting started](getting-started.md).
 
 ## Choosing a form
+
+- Use a **keyed projection** when items have stable identities, such as IDs.
+- Use an **index projection** when rows should stay at their positions as items change.
+- Use a **factory form** when each row needs its own nodes or cleanup.
+- Use a **lookup** for a value per requested key, or a **selector** for selection membership.
+
+:::details Creator signatures and row lifetimes
 
 | Creator | Keyed by | Row value | Per-key nodes |
 |---------|----------|-----------|---------------|
@@ -26,12 +35,15 @@ The examples on this page run inside an active graph, as in [Getting started](ge
 | `createLookup f affected source` | any key read through `Get` | `f state key`, recomputed for the keys `affected` names | none |
 | `createSelector source` | any key read through `Get` | `true` for the selected key, `false` otherwise | none |
 
+:::
+
 The index forms are Solid's `indexArray`. A projection is a key set plus one row per key, and each
 of those is observed separately. A lookup has no key set: it holds a cell for each key that has been read.
 
 ## Reading a projection
 
-The source is a function returning a sequence, usually a signal's value.
+The source returns a sequence, usually from a signal. `Keys` reads its ordered key set;
+`Get key` reads one row. This projection exposes each todo's title under its ID.
 *)
 (*** hide ***)
 // #load-ed: the page type-checks against the current sources, and the built assembly stays unlocked. Keep this list
@@ -100,11 +112,15 @@ titles.Snapshot |> Seq.map (fun row -> row.Key, row.Value) |> List.ofSeq
 - `TryGet key` returns `None` for an absent key.
 - `Snapshot` is an untracked read of every row.
 
-A write to the source recomputes the rows whose item changed, and wakes their readers when the row's
-value changes. A survivor whose item is unchanged under the graph's equality policy is skipped: its
-`map` or reader keeps its last result, and its readers stay asleep. The default policy compares records by
-reference, so a record rebuilt with equal contents counts as a changed item and re-runs `map`; the
-row's readers wake only if the new value differs.
+A source write recomputes rows whose items changed. Their readers run only when the row values
+change. Unchanged items keep their previous row results.
+
+:::details Equal records and row recomputation
+The default policy compares records by reference. A fresh record with equal contents recomputes
+its row, but the row's readers run only if its result changes.
+:::
+
+**Test your understanding:** does changing todo 2's title change `Keys`? Which row value changes?
 *)
 
 todos.Value <-
@@ -115,25 +131,62 @@ titles.Get 2
 
 (**
 
+:::details Answer
+
 ```text
 "Review it twice"
 ```
+
+The key set stays the same. Only row 2's value changes.
+:::
+
+:::details Tests covering this behaviour
 
 Pinned by `editing one row wakes that row and no other`, `reordering the collection wakes Keys and no row`
 ([Projections.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Projections.fs))
 and `an unchanged survivor is skipped`
 ([MapSemantics.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/MapSemantics.fs)).
+:::
+
+Rename one item, then reverse the collection. The row reader responds to its title change;
+the key reader responds to the new order.
+
+```fsharp map replay show=output
+let items = createSignal [ 1, "Write"; 2, "Review"; 3, "Publish" ]
+let titles = createProjection fst snd (fun () -> items.Value)
+createEffect (fun () -> printfn "row 2 = %s" (titles.Get 2))
+createEffect (fun () -> printfn "keys = %A" titles.Keys)
+
+controls [
+    button "Rename row 2" (fun () -> items.Value <- items.Value |> List.map (fun (key, title) -> key, (if key = 2 then "Review twice" else title)))
+    |> describe "The row value changes while the key order stays the same."
+    |> expect "The row value changes while the key order stays the same." (fun () -> titles.Keys = [| 1; 2; 3 |])
+    button "Reverse order" (fun () -> items.Value <- List.rev items.Value)
+    |> describe "The existing keys move into reverse order."
+    |> expect "The existing keys move into reverse order." (fun () -> titles.Keys = [| 3; 2; 1 |])
+]
+```
 
 ## Identity
 
-`keyOf` chooses identity. Keying by an id gives keyed reuse: an item edited under its key reaches the
-existing row. Keying by the item itself (`id`) gives Solid's unkeyed semantics: an edited item is a
-new key, and its row is built afresh. A record or union used as its own key compares by contents, so
-two equal items in one source are a duplicate key.
+`keyOf` determines whether an edited item keeps its row:
+
+- Key by an ID to keep the existing row when that item changes.
+- Key by the whole item (`id`) to create a new row for an edited item. This follows Solid's
+  unkeyed semantics.
+
+:::warning Keys must be unique
+Records and unions used as keys compare by contents. Two equal items therefore produce the same
+key and fail the projection pass.
+:::
+
+:::details Key equality is separate from value equality
 
 Keys compare structurally (`HashIdentity.Structural`) regardless of `GraphOptions.Equality`. The
 equality policy applies to items and row values only. A key built fresh on every pass, such as a
 tuple or an array, matches the previous pass's key when the contents are equal.
+
+:::
 
 A pass that produces the same key twice fails. Every read of the projection raises the failure:
 *)
@@ -149,10 +202,11 @@ The read raises `InvalidOperationException` with the message
 
 ## The factory form
 
-`createProjectionWith keyOf factory source` runs `factory` once per key when the key enters, untracked.
-The factory receives an accessor that returns the key's latest item, and returns the row's reader.
-The row's value is the reader's result. The reader runs when the row is read and is stale, and re-runs
-when the key's item changes or a value it read changes.
+`createProjectionWith` separates row setup from row computation:
+
+1. The **factory** runs once per key, untracked. It receives an accessor for the latest item.
+2. The factory returns a **reader**, which computes the row's value from tracked reads.
+3. The reader refreshes when stale and read, following changes to the item or its dependencies.
 
 The factory runs inside a scope that lives until the key is removed. Nodes created in the factory
 body belong to that scope, and cleanups registered there run when the key is removed.
@@ -188,23 +242,31 @@ rows.Keys, List.ofSeq removed
 ([|1; 2|], [3])
 ```
 
+:::details When removal cleanups run
+
 An unobserved projection runs its pass at the next read, so the removal and its cleanup follow the read of `rows.Keys`.
 
 A cleanup registered in the factory may write the projection's own source; the removal completes and
 the graph settles (`a removed item's cleanup may write the source without hanging`).
 
+:::
+
+:::warning Read pending values in the reader
+
 A factory that reads a pending source fails its row with an `InvalidOperationException` whose message
 begins `The projection's factory for key ... read a pending source`. The factory runs once and cannot
 wait for the source to settle. Read the source inside the returned reader instead.
 
-<div class="alert alert-warning">
+:::
 
-**Create owned nodes in the factory body.** A reader, or a `map`, that
+:::warning Create owned nodes in the factory body
+
+A reader, or a `map`, that
 creates an owned node (a memo, effect, async value, boundary, root, projection, lookup, selector or
 `onCleanup`) raises `InvalidOperationException`, and that exception becomes the row's error. The value
 form's message begins `A projection's map created an owned node`; the factory form's begins
 `A projection row's reader created an owned node`.
-</div>
+:::
 *)
 
 let misplaced =
@@ -215,17 +277,21 @@ let misplaced =
 `misplaced.Get 1` raises the error above. Moving the memo into `createProjectionWith`'s factory, as
 `rows` does, creates it once per key.
 
-<div class="alert alert-warning">
+:::warning The check covers direct constructors too
 
-**The check covers direct constructors too.** A reader or `map` that builds a node with
+A reader or `map` that builds a node with
 `Memo (graph, ...)`, `new Effect (...)`, `Graph.CreateRoot` or `Graph.OnCleanup` fails with the same
 exception.
-</div>
+:::
+
+:::details Nodes owned by a memo read from a row
 
 A node created inside a memo that a projection row pulls belongs to that memo. A `createMemoWith`
 memo keeps it until the memo's next run or disposal, whichever key or projection first read it. A
 `createMemo` body that creates a node fails with `InvalidOperationException` naming
 `createMemoWith`.
+
+:::
 
 ## Index projections
 
@@ -251,9 +317,14 @@ slots.Keys, slots.Get 0
 
 ## Pending and failed rows
 
+`Keys` can be available while individual rows are still pending. Handle loading at the row or
+collection level with a boundary.
+
 A row whose value is pending raises `NotReadyException` from `Get` and `TryGet`, which a suspense
 boundary catches. The key set resolves independently of the rows' values, so `Keys` is available while
 rows are still in flight. A failed row re-raises its reader's exception from `Get`.
+
+:::details Pending summaries, snapshots and read costs
 
 - `AnyPending` wakes its reader only when the answer changes. A read is O(1) while no row is pending, and
   costs a pass over the pending rows otherwise.
@@ -265,6 +336,8 @@ rows are still in flight. A failed row re-raises its reader's exception from `Ge
   the run's later reads of the summary.
 - `Snapshot` and `AsObservableCollection` show a pending or failed row's last settled value, and leave
   out a row that has never settled.
+
+:::
 
 The pending channel itself is described in [Async and pending](async-and-pending.md).
 
@@ -295,6 +368,8 @@ List.ofSeq view
 ["Write the guide"; "Review it twice"; "Celebrate"]
 ```
 
+:::details UI notifications, cost and lifetime
+
 The collection raises the fewest item events that turn its old contents into the new ones, so a bound
 list control keeps its unchanged items:
 
@@ -307,6 +382,8 @@ list control keeps its unchanged items:
 Each change costs O(N log N): the effect compares every row against a copy of the previous contents.
 
 The updates stop when the calling scope is disposed or re-runs, or when the projection is disposed.
+
+:::
 
 ## Reading changes
 
@@ -329,6 +406,8 @@ let delta = reader.Read ()
 [(1, Removed); (5, Added)]
 ```
 
+:::details Key deltas, resets and read costs
+
 - `Changes` holds one `KeyChange` per key: `Added`, `Removed`, or `Replaced` for a key removed and
   re-added between two reads. A key added and then removed between two reads cancels out. The order is
   unspecified; `Keys` gives the order.
@@ -346,11 +425,16 @@ A key reader reports membership and order; read row values with `Get` for the ke
 reader costs one map update per added or removed key, and a projection without readers pays one null
 check.
 
+:::
+
 ## Lookups
 
-`createLookup f affected source` derives a value for any key, computed as `f state key`. A cell exists
-for each key read through `Get`, and a cell with no observers is evicted at the lookup's next
-transition or read of another key. A source change recomputes only the live cells among the keys `affected prev next` returns.
+`createLookup f affected source` computes `f state key` for each key you read with `Get`.
+When the source changes, it recomputes live cells for the keys returned by `affected prev next`.
+
+:::details Cell lifetime
+An unobserved cell is evicted on the next source transition or read of another key.
+:::
 *)
 
 let stock = createSignal (Map [ "apples", 3; "pears", 0 ])
@@ -372,14 +456,18 @@ onHand.Get "apples", onHand.Get "plums"
 (3, 0)
 ```
 
-<div class="alert alert-warning">
+:::warning The `affected` function is a contract
 
-**The `affected` function is a contract.** `affected prev next` must name every key whose value can differ between
+`affected prev next` must name every key whose value can differ between
 the two states. A key left out keeps its stale value. An extra key costs one recomputation.
-</div>
+:::
+
+:::details Failed and pending lookup cells
 
 A key whose computation throws holds the exception, and is recomputed on every later transition until
 it succeeds. A pending source suspends every live cell until it settles.
+
+:::
 
 ## Selectors
 
@@ -404,9 +492,35 @@ selected.Value <- 3
 [(1, false); (2, false); (3, true); (4, false)]
 ```
 
+:::details Tests covering this behaviour
+
 Pinned by `createSelector reports membership and wakes only the two ends` and
 `only the affected keys are recomputed`
 ([Lookups.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Lookups.fs)).
+:::
+
+Move the selection from 1 to 2. Only those two membership values change; the reader for
+key 3 stays quiet.
+
+```fsharp map replay show=output
+let selected = createSignal 1
+let isSelected = createSelector (fun () -> selected.Value)
+let first = createMemo (fun _ -> isSelected.Get 1)
+let second = createMemo (fun _ -> isSelected.Get 2)
+let third = createMemo (fun _ -> isSelected.Get 3)
+createEffect (fun () -> printfn "first = %b" first.Value)
+createEffect (fun () -> printfn "second = %b" second.Value)
+createEffect (fun () -> printfn "third = %b" third.Value)
+
+controls [
+    button "Select 2" (fun () -> selected.Value <- 2)
+    |> describe "Keys 1 and 2 change their answers; key 3 stays false."
+    |> expect "Keys 1 and 2 change their answers; key 3 stays false." (fun () -> not first.Peek && second.Peek && not third.Peek)
+    button "Select 3" (fun () -> selected.Value <- 3)
+    |> describe "Keys 2 and 3 change their answers; key 1 stays false."
+    |> expect "Keys 2 and 3 change their answers; key 1 stays false." (fun () -> not first.Peek && not second.Peek && third.Peek)
+]
+```
 
 ## Deep updates
 
@@ -415,10 +529,13 @@ returns its argument wakes no reader and starts no projection pass.
 
 ### Nested copy-and-update
 
-F# 8's nested `with` writes a field deep inside a record. It rebuilds one record per level of the path, and every
-record off the path keeps its reference. A path segment that also names a record type in scope resolves as the
-type, so a field `User` of type `User` fails to compile as `{ m with User.Name = ... }`. Qualify the path with the
-outer type (`{ m with Model.User.Name = ... }`) or rename the field.
+F# 8's nested `with` updates a field deep inside a record. Each record on the path is rebuilt;
+records outside it keep their references.
+
+:::details When a field name also names a type
+A field `User` of type `User` can make `{ m with User.Name = ... }` fail because the path resolves
+as the type. Qualify it with the outer type (`{ m with Model.User.Name = ... }`) or rename the field.
+:::
 *)
 
 type Address = { City: string; Zip: string }
@@ -470,9 +587,13 @@ city.Value, zip.Value
 ("Oslo", "5003")
 ```
 
+:::details Which memos recompute after a deep write
+
 The write re-runs every memo on the path, each direct child of a memo on the path (`zip`), and every memo that
 reads the root (`theme`). Only readers whose value changed wake: here the reader of `city`. Several updates inside
 `batch` give one flush; to allocate the path once, compose them into one `Signal.update`.
+
+:::
 
 ### Keyed updates
 
@@ -502,9 +623,13 @@ storeTitles.Get 2
 "Review it twice"
 ```
 
+:::details Keyed update costs and duplicate keys
+
 Only the row whose item changed wakes. The write still costs one projection pass over the whole list, and the list
 form rebuilds the cells before the match and shares the tail after it. Keep keys unique: `updateBy` rewrites the first
 match only, and a projection over a list with a duplicate key raises.
+
+:::
 
 ### Selecting one element
 
@@ -534,29 +659,35 @@ secondRuns.Value, wrappedRuns.Value
 (1, 2)
 ```
 
-<div class="alert alert-warning">
+:::warning A `createMemo` returning `Some` wakes on every run on .NET
 
-**A `createMemo` returning `Some` wakes on every run on .NET.** Each run allocates a new `Some`, and the default
+Each run allocates a new `Some`, and the default
 policy compares it by reference, so the theme write above wakes the readers of `wrapped`. Under Fable, `Some x` is
 `x` itself for a non-nested option and the same memo stays asleep. `createOptionMemo` behaves the same on both.
-</div>
+:::
 
-<div class="alert alert-warning">
+:::warning `createOptionMemo` creates a memo
 
-**`createOptionMemo` creates a memo.** Inside a `createMemo` body or a projection's `map` it raises
+Inside a `createMemo` body or a projection's `map` it raises
 `InvalidOperationException`, as any owned node does. Create it at setup, under an owner, or in a
 `createProjectionWith` factory.
-</div>
+:::
+
+:::details Tests covering this behaviour
 
 Pinned by `a record-path write re-runs only the readers on the path`, `a keyed write wakes only the written
 projection row` and `createOptionMemo: an unrelated root write wakes no dependent and calls no Equals`
 ([Lenses.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Lenses.fs)).
+:::
 
 ## Combinator views
 
-`Projection.filter`, `Projection.choose`, `Projection.map`, `Projection.mapWith`, `Projection.sortBy` and `Projection.groupBy` derive a projection from another. Each view keeps a row per key, and its
-function re-runs for a key only when the upstream row for that key changes. A reader of the view wakes as a reader of
-any projection does: `Keys` on a membership or order change, `Get key` on a changed value.
+Derive a live view from a projection with `filter`, `choose`, `map`, `mapWith`, `sortBy` or `groupBy`.
+Each view keeps rows by key and re-runs its function only for changed upstream rows.
+
+As with a source projection, `Keys` tracks membership and order; `Get key` tracks a row value.
+
+### Filter and map
 *)
 
 let catalogue = createSignal [ { Id = 1; Title = "a" }; { Id = 2; Title = "bb" }; { Id = 3; Title = "ccc" } ]
@@ -580,8 +711,14 @@ lengths.Get 3
 3
 ```
 
+:::details Cost of membership and order changes
+
 A view's pass still walks the upstream `Keys`, so a membership or order change costs O(N) per view, as it does for
 the source projection. The combinators remove the per-key user calls for unchanged rows, not that walk.
+
+:::
+
+### Sort rows
 
 `Projection.sortBy` orders the keys ascending by a sort key under `compare`. Keys with equal sort keys keep their
 upstream order, including after the upstream reorders. A `float` or `float32` NaN sort key comes after every other key
@@ -600,13 +737,21 @@ byLength.Keys
 [|2; 1; 3|]
 ```
 
+:::details Sort costs
+
 When every sort key, membership and the upstream order are unchanged, a `sortBy` pass costs O(N) and publishes no new
 `Keys`; otherwise it re-sorts in O(N log N).
+
+:::
+
+### Choose values
 
 `Projection.choose` keeps the keys whose chooser returns `Some`, each with the value inside it, in one view: the chooser
 runs once per key per upstream row change. A change from one
 `Some` value to another wakes only readers of the key's row. A pending or raising chooser follows the predicate rules
 below.
+
+:::details Pending and failed combinator rows
 
 A predicate or sort key that raises leaves the key out of `Keys`, and `Get` of the key raises the exception. A mapping
 that raises keeps the key, with the same `Get` behaviour. A pending predicate keeps the key's last membership; a
@@ -618,6 +763,10 @@ In a chain, such a key is also in the `PendingKeys` of every view built on the o
 the excluding view, and only `Get` and `TryGet` of the excluding view raise its error. A view's `Status` and `Error`
 describe its pass, not its rows.
 
+:::
+
+:::details Tests covering this behaviour
+
 Pinned by `a throwing predicate excludes the key, and Get and TryGet raise its error`, `a pending predicate keeps
 membership; a never-settled key is only in PendingKeys`, `an effect reading Keys and Get runs exactly once per write`,
 `sorts ascending, and equal sort keys keep upstream order`, `ties keep upstream order at 40 keys, across reorder and
@@ -627,6 +776,9 @@ keeps membership; a never-settled key is only in PendingKeys`, `a throwing choos
 raise its error`, and the
 `chained pending` tests
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
+:::
+
+### Create nodes per mapped row
 
 `Projection.mapWith` is the factory form of `map`: its mapping runs once per key with the key and a tracked read of the
 upstream value, and returns the key's reader. Nodes the mapping creates belong to the key and are disposed with it.
@@ -646,15 +798,22 @@ labels.Get 3
 "3:2"
 ```
 
+### Group rows
+
 `Projection.groupBy` groups the keys by a group key. The groups follow the upstream position of each group's first
 member, and each group is an inner view of its keys in upstream order. A key whose group key changes leaves its old
 group and joins its new one in the same pass. `groupBy` returns a `Grouping`, which is a
 `Projection<'G, Projection<'K, 'V>>`; branches that must unify with a plain projection need an upcast.
 
+:::details Pending groups and UngroupedKeys
+
 A pending group key keeps the key's last settled group. A key whose group key raises or has never settled is in no
 group: `UngroupedKeys` lists it, in upstream order, followed by the pending keys the upstream view holds out.
 `GroupOf` returns a key's group, re-raises its group key's exception, or raises `NotReadyException` while its group
 key has never settled.
+
+:::
+
 *)
 
 let byLengthGroup = orderedTitles |> Projection.groupBy String.length
@@ -666,17 +825,30 @@ let byLengthGroup = orderedTitles |> Projection.groupBy String.length
 [(2, [|1; 3|]); (1, [|2|])]
 ```
 
+:::details Lifetime of an empty group
+
 An inner view is disposed once its group is empty: a reader holding it sees empty `Keys`, and `Get` raises
 `ObjectDisposedException`. A group that returns later has a new inner view.
+
+:::
+
+:::details Tests covering this behaviour
 
 Pinned by the `Projection.mapWith` and `Projection.groupBy` tests, including `a never-settled key is in UngroupedKeys,
 in upstream order, until it settles and joins its group` and `filter then groupBy lists the keys the filter holds out
 in UngroupedKeys`
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
+:::
 
-`Projection.take`, `Projection.skip` and `Projection.sub` select keys by upstream position. Their counts are functions
-read tracked in the pass, so a window driven by a signal follows it. A negative offset is 0, a negative `take` count or
-an offset past the last key gives an empty window, and a count past the last key ends the window at the last key.
+### Page through rows
+
+`Projection.take`, `skip` and `sub` select keys by upstream position. Their count functions are
+tracked, so a signal can drive the window.
+
+:::details Counts and offsets outside the range
+Negative offsets become 0. A negative `take` count or an offset beyond the last key gives an empty
+window. A count past the end stops at the last key.
+:::
 *)
 
 let page = createSignal 0
@@ -689,12 +861,19 @@ pageOfTitles.Keys
 [|1; 2|]
 ```
 
+:::details Window reuse and costs
+
 A slice pass costs O(window). A key that stays in the window keeps its row, so shifting the window by d positions
 creates and disposes at most d rows, and a write to a row outside the window wakes no reader of the slice.
+
+:::
+
+:::details Tests covering this behaviour
 
 Pinned by `take, skip and sub select positions and clamp counts as List.truncate and a clamped skip do`, `a key that
 stays in a shifted window keeps its row` and `a write outside the window wakes no reader`
 ([Combinators.fs](https://github.com/shayanhabibi/Ranvier/blob/master/tests/Ranvier.Tests/Combinators.fs)).
+:::
 
 To fold the values of a projection into one value, such as a total or a count, see [Aggregates](aggregates.fsx).
 

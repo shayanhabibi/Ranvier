@@ -182,6 +182,8 @@ module SignalMapComponent =
         inspect.textContent <- hint
         stageBox.appendChild inspect |> ignore
         let bar = Dom.el "div" "rv-map__bar"
+        let caption = Dom.el "p" "rv-map__caption"
+        caption.setAttribute ("aria-live", "polite")
         let controlRow = Dom.el "div" "rv-map__controls"
         bar.appendChild controlRow |> ignore
         let log = Dom.el "ol" "rv-map__log"
@@ -190,13 +192,14 @@ module SignalMapComponent =
         let error = Dom.el "div" "rv-map__error"
         error.setAttribute ("role", "alert")
 
-        for e in [ stageBox; bar; log; why; error ] do
+        for e in [ stageBox; bar; caption; log; why; error ] do
             root.appendChild e |> ignore
 
         let nodes = Dictionary<int, NodeView>()
         let edges = Dictionary<string, Element>()
         let boxes = ResizeArray<Element>()
         let history = ResizeArray<Frame>()
+        let captions = ResizeArray<int * string option>()
         let lit = Dictionary<int, Element list>()
         let mutable cursor = -1
         let mutable setup = 0
@@ -829,6 +832,10 @@ module SignalMapComponent =
         let playButton = Dom.button "Play" "rv-map__button" ignore
 
         let refresh () =
+            caption.textContent <-
+                Replay.captionAt captions cursor
+                |> Option.defaultValue ""
+
             if timeline then
                 scrub.min <- string setup
                 scrub.max <- string history.Count
@@ -919,6 +926,8 @@ module SignalMapComponent =
             window.clearTimeout timer
             scheduled <- false
             history.Clear ()
+            captions.Clear ()
+            caption.textContent <- ""
             cursor <- -1
             setup <- 0
             tail <- start
@@ -1060,13 +1069,32 @@ module SignalMapComponent =
                             ->
                             drain g
 
-                            step.Log
-                            |> Option.iter (fun line -> append [| MapModel.said tail line |])
+                            captions.Add (history.Count, step.Caption)
+                            append [| MapModel.said tail (step.Log |> Option.defaultValue label) |]
 
-                            attempt label step.Run
+                            try
+                                use _ = g.Activate ()
+                                step.Run ()
 
-                            window.setTimeout ((fun () -> stepFrom rest), 0)
-                            |> ignore
+                                window.setTimeout (
+                                    (fun () ->
+                                        if
+                                            not disposed
+                                            && graph
+                                               |> Option.exists (fun current -> obj.ReferenceEquals (current, g))
+                                        then
+                                            try
+                                                drain g
+                                                use _ = g.Activate ()
+                                                untrack (fun () -> Controls.check step)
+                                                stepFrom rest
+                                            with ex ->
+                                                fail ($"{label}: {ex.Message}")),
+                                    0
+                                )
+                                |> ignore
+                            with ex ->
+                                fail ($"{label}: {ex.Message}")
                         | _ -> ()
 
                     stepFrom steps

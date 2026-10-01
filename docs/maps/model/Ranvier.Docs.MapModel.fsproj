@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <Compile Include="Helpers.fs" />
+        <Compile Include="Replay.fs" />
         <Compile Include="MapModel.fs" />
         <Compile Include="Layout.fs" />
     </ItemGroup>

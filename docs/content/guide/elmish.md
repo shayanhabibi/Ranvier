@@ -7,9 +7,13 @@ order: 12
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-`Mvu` holds an Elmish-style model in a signal. `init` and `update` stay as they are, and each view reads the parts of
-the model it shows through selectors: memos that wake their readers only when their part changes. An application can
-move one view at a time, while the rest keeps its Elmish loop.
+Keep your Elmish `init` and `update`, and move views to Ranvier one at a time.
+
+`Mvu` holds the model in a signal. Each view reads the parts it needs through selectors: memos
+that trigger their readers only when the selected value changes. The rest of the application can
+keep its Elmish loop.
+
+## Setup
 
 `Mvu` ships in its own package, `Ranvier.Elmish`, which depends on `Ranvier`:
 
@@ -17,11 +21,17 @@ move one view at a time, while the rest keeps its Elmish loop.
 dotnet add package Ranvier.Elmish --prerelease
 ```
 
-`Mvu` has no Elmish dependency. A command is a plain function of type `('Msg -> unit) -> unit`, and a command list has
-the shape of Elmish's `Cmd<'Msg>`, so Elmish commands pass through unchanged.
+:::info Existing commands work unchanged
+`Mvu` has no Elmish dependency. Its commands have the same shape as Elmish's `Cmd<'Msg>`: a list
+of functions with type `('Msg -> unit) -> unit`.
+:::
 
 ## A model and its update
 
+Create an app with `Mvu.create init update`. Read a field with `app.Select`, and send messages
+with `app.Dispatch`.
+
+:::details A counter with name and address fields
 ```fsharp
 open Ranvier
 open Ranvier.Elmish
@@ -54,16 +64,57 @@ graph.Run (fun () ->
 )
 ```
 
-- `Mvu.create init update` holds `init` in a signal. `Dispatch msg` writes `update msg model` to it.
-- `Model` is a tracked read of the whole model. An effect that reads it runs on every change, as an Elmish `view` does.
-- `Select f` is a memo over `f model`. It re-runs on each model write while something reads it, and wakes its readers
-  only when its result changes under the graph's [equality cutoff](getting-started.md#equality-cutoff).
-- An `update` that returns its argument wakes nothing: the write stops at the signal's cutoff.
+:::
+
+This map isolates selector behaviour: incrementing changes the count, while renaming changes
+the model but leaves the count effect alone.
+
+```fsharp map replay show=output
+let model = createSignal {| Count = 0; Name = "Ada" |}
+let count = createMemo (fun _ -> model.Value.Count)
+let mutable effectRuns = 0
+createEffect (fun () ->
+    effectRuns <- effectRuns + 1
+    printfn "count = %d" count.Value)
+
+controls [
+    button "Increment" (fun () -> model.Value <- {| model.Value with Count = model.Value.Count + 1 |})
+    |> describe "The count selector publishes 1 and runs its effect."
+    |> expect "The count selector publishes 1 and runs its effect." (fun () -> count.Peek = 1 && effectRuns = 2)
+    button "Rename Grace" (fun () -> model.Value <- {| model.Value with Name = "Grace" |})
+    |> describe "The model changes, but count remains 1 and its effect stays quiet."
+    |> expect "The model changes, but count remains 1 and its effect stays quiet." (fun () -> count.Peek = 1 && effectRuns = 2)
+]
+```
+
+`Dispatch msg` applies `update msg model` and writes the resulting model to the signal.
+
+- `app.Model` tracks the whole model. An effect reading it runs on every model change, like an
+  Elmish `view`.
+- `app.Select f` tracks the selected value. The selector recomputes on model writes while observed,
+  but triggers its readers only when its result changes.
+
+:::tip Keep unchanged values unchanged
+An `update` that returns the original model triggers nothing: the signal's
+[equality cutoff](getting-started.md#equality-cutoff) stops the write.
+:::
+
+::::details Test your understanding
+
+In the counter example, does renaming Ada to Grace run the count effect again? Would an effect
+reading `app.Model` run?
+
+:::details Answer
+
+The count selector recomputes, but still returns `1`, so its effect does not run again. An effect
+reading `app.Model` runs because the model changed.
+:::
+::::
 
 ## Commands
 
-`Mvu.withCmd` takes an `init` and an `update` that return a model and a command list, as Elmish's `Program.mkProgram`
-does:
+Use `Mvu.withCmd` when `init` and `update` return a model and a command list, as with Elmish's
+`Program.mkProgram`:
 
 ```fsharp
 let update msg model =
@@ -74,36 +125,72 @@ let update msg model =
 let app = Mvu.withCmd (initial, [ fun dispatch -> dispatch Load ]) update
 ```
 
-Each command runs after the write that came with it, in order, with `Dispatch` as its argument. The initial commands
-run before `withCmd` returns.
+Each command receives `Dispatch` and runs in list order after the accompanying model write.
+Initial commands run before `withCmd` returns.
 
 ## Dispatch and threads
 
-- A `Dispatch` on the graph's thread runs inline. A dispatch from an effect joins the flush that is running, as any
-  write from an effect does, and neither `update` nor the commands are tracked by the effect.
-- A `Dispatch` from another thread is queued and applied on the graph's thread, as
-  [`Graph.Dispatch`](async-and-pending.md#threading-and-dispatch) queues work. A command that completes on the thread pool can call
-  `dispatch` directly.
-- Under `ThreadAffinity.Serialised`, a `Dispatch` runs inline only on the thread inside the graph. A `Dispatch` from
-  anywhere else, including a thread on the construction context, is queued and applied at the next drain. A graph
-  constructed with no `SynchronizationContext` drains only when `graph.Pump ()` runs, so the message stays queued until
-  then. See [Serialised hosts](../concepts/contracts.md#serialised-hosts).
+Under the default affinity, `Dispatch` runs inline on the graph's thread. Calls from other threads
+are queued and applied on that thread, through
+[`Graph.Dispatch`](async-and-pending.md#threading-and-dispatch).
+
+:::tip Dispatch an async result directly
+A command that completes on the thread pool can call `dispatch` directly. `Mvu` handles sending
+the update to the graph's thread.
+:::
+
+:::details Dispatch from an effect
+A dispatch joins the flush already running. Neither `update` nor its commands become tracked
+parts of the effect.
+:::
+
+:::details Serialised graphs
+
+Under `ThreadAffinity.Serialised`, dispatch runs inline only on the thread already inside the
+graph. Other calls, including calls on the construction context, queue for the next drain.
+
+Without a captured `SynchronizationContext`, the graph drains only when `graph.Pump ()` runs.
+Until then, the message stays queued. See
+[Serialised hosts](../concepts/contracts.md#serialised-hosts).
+:::
 
 ## Selectors and their cost
 
-Each write re-runs every selector over the model that something reads. That is the cost profile of Elmish's `lazy`
-at memo granularity: a selector is a comparison, not a view diff. A selector nothing reads does not run.
+Each model write recomputes every observed selector directly over the model. Unobserved selectors
+do not run. A selector compares its result; it does not diff a view.
 
-Nest selectors to cut the re-run set. A selector over another selector's memo re-runs only when that memo changes:
+Nest selectors to reduce this work. A memo over another selector runs only when that selector's
+result changes:
 
 ```fsharp
 let address = app.Select _.Address
 let city = createMemo (fun _ -> address.Value.City)
 ```
 
-A write to `Count` re-runs `address`, which returns the same `Address` record and stops there; `city` stays asleep.
-Under the default policy records compare by reference, so a nested copy-and-update keeps every record off the written
-path, and the selectors over those records stay asleep. See [Deep updates](collections.fsx#deep-updates).
+::::details Test your understanding
+
+After a write to `Count`, does `address` recompute? Does `city` recompute?
+
+:::details Answer
+
+`address` recomputes if observed, but returns the same `Address` record. Propagation stops there,
+so `city` does not recompute.
+
+Under the default equality policy, records compare by reference. A nested copy-and-update keeps
+records outside the changed path, allowing their selectors to cut off propagation. See
+[Deep updates](collections.fsx#deep-updates).
+:::
+::::
+
+:::tip Frequently changing forms
+If a view reads many fields of a frequently changing record, consider the record-of-signals pattern
+in [Editable values and forms](forms.md). Updating one field then costs one signal write.
+:::
+
+:::details Selector costs and benchmark results
+
+Like Elmish's `lazy`, selectors compare values to avoid downstream work, but at memo granularity.
+They still run to make that comparison.
 
 | Per write, one field changed, one reader per field | Cost |
 | --- | --- |
@@ -120,20 +207,26 @@ tiered compilation and PGO off:
 | A signal per field | 607 | 0 | 0 |
 | `Mvu.Dispatch` with a `Select` per field | 48,133 | 400 | 64 |
 
-A dispatch re-runs all 64 observed selectors and costs about 80 times a field signal write. Nested selectors cut that
-set to the selectors on the written path. When a view reads many fields of a record that changes often, the
-record-of-signals pattern in [Editable values and forms](forms.md) costs one signal write per field instead. See
-[Instruction counts](../benchmarks/counters.md) and the [full report](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
+In this benchmark, dispatch re-runs all 64 observed selectors and costs about 80 times a field
+signal write. Nesting selectors reduces downstream runs to the changed path. See
+[Instruction counts](../benchmarks/counters.md) and the
+[full report](https://github.com/shayanhabibi/Ranvier/blob/master/docs/.ai/benchmarks/counters/e13f159.md).
+
+:::
 
 ## An adoption path
 
-1. Keep `init` and `update`. Replace `Program.mkProgram` with `Mvu.withCmd`, and run the existing `view` from an
-   effect that reads `app.Model` and passes `app.Dispatch`.
-2. Move one view to selectors: read `app.Select` memos in its effects, not `app.Model`.
-3. Split the next view, and nest selectors where a view shows part of a sub-model.
+1. **Keep the whole-model view.** Keep `init` and `update`, replace `Program.mkProgram` with
+   `Mvu.withCmd`, and run the existing `view` from an effect reading `app.Model`. Pass it `app.Dispatch`.
+2. **Migrate one view.** Read `app.Select` memos in that view's effects instead of `app.Model`.
+3. **Repeat.** Move the next view, nesting selectors when it displays part of a sub-model.
 
 ## Owners instead of hooks
 
-Selectors and effects belong to the scope that is current when they are created, not to a call position. A view
-created inside `createRoot` or an owning memo is disposed with it, selectors included. There are no rules of hooks:
-a view may create selectors in a branch or a loop. See [Owners instead of hooks](../concepts/ecosystem.md#owners-instead-of-hooks).
+Selectors and effects belong to the scope active when they are created. Create a view inside
+`createRoot` or an owning memo to dispose its nodes, including selectors, with that scope.
+
+:::info Branches and loops are allowed
+Ownership depends on scope, not call position. A view can create selectors inside a branch or a
+loop. See [Owners instead of hooks](../concepts/ecosystem.md#owners-instead-of-hooks).
+:::

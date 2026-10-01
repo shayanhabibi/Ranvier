@@ -40,6 +40,8 @@ createEffect (fun () -> printfn $"doubled = %d{doubled.Value}")
 
 controls [
     button "Set" (fun () -> count.Value <- 5)
+    |> describe "The write refreshes doubled from 2 to 10."
+    |> expect "The write refreshes doubled from 2 to 10." (fun () -> doubled.Peek = 10)
 ]
 ```
 
@@ -155,6 +157,27 @@ with `fun _ ->`.
 
 `Peek` returns the last computed value untracked, as stored, even when the memo is stale.
 
+Writes leave this unobserved memo stale. **Peek** prints its stored value; **Read** refreshes it.
+Watch the memo's run count as you step through the replay.
+
+```fsharp map replay show=output
+let count = createSignal 1
+let doubled = createMemo (fun _ -> count.Value * 2)
+doubled.Value |> ignore
+
+controls [
+    button "Write 5" (fun () -> count.Value <- 5)
+    |> describe "The write leaves doubled stale; its stored value is still 2."
+    |> expect "The write leaves doubled stale; its stored value is still 2." (fun () -> doubled.Peek = 2)
+    button "Peek" (fun () -> printfn "stored = %d" doubled.Peek)
+    |> describe "Peek returns the stored 2 without running the memo."
+    |> expect "Peek returns the stored 2 without running the memo." (fun () -> doubled.Peek = 2)
+    button "Read" (fun () -> printfn "current = %d" doubled.Value)
+    |> describe "Reading doubled refreshes it to 10."
+    |> expect "Reading doubled refreshes it to 10." (fun () -> doubled.Peek = 10)
+]
+```
+
 ### Glitch-free
 
 Propagation is glitch-free. In a diamond, where two memos read one signal and an effect reads both
@@ -226,7 +249,11 @@ createEffect (fun () -> shared.Value |> ignore)
 
 controls [
     button "Set2" (fun _ -> value.Value <- 2)
+    |> describe "Both branches settle before the shared reader observes the new pair."
+    |> expect "Both branches settle before the shared reader observes the new pair." (fun () -> seen.Peek = (3, 20))
     button "Set3" (fun _ -> value.Value <- 3)
+    |> describe "The shared memo runs once even though two effects read it."
+    |> expect "The shared memo runs once even though two effects read it." (fun () -> seen.Peek = (4, 30) && shared.Peek = 300)
 ]
 ```
 :::
@@ -317,6 +344,24 @@ Its type is `'T voption -> 'T`:
 
 A total advances **once per run**, using the inputs read in that run. Several writes in a batch,
 or before an unobserved memo is read, contribute only their final values.
+
+Compare a single write with two writes in a batch. The total adds `10`, then adds only the
+batch's final `2`.
+
+```fsharp map replay show=output
+let amount = createSignal 5
+let total = createMemo (fun previous -> ValueOption.defaultValue 0 previous + amount.Value)
+createEffect (fun () -> printfn "total = %d" total.Value)
+
+controls [
+    button "Add 10" (fun () -> amount.Value <- 10)
+    |> describe "The memo adds 10 to its previous total of 5."
+    |> expect "The memo adds 10 to its previous total of 5." (fun () -> total.Peek = 15)
+    button "Batch 1 then 2" (fun () -> batch (fun () -> amount.Value <- 1; amount.Value <- 2))
+    |> describe "Only the batch's final 2 is added to the previous total of 15."
+    |> expect "Only the batch's final 2 is added to the previous total of 15." (fun () -> total.Peek = 17)
+]
+```
 
 ::::details Test your understanding
 
@@ -562,16 +607,25 @@ so `label` and the effect do not run again.
 
 In the map, an equal write stops at `count`. A write that keeps the parity re-runs `isEven`, which recomputes to the same value and stops there. A write that flips the parity reaches the effect.
 
-```fsharp map
+```fsharp map replay show=output
 let count = createSignal 2
 let isEven = createMemo (fun _ -> count.Value % 2 = 0)
 let label = createMemo (fun _ -> if isEven.Value then "even" else "odd")
-createEffect (fun () -> printfn "%s" label.Value)
+let mutable effectRuns = 0
+createEffect (fun () ->
+    effectRuns <- effectRuns + 1
+    printfn "%s" label.Value)
 
 controls [
     button "Write 2 (equal)" (fun () -> count.Value <- 2)
+    |> describe "An equal write leaves the effect at its initial run."
+    |> expect "An equal write leaves the effect at its initial run." (fun () -> effectRuns = 1)
     button "Write 4" (fun () -> count.Value <- 4)
+    |> describe "isEven remains true, so the label and effect stay unchanged."
+    |> expect "isEven remains true, so the label and effect stay unchanged." (fun () -> effectRuns = 1 && label.Peek = "even")
     button "Write 3" (fun () -> count.Value <- 3)
+    |> describe "isEven changes to false and the effect prints odd."
+    |> expect "isEven changes to false and the effect prints odd." (fun () -> effectRuns = 2 && label.Peek = "odd")
 ]
 ```
 
@@ -737,16 +791,25 @@ stored `"b"` and restores the dependency on `first`.
 
 Toggle the branch to move the effect's edge between `first` and `second`. A write to the source off the branch wakes nothing.
 
-```fsharp map
+```fsharp map replay show=output
 let useFirst = createSignal true
 let first = createSignal "a"
 let second = createSignal "x"
-createEffect (fun () -> printfn "%s" (if useFirst.Value then first.Value else second.Value))
+let mutable effectRuns = 0
+createEffect (fun () ->
+    effectRuns <- effectRuns + 1
+    printfn "%s" (if useFirst.Value then first.Value else second.Value))
 
 controls [
     button "Toggle branch" (fun () -> useFirst.Value <- not useFirst.Value)
+    |> describe "The effect switches its dependency from first to second."
+    |> expect "The effect switches its dependency from first to second." (fun () -> effectRuns = 2)
     button "Write first" (fun () -> first.Value <- first.Value + "!")
+    |> describe "first is no longer a dependency, so its write leaves the effect alone."
+    |> expect "first is no longer a dependency, so its write leaves the effect alone." (fun () -> effectRuns = 2)
     button "Write second" (fun () -> second.Value <- second.Value + "!")
+    |> describe "second is now a dependency, so its write runs the effect."
+    |> expect "second is now a dependency, so its write runs the effect." (fun () -> effectRuns = 3)
 ]
 ```
 
@@ -756,6 +819,29 @@ controls [
 Use it when you need a value but do not want changes to that value to trigger another run.
 
 Unlike `Peek`, an untracked read of `memo.Value` refreshes a stale memo.
+
+Change **Ignored**, then **Tracked**. Only the tracked signal has an edge to the effect, so
+only its write runs the effect again. That run still reads the current ignored value.
+
+```fsharp map replay show=output
+let tracked = createSignal 0
+let ignored = createSignal 0
+let mutable effectRuns = 0
+createEffect (fun () ->
+    effectRuns <- effectRuns + 1
+
+    let current = untrack (fun () -> ignored.Value)
+    printfn "tracked = %d, ignored = %d" tracked.Value current)
+
+controls [
+    button "Ignored +1" (fun () -> ignored.Value <- ignored.Value + 1)
+    |> describe "The untracked read creates no edge; changing ignored does not run the effect."
+    |> expect "The untracked read creates no edge; changing ignored does not run the effect." (fun () -> effectRuns = 1)
+    button "Tracked +1" (fun () -> tracked.Value <- tracked.Value + 1)
+    |> describe "Changing tracked runs the effect, which also sees the current ignored value."
+    |> expect "Changing tracked runs the effect, which also sees the current ignored value." (fun () -> effectRuns = 2 && ignored.Peek = 1)
+]
+```
 
 ::::details Test your understanding
 
@@ -855,20 +941,27 @@ before `batch` returns its result to the caller.
 
 In the map, two separate writes run the effect twice. The same two writes in a batch run it once.
 
-```fsharp map
+```fsharp map replay show=output
 let a = createSignal 0
 let b = createSignal 0
 let sum = createMemo (fun _ -> a.Value + b.Value)
-createEffect (fun () -> printfn $"effect: {sum.Value}")
+let mutable effectRuns = 0
+createEffect (fun () ->
+    effectRuns <- effectRuns + 1
+    printfn $"effect: {sum.Value}")
 
 controls [
     button "Two writes" (fun () ->
         a.Value <- a.Value + 1
         b.Value <- b.Value + 1)
+    |> describe "Separate writes run the effect twice after setup."
+    |> expect "Separate writes run the effect twice after setup." (fun () -> effectRuns = 3 && sum.Peek = 2)
     button "Two writes in a batch" (fun () ->
         batch (fun () ->
             a.Value <- a.Value + 1
             b.Value <- b.Value + 1))
+    |> describe "The batch runs the effect once with the final sum of 4."
+    |> expect "The batch runs the effect once with the final sum of 4." (fun () -> effectRuns = 4 && sum.Peek = 4)
 ]
 ```
 

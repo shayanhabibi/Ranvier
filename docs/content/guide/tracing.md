@@ -8,16 +8,16 @@ Preview — Ranvier is pre-release; its APIs may change. Tracing is a research
 feature: its queries and dump schema may change before the first release.
 :::
 
-A traced build records every graph operation in a per-graph event log: node creation, reads, marks,
-runs, flushes and disposal, each with the source line that caused it. The `Trace` module answers
-questions over that log. An untraced build compiles the log out, and its Ranvier IL matches the IL
-built without tracing, method for method.
+Use `Trace` to find why a node ran, why it stayed unchanged, or where it was created. A traced
+build records graph operations and their source lines in a per-graph event log.
+
+Untraced builds compile the log out; their Ranvier IL matches a build without tracing, method for
+method.
 
 ## Why trace a graph
 
-A reactive graph moves control flow out of the call stack. When an effect runs, its stack shows the
-flush loop, not the write that caused it. When an effect does not run, there is no stack at all. The
-log keeps the causal chain the stack loses, so these questions have answers:
+An effect's call stack shows the flush loop. The trace log connects that run to the write that
+triggered it, and also explains why a node did not run. Choose a query for your question:
 
 - **Why did this run?** A banner re-rendered after a cart edit. `Trace.why` walks from the run back
   to the write that started it, one hop per node.
@@ -60,14 +60,22 @@ one or the other behind a switch of your own, and define `RANVIER_TRACE` with it
 switch to a separate `dotnet restore`. Referencing both packages at once fails the build: they carry the
 same assembly.
 
+:::details Packing a traced build
+
 Packing the repository's traced build needs the explicit switch, `dotnet pack -c Release
 -p:RanvierTrace=true`, which sets the `.Traced` id. A Debug build is traced by default and keeps the
 untraced id, so `dotnet pack -c Debug` fails with an error naming the switch.
 
+:::
+
 The query functions exist only in a traced build. Code that calls them compiles in a traced build
 alone; guard it with `#if RANVIER_TRACE`, or keep it in scripts that load a traced `Ranvier.dll`.
+:::details Queries in F# Interactive
+
 F# Interactive does not define `RANVIER_TRACE`. A script referencing a traced DLL calls the queries
 directly.
+
+:::
 
 ## Labels
 
@@ -103,9 +111,13 @@ let prices =
         price ]
 ```
 
+:::details Conditional labels and F# Interactive
+
 `Trace.label` is a `Conditional("RANVIER_TRACE")` member. A caller built without `RANVIER_TRACE`
 drops the call, and the interpolated string is never built. The label takes effect only in callers
 compiled with the define; a script run in F# Interactive against a traced DLL keeps the site path.
+
+:::
 
 ## Why did it run
 
@@ -136,8 +148,12 @@ log, and `= value` is the value a write, move or settle recorded. The chain ends
 write, the node's creation, a pull by a reader, an async source's settle, or a cause older than the
 log (`unrecorded after #n`).
 
+:::details Earlier runs and shorter cause chains
+
 `Trace.whyAt graph node run` explains an earlier run by number, and `Trace.whyDepth graph depth
 node` stops after `depth` steps.
+
+:::
 
 ## Why did it not run
 
@@ -153,7 +169,9 @@ checked clean #63 over /total
 ```
 
 `subtotal` recomputed to the same value, so `total` did not move, and the check walk resolved the
-banner clean. The other reasons:
+banner clean.
+
+:::details Other reasons reported by whyNot
 
 | Reason | Meaning |
 | --- | --- |
@@ -164,6 +182,8 @@ banner clean. The other reasons:
 | `not reached: propagation stopped at #n` | Propagation stopped upstream: a write that kept its value, or a run that did not move. |
 | `disposed #n` | The node was disposed. |
 | `no reason recorded` | The node ran after its last mark, or was never marked. |
+
+:::
 
 ## What did each run do
 
@@ -215,6 +235,8 @@ waiting /shipping
   flight 1 #26 run 1 dropped #63 superseded
 ```
 
+:::details Flight outcomes and deferred runs
+
 The first quote settled after the second one started, so its result was dropped. A flight can end
 `in flight`, `settled`, `failed`, `cancelled` or `dropped`. A dropped flight is `superseded` by a
 newer flight, `disposed` with its node, `suspended`: a failure that arrived while the newest run
@@ -222,6 +244,8 @@ waits on a pending source, or `trailing`: a failure that arrived while a `Finish
 owed. A settle marked `held pending` kept its value while a newer run waits. Its `Settle` event's `Flag`
 tells the two apart: 1 for a run suspended on a pending source, 2 for an owed trailing run. A change that
 arrives during a `FinishCurrent` flight records `RunDeferred` in place of a `RunStart`.
+
+:::
 
 `Trace.why` follows a settle back to the run that started the flight:
 
@@ -247,8 +271,12 @@ Trace.origin graph total |> Trace.render graph |> printfn "%s"
 The `TraceOrigin` record also carries the owner chain up to the graph root and the run that created
 the node, which tells apart a node created at startup from one re-created by each run of its owner.
 
+:::details Creation sites and resolving paths
+
 The site is the innermost stack frame outside Ranvier, FSharp.Core and `System.*`. `Trace.resolve
 graph "/total"` goes the other way, from a path to the node id.
+
+:::
 
 ## What the graph looks like
 
@@ -267,7 +295,7 @@ Trace.snapshot graph |> Trace.render graph |> printfn "%s"
 
 A `map replay` fence draws a log like this one. The page runs the example and presses each button once; Play, Step and the scrubber move through its events.
 
-```fsharp map replay
+```fsharp map replay show=output
 let lines = createSignal [ 4; 6 ]
 let discount = createSignal 0
 let subtotal = createMemo (fun _ -> List.sum lines.Value)
@@ -280,12 +308,18 @@ controls [
 ]
 ```
 
+:::details Inspect the graph at an earlier event
+
 `Trace.snapshotAt graph seq` folds the log up to an earlier event, to see the graph as it was.
+
+:::
 
 ## Dumps
 
 `Trace.dumpText graph` returns the log as JSON Lines, schema 1: a header, the folded starting state,
 then one object per event. `Trace.dump graph path` writes the same text to a file.
+
+:::details JSON Lines dump format
 
 ```text
 {"schema":1,"target":"net","graph":1,"checkpoint":null,"seqFrom":1}
@@ -296,10 +330,19 @@ then one object per event. `Trace.dump graph path` writes the same text to a fil
 {"seq":4,"kind":"Label","node":1,"other":0,"arg":0,"flag":0,"cause":0,"payload":"count"}
 ```
 
+:::
+
 The same program produces the same dump, byte for byte, on every run of a single-threaded graph.
 `Trace.events graph` returns the raw `TraceEvent[]` for your own analysis.
 
 ## Limits
+
+:::warning Use tracing during development
+A traced build is slower, allocates per event, and retains its log for the graph's lifetime.
+Ship against the untraced `Ranvier` package.
+:::
+
+:::details Platform, lifetime and query limits
 
 - **Fable records, without dumps.** A Fable build records the log that [signal maps](signal-maps.md)
   draw; `Trace.dump` is absent there.
@@ -323,7 +366,11 @@ The same program produces the same dump, byte for byte, on every run of a single
 - **Labels are names, not keys.** Nodes sharing a label under one owner are told apart by creation
   order: the second takes `#1`, the third `#2`.
 
+:::
+
 ## How the zero-cost claim is checked
+
+:::details Verification gates for trace changes
 
 `tools/verify-trace.fsx` gates every change to the trace code:
 
@@ -336,6 +383,8 @@ The same program produces the same dump, byte for byte, on every run of a single
   library's own counters, and the edges folded from the log equal the live graph.
 - With elevated rights, the counter bench shows equal allocations and instruction counts between
   the merge base and the change.
+
+:::
 
 ## Next
 

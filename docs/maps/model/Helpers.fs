@@ -20,7 +20,11 @@ type Widget =
 type Step =
     {
         Log: string option
+        /// <summary>The explanation shown while the action's events play.</summary>
+        Caption: string option
         Run: unit -> unit
+        /// <summary>Checks evaluated after the action's queued continuations settle, in author order.</summary>
+        Checks: (string * (unit -> bool)) list
     }
 
 /// <summary>A control beneath a map: its widget on a live map, its steps on a replay.</summary>
@@ -92,6 +96,12 @@ type MapSource =
 [<RequireQualifiedAccess>]
 module Controls =
 
+    /// <summary>Raises an error with the first failed expectation's message.</summary>
+    let check (step: Step) : unit =
+        for message, predicate in step.Checks do
+            if not (predicate ()) then
+                invalidOp ("Expectation failed: " + message)
+
     /// <summary>The number in a field's text, or <c>None</c> for empty or non-numeric text.</summary>
     let parseNumber (text: string) : float option =
         // The empty check guards Fable, where Number("") is 0.
@@ -107,7 +117,9 @@ module Controls =
         |> List.map (fun v ->
             {
                 Log = Some $"set %s{label} = %s{show v}"
+                Caption = None
                 Run = fun () -> set v
+                Checks = []
             })
 
 [<AutoOpen>]
@@ -120,7 +132,35 @@ module Helpers =
         {
             Label = label
             Widget = Button press
-            Steps = [ { Log = None; Run = press } ]
+            Steps =
+                [
+                    {
+                        Log = None
+                        Caption = None
+                        Run = press
+                        Checks = []
+                    }
+                ]
+        }
+
+    /// <summary>Shows <c>caption</c> throughout each replay action of the control.</summary>
+    let describe (caption: string) (control: Control) : Control =
+        { control with
+            Steps =
+                control.Steps
+                |> List.map (fun step -> { step with Caption = Some caption })
+        }
+
+    /// <summary>Checks <c>predicate</c> after each replay action and reports <c>message</c> on failure.</summary>
+    /// <remarks>Checks should inspect settled state without writing to the graph or forcing lazy computations.</remarks>
+    let expect (message: string) (predicate: unit -> bool) (control: Control) : Control =
+        { control with
+            Steps =
+                control.Steps
+                |> List.map (fun step ->
+                    { step with
+                        Checks = step.Checks @ [ message, predicate ]
+                    })
         }
 
     /// <summary>A slider over <c>min</c> to <c>max</c>, starting at <c>start</c>; a replay writes each of <c>replay</c>.</summary>
