@@ -18,11 +18,13 @@ type Status =
 /// </summary>
 type ThreadAffinity =
     /// <summary>
-    /// Off-thread mutation raises. The check is a thread-id comparison against
-    /// a field — cheap enough to leave on, and it converts the worst failure
-    /// this library can have (two threads interleaving in an observer set,
-    /// silently) into an exception that names the problem.
+    /// Off-thread mutation raises.
     /// </summary>
+    /// <remarks>
+    /// <para>The check is a thread-id comparison against a field. Cheap.</para>
+    /// <para>Converts the worst failure (two threads interleaving in an observer
+    /// set, silently) into an exception that names it.</para>
+    /// </remarks>
     | Guarded
     /// <summary>
     /// No check. For Fable, where there is one thread, and for a caller who has
@@ -50,13 +52,16 @@ type ThreadAffinity =
 /// <summary>What an async memo does when a source changes while a flight is in progress.</summary>
 type FlightPolicy =
     /// <summary>
-    /// Cancels the superseded flight's token and discards its result. The memo is Pending until the newest flight settles.
+    /// <para>Cancel superseded flight's token</para>
+    /// <para>Discard superseded result</para>
+    /// <para>Memo is pending until newest flight settles.</para>
     /// </summary>
     | CancelPrevious
     /// <summary>
-    /// Discards the superseded flight's result without cancelling its token. The memo is Pending until the newest flight
-    /// settles.
+    /// <para>Discard superseded result</para>
+    /// <para>Memo is pending until newest flight settles.</para>
     /// </summary>
+    /// <remarks>Does not cancel discarded flight</remarks>
     | KeepLatest
     /// <summary>
     /// Applies every flight's outcome, Ready or Failed, in start order, while later flights may still be in progress.
@@ -78,6 +83,7 @@ type FlightPolicy =
     /// </remarks>
     | FinishCurrent
 
+    // AoT compat
     /// <summary>The case name.</summary>
     override this.ToString() =
         match this with
@@ -114,6 +120,7 @@ type INode =
     abstract Id: int
     abstract Status: Status
 
+// TODO - performant throw would not include the stack trace
 /// <summary>
 /// Thrown by a transparent read of a pending source, to abort the reading
 /// computation non-locally — including from inside helpers that know nothing
@@ -124,6 +131,7 @@ type INode =
 /// fresh throws measured cheaper than cached ones on .NET 9, 10 and 11 alike.
 /// </remarks>
 exception NotReadyException of source: INode with
+    override this.StackTrace = null
     /// <summary><c>NotReadyException</c>, then the source's <c>ToString</c> text, or <c>null</c>.</summary>
     override this.Message =
         match box this.source with
@@ -299,7 +307,16 @@ type StructuralPolicy() =
 type GraphOptions =
     {
         Equality: IEqualityPolicy
+
+        /// <summary>
+        /// What an async memo does when a source changes
+        /// while a flight/compute is in progress.
+        /// </summary>
         FlightPolicy: FlightPolicy
+
+        /// <summary>
+        /// Whether the graph guards mutation on its owning thread.
+        /// </summary>
         ThreadAffinity: ThreadAffinity
 
         /// <summary>
@@ -339,6 +356,7 @@ type GraphOptions =
             Dispatcher = Some dispatcher
         }
 
+    // AoT compat
     /// <summary>The record's fields, one per line, in F# record syntax.</summary>
     override this.ToString() =
         let text (value: obj) =
@@ -371,6 +389,7 @@ type Reading<'T> =
     /// <summary>The node failed. <c>error</c> is a non-null exception on both targets.</summary>
     | Failed of error: exn
 
+    // AoT compat
     /// <summary>
     /// The case name and its payload: a <c>string</c> value in double quotes, <c>null</c> as <c>null</c>, and any other
     /// payload as its <c>string</c> text, which formats a number in the invariant culture. A <c>Ready</c> payload text

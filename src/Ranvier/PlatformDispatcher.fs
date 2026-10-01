@@ -3,12 +3,7 @@ namespace Ranvier
 open System.Threading
 
 // Split out of `Platform.fs` for one reason: fantomas cannot merge a file that
-// conditionally *declares a type* with one that conditionally binds values —
-// the two define-combinations come out with different fragment counts and
-// formatting fails outright. Apart, each file formats.
-//
-// The file is empty under Fable, which is why the comment above is a `//` one:
-// a `///` comment with no declaration left to attach to is FS3520.
+// conditionally *declares a type* with one that conditionally binds values
 
 #if !FABLE_COMPILER
 /// <summary>

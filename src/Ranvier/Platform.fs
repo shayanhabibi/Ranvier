@@ -72,7 +72,7 @@ module internal Platform =
     /// <summary>
     /// How a flight ended.
     /// </summary>
-    [<Struct; NoComparison; NoEquality; RequireQualifiedAccess>]
+    [<Struct; NoComparison; NoEquality>]
     type FlightOutcome<'T> =
         | Completed of value: 'T
         /// <summary>
