@@ -17,7 +17,9 @@
 /* ---- Stage: the graph on a soft wash of contour and violet ---- */
 .rv-map { display: grid; grid-template-columns: minmax(0, 1fr); font-size: .8125rem; }
 .rv-map__stage {
-  position: relative; padding: .75rem 1rem 2.25rem; isolation: isolate;
+  position: relative;
+  padding: .75rem 1rem 2.25rem;
+  isolation: isolate;
   background:
     radial-gradient(60% 80% at 20% 30%, color-mix(in oklab, var(--rv-contour) 10%, transparent), transparent 70%),
     radial-gradient(50% 70% at 85% 70%, color-mix(in oklab, var(--rv-violet) 9%, transparent), transparent 70%),

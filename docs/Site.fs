@@ -243,6 +243,14 @@ let theme =
                 Html.text " · Built with Nacara"
             ]
     )
+    |> Theme.css ".partas-solid {
+    margin-block: 0 !important;
+    padding: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+}
+"
 
 /// Live Partas.Solid components on the pages (the landing page's animated state mark and the signal maps), compiled
 /// against the Partas.Solid 3 build committed under feed/. The generated project inherits
@@ -306,7 +314,7 @@ let reference =
     |> Collection.title _.Title
     |> Collection.layout (Theme.layout theme)
 
-let private centerDirective =
+let private directives = [
     Directive.create "center" Decode.node
     |> Directive.render (fun ctx args contents ->
         Html.div [
@@ -317,6 +325,33 @@ let private centerDirective =
             prop.children contents
         ]
         )
+    Directive.create "cards" Decode.node
+    |> Directive.render (fun ctx args contents ->
+        Html.div [
+            prop.className "rv-cards"
+            prop.children contents
+        ]
+        )
+    Directive.create "card" (Decode.object (fun get ->
+        {| title = get.Required.Field "title" Decode.string
+           href = get.Optional.Field "href" Decode.string |})
+    )
+    |> Directive.render (fun ctx args contents ->
+        Html.a [
+            prop.className "rv-card"
+            if args.href.IsSome then
+                prop.href args.href.Value
+            prop.children [
+                Html.strong [
+                    prop.className "rv-card__title"
+                    prop.text args.title
+                ]
+                contents
+            ]
+        ]
+        )
+]
+
 
 let site =
     Site.create "Ranvier"
@@ -327,7 +362,7 @@ let site =
     |> Markdown.register
     |> Literate.registerWith (fun options -> { options with Extensions = [ ".fsx" ] })
     |> TreeSitter.registerWith csharpGrammar
-    |> Directives.register [ centerDirective ]
+    |> Directives.register directives
     |> Sitemap.register
     |> FSharpApi.register apiOptions
     |> LinkValidator.register

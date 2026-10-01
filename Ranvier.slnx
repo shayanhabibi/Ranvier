@@ -30,6 +30,7 @@
     <Project Path="docs/docs.fsproj" />
     <Project Path="docs/maps/authoring/Ranvier.Docs.MapAuthoring.fsproj" />
     <Project Path="docs/maps/model/Ranvier.Docs.MapModel.fsproj" />
+    <Project Path="docs/maps/Ranvier.Docs.Maps.fsproj" />
     <Project Path="docs/maps/tests/Ranvier.Docs.Maps.Tests.fsproj" />
   </Folder>
 </Solution>

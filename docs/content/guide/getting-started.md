@@ -7,67 +7,59 @@ order: 3
 Preview — Ranvier is pre-release; its APIs may change.
 :::
 
-How to create a graph, read and write signals, derive values and run effects, and control their
-lifetime. For in-flight values and the pending flag, see [Async and pending](async-and-pending.md);
-for keyed collections, see [Collections](collections.fsx).
-
-The sections follow the order in which the concepts build on each other.
-
-## Install
-
-Reference the `Ranvier` package from a project that targets `net8.0` or later, or `netstandard2.1`.
-Its versions are previews; [Installation](installation.md) covers building from source as well.
-
-```bash
-dotnet add package Ranvier --prerelease
-```
-
-`open Ranvier` brings the `Api` module (`createSignal`, `createMemo`, `createEffect`, ...)
-and the `GraphExtensions` module (`Graph.Run`) into scope. Both are `AutoOpen`.
+How to create a graph, read and write signals, derive values and run effects, and control their lifetime.
 
 ## A first graph
-
-A signal holds a value, a memo derives one, and an effect runs when what it read changes. The write
-of `5` re-runs the memo and then the effect, before the write returns.
 
 ```fsharp
 open Ranvier
 
-let graph = new Graph ()
-
-let doubled =
-    graph.Run (fun () ->
-        let count = createSignal 1
-        let doubled = createMemo (fun _ -> count.Value * 2)
-        createEffect (fun () -> printfn "doubled = %d" doubled.Value)
-        count.Value <- 5
-        doubled)
+let graph = new Graph()
 ```
 
-```text
-doubled = 2
-doubled = 10
+A signal holds a value `let count = createSignal 1`{fsharp}.
+
+A memo derives a value `let doubled = createMemo (fun _ -> count.Value * 2)`{fsharp}.
+
+And an effect runs when what it read changes:
+
+```fsharp {4}
+graph.Run (fun () ->
+    let count = createSignal 1
+    let doubled = createMemo (fun _ -> count.Value * 2)
+    createEffect (fun () -> printfn "doubled = %d" doubled.Value)
+    count.Value <- 5
+    doubled)
 ```
 
-The same graph, live. A write flashes `count`, a mark travels to `doubled`, and the effect runs. Hover a node for its state, or click it for the cause of its last run.
-
-```fsharp map
+```fsharp map replay show=output
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
-createEffect (fun () -> printfn "doubled = %d" doubled.Value)
+
+createEffect (fun () -> printfn $"doubled = %d{doubled.Value}")
 
 controls [
-    button "Set count to 5" (fun () -> count.Value <- 5)
-    button "Add 1" (fun () -> count.Value <- count.Value + 1)
+    button "Set" (fun () -> count.Value <- 5)
 ]
 ```
 
 ## The graph
 
-Every node belongs to a `Graph`. `new Graph ()` uses `GraphOptions.Default`. The `Api` functions
-resolve the graph through `Graph.Current`, so a graph has to be active on the calling thread before
-any of them run. `graph.Activate ()` makes the graph active until the returned handle is disposed.
+Every node belongs to a `Graph`. `new Graph ()` uses `GraphOptions.Default`.
+
+The `Api` functions resolve the graph through `Graph.Current`, so a graph has to be active on the
+calling thread before any of them run.
 `graph.Run body` activates the graph, runs `body`, and restores the previous graph.
+
+```fsharp
+let fromRun =
+    use graph = new Graph()
+    // Graph is active in action
+    graph.Run (fun () -> (createSignal 2).Value)
+    // Restore previous graph (if there was one)
+```
+
+`graph.Activate ()` makes the graph active until the returned handle is disposed.
 
 ```fsharp
 let fromActivate =
@@ -75,19 +67,13 @@ let fromActivate =
     use _ = graph.Activate ()
     let count = createSignal 1
     count.Value
-
-let fromRun =
-    use graph = new Graph ()
-    graph.Run (fun () -> (createSignal 2).Value)
-
+```
+```fsharp
 printfn "Activate: %d, Run: %d" fromActivate fromRun
+(* Activate: 1, Run: 2 *)
 ```
 
-```text
-Activate: 1, Run: 2
-```
-
-The `Api` functions require an active graph and throw `InvalidOperationException` without one.
+:::details The `Api` functions require an active graph and throw `InvalidOperationException` without one.
 
 ```fsharp
 let outsideMessage =
@@ -103,9 +89,9 @@ printfn "%s" outsideMessage
 ```text
 No ambient graph on this thread. Activate one with `use _ = graph.Activate ()`, or construct nodes against an explicit graph.
 ```
+:::
 
-Activation is a stack: disposing a nested activation restores the graph that was active before it.
-The active graph is per thread, so a graph activated on one thread is not active on another.
+::: details Activation is a stack: disposing a nested activation restores the graph that was active before it. The active graph is per thread, so a graph activated on one thread is not active on another.
 
 ```fsharp
 let inner, restored, onOtherThread =
@@ -132,6 +118,7 @@ printfn "inner active: %b, outer restored: %b, visible on another thread: %b" in
 ```text
 inner active: true, outer restored: true, visible on another thread: false
 ```
+:::
 
 `Graph.Run` is an F# extension member. From C#, `Ranvier.CSharp` provides it as an extension method; see [C#](csharp.md).
 
@@ -147,132 +134,124 @@ inner active: true, outer restored: true, visible on another thread: false
 | `.TryValue` | Reads the value as a `Reading<'T>` (`Ready`, `Pending` or `Failed`) and records a dependency |
 
 ```fsharp
-let signalReads =
-    use graph = new Graph ()
-    use _ = graph.Activate ()
-    let count = createSignal 1
-    count.Value <- 2
-    count.Value, count.Peek, count.TryValue
+use graph = new Graph ()
+use _ = graph.Activate ()
 
-printfn "%A" signalReads
-```
+let count = createSignal 1
+count.Value // 1
 
-```text
-(2, 2, Ready 2)
+count.Value <- 2
+count.Value // 2
+count.Peek // 2
+count.TryValue // Ready 2
 ```
 
 ## Memos
 
 `createMemo compute` returns a `Memo<'T>`, a derived value that recomputes when something it read
 has changed. A memo is lazy: it runs on its first read, and its `Status` is `Uninitialized` until
-then. `compute` receives the memo's [previous value](#the-previous-value); the examples before that
-section ignore it with `fun _ ->`.
-
-```fsharp
-let lazyRuns, statusBefore, firstRead, runsAfterRead =
-    use graph = new Graph ()
-    use _ = graph.Activate ()
-    let count = createSignal 1
-    let doubled = createMemo (fun _ -> count.Value * 2)
-
-    count.Value <- 2
-    count.Value <- 3
-    let lazyRuns = doubled.Runs
-    let statusBefore = doubled.Status
-    let firstRead = doubled.Value
-    lazyRuns, statusBefore, firstRead, doubled.Runs
-
-printfn "runs before a read: %d, status: %A" lazyRuns statusBefore
-printfn "first read: %d, runs after: %d" firstRead runsAfterRead
-```
-
-```text
-runs before a read: 0, status: Uninitialized
-first read: 6, runs after: 1
-```
+then. `compute` receives the memo's [previous value](#the-previous-value); the examples before this section ignore it
+with `fun _ ->`.
 
 `Peek` returns the last computed value untracked, as stored, even when the memo is stale.
 
-```fsharp
-let peekStale, readFresh =
-    use graph = new Graph ()
-    use _ = graph.Activate ()
-    let count = createSignal 1
-    let doubled = createMemo (fun _ -> count.Value * 2)
-
-    doubled.Value |> ignore
-    count.Value <- 5
-    let peekStale = doubled.Peek
-    peekStale, doubled.Value
-
-printfn "Peek after the write: %d, Value after the write: %d" peekStale readFresh
-```
-
-```text
-Peek after the write: 2, Value after the write: 10
-```
+### Glitch-free
 
 Propagation is glitch-free. In a diamond, where two memos read one signal and an effect reads both
-memos, the effect runs once per write and always sees both memos at the same write. A memo read by
-several effects recomputes once per write.
+memos, the effect runs once per write and always sees both memos at the same write.
+
+::::details Test your understanding
 
 ```fsharp
-let diamondSeen, sharedRuns =
-    use graph = new Graph ()
-    use _ = graph.Activate ()
-    let a = createSignal 1
-    let plusOne = createMemo (fun _ -> a.Value + 1)
-    let timesTen = createMemo (fun _ -> a.Value * 10)
-    let seen = ResizeArray ()
-    createEffect (fun () -> seen.Add (plusOne.Value, timesTen.Value))
-
-    let shared = createMemo (fun _ -> a.Value * 100)
-    createEffect (fun () -> shared.Value |> ignore)
-    createEffect (fun () -> shared.Value |> ignore)
-
-    a.Value <- 2
-    a.Value <- 3
-    List.ofSeq seen, shared.Runs
-
-printfn "diamond saw: %A" diamondSeen
-printfn "shared memo runs for three states: %d" sharedRuns
+let a = createSignal 1
+let plusOne = createMemo (fun _ -> a.Value + 1)
+let timesTen = createMemo (fun _ -> a.Value * 10)
+let seen = ResizeArray ()
+createEffect (fun () -> seen.Add (plusOne.Value, timesTen.Value))
+// How many values does seen have? What are the values?
+a.Value <- 2
+// How about now?
+a.Value <- 3
+// And now?
 ```
 
-```text
-diamond saw: [(2, 10); (3, 20); (4, 30)]
-shared memo runs for three states: 3
+:::details Answers
+
+1. `[(2, 10)]`
+2. `[(2, 10); (3, 20)]`
+3. `[(2, 10); (3, 20); (4, 30)]`
+
+:::
+::::
+
+A memo read by several effects recomputes once per write.
+
+::::details Test your understanding
+
+```fsharp
+let a = createSignal 1
+
+let shared = createMemo (fun _ -> a.Value * 100)
+// 1. How many times has shared run?
+createEffect (fun () -> shared.Value |> ignore)
+// 2. What about now?
+createEffect (fun () -> shared.Value |> ignore)
+// 3. and now?
+a.Value <- 2
+// 4. and now?
+a.Value <- 3
+// 5. and now?
 ```
+:::details Answers
+1. `0`
+2. `1`
+3. `1`
+4. `2`
+5. `3`
+:::
+::::
+
+:::tip Visualise the tests above
+
+```fsharp map replay show=output
+let value = createSignal 1
+let plusOne = createMemo (fun _ -> value.Value + 1)
+let timesTen = createMemo (fun _ -> value.Value * 10)
+let seen = createMemo(fun _ -> plusOne.Value, timesTen.Value)
+createEffect (fun () -> seen.Value |> ignore) // pull
+
+let shared = createMemo (fun _ -> value.Value * 100)
+createEffect (fun () -> shared.Value |> ignore)
+createEffect (fun () -> shared.Value |> ignore)
+
+controls [
+    button "Set2" (fun _ -> value.Value <- 2)
+    button "Set3" (fun _ -> value.Value <- 3)
+]
+```
+:::
 
 ### Pure and owning memos
 
-`createMemo` is a pure derivation. Its body may read anything and create signals, but creating an
-owned node (a memo, effect, async value, boundary, root, projection, lookup or `onCleanup`) fails
-the run with `InvalidOperationException`. `untrack` blocks are included, and the run fails even
-when the body catches the exception.
+:::info Pure
 
-`createMemoWith` is the owning memo. The nodes and cleanups its body creates belong to the run
-that created them: they are disposed before the next run and when the memo is disposed. A read of
-the memo from one of those cleanups returns the previous value.
+`createMemo` is a pure derivation. Its body may read anything and create signals, **but creating an
+owned node** (a memo, effect, async value, boundary, root, projection, lookup or `onCleanup`) **fails**
+the run with `InvalidOperationException`.
 
-```fsharp
-let pureFailure =
-    use graph = new Graph ()
-    use _ = graph.Activate ()
-    let count = createSignal 1
-    let creating = createMemo (fun _ -> (createMemo (fun _ -> count.Value * 2)).Value)
+`untrack` blocks are included, and the run fails even when the body catches the exception.
+:::
 
-    try
-        creating.Value |> ignore
-        "no error"
-    with :? System.InvalidOperationException as ex ->
-        ex.Message.Substring (0, ex.Message.IndexOf '.')
+:::tip Owning
+`createMemoWith` is the owning memo. The **nodes and cleanups its body creates belong to the run
+that created them**: they are disposed before the next run and when the memo is disposed.
 
-printfn "%s" pureFailure
-```
+A __read__ of the memo from one of those cleanups returns the __previous__ value.
+:::
 
-```text
-A memo created by createMemo created an owned node in its body: a memo, effect, async value, boundary, root, projection, lookup, selector or onCleanup
-```
+::::details Test your understanding
+
+How many times does a string with `"release"` print?
 
 ```fsharp
 let owningLog =
@@ -296,12 +275,19 @@ let owningLog =
 owningLog |> List.iter (printfn "%s")
 ```
 
+:::details Answer
+
+`2`
+
 ```text
 hello ada
 release ada
 hello grace
 release grace
 ```
+
+:::
+::::
 
 Construct `Memo (graph, compute)` directly for a pure memo, and `Memo (graph, compute, true)` for
 an owning one. `createAsync` and `createAsyncWith` split the same way, and a boundary always owns
