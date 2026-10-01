@@ -11,45 +11,26 @@ open Fable.Core
 open System.Collections.Concurrent
 #endif
 
-/// <summary>
-/// The handful of primitives whose implementation differs between .NET and
-/// JavaScript, in one place, so the engine can read them unconditionally.
-/// </summary>
-/// <remarks>
-/// <para>
-/// Most of them are about threads. The rest are the promise-shaped task surface
-/// (<c>completedTask</c>, <c>whenSettled</c>, <c>outcomeOf</c>, <c>apply</c>, <c>after</c>, <c>deferred</c>) and differences of cost
-/// (<c>releaseSlot</c>, <c>itemAt</c>, <c>entryAt</c>, <c>RefIndex</c>, <c>KeyMap</c>, <c>KeySet</c>), each
-/// documented where it is defined.
-/// The thread ones are not a coincidence: JavaScript
-/// has one thread, so the entire cross-thread apparatus — the owner-thread
-/// check, the lock-free inbox, the synchronisation context — collapses to
-/// something trivially correct rather than something unsupported. The Fable
-/// definitions below are exact, not approximations, because of that: an
-/// inbox that is only ever touched by one thread does not need to be lock-free,
-/// and a thread id that is only ever compared against itself does not need to
-/// be real.
-/// </para>
-/// <para>
+/// <summary>Primitive implementations that differ between .NET and JavaScript.</summary>
+/// <remarks><para>
 /// <c>docs/.ai/NOTES-fable-target.md</c> lists the conditionals outside this file.
 /// <c>PlatformDispatcher.fs</c> holds the <c>SynchronizationContext</c> dispatcher in a
-/// file of its own: fantomas cannot merge a conditional type declaration
-/// with the conditional bindings below.
-/// </para>
-/// </remarks>
+/// file of its own
+/// </para></remarks>
 module internal Platform =
+#if FABLE_COMPILER
+    /// <summary>
+    /// Constant under Fable. With one thread the comparison is always true,
+    /// which is exactly what <c>ThreadAffinity.Guarded</c> should conclude there.
+    /// </summary>
+    let inline currentThreadId () =
+        0
+#else
     /// <summary>
     /// The calling thread's id, used only to compare a caller against the
     /// thread that constructed the graph.
     /// </summary>
-    /// <remarks>
-    /// Constant under Fable. With one thread the comparison is always true,
-    /// which is exactly what <c>ThreadAffinity.Guarded</c> should conclude there.
-    /// </remarks>
     let inline currentThreadId () =
-#if FABLE_COMPILER
-        0
-#else
         Environment.CurrentManagedThreadId
 #endif
 
@@ -57,13 +38,10 @@ module internal Platform =
     /// A task that has already finished, used as the seed of the queue a
     /// <c>FlightPolicy.Queue</c> node chains onto.
     /// </summary>
-    /// <remarks>
-    /// Fable's <c>Task</c> is a <c>Promise</c> with a five-function surface that does not
-    /// include <c>CompletedTask</c>, so this resolves one instead. Same thing: an
-    /// already-settled promise.
-    /// </remarks>
     let completedTask: Task =
 #if FABLE_COMPILER
+        // Fable's `Task` is a `Promise` with a five-function surface that does not
+        // include `CompletedTask`, so this resolves one instead.
         Task.FromResult () :> Task
 #else
         Task.CompletedTask

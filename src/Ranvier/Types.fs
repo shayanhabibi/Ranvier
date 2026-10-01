@@ -184,8 +184,6 @@ type ManualDispatcher() =
     interface IGraphDispatcher with
         member _.Post _ = ()
 
-
-
 /// <summary>
 /// Reference identity, for reference types only.
 /// </summary>
@@ -393,11 +391,7 @@ type Reading<'T> =
     | Failed of error: exn
 
     // AoT compat
-    /// <summary>
-    /// The case name and its payload: a <c>string</c> value in double quotes, <c>null</c> as <c>null</c>, and any other
-    /// payload as its <c>string</c> text, which formats a number in the invariant culture. A <c>Ready</c> payload text
-    /// containing a space is wrapped in parentheses unless it opens with a bracket or a quote.
-    /// </summary>
+    /// <summary>The case name and its payload</summary>
     override this.ToString() =
         let text (value: obj) =
             match value with

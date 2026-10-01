@@ -1,15 +1,14 @@
 namespace Ranvier
 
-//FOR-REVIEW Now public: C# sees the case fields as lower-case properties (`index`, `oldIndex`, `newIndex`, `key`). Renaming them to PascalCase is free now and breaking later.
 /// <summary>An edit to a positional list of keys, valid when applied in sequence.</summary>
 [<RequireQualifiedAccess>]
 type PositionalChange<'K> =
     /// <summary>Removes the key at <c>index</c>.</summary>
-    | RemoveAt of index: int
+    | RemoveAt of Index: int
     /// <summary>Inserts <c>key</c> so that it lands at <c>index</c>.</summary>
-    | InsertAt of index: int * key: 'K
+    | InsertAt of Index: int * Key: 'K
     /// <summary>Removes the key at <c>oldIndex</c>, then inserts it at <c>newIndex</c> of the shortened list.</summary>
-    | Move of oldIndex: int * newIndex: int
+    | Move of OldIndex: int * NewIndex: int
 
 module internal Positional =
     /// <summary>Adds <c>delta</c> at zero-based <c>index</c> of a Fenwick tree.</summary>

@@ -37,7 +37,7 @@ type internal Freshness =
     | Dirty = 2uy
 
 /// <summary>
-/// A node that can be depended upon.
+/// A node that can be depended upon (AKA IObservable).
 /// </summary>
 type internal ISource =
     inherit INode
@@ -50,10 +50,8 @@ type internal ISource =
     /// be stale — a signal's value is whatever was last written to it.
     /// </summary>
     /// <remarks>
-    /// The answer is deliberately not returned. A source that recomputes to a
-    /// different value marks its observers dirty on the way out, which is
-    /// what the asking observer is waiting to learn; a source whose value did
-    /// not move says nothing, and leaves the asker in <c>Check</c>.
+    /// A source that recomputes to a different value marks its observers dirty on the way out;
+    /// a source whose value did not move says nothing, and leaves the asker in <c>Check</c>.
     /// </remarks>
     abstract UpdateIfNecessary: unit -> unit
 
@@ -62,10 +60,13 @@ type internal ISource =
 /// </summary>
 and internal IComputation =
     inherit INode
+    /// <summary>
+    /// Noop if already <c>Dirty</c>.
+    /// </summary>
     abstract MarkDirty: unit -> unit
 
     /// <summary>
-    /// A source of this node may have changed. Does nothing if this node is
+    /// A <b>source</b> of this node may have changed. Does nothing if this node is
     /// already <c>Check</c> or <c>Dirty</c>: <c>Dirty</c> is strictly stronger information and
     /// must never be lost to a later <c>Check</c>.
     /// </summary>
@@ -122,16 +123,8 @@ module internal ObserverSlots =
 /// The observers of one source, and the only safe way to notify them.
 /// </summary>
 /// <remarks>
-/// <para>
 /// An array rather than a <c>HashSet</c>, because notification is the hot half and
-/// a set cannot be walked while it is mutated. Marking a dependent dirty can
-/// make it re-collect its dependencies and drop this very edge, which
-/// invalidates a set's enumerator — so the old shape copied the set into a
-/// reusable buffer on every write, then blanked the buffer so a dropped
-/// observer was not retained by a stale slot. Measured, that copy-and-blank
-/// was ~3.3 ns of every write that has observers, against ~0.3 ns to walk an
-/// array directly.
-/// </para>
+/// a set cannot be walked while it is mutated.
 /// <para>
 /// Membership is still a set question, though: an observer re-links on every
 /// run of its body and must not be appended twice. Small fan-outs answer that
