@@ -97,7 +97,7 @@ the intended owner scope when it creates bindings or registers cleanup. Property
 typed callbacks; the input setter compares current `value` before assigning. Do not serialize
 properties into attributes.
 
-- [ ] **Step 1: Establish the Node DOM test harness and write failing construction/binding tests.**
+- [x] **Step 1: Establish the Node DOM test harness and write failing construction/binding tests.**
 
 Use a library-output `tests/DomTests.fsproj` referencing
 `../../../src/Fable.Ranvier/Fable.Ranvier.fsproj`. Compile `DomChecks.fs` only. The Node runner
@@ -140,13 +140,13 @@ the generated nullable shape needs different syntax. Add assertions for nested s
 attribute removal, memo-derived updates, equality cutoff, an unrelated signal write, DOM property
 versus attribute state, and a setter reading another signal without adding that signal to tracking.
 
-- [ ] **Step 2: Run the new tests and capture the expected missing-API failure.**
+- [x] **Step 2: Run the new tests and capture the expected missing-API failure.**
 
 From the playground directory, use `rtk proxy npm install`, then `rtk proxy npm run test:dom`.
 The script compiles tests before `node --test tests/dom.test.mjs`. Initial failure must be an
 unimplemented new API, not a broken relative reference or absent DOM global.
 
-- [ ] **Step 3: Implement creation and split bindings; establish event cleanup.**
+- [x] **Step 3: Implement creation and split bindings; establish event cleanup.**
 
 Move the scaffold's module into `Dom.fs` and set `OutputType` to `Library`. Preserve `window`,
 `document` and `createElement` signatures. Use `[<Global("document")>]` for a global binding without
@@ -172,13 +172,13 @@ capture options. Resolve Xantham's `EventTarget` overload once; a minimal typed 
 acceptable for that boundary if generated overloads cannot express the callback simply. Avoid
 an untyped DOM object bag.
 
-- [ ] **Step 4: Run construction/binding tests and compare the public API.**
+- [x] **Step 4: Run construction/binding tests and compare the public API.**
 
 Run `rtk proxy npm run test:dom` and fslangmcp `check` for the library. Inspect `fcs_public_api` to
 confirm existing helper signatures remain and new functions match the interfaces above. The library
 can run in Node after globals are set; compiling its DLL does not prove browser correctness.
 
-- [ ] **Step 5: Record the independently passing task.**
+- [x] **Step 5: Record the independently passing task.**
 
 Update this plan's checkboxes. Commit only task files, preserving existing unrelated staged or
 unstaged changes. Include the pre-existing scaffold files only after comparing their before/after
@@ -194,7 +194,7 @@ content and retaining useful code.
 Mount.mount : Graph -> Node -> (unit -> Node) -> System.IDisposable
 ```
 
-- [ ] **Step 1: Add failing mount lifecycle tests.**
+- [x] **Step 1: Add failing mount lifecycle tests.**
 
 Export `mountLifecycle : unit -> string array` and invoke it in a second Node test. Cover an
 existing host child, idempotent disposal, a retained detached button, a reactive text node retained
@@ -224,11 +224,11 @@ For failure cleanup, register the same button/listener and a reactive text bindi
 unchanged, retained text stops changing and clicking the retained button does not update state.
 Add a handler that creates a memo and cleanup to verify event ownership is restored and untracked.
 
-- [ ] **Step 2: Run the failing mount tests.**
+- [x] **Step 2: Run the failing mount tests.**
 
 Run `rtk proxy npm run test:dom`; expect missing `Mount.mount` or explicit failed lifecycle assertions.
 
-- [ ] **Step 3: Implement scoped mount ownership and cleanup.**
+- [x] **Step 3: Implement scoped mount ownership and cleanup.**
 
 Activate the supplied graph, create a root with `createRoot`, and keep its owner available for
 failure cleanup. Execute the factory in that root. Append only its returned node. Register root
@@ -241,14 +241,14 @@ Keep cleanup registration separate from `createEffectOn` actions. Dispose the ro
 disposed graph already cleaned it up; do not attempt to activate a dead graph merely to repeat
 cleanup. Resolve the core's disposed-owner/graph API semantically before choosing that guard.
 
-- [ ] **Step 4: Run the complete DOM tests and document the library contract.**
+- [x] **Step 4: Run the complete DOM tests and document the library contract.**
 
 Run `rtk proxy npm run test:dom`. README includes active-owner requirements, mounting with a shared
 graph, property setter equality checks, cleanup, experimental status, synchronous static structure
 and the fact that pending/failure retains the last successful binding value rather than providing
 a DOM loading/error UI automatically.
 
-- [ ] **Step 5: Record and commit this task's passing deliverable.**
+- [x] **Step 5: Record and commit this task's passing deliverable.**
 
 Update the plan and commit only the library mounting changes, tests and README.
 
@@ -260,7 +260,7 @@ Update the plan and commit only the library mounting changes, tests and README.
 `start : unit -> (unit -> unit)` returning cleanup. `main.js` invokes it and registers that cleanup
 with `import.meta.hot.dispose` so hot reload does not accumulate graphs/listeners/mounts.
 
-- [ ] **Step 1: Add failing real-browser interaction tests and the private Vite shell.**
+- [x] **Step 1: Add failing real-browser interaction tests and the private Vite shell.**
 
 Give demo controls stable `data-testid` attributes. Required controls: `increment`, `reset`, `name`,
 `count`, `doubled`, `greeting`, `mount-toggle`, `demo-root`. The external toggle lives outside the
@@ -289,12 +289,12 @@ an input event at a chosen caret position that writes identical text back; asser
 and identity are unchanged. Repeat unmount/remount five times and ensure one increment causes
 exactly one count increment. Collect page errors and fail the smoke test on any unexpected error.
 
-- [ ] **Step 2: Run browser tests before the app implementation.**
+- [x] **Step 2: Run browser tests before the app implementation.**
 
 Run `rtk proxy npm run test:browser`; expect missing demo controls. Playwright may install its
 project browser through the normal package setup if needed; do not alter the user's open browser.
 
-- [ ] **Step 3: Implement the F# app and development scripts.**
+- [x] **Step 3: Implement the F# app and development scripts.**
 
 Create application signals in one graph outside the mount factory. Create the derived memo under
 the mount owner and bind it to the doubled output. Use `Dom.element` for the tree, `reactiveText`
@@ -323,13 +323,13 @@ Stack and generate the lockfile. Set the documented Node floor to 26.0.0 to matc
 jsdom version's installed runtime branch. Explain .NET 10/tool restore requirements. Ignore
 `generated/`, `generated-tests/`, `dist/`, `node_modules/`, `test-results/` and `playwright-report/`.
 
-- [ ] **Step 4: Run DOM/browser tests, production build and watch smoke.**
+- [x] **Step 4: Run DOM/browser tests, production build and watch smoke.**
 
 Run `rtk proxy npm test` and `rtk proxy npm run build` in the playground. Start `rtk proxy npm run dev`,
 make one reversible edit to visible F# copy, verify the rebuilt output/browser update, then restore
 the edit. Stop only the dev processes started for this task and verify their process tree exits.
 
-- [ ] **Step 5: Write run instructions and commit the playground.**
+- [x] **Step 5: Write run instructions and commit the playground.**
 
 README gives commands from repository root and the playground directory, exact prerequisites,
 watch/build/test scripts and limitations. Include a screenshot only if useful; do not commit browser

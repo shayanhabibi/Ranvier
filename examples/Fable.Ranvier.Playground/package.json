@@ -4,9 +4,14 @@
   "type": "module",
   "engines": { "node": ">=26.0.0" },
   "scripts": {
+    "compile": "dotnet fable Playground.fsproj --outDir generated --configuration Release",
     "compile:tests": "dotnet fable tests/DomTests.fsproj --outDir generated-tests --configuration Release",
+    "dev": "npm run compile && concurrently --kill-others \"dotnet fable watch Playground.fsproj --outDir generated --configuration Release\" \"vite --host 127.0.0.1\"",
+    "dev:test": "concurrently --kill-others \"dotnet fable watch Playground.fsproj --outDir generated --configuration Release\" \"vite --host 127.0.0.1 --port 5178 --strictPort\"",
+    "build": "npm run compile && vite build",
     "test:dom": "npm run compile:tests && node --test tests/dom.test.mjs",
-    "test:browser": "playwright test"
+    "test:browser": "npm run compile && playwright test",
+    "test": "npm run test:dom && npm run test:browser"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
