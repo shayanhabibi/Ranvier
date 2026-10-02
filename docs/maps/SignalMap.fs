@@ -142,14 +142,33 @@ module private Look =
 module SignalMapComponent =
 
     /// <summary>
-    /// A live map of a traced graph: the stage, the example's controls, a log and, when <c>timeline</c> is true, a
-    /// scrubber over every frame. Its graph runs under <c>policy</c>, and its collections draw as <c>grouping</c>.
+    /// A traced graph with controls, a log and an optional timeline; playback starts at <c>initialSpeed</c>, from 0.25 to 4.
+    /// Its graph runs under <c>policy</c>, and its collections draw as <c>grouping</c>.
     /// </summary>
     /// <remarks>
     /// Placed in a <c>partas-solid-card</c>, it highlights the lines of the binding whose node runs. A binding is
     /// (label, first line, last line), with lines counted from 1 in the card's code block.
     /// </remarks>
-    let SignalMap (source: MapSource) (policy: FlightPolicy) (bindings: (string * int * int)[]) (timeline: bool) (grouping: Grouping) : HtmlElement =
+    /// <exception cref="T:System.ArgumentException">The initial speed is outside 0.25 to 4, or is not finite.</exception>
+    let SignalMapWithSpeed
+        (initialSpeed: float)
+        (source: MapSource)
+        (policy: FlightPolicy)
+        (bindings: (string * int * int)[])
+        (timeline: bool)
+        (grouping: Grouping)
+        : HtmlElement =
+        if not (initialSpeed >= 0.25 && initialSpeed <= 4.0) then
+            invalidArg (nameof initialSpeed) "Playback speed must be from 0.25 to 4."
+
+        let mutable speed = initialSpeed
+
+        let duration milliseconds =
+            Replay.duration speed milliseconds
+
+        let speedText (value: float) =
+            value.ToString (Globalization.CultureInfo.InvariantCulture)
+
         let reduced: bool = window?matchMedia("(prefers-reduced-motion: reduce)")?matches
 
         let timeline =
@@ -159,6 +178,7 @@ module SignalMapComponent =
                 | Live _ -> false)
 
         let root = Dom.el "div" "rv-map"
+        root.setAttribute ("style", "--rv-map-speed: " + speedText speed)
         let stageBox = Dom.el "div" "rv-map__stage"
         let stage = Dom.svg "svg" "rv-map__svg"
         Dom.attrs stage [ "role", "img"; "aria-label", "Signal map" ]
@@ -200,6 +220,7 @@ module SignalMapComponent =
         let boxes = ResizeArray<Element>()
         let history = ResizeArray<Frame>()
         let captions = ResizeArray<int * string option>()
+        let widgetRefresh = ResizeArray<unit -> unit>()
         let lit = Dictionary<int, Element list>()
         let mutable cursor = -1
         let mutable setup = 0
@@ -780,7 +801,8 @@ module SignalMapComponent =
                     (createObj
                         [
                             "t" ==> 1.0
-                            "duration" ==> (if bright then 460 else 380)
+                            "duration"
+                            ==> duration (if bright then 460 else 380)
                             "ease" ==> "inOutSine"
                             "onUpdate" ==> move
                             "onComplete" ==> fun () -> dot.remove ()
@@ -803,28 +825,28 @@ module SignalMapComponent =
                         (createObj
                             [
                                 "scale" ==> [| box 1.0; box 1.35; box 1.0 |]
-                                "duration" ==> 420
+                                "duration" ==> duration 420
                                 "ease" ==> "outQuad"
                             ])
                     |> ignore
 
-                    Dom.flash v.Group "is-flash" 700)
+                    Dom.flash v.Group "is-flash" (duration 700))
             | Pulse (s, t) -> travel s t false
             | Surge (s, targets) ->
                 for t in targets do
                     travel s t true
 
                 shape s
-                |> Option.iter (fun v -> Dom.flash v.Value "is-swap" 600)
+                |> Option.iter (fun v -> Dom.flash v.Value "is-swap" (duration 600))
             | Drop id ->
                 shape id
-                |> Option.iter (fun v -> Dom.flash v.Group "is-dropped" 700)
+                |> Option.iter (fun v -> Dom.flash v.Group "is-dropped" (duration 700))
             | Settled id ->
                 shape id
-                |> Option.iter (fun v -> Dom.flash v.Group "is-settled" 800)
+                |> Option.iter (fun v -> Dom.flash v.Group "is-settled" (duration 800))
             | Failed id ->
                 shape id
-                |> Option.iter (fun v -> Dom.flash v.Group "is-failing" 800)
+                |> Option.iter (fun v -> Dom.flash v.Group "is-failing" (duration 800))
             | _ -> ()
 
         let ticks = Dom.el "div" "rv-map__ticks"
@@ -890,7 +912,13 @@ module SignalMapComponent =
             if not scheduled && not disposed then
                 scheduled <- true
                 let backlog = history.Count - cursor - 1
-                let gap = if reduced then 0 else max 40 (180 - 10 * backlog)
+
+                let gap =
+                    if reduced then
+                        0
+                    else
+                        duration (max 40 (180 - 10 * backlog))
+
                 timer <- window.setTimeout (tick, gap)
 
         let redrawTicks () =
@@ -927,6 +955,7 @@ module SignalMapComponent =
             scheduled <- false
             history.Clear ()
             captions.Clear ()
+            widgetRefresh.Clear ()
             caption.textContent <- ""
             cursor <- -1
             setup <- 0
@@ -973,6 +1002,10 @@ module SignalMapComponent =
                 playing <- true
                 attempt control.Label run
 
+            let follow display =
+                control.Binding
+                |> Option.iter (fun read -> widgetRefresh.Add (Controls.follow read display))
+
             match control.Widget with
             | Button press -> Dom.button control.Label "rv-map__button" (fun () -> write press)
             | Slider (min, max, start, set) ->
@@ -982,6 +1015,12 @@ module SignalMapComponent =
                 let shown = Dom.el "output" "rv-map__input-value"
                 shown.textContent <- string start
                 wrap.appendChild shown |> ignore
+
+                follow (function
+                    | InputValue.Integer value ->
+                        input.value <- string value
+                        shown.textContent <- string value
+                    | _ -> ())
 
                 input.addEventListener (
                     "input",
@@ -996,6 +1035,10 @@ module SignalMapComponent =
                 Dom.attrs input [ "type", "number"; "step", "any" ]
                 input.value <- string start
 
+                follow (function
+                    | InputValue.Number value -> input.value <- string value
+                    | _ -> ())
+
                 input.addEventListener (
                     "change",
                     fun _ ->
@@ -1008,12 +1051,22 @@ module SignalMapComponent =
                 let wrap, input = Dom.field control.Label "text"
                 Dom.attrs input [ "type", "text" ]
                 input.value <- start
+
+                follow (function
+                    | InputValue.Text value -> input.value <- value
+                    | _ -> ())
+
                 input.addEventListener ("change", fun _ -> write (fun () -> set input.value))
                 wrap
             | Toggle (start, set) ->
                 let wrap, input = Dom.field control.Label "toggle"
                 Dom.attrs input [ "type", "checkbox" ]
                 input.``checked`` <- start
+
+                follow (function
+                    | InputValue.Toggle value -> input.``checked`` <- value
+                    | _ -> ())
+
                 input.addEventListener ("change", fun _ -> write (fun () -> set input.``checked``))
                 wrap
 
@@ -1117,6 +1170,9 @@ module SignalMapComponent =
                 try
                     graph |> Option.iter drain
 
+                    for refresh in widgetRefresh do
+                        refresh ()
+
                     window.requestAnimationFrame (fun _ -> poll ())
                     |> ignore
                 with ex ->
@@ -1124,6 +1180,40 @@ module SignalMapComponent =
 
         if timeline then
             let row = Dom.el "div" "rv-map__timeline"
+            let speedLabel = Dom.el "label" "rv-map__speed"
+            let speedCaption = Dom.el "span" "rv-map__speed-label"
+            speedCaption.textContent <- "Speed"
+            let speedSelect = Dom.el "select" "rv-map__speed-select" :?> HTMLSelectElement
+
+            for value in
+                [ 0.25; 0.5; 1.0; 1.5; 2.0; 4.0; initialSpeed ]
+                |> List.distinct
+                |> List.sort do
+                let option = Dom.el "option" ""
+                let text = speedText value
+                option.setAttribute ("value", text)
+                option.textContent <- text + "×"
+                speedSelect.appendChild option |> ignore
+
+            speedSelect.value <- speedText speed
+
+            speedSelect.addEventListener (
+                "change",
+                fun _ ->
+                    match Double.TryParse (speedSelect.value, Globalization.NumberStyles.Float, Globalization.CultureInfo.InvariantCulture) with
+                    | true, value when value >= 0.25 && value <= 4.0 ->
+                        speed <- value
+                        root.setAttribute ("style", "--rv-map-speed: " + speedText speed)
+                        window.clearTimeout timer
+                        scheduled <- false
+
+                        if playing && cursor + 1 < history.Count then
+                            schedule ()
+                    | _ -> ()
+            )
+
+            speedLabel.appendChild speedCaption |> ignore
+            speedLabel.appendChild speedSelect |> ignore
 
             playButton.addEventListener (
                 "click",
@@ -1160,7 +1250,7 @@ module SignalMapComponent =
             track.appendChild ticks |> ignore
             track.appendChild scrub |> ignore
 
-            for e in [ playButton; step; track ] do
+            for e in [ playButton; step; speedLabel; track ] do
                 row.appendChild e |> ignore
 
             bar.appendChild row |> ignore
@@ -1185,3 +1275,7 @@ module SignalMapComponent =
             |> Option.iter (fun g -> (g :> IDisposable).Dispose()))
 
         unbox<HtmlElement> root
+
+    /// <summary>A signal map starting at normal playback speed; the timeline's Speed control adjusts it.</summary>
+    let SignalMap (source: MapSource) (policy: FlightPolicy) (bindings: (string * int * int)[]) (timeline: bool) (grouping: Grouping) : HtmlElement =
+        SignalMapWithSpeed 1.0 source policy bindings timeline grouping

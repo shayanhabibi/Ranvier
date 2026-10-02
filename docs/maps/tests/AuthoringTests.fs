@@ -31,7 +31,7 @@ let private scenario code =
     | Ok result -> result
     | Error problems -> failtestf "rejected: %A" problems
 
-/// The fence line a generated line maps back to, as the Solid plugin maps it.
+/// <summary>The fence line a generated line maps back to, as the Solid plugin maps it.</summary>
 let private locate (spans: MapSpan list) (line: int) =
     spans
     |> List.tryFind (fun s ->
@@ -108,6 +108,62 @@ let tests =
                             Expect.equal (locate spans (first + offset + 1)) (Some (2 + offset)) "retain diagnostic locations"
             }
 
+            test "projection aggregate pipelines receive labels" {
+                for aggregate in
+                    [
+                        "sumBy id"
+                        "countBy (fun _ -> true)"
+                        "exists (fun _ -> true)"
+                        "forall (fun _ -> true)"
+                        "fold (+) 0"
+                        "foldGroup (+) (-) 0"
+                    ] do
+                    let _, _, bindings =
+                        scenario ($"let total =\n    rows\n    |> Projection.{aggregate} // aggregate\ncontrols []")
+
+                    Expect.contains bindings ("total", 1, 3) "label the pipeline result"
+            }
+
+            test "creation wrappers close before trailing comments" {
+                let code, _, bindings =
+                    scenario "let field = // explain the field\n    createDraft (fun _ -> \"https://example.test\") // keep this comment\ncontrols []"
+
+                Expect.stringContains code "createDraft (fun _ -> \"https://example.test\")) // keep this comment" "close outside the comment"
+                Expect.contains bindings ("field", 1, 2) "skip the comment after equals"
+            }
+
+            test "ordinary pipelines and pipeline text are not labelled" {
+                let _, _, bindings =
+                    scenario "let total = values |> List.sum\nlet text = \"rows |> Projection.sumBy id\"\ncontrols []"
+
+                Expect.isEmpty bindings "only supported node results receive labels"
+            }
+
+            test "only the final outer pipeline stage determines the label" {
+                let _, _, bindings =
+                    scenario
+                        "let discarded = rows |> Projection.sumBy id |> ignore\nlet total = createMemo (fun _ -> rows |> Projection.sumBy id)\ncontrols []"
+
+                Expect.equal bindings [ ("total", 2, 2) ] "ignore nested pipelines and discarded results"
+            }
+
+            test "wrappers preserve literal delimiters and nested block comments" {
+                for literal in
+                    [
+                        "\"https://example.test\""
+                        "@\"a\"\"//b\""
+                        "\"\"\"a\n//b\n\"\"\""
+                        "'\"'"
+                        "'\\\"'"
+                    ] do
+                    let source =
+                        $"let field = (* outer (* inner *) comment *) createDraft (fun _ -> {literal}) // trailing\ncontrols []"
+
+                    let code, _, bindings = scenario source
+                    Expect.stringContains code ($"createDraft (fun _ -> {literal})) // trailing") "preserve the literal and close outside comments"
+                    Expect.equal (bindings |> List.map (fun (name, _, _) -> name)) [ "field" ] "detect creation beyond the block comment"
+            }
+
             test "bindings of nodes are labelled, effects and plain values are not" {
                 let code, _, bindings = scenario cart
                 let names = bindings |> List.map (fun (n, _, _) -> n)
@@ -172,6 +228,28 @@ let tests =
                 match MapFence.compile "cart" [] cart with
                 | Ok output -> Expect.stringContains output.Render ") Ranvier.FlightPolicy.CancelPrevious [|" "the default"
                 | Error problems -> failtestf "rejected: %A" problems
+            }
+
+            test "speed sets the initial playback multiplier using an invariant literal" {
+                let previous = Globalization.CultureInfo.CurrentCulture
+
+                try
+                    Globalization.CultureInfo.CurrentCulture <- Globalization.CultureInfo "fr-FR"
+
+                    for speed, literal in [ "0.25", "0.25"; "0.75", "0.75"; "2", "2.0"; "4", "4.0" ] do
+                        match MapFence.compile "cart" [ "replay"; "speed=" + speed ] cart with
+                        | Ok output ->
+                            Expect.stringContains output.Render ($"SignalMapWithSpeed {literal} (") "pass a valid F# float to the component"
+                        | Error problems -> failtestf "rejected: %A" problems
+                finally
+                    Globalization.CultureInfo.CurrentCulture <- previous
+            }
+
+            test "invalid playback speeds are rejected at the opening line" {
+                for speed in [ ""; "fast"; "0"; "-1"; "0.1"; "5"; "NaN"; "Infinity"; "0,5" ] do
+                    match MapFence.compile "cart" [ "speed=" + speed ] cart with
+                    | Error [ 0, message ] -> Expect.stringContains message "0.25 to 4" "give the supported range"
+                    | other -> failtestf "speed=%s: %A" speed other
             }
 
             test "policy=queue, policy=keep-latest and policy=finish-current render their policies" {

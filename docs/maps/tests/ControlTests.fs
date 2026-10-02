@@ -76,6 +76,14 @@ let tests =
                 Expect.equal (Replay.captionAt marks 4) (Some "Write") "scrubbing backwards restores it"
             }
 
+            test "playback speed scales frame delays and animation durations" {
+                Expect.equal (Replay.duration 1.0 180) 180 "normal timing stays unchanged"
+                Expect.equal (Replay.duration 0.5 180) 360 "half speed doubles the delay"
+                Expect.equal (Replay.duration 2.0 420) 210 "double speed halves an animation"
+                Expect.equal (Replay.duration 4.0 40) 10 "the minimum frame gap scales too"
+                Expect.equal (Replay.duration 0.25 0) 0 "reduced motion keeps its immediate timing"
+            }
+
             test "replay verification checks async results after continuations settle" {
                 let scenario (_: Graph) =
                     let desk = Desk<int>()
@@ -118,6 +126,131 @@ let tests =
                         Expect.stringContains ex.Message "guide/example.md:12" "source location"
                         Expect.stringContains ex.Message "Write" "control label"
                         Expect.stringContains ex.Message "wrong result" "expectation")
+            }
+
+            test "signal controls start from current values and follow other writes" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let qty = createSignal 2
+                let price = createSignal 4.5
+                let name = createSignal "Ada"
+                let gift = createSignal false
+
+                let inputs =
+                    [
+                        sliderSignal "Qty" (1, 10) qty [ 3; 5 ]
+                        numberSignal "Price" price [ 6.5 ]
+                        textSignal "Name" name [ "Grace" ]
+                        toggleSignal "Gift" gift [ true ]
+                    ]
+
+                let values () =
+                    inputs
+                    |> List.map (fun control -> control.Binding.Value ())
+
+                Expect.equal
+                    (values ())
+                    [
+                        InputValue.Integer 2
+                        InputValue.Number 4.5
+                        InputValue.Text "Ada"
+                        InputValue.Toggle false
+                    ]
+                    "read each signal's starting value"
+
+                batch (fun () ->
+                    qty.Value <- 7
+                    price.Value <- 8.25
+                    name.Value <- "Lin"
+                    gift.Value <- true)
+
+                Expect.equal
+                    (values ())
+                    [
+                        InputValue.Integer 7
+                        InputValue.Number 8.25
+                        InputValue.Text "Lin"
+                        InputValue.Toggle true
+                    ]
+                    "other controls' writes reach the inputs"
+
+                Expect.equal
+                    (Trace.events graph
+                     |> Array.filter (fun e -> e.Kind = TraceEventKind.NodeNew)
+                     |> Array.length)
+                    4
+                    "binding creates no observer nodes"
+            }
+
+            test "bound widget setters and replay steps write the same signals" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let qty = createSignal 2
+                let price = createSignal 4.5
+                let name = createSignal "Ada"
+                let gift = createSignal false
+
+                let inputs =
+                    [
+                        sliderSignal "Qty" (1, 10) qty [ 3; 5 ]
+                        numberSignal "Price" price [ 6.5 ]
+                        textSignal "Name" name [ "Grace" ]
+                        toggleSignal "Gift" gift [ true ]
+                    ]
+
+                for input in inputs do
+                    match input.Widget with
+                    | Slider (_, _, _, set) -> set 9
+                    | Number (_, set) -> set 9.5
+                    | Text (_, set) -> set "Kat"
+                    | Toggle (_, set) -> set true
+                    | Button _ -> failtest "expected an input"
+
+                Expect.equal (qty.Peek, price.Peek, name.Peek, gift.Peek) (9, 9.5, "Kat", true) "interactive setters"
+                let mutable quantities = []
+
+                for step in inputs.Head.Steps do
+                    step.Run ()
+                    quantities <- quantities @ [ qty.Peek ]
+
+                inputs.Tail
+                |> List.iter (fun input -> input.Steps |> List.iter (fun step -> step.Run ()))
+
+                Expect.equal quantities [ 3; 5 ] "replay values in order"
+                Expect.equal (qty.Peek, price.Peek, name.Peek, gift.Peek) (5, 6.5, "Grace", true) "replay writes"
+            }
+
+            test "synchronisation preserves drafts until the signal changes" {
+                let mutable source = "Ada"
+                let mutable display = ""
+                let mutable updates = 0
+
+                let refresh =
+                    Controls.follow (fun () -> source) (fun value ->
+                        display <- value
+                        updates <- updates + 1)
+
+                Expect.equal display "Ada" "initial value is displayed"
+                display <- "uncommitted draft"
+                refresh ()
+                refresh ()
+                Expect.equal display "uncommitted draft" "unchanged state leaves typing alone"
+                Expect.equal updates 1 "no redundant DOM updates"
+                source <- "Grace"
+                refresh ()
+                Expect.equal display "Grace" "a new signal value reaches the widget"
+                Expect.equal updates 2 "one update for the changed value"
+            }
+
+            test "callback controls remain unbound" {
+                for control in
+                    [
+                        slider "Qty" (1, 10) 1 [] ignore
+                        number "Price" 4.0 [] ignore
+                        text "Name" "Ada" [] ignore
+                        toggle "Gift" false [] ignore
+                    ] do
+                    Expect.isNone control.Binding "callback inputs retain their own local editing state"
             }
 
             test "a slider has a step per replay value, in order" {

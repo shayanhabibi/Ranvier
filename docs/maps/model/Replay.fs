@@ -5,6 +5,11 @@ open Ranvier
 
 [<RequireQualifiedAccess>]
 module Replay =
+    /// <summary>The frame delay or animation duration in milliseconds at playback multiplier <c>speed</c>.</summary>
+    /// <remarks>Speed is from 0.25 to 4; zero milliseconds remains immediate at every speed.</remarks>
+    let duration (speed: float) (milliseconds: int) : int =
+        int (float milliseconds / speed)
+
     /// <summary>The caption of the last action at or before the replay cursor.</summary>
     let captionAt (marks: (int * string option) seq) (cursor: int) : string option =
         marks

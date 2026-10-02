@@ -1,6 +1,7 @@
 namespace Ranvier.Docs.Maps.Authoring
 
 open System
+open System.Globalization
 open System.Text.RegularExpressions
 
 /// <summary>The words of a <c>map</c> fence's info string.</summary>
@@ -13,9 +14,11 @@ type MapFlags =
         Policy: string
         /// <summary>The case name of the map's <c>Grouping</c>.</summary>
         Groups: string
+        /// <summary>The initial playback multiplier, from 0.25 to 4; 1 is normal speed.</summary>
+        Speed: float
     }
 
-    /// <summary>The flags of a fence, or the problem with its <c>policy=</c> or <c>groups=</c>.</summary>
+    /// <summary>The flags of a fence, or the problem with its policy, grouping or speed.</summary>
     static member parse(flags: string list) : Result<MapFlags, string> =
         let replay = List.contains "replay" flags
 
@@ -41,17 +44,30 @@ type MapFlags =
             | Some "groups=collapse" -> Ok "Collapse"
             | Some flag -> Error $"%s{flag}: the groups are expand or collapse."
 
-        match policy, groups with
-        | Ok policy, Ok groups ->
+        let speed =
+            match
+                flags
+                |> List.tryFind (fun flag -> flag.StartsWith "speed=")
+            with
+            | None -> Ok 1.0
+            | Some flag ->
+                match Double.TryParse (flag.Substring (6), NumberStyles.Float, CultureInfo.InvariantCulture) with
+                | true, value when value >= 0.25 && value <= 4.0 -> Ok value
+                | _ -> Error $"{flag}: speed must be a number from 0.25 to 4; 1 is normal speed."
+
+        match policy, groups, speed with
+        | Ok policy, Ok groups, Ok speed ->
             Ok
                 {
                     Timeline = replay || List.contains "timeline" flags
                     Replay = replay
                     Policy = policy
                     Groups = groups
+                    Speed = speed
                 }
-        | Error e, _
-        | _, Error e -> Error e
+        | Error e, _, _
+        | _, Error e, _
+        | _, _, Error e -> Error e
 
 /// <summary>A run of generated lines and the fence line it came from.</summary>
 /// <remarks>
@@ -96,6 +112,130 @@ module MapFence =
 
     let private controls = Regex (@"^controls\b", RegexOptions.Compiled)
 
+    let private character =
+        Regex (@"\G'(?:\\(?:u[0-9a-fA-F]{4}|[0-9]{3}|.)|[^'\\\r\n])'", RegexOptions.Compiled)
+
+    let private mask (source: string) =
+        let code = source.ToCharArray ()
+        let syntax = source.ToCharArray ()
+        let literalStarts = Collections.Generic.HashSet<int>()
+
+        let erase (target: char[]) first last =
+            for index in first .. last - 1 do
+                if target[index] <> '\n' then
+                    target[index] <- ' '
+
+        let mutable i = 0
+
+        while i < source.Length do
+            let starts (token: string) =
+                i + token.Length <= source.Length
+                && String.CompareOrdinal (source, i, token, 0, token.Length) = 0
+
+            let first = i
+
+            if starts "//" then
+                while i < source.Length && source[i] <> '\n' do
+                    i <- i + 1
+
+                erase code first i
+                erase syntax first i
+            elif starts "(*" then
+                i <- i + 2
+                let mutable depth = 1
+
+                while i < source.Length && depth > 0 do
+                    if starts "(*" then
+                        depth <- depth + 1
+                        i <- i + 2
+                    elif starts "*)" then
+                        depth <- depth - 1
+                        i <- i + 2
+                    else
+                        i <- i + 1
+
+                erase code first i
+                erase syntax first i
+            elif
+                source[i] = '\''
+                && character.Match(source, i).Success
+            then
+                i <- i + character.Match(source, i).Length
+                erase syntax first i
+                syntax[first] <- '\''
+            elif starts "\"\"\"" || starts "@\"" || starts "\"" then
+                let triple = starts "\"\"\""
+                let verbatim = starts "@\""
+
+                i <-
+                    i
+                    + (if triple then 3
+                       elif verbatim then 2
+                       else 1)
+
+                let mutable closed = false
+
+                while i < source.Length && not closed do
+                    if triple && starts "\"\"\"" then
+                        i <- i + 3
+                        closed <- true
+                    elif not triple && source[i] = '"' then
+                        if verbatim && starts "\"\"" then
+                            i <- i + 2
+                        else
+                            i <- i + 1
+                            closed <- true
+                    elif not triple && not verbatim && source[i] = '\\' then
+                        i <- min source.Length (i + 2)
+                    else
+                        i <- i + 1
+
+                erase syntax first i
+                syntax[first] <- '"'
+                syntax[i - 1] <- '"'
+
+                for index in first .. i - 1 do
+                    if source[index] = '\n' then
+                        literalStarts.Add (index + 1) |> ignore
+            else
+                i <- i + 1
+
+        String (code), String (syntax), literalStarts
+
+    let private valueOf (lines: string[]) first last =
+        let matched = binding.Match lines[first]
+
+        if matched.Success then
+            let value =
+                String.concat "\n" (Array.append [| matched.Groups["rest"].Value |] lines[first + 1 .. last])
+
+            Some (matched, value.Trim ())
+        else
+            None
+
+    let private aggregate =
+        Regex (@"^Projection\.(?:sumBy|countBy|exists|forall|fold|foldGroup)\b", RegexOptions.Compiled)
+
+    let private pipelineResult (value: string) =
+        let mutable depth = 0
+        let mutable last = -1
+
+        for i in 0 .. value.Length - 2 do
+            match value[i] with
+            | '('
+            | '['
+            | '{' -> depth <- depth + 1
+            | ')'
+            | ']'
+            | '}' -> depth <- depth - 1
+            | '|' when depth = 0 && value[i + 1] = '>' -> last <- i + 2
+            | _ -> ()
+
+        if last >= 0 then
+            value.Substring(last).TrimStart()
+        else
+            value
+
     let private blank (line: string) =
         let t = line.Trim ()
         t = "" || t.StartsWith "//"
@@ -134,42 +274,27 @@ module MapFence =
 
             start, last)
 
-    /// <summary>The label of the node bound by the item, when its value comes from a <c>create…</c> call.</summary>
+    /// <summary>The label of a node returned by a factory call or projection aggregate pipeline.</summary>
     let private labelOf (lines: string[]) (first: int, last: int) =
-        let m = binding.Match lines[first]
+        match valueOf lines first last with
+        | Some (matched, value) ->
+            let result = pipelineResult value
 
-        if not m.Success then
-            None
-        else
-            let rest = m.Groups["rest"].Value.Trim()
-
-            let value =
-                if rest <> "" then
-                    rest
-                else
-                    lines[first + 1 .. last]
-                    |> Array.tryFind (blank >> not)
-                    |> Option.map _.Trim()
-                    |> Option.defaultValue ""
-
-            if node.IsMatch value then
-                Some m.Groups["name"].Value
+            if node.IsMatch result || aggregate.IsMatch result then
+                Some matched.Groups["name"].Value
             else
                 None
+        | None -> None
 
     /// <summary>The binding with its lookup or editable creation wrapped in <c>Trace.named</c>.</summary>
-    let private namedBinding (lines: string[]) (first: int, last: int) =
+    let private namedBinding (lines: string[]) (code: string[]) (syntax: string[]) (literal: bool[]) (first: int, last: int) =
         let m = binding.Match lines[first]
         let rest = m.Groups["rest"]
 
         let value =
-            if rest.Value.Trim () <> "" then
-                rest.Value.Trim ()
-            else
-                lines[first + 1 .. last]
-                |> Array.tryFind (blank >> not)
-                |> Option.map _.Trim()
-                |> Option.defaultValue ""
+            valueOf syntax first last
+            |> Option.map snd
+            |> Option.defaultValue ""
 
         if m.Success && named.IsMatch value then
             let name = m.Groups["name"].Value
@@ -178,14 +303,26 @@ module MapFence =
                 lines[first..last]
                 |> Array.mapi (fun offset line ->
                     let line =
+                        if offset = last - first then
+                            let column = code[last].TrimEnd().Length
+                            line.Insert (column, ")")
+                        else
+                            line
+
+                    let line =
                         if offset = 0 then
                             line.Substring(0, rest.Index).TrimEnd()
                             + $" Trace.named \"%s{name}\" (fun () ->"
-                            + (if rest.Value = "" then "" else " " + rest.Value)
+                            + (if rest.Value = "" && first <> last then
+                                   ""
+                               else
+                                   " " + line.Substring (rest.Index))
+                        elif literal[first + offset] then
+                            line
                         else
                             "    " + line
 
-                    if offset = last - first then line + ")" else line)
+                    line)
 
             Some (name, wrapped)
         else
@@ -198,8 +335,20 @@ module MapFence =
     /// <returns>The module's code, its spans and the bindings, or problems at fence lines.</returns>
     let scenario (cellId: string) (code: string) : Result<string * MapSpan list * (string * int * int) list, (int * string) list> =
         let lines = code.Split '\n' |> Array.map _.TrimEnd('\r')
+        let uncommented, syntax, literalStarts = mask (String.concat "\n" lines)
+        let mutable offset = 0
 
-        match items lines with
+        let literal =
+            lines
+            |> Array.map (fun line ->
+                let inside = literalStarts.Contains offset
+                offset <- offset + line.Length + 1
+                inside)
+
+        let uncommented = uncommented.Split '\n'
+        let syntax = syntax.Split '\n'
+
+        match items syntax with
         | [] -> Error [ 1, "A map fence holds a scenario that ends with `controls [ ... ]`." ]
         | found when not (controls.IsMatch lines[fst (List.last found)]) ->
             Error
@@ -225,16 +374,22 @@ module MapFence =
 
             let copy (first: int) (last: int) =
                 if last >= first then
-                    spans.Add
-                        {
-                            Generated = output.Count + 1
-                            Length = last - first + 1
-                            Body = first + 1
-                            Indent = indent
-                        }
+                    for index in first..last do
+                        let line = lines[index]
 
-                    for line in lines[first..last] do
-                        output.Add (if line.Trim () = "" then "" else pad + line)
+                        spans.Add
+                            {
+                                Generated = output.Count + 1
+                                Length = 1
+                                Body = index + 1
+                                Indent = if literal[index] then 0 else indent
+                            }
+
+                        output.Add (
+                            if literal[index] then line
+                            elif line.Trim () = "" then ""
+                            else pad + line
+                        )
 
             pinned $"module %s{moduleName cellId} ="
             pinned "    open Ranvier"
@@ -245,7 +400,7 @@ module MapFence =
             let mutable copied = 0
 
             for first, last in found do
-                match labelOf lines (first, last) with
+                match labelOf syntax (first, last) with
                 | Some name ->
                     copy copied last
                     copied <- last + 1
@@ -261,7 +416,7 @@ module MapFence =
                     output.Add $"%s{pad}Trace.label (graph', %s{name}, \"%s{name}\")"
                     bindings.Add (name, first + 1, last + 1)
                 | None ->
-                    match namedBinding lines (first, last) with
+                    match namedBinding lines uncommented syntax literal (first, last) with
                     | Some (name, wrapped) ->
                         copy copied (first - 1)
                         copied <- last + 1
@@ -274,17 +429,22 @@ module MapFence =
                                 Indent = indent
                             }
 
-                        if last > first then
+                        for index in first + 1 .. last do
                             spans.Add
                                 {
-                                    Generated = output.Count + 2
-                                    Length = last - first
-                                    Body = first + 2
-                                    Indent = indent + 4
+                                    Generated = output.Count + index - first + 1
+                                    Length = 1
+                                    Body = index + 1
+                                    Indent = if literal[index] then 0 else indent + 4
                                 }
 
-                        for line in wrapped do
-                            output.Add (pad + line)
+                        for index in 0 .. wrapped.Length - 1 do
+                            output.Add (
+                                if literal[first + index] then
+                                    wrapped[index]
+                                else
+                                    pad + wrapped[index]
+                            )
 
                         bindings.Add (name, first + 1, last + 1)
                     | None -> ()
@@ -300,7 +460,21 @@ module MapFence =
 
         let timeline = if flags.Timeline then "true" else "false"
 
-        $"Ranvier.Docs.Maps.SignalMapComponent.SignalMap (%s{source}) Ranvier.FlightPolicy.%s{flags.Policy} [| %s{bindings} |] %s{timeline} Ranvier.Docs.Maps.Grouping.%s{flags.Groups}"
+        let renderCall =
+            if flags.Speed = 1.0 then
+                "SignalMap"
+            else
+                let value = flags.Speed.ToString ("R", CultureInfo.InvariantCulture)
+
+                let literal =
+                    if value.Contains ('.') || value.Contains ('E') then
+                        value
+                    else
+                        value + ".0"
+
+                "SignalMapWithSpeed " + literal
+
+        $"Ranvier.Docs.Maps.SignalMapComponent.%s{renderCall} (%s{source}) Ranvier.FlightPolicy.%s{flags.Policy} [| %s{bindings} |] %s{timeline} Ranvier.Docs.Maps.Grouping.%s{flags.Groups}"
 
     /// <summary>The F# for a <c>map</c> fence: its scenario, live or replayed when <c>flags.Replay</c>.</summary>
     /// <param name="cellId">The cell's id, which names the generated module.</param>

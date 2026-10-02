@@ -13,22 +13,10 @@ Keep totals, counts and other folds current as [projection](collections.fsx) row
 An aggregate is a `Memo<'S>`: read, track and dispose it like any other memo.
 *)
 (*** hide ***)
-// #load-ed: the page type-checks against the current sources, and the built assembly stays unlocked. Keep this list
-// in the order of the <Compile> items in Ranvier.fsproj.
-#r "nuget: Fable.Core, 5.3.0"
-#load "../../../src/Ranvier/Types.fs"
-#load "../../../src/Ranvier/PlatformDispatcher.fs"
-#load "../../../src/Ranvier/Platform.fs"
-#load "../../../src/Ranvier/Positional.fs"
-#load "../../../src/Ranvier/Trace.fs"
-#load "../../../src/Ranvier/Core.fs"
-#load "../../../src/Ranvier/Deltas.fs"
-#load "../../../src/Ranvier/Projections.fs"
-#load "../../../src/Ranvier/Api.fs"
-#load "../../../src/Ranvier/Combinators.fs"
-#load "../../../src/Ranvier/TraceApi.fs"
+#load "../../literate.fsx"
 
 open Ranvier
+open Ranvier.Docs.Maps
 
 let graph = new Graph ()
 let active = graph.Activate ()
@@ -80,23 +68,24 @@ aggregate reads only the rows that changed, so an edit to one row of a thousand 
 Change one row's estimate, then remove another row. The total updates its contributions,
 and the count changes only when membership changes.
 
-```fsharp map replay show=output
-let tasks = createSignal [ 1, 3; 2, 5; 3, 2 ]
-let rows = createProjection fst snd (fun () -> tasks.Value)
-let total = Trace.named "total" (fun () -> rows |> Projection.sumBy id)
-let count = Trace.named "count" (fun () -> rows |> Projection.countBy (fun _ -> true))
-createEffect (fun () -> printfn "estimate = %d, tasks = %d" total.Value count.Value)
+*)
+(*** map replay show=output ***)
+let estimates = createSignal [ 1, 3; 2, 5; 3, 2 ]
+let estimateRows = createProjection fst snd (fun () -> estimates.Value)
+let estimateTotal = estimateRows |> Projection.sumBy id
+let estimateCount = estimateRows |> Projection.countBy (fun _ -> true)
+createEffect (fun () -> printfn "estimate = %d, tasks = %d" estimateTotal.Value estimateCount.Value)
 
 controls [
-    button "Estimate task 1 at 8" (fun () -> tasks.Value <- tasks.Value |> List.map (fun (key, estimate) -> key, (if key = 1 then 8 else estimate)))
+    button "Estimate task 1 at 8" (fun () -> estimates.Value <- estimates.Value |> List.map (fun (key, estimate) -> key, (if key = 1 then 8 else estimate)))
     |> describe "One contribution grows by 5; membership stays at three tasks."
-    |> expect "One contribution grows by 5; membership stays at three tasks." (fun () -> total.Peek = 15 && count.Peek = 3)
-    button "Remove task 2" (fun () -> tasks.Value <- tasks.Value |> List.filter (fun (key, _) -> key <> 2))
+    |> expect "One contribution grows by 5; membership stays at three tasks." (fun () -> estimateTotal.Peek = 15 && estimateCount.Peek = 3)
+    button "Remove task 2" (fun () -> estimates.Value <- estimates.Value |> List.filter (fun (key, _) -> key <> 2))
     |> describe "Removing the estimate of 5 leaves a total of 10 across two tasks."
-    |> expect "Removing the estimate of 5 leaves a total of 10 across two tasks." (fun () -> total.Peek = 10 && count.Peek = 2)
+    |> expect "Removing the estimate of 5 leaves a total of 10 across two tasks." (fun () -> estimateTotal.Peek = 10 && estimateCount.Peek = 2)
 ]
-```
 
+(**
 ## Folds with an inverse
 
 `Projection.foldGroup` updates a total by removing old contributions and adding new ones:

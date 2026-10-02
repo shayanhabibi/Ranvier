@@ -27,12 +27,22 @@ type Step =
         Checks: (string * (unit -> bool)) list
     }
 
+/// <summary>The current signal value displayed by a bound input.</summary>
+[<RequireQualifiedAccess>]
+type InputValue =
+    | Integer of int
+    | Number of float
+    | Text of string
+    | Toggle of bool
+
 /// <summary>A control beneath a map: its widget on a live map, its steps on a replay.</summary>
 type Control =
     {
         Label: string
         Widget: Widget
         Steps: Step list
+        /// <summary>An untracked read of a bound input's signal, or <c>None</c> for callback controls.</summary>
+        Binding: (unit -> InputValue) option
     }
 
 /// <summary>A pretend remote service whose requests stay pending until a control answers them.</summary>
@@ -96,6 +106,19 @@ type MapSource =
 [<RequireQualifiedAccess>]
 module Controls =
 
+    /// <summary>Displays the current value once and returns a refresh that displays subsequent changes.</summary>
+    /// <remarks>An unchanged source preserves an input's uncommitted text.</remarks>
+    let follow (read: unit -> 'T) (display: 'T -> unit) : unit -> unit =
+        let mutable previous = read ()
+        display previous
+
+        fun () ->
+            let current = read ()
+
+            if current <> previous then
+                previous <- current
+                display current
+
     /// <summary>Raises an error with the first failed expectation's message.</summary>
     let check (step: Step) : unit =
         for message, predicate in step.Checks do
@@ -132,6 +155,7 @@ module Helpers =
         {
             Label = label
             Widget = Button press
+            Binding = None
             Steps =
                 [
                     {
@@ -168,6 +192,7 @@ module Helpers =
         {
             Label = label
             Widget = Slider (min, max, start, set)
+            Binding = None
             Steps = Controls.steps label string replay set
         }
 
@@ -176,6 +201,7 @@ module Helpers =
         {
             Label = label
             Widget = Number (start, set)
+            Binding = None
             Steps = Controls.steps label string replay set
         }
 
@@ -184,6 +210,7 @@ module Helpers =
         {
             Label = label
             Widget = Text (start, set)
+            Binding = None
             Steps = Controls.steps label id replay set
         }
 
@@ -195,6 +222,35 @@ module Helpers =
         {
             Label = label
             Widget = Toggle (start, set)
+            Binding = None
             Steps = Controls.steps label show replay set
+        }
+
+    /// <summary>A slider bound to <c>signal</c>; a replay writes each of <c>replay</c>.</summary>
+    /// <remarks>The widget follows the signal's current value without creating an observer.</remarks>
+    let sliderSignal (label: string) (min: int, max: int) (signal: Signal<int>) (replay: int list) : Control =
+        { slider label (min, max) signal.Peek replay (fun value -> signal.Value <- value) with
+            Binding = Some (fun () -> InputValue.Integer signal.Peek)
+        }
+
+    /// <summary>A number field bound to <c>signal</c>; a replay writes each of <c>replay</c>.</summary>
+    /// <remarks>The widget follows the signal's current value without creating an observer.</remarks>
+    let numberSignal (label: string) (signal: Signal<float>) (replay: float list) : Control =
+        { number label signal.Peek replay (fun value -> signal.Value <- value) with
+            Binding = Some (fun () -> InputValue.Number signal.Peek)
+        }
+
+    /// <summary>A text field bound to <c>signal</c>; a replay writes each of <c>replay</c>.</summary>
+    /// <remarks>The widget follows the signal's current value without creating an observer.</remarks>
+    let textSignal (label: string) (signal: Signal<string>) (replay: string list) : Control =
+        { text label signal.Peek replay (fun value -> signal.Value <- value) with
+            Binding = Some (fun () -> InputValue.Text signal.Peek)
+        }
+
+    /// <summary>A checkbox bound to <c>signal</c>; a replay writes each of <c>replay</c>.</summary>
+    /// <remarks>The widget follows the signal's current value without creating an observer.</remarks>
+    let toggleSignal (label: string) (signal: Signal<bool>) (replay: bool list) : Control =
+        { toggle label signal.Peek replay (fun value -> signal.Value <- value) with
+            Binding = Some (fun () -> InputValue.Toggle signal.Peek)
         }
 #endif

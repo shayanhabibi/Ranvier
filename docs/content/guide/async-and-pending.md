@@ -767,7 +767,7 @@ let view = createErrorBoundary (fun _ _ -> -1) (fun () -> parsed.Value)
 createEffect (fun () -> printfn "parsed = %d" view.Value)
 
 controls [
-    text "Input" "42" [ "forty-two"; "7" ] (fun value -> input.Value <- value)
+    textSignal "Input" input [ "forty-two"; "7" ]
     |> describe "Invalid input displays -1; entering 7 recovers without rebuilding the graph."
     |> expect "Invalid input displays -1; entering 7 recovers without rebuilding the graph." (fun () -> view.Peek = (if input.Peek = "7" then 7 else -1))
 ]

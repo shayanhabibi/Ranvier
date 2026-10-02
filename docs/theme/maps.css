@@ -69,6 +69,12 @@
 .rv-map-node.is-failing .rv-map-node__shape { animation: rv-map-shake .4s ease-in-out 2; }
 .rv-map-node__value.is-swap { animation: rv-map-swap .6s ease-out; }
 
+.rv-map-node.is-flight .rv-map-node__flight { animation-duration: calc(2.4s / var(--rv-map-speed, 1)); }
+.rv-map-node.is-dropped .rv-map-node__flight { animation-duration: calc(.7s / var(--rv-map-speed, 1)); }
+.rv-map-node.is-settled .rv-map-node__shape { animation-duration: calc(.8s / var(--rv-map-speed, 1)); }
+.rv-map-node.is-failing .rv-map-node__shape { animation-duration: calc(.4s / var(--rv-map-speed, 1)); }
+.rv-map-node__value.is-swap { animation-duration: calc(.6s / var(--rv-map-speed, 1)); }
+
 @keyframes rv-map-spin { to { transform: rotate(360deg); } }
 @keyframes rv-map-drop { from { opacity: 1; stroke: var(--rv-error); } to { opacity: 0; transform: scale(1.5); } }
 @keyframes rv-map-glow { 40% { filter: drop-shadow(0 0 8px var(--rv-contour)); } }
@@ -103,8 +109,13 @@
 .rv-map__input--slider .rv-map__input-field { width: 7rem; }
 .rv-map__input-value { min-width: 1.5rem; font-family: var(--nacara-font-mono, monospace); color: var(--rv-muted); }
 
-.rv-map__timeline { display: flex; align-items: center; gap: .5rem; flex: 1 1 16rem; }
-.rv-map__track { position: relative; flex: 1; display: grid; align-items: center; }
+.rv-map__timeline { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; flex: 1 1 16rem; }
+.rv-map__speed { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+.rv-map__speed-select {
+  padding: .25rem .4rem; border: 1px solid var(--rv-border); border-radius: .4rem;
+  background: var(--rv-raised); color: var(--rv-text); font: inherit; cursor: pointer; }
+.rv-map__speed-select:focus-visible { outline: 2px solid var(--rv-contour); outline-offset: 2px; }
+.rv-map__track { position: relative; flex: 1 1 8rem; min-width: 6rem; display: grid; align-items: center; }
 .rv-map__ticks { position: absolute; inset: 0; pointer-events: none; }
 .rv-map__tick {
   position: absolute; top: 50%; width: 2px; height: .625rem; margin: -.3125rem 0 0 -1px;

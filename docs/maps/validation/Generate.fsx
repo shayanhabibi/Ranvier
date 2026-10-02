@@ -24,14 +24,27 @@ Directory.CreateDirectory output |> ignore
 let fence =
     Regex (@"^```fsharp\s+map(?<flags>[^\r\n]*)\r?\n(?<body>.*?)^```[ \t]*\r?$", RegexOptions.Multiline ||| RegexOptions.Singleline)
 
+let literate =
+    Regex (
+        @"^[ \t]*\(\*\*\*\s+map(?<flags>[^\r\n]*?)\s+\*\*\*\)[ \t]*\r?\n(?<body>.*?)(?=^[ \t]*\(\*\*|\z)",
+        RegexOptions.Multiline ||| RegexOptions.Singleline
+    )
+
 let quote (value: string) =
     System.Text.Json.JsonSerializer.Serialize value
 
 let modules = ResizeArray<string>()
 let entries = ResizeArray<string>()
 
+let sources =
+    if args.Length = 0 then
+        [ content; Path.Combine (docs, "maps/tests/fixtures") ]
+    else
+        [ content ]
+
 for path in
-    Directory.EnumerateFiles (content, "*", SearchOption.AllDirectories)
+    sources
+    |> Seq.collect (fun directory -> Directory.EnumerateFiles (directory, "*", SearchOption.AllDirectories))
     |> Seq.sort do
     if
         Path.GetExtension path = ".md"
@@ -39,7 +52,16 @@ for path in
     then
         let source = File.ReadAllText path
 
-        for matched in fence.Matches source do
+        let examples =
+            seq {
+                yield! fence.Matches source |> Seq.cast<Match>
+
+                if Path.GetExtension path = ".fsx" then
+                    yield! literate.Matches source |> Seq.cast<Match>
+            }
+            |> Seq.sortBy _.Index
+
+        for matched in examples do
             let body = matched.Groups["body"].Value
 
             if Regex.IsMatch (body, @"\bexpect\b") then

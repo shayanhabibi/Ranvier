@@ -6,7 +6,10 @@
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="Spec.fs" />
         <Compile Include="Maps.fs" />
+        <Compile Include="Theme.fs" />
+        <Compile Include="Directives.fs" />
         <Compile Include="Site.fs" />
         <Content Include="content\**" CopyToOutputDirectory="Never" />
         <Content Include="static\**" CopyToOutputDirectory="Never" />
@@ -27,6 +30,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="maps/authoring/Ranvier.Docs.MapAuthoring.fsproj" />
+        <ProjectReference Include="maps/model/Ranvier.Docs.MapModel.fsproj" />
         <!-- Builds the libraries beside the site, where the API reference reads them. -->
         <ProjectReference Include="../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
         <ProjectReference Include="../src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />

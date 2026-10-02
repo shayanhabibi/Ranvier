@@ -281,6 +281,10 @@ module Stage =
         let! watch = Options.watch
         return stage "docs" {
             quiet
+            stage "literate dependencies" {
+                run "dotnet build docs/maps/model/Ranvier.Docs.MapModel.fsproj -c Debug -p:RanvierTrace=true -v q"
+                run "dotnet fsi --nologo docs/maps/tests/fixtures/literate.fsx"
+            }
             stage "map expectations" {
                 run "dotnet fsi docs/maps/validation/Generate.fsx"
                 envVars [ ("RanvierTrace", "true") ]

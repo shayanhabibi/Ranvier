@@ -46,20 +46,7 @@ The source returns a sequence, usually from a signal. `Keys` reads its ordered k
 `Get key` reads one row. This projection exposes each todo's title under its ID.
 *)
 (*** hide ***)
-// #load-ed: the page type-checks against the current sources, and the built assembly stays unlocked. Keep this list
-// in the order of the <Compile> items in Ranvier.fsproj.
-#r "nuget: Fable.Core, 5.3.0"
-#load "../../../src/Ranvier/Types.fs"
-#load "../../../src/Ranvier/PlatformDispatcher.fs"
-#load "../../../src/Ranvier/Platform.fs"
-#load "../../../src/Ranvier/Positional.fs"
-#load "../../../src/Ranvier/Trace.fs"
-#load "../../../src/Ranvier/Core.fs"
-#load "../../../src/Ranvier/Deltas.fs"
-#load "../../../src/Ranvier/Projections.fs"
-#load "../../../src/Ranvier/Api.fs"
-#load "../../../src/Ranvier/Combinators.fs"
-#load "../../../src/Ranvier/TraceApi.fs"
+#load "../../literate.fsx"
 
 let graph = new Ranvier.Graph ()
 let active = graph.Activate ()
