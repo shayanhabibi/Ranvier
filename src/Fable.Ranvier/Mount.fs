@@ -13,6 +13,8 @@ module Mount =
                     createRoot (fun owner ->
                         createdOwner <- Some owner
                         let root = factory ()
+                        if root.nodeType = root.DOCUMENT_FRAGMENT_NODE then
+                            raise (ArgumentException("A mount requires one persistent root node; DocumentFragment roots are unsupported.", "factory"))
                         onCleanup (fun () ->
                             root.parentNode |> Option.iter (fun parent -> parent.removeChild root |> ignore))
                         host.appendChild root |> ignore

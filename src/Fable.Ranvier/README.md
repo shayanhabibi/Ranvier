@@ -33,6 +33,10 @@ Create fresh root nodes in the factory. A mount owns the returned node's removal
 node is subsequently moved to another parent. It does not own the caller's graph or signals.
 Disposing the graph also cleans up its mounts.
 
+Return one persistent node, such as an element or text node. `DocumentFragment` roots are rejected
+before attachment because insertion consumes the fragment's children. A failed mount still
+disposes bindings and listeners created by its factory. Wrap multiple top-level nodes in an element.
+
 ## Functions
 
 - `Dom.createElement tag`: bare `HTMLElement`, preserving the original scaffold helper.

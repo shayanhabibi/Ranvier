@@ -201,6 +201,31 @@ let eventRestoresOwnerAndGraph () =
     scope.Dispose()
     equal "handler resource owned by mount" 1 cleanupCalls
 
+let fragmentRootIsRejectedWithoutLeaks () =
+    use graph = new Graph()
+    let count = graph.Run(fun () -> createSignal 0)
+    let host = Dom.createElement "div"
+    let existing = Dom.text "preserved"
+    host.appendChild existing |> ignore
+    let mutable child = Unchecked.defaultof<Node>
+    let mutable button = Unchecked.defaultof<HTMLElement>
+    let mutable rejected = false
+    try
+        Mount.mount graph host (fun () ->
+            let fragment = Dom.document.createDocumentFragment()
+            child <- Dom.reactiveText (fun () -> string count.Value)
+            button <- Dom.element "button" [Dom.on "click" (fun _ -> count.Value <- count.Value + 1)] [child]
+            fragment.appendChild button |> ignore
+            fragment :> Node) |> ignore
+    with :? ArgumentException -> rejected <- true
+    equal "fragment root rejected" true rejected
+    same "host sibling preserved" existing host.firstChild.Value
+    equal "nothing attached" "preserved" host.textContent
+    count.Value <- 2
+    equal "rejected binding stopped" (Some "0") child.textContent
+    button.click()
+    equal "rejected listener removed" 2 count.Peek
+
 let cases = [|
     "static nested elements preserve child nodes", staticConstruction
     "reactive text updates without replacing its node", reactiveTextKeepsIdentity
@@ -215,4 +240,5 @@ let cases = [|
     "moved and detached roots dispose safely", detachedOrMovedRootCleanup
     "graph disposal also cleans mounted DOM", graphDisposalCleansMount
     "event callbacks restore their mount graph and owner", eventRestoresOwnerAndGraph
+    "fragment roots are rejected without leaking bindings or listeners", fragmentRootIsRejectedWithoutLeaks
 |]

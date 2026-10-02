@@ -46,6 +46,8 @@ checks and runs them with Node's test runner against jsdom. The test module is i
 DOM globals are installed to check import safety. `test:browser` compiles the app and runs real
 Chromium interactions against a separate Vite server on port 5178. It checks output updates,
 input node identity/focus/caret, the disabled property, and listener cleanup across remounts.
+It also edits and restores `App.fs` to verify the Fable watch/Vite cleanup path without reloading
+the page. Run the browser suite in a checkout where `App.fs` is not being edited concurrently.
 The suites can be run separately with `npm run test:dom` and `npm run test:browser`.
 
 The private npm project pins dependencies in `package-lock.json`. Node 26 is the selected minimum

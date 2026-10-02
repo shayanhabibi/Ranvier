@@ -341,13 +341,13 @@ test artefacts or generated JS. Update the plan and commit task files.
 
 **Interfaces:** No new APIs; verify the delivered library and playground against the approved spec.
 
-- [ ] Run fresh fslangmcp workspace/library checks and inspect final public API/compile order.
-- [ ] Run Release library/solution builds without modifying pre-existing solution edits.
-- [ ] Run the complete unfiltered .NET core suite for `tests/Ranvier.Tests/Ranvier.Tests.fsproj` under net10.0, then the existing complete Fable core suite and the playground's complete DOM/browser suites.
-- [ ] Run the production build after any verification fix. Report unrelated baseline failures separately.
-- [ ] Review mount failure paths, import safety, event registration/removal identity, current-owner restoration and input setter behaviour against the tests above.
-- [ ] Request the single independent final review required by the native execution workflow if that method is chosen; apply only substantiated task-owned fixes and re-run affected gates.
-- [ ] Final report links the library and playground, gives the exact development command, states checks actually run and names the PoC limits. Do not claim full Solid 2 parity or production readiness.
+- [x] Run fresh fslangmcp workspace/library checks and inspect final public API/compile order.
+- [x] Run Release library/solution builds without modifying pre-existing solution edits.
+- [x] Run the complete unfiltered .NET core suite for `tests/Ranvier.Tests/Ranvier.Tests.fsproj` under net10.0, then the existing complete Fable core suite and the playground's complete DOM/browser suites.
+- [x] Run the production build after any verification fix. Report unrelated baseline failures separately.
+- [x] Review mount failure paths, import safety, event registration/removal identity, current-owner restoration and input setter behaviour against the tests above.
+- [x] Request the single independent final review required by the native execution workflow if that method is chosen; apply only substantiated task-owned fixes and re-run affected gates.
+- [x] Final report links the library and playground, gives the exact development command, states checks actually run and names the PoC limits. Do not claim full Solid 2 parity or production readiness.
 
 CLI acceptance commands from the repository root (playground commands run in its directory):
 
@@ -367,3 +367,49 @@ browser behaviour, remounting and watch lifecycle in Task 3; full applicable gat
 The public helper names are preserved. New interfaces use one argument order consistently.
 No source implementation or product dependency installation is authorized by this plan until
 the user reviews it and chooses execution.
+
+## Execution record
+
+The user approved native execution. Work is on `poc/fable-ranvier-dom`; unrelated working-tree
+changes were preserved. Tasks 1–3 were committed, followed by the final fragment-boundary fix.
+
+Final checks on 2026-10-02:
+
+- Fresh fslangmcp workspace check: 13 projects, zero errors/warnings. Public API and compile order checked.
+- Release library build, including NU1504/NU1605 as errors: zero warnings/errors.
+- Release solution build: passed with six existing docs dependency/xUnit warnings.
+- Complete .NET core suite: 906/906 passed.
+- Complete Fable core compilation: passed. Unfiltered Mocha suite: 722/784 passed, 62 failures in
+  async and platform/equality assertions. The relevant core source, tests and tooling files have
+  no diff in this branch. This gate remains red; it is not an acceptance claim.
+- Complete playground DOM suite: 14/14 passed. Chromium suite: 5/5 passed, including input
+  focus/caret/identity, retained-node cleanup, repeated remount and Fable watch/Vite replacement.
+- Final production build: passed, JavaScript 44.76 kB (13.27 kB gzip).
+- Desktop/mobile screenshots inspected; mobile has no horizontal overflow.
+- Development processes exited and ports 5173/5178 were released. Both created SageFs sessions
+  stopped through the dashboard's session-specific controls; the user's daemon was left running.
+
+One independent read-only review found no blocking issues or minors. It independently reran
+13 DOM checks and a fresh workspace check. Its declined fragment-root case was regraded as an
+ownership bug: a new test failed before the fix, then passed after rejecting fragments before
+attachment and disposing the failed factory's bindings/listeners. Full playground suites passed
+after that fix. No second review was dispatched.
+
+Rulings, in execution order:
+
+1. Use a feature branch in the current checkout to preserve the user's untracked scaffold and
+   solution edits. Cost if wrong: move the branch; no user files were discarded.
+2. Resolve Xantham's actual nullable/event overloads rather than copy illustrative plan syntax.
+   Cost if wrong: compilation or DOM checks fail.
+3. Correct the test project reference to three parent segments. Cost if wrong: compilation fails.
+4. Export individual behavioural test cases instead of an array of errors. Cost if wrong:
+   different reporting interface only.
+5. Commit the connected DOM and mount tasks together. Cost if wrong: less granular history.
+6. Dispose the owner directly rather than activate a possibly disposed graph. Cost if wrong:
+   cleanup regressions; graph-disposal, retained-node and owner-restoration tests cover them.
+7. Leave custom-element lifecycle reentrancy outside this ordinary-HTML PoC. Cost if wrong:
+   specialized custom-element lifecycle cases remain unverified.
+8. Record existing Fable core failures rather than expand this DOM task into core repairs.
+   Cost if wrong: the full repository JavaScript acceptance gate remains red.
+
+Deferred minors: none. No merge or push was performed.
