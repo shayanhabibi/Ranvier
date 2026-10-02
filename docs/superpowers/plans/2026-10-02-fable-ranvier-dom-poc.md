@@ -381,7 +381,10 @@ Final checks on 2026-10-02:
 - Complete .NET core suite: 906/906 passed.
 - Complete Fable core compilation: passed. Unfiltered Mocha suite: 722/784 passed, 62 failures in
   async and platform/equality assertions. The relevant core source, tests and tooling files have
-  no diff in this branch. This gate remains red; it is not an acceptance claim.
+  no diff in this branch. These counts match the existing `docs/.ai/fable-compat.md` report:
+  766/784 pass with inline delivery, 722/784 with promise delivery. The raw Mocha invocation
+  exits nonzero; the canonical `Report.mjs` gate classifies documented differences and fails on
+  untriaged inline failures. That canonical gate was not run during this PoC verification.
 - Complete playground DOM suite: 14/14 passed. Chromium suite: 5/5 passed, including input
   focus/caret/identity, retained-node cleanup, repeated remount and Fable watch/Vite replacement.
 - Final production build: passed, JavaScript 44.76 kB (13.27 kB gzip).
@@ -410,6 +413,6 @@ Rulings, in execution order:
 7. Leave custom-element lifecycle reentrancy outside this ordinary-HTML PoC. Cost if wrong:
    specialized custom-element lifecycle cases remain unverified.
 8. Record existing Fable core failures rather than expand this DOM task into core repairs.
-   Cost if wrong: the full repository JavaScript acceptance gate remains red.
+   Cost if wrong: raw Mocha remains nonzero; the canonical compatibility gate was not verified.
 
 Deferred minors: none. No merge or push was performed.
