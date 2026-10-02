@@ -58,6 +58,43 @@ their completion/state notifications, and collection APIs retain their graph-pol
 The C# facade adds comparer overloads, for example `Reactive.Signal("Ada", StringComparer.OrdinalIgnoreCase)`
 and `Reactive.Memo(() => name.Value.Trim(), StringComparer.OrdinalIgnoreCase)`.
 
+## Editable collections and change readers
+
+```fsharp
+let items = createKeyedCollection (fun (id, _) -> id)
+items.Edit(fun edit ->
+    edit.AddOrUpdate(1, "write")
+    edit.AddOrUpdate(2, "test"))
+let titles = items.Rows |> Projection.map snd
+use reader = titles.NewValueReader ()
+reader.Read () |> ignore // initial reset
+items.AddOrUpdate(2, "retest")
+let delta = reader.Read () // Changed for key 2
+```
+
+`Reactive.KeyedCollection<T, K>(keyOf)` is the C# factory. `Rows` supports the existing
+map/filter/sort/group/aggregate operators. Updating a live key writes its value directly;
+it preserves the key array and avoids scanning an input collection. New keys append.
+Removing and re-adding a key creates a new row, reported as `Replaced` to a reader that saw
+the old row. Removal searches insertion order in O(N); membership passes copy key order.
+`Edit` batches synchronous writes and retains applied edits if its callback throws.
+
+`NewKeyReader()` reports membership and order. `NewValueReader()` also reports `Changed`
+for unequal settled row values under the graph policy. Each reader has an independent
+bounded cursor; the first read and overflow return a reset. Deltas are coalesced refresh
+hints containing keys, rather than value snapshots or a history of every intermediate write.
+Read current values through the projection and handle pending/error states there.
+
+Value readers share observation and accepted values while any value reader lives. Initial
+observation evaluates every visible row; later value-only pulls evaluate suspect rows.
+Pending or failed rows retain their last settled value, and status changes alone do not
+produce `Changed`. Dispose readers to release observation. The .NET observable collection
+adapter uses this cache to update changed rows without polling every row.
+
+Map membership consumes upstream key deltas. Filters, sorts, grouping and some aggregate
+membership paths still scan keys; this is a foundation for incremental collections,
+with explicit costs for membership and order.
+
 ## Tracing
 
 `Ranvier.Traced` is the same assembly, namespaces and version built with the per-graph event log and its queries.

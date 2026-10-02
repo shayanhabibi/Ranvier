@@ -43,18 +43,53 @@ type internal HeldOut<'K when 'K: equality>(graph: Graph) =
 /// The keys of <c>upstream</c>, in upstream order, with rows from exactly one of <c>map</c> and <c>factory</c>, as on
 /// <c>KeyedProjection</c>.
 /// </summary>
-type internal MapView<'K, 'V, 'U when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, map: 'K -> 'U, factory: (unit -> 'K) -> (unit -> 'U))
+type internal MapView<'K, 'V, 'U when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, map: 'K -> 'U, factory: (unit -> 'K) -> (unit -> 'U)) as this
     =
-    inherit KeyedProjection<'K, 'K, 'U>(graph, id, map, factory, (fun () -> upstream.Keys))
+    inherit
+        RowsOf<RowEntry<'K, 'V>, 'K, 'U>(
+            graph,
+            (if isNull (box map) then
+                 Unchecked.defaultof<_>
+             else
+                 fun entry -> map entry.Key),
+            (if isNull (box factory) then
+                 Unchecked.defaultof<_>
+             else
+                 fun read -> factory (fun () -> (read ()).Key))
+        )
 
     let heldOut = HeldOut<'K> graph
+
+    let reader = graph.RunOwned (this.Scope, upstream.NewKeyReader)
+
+    do
+        this.ReadDelta <-
+            fun () ->
+                heldOut.Begin ()
+                let delta = reader.Read ()
+                heldOut.Publish upstream
+                delta
+
+        this.VisitDelta <- fun key -> this.Visit (key, upstream.Entries.Find key)
 
     /// <summary>The keys <c>upstream</c> held out of its <c>Keys</c> at the last pass. A tracked read.</summary>
     member _.HeldOut = heldOut.Keys
 
     override this.Enumerate() =
         heldOut.Begin ()
-        base.Enumerate ()
+
+        for key in upstream.Keys do
+            let item = upstream.Entries.Find key
+            let entry = this.Entries.Find key
+
+            if
+                not (isNull entry)
+                && not (obj.ReferenceEquals ((entry :?> ItemRow<RowEntry<'K, 'V>, 'K, 'U>).Item.Peek, item))
+            then
+                this.RetireChanged key
+
+            this.Visit (key, item)
+
         heldOut.Publish upstream
 
 /// <summary>
@@ -956,21 +991,13 @@ module Projection =
     /// outside its <c>Keys</c>.
     /// </remarks>
     let map (mapping: 'V -> 'U) (upstream: Projection<'K, 'V>) : Projection<'K, 'U> =
-        if isNull (box upstream.PendingExtra) then
-            new KeyedProjection<'K, 'K, 'U> (
-                upstream.Graph,
-                id,
-                (fun key -> mapping (upstream.Get key)),
-                Unchecked.defaultof<_>,
-                fun () -> upstream.Keys
-            )
-            :> Projection<'K, 'U>
-        else
-            let view =
-                new MapView<'K, 'V, 'U> (upstream.Graph, upstream, (fun key -> mapping (upstream.Get key)), Unchecked.defaultof<_>)
+        let view =
+            new MapView<'K, 'V, 'U> (upstream.Graph, upstream, (fun key -> mapping (upstream.Get key)), Unchecked.defaultof<_>)
 
+        if not (isNull (box upstream.PendingExtra)) then
             view.PendingExtra <- fun () -> view.HeldOut
-            view :> Projection<'K, 'U>
+
+        view :> Projection<'K, 'U>
 
     /// <summary>
     /// The keys of <c>upstream</c>, in upstream order, each row the reader <c>mapping</c> returns for the key and a
@@ -992,14 +1019,13 @@ module Projection =
             let k = key ()
             mapping k (fun () -> upstream.Get k)
 
-        if isNull (box upstream.PendingExtra) then
-            new KeyedProjection<'K, 'K, 'U> (upstream.Graph, id, Unchecked.defaultof<_>, factory, (fun () -> upstream.Keys)) :> Projection<'K, 'U>
-        else
-            let view =
-                new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
+        let view =
+            new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
 
+        if not (isNull (box upstream.PendingExtra)) then
             view.PendingExtra <- fun () -> view.HeldOut
-            view :> Projection<'K, 'U>
+
+        view :> Projection<'K, 'U>
 
     /// <summary>
     /// The keys of <c>upstream</c> with their values, ascending by <c>projection</c> of the value; equal sort keys keep upstream

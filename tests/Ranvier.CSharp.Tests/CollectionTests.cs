@@ -9,6 +9,126 @@ public record Todo(int Id, string Title, bool Done, decimal Hours);
 
 public class CollectionTests
 {
+    [Fact]
+    public void ObservableAdapterReplacesEqualPayloadAfterRowReplacementAndMove()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            using var todos = KeyedCollection<Todo, int>(t => t.Id);
+            todos.Edit(edit => { foreach (var todo in Initial) edit.AddOrUpdate(todo); });
+            var titles = todos.Rows.Select(t => t.Title);
+            using var identity = titles.NewKeyReader();
+            identity.Read();
+            using var sourceIdentity = todos.Rows.NewKeyReader();
+            sourceIdentity.Read();
+            var view = titles.AsObservableCollection();
+            var actions = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+            view.CollectionChanged += (_, change) => actions.Add(change.Action);
+            todos.Edit(edit => { edit.Remove(1); edit.AddOrUpdate(Initial[0]); });
+            Assert.Equal([new KeyValuePair<int, KeyChange>(1, KeyChange.Replaced)], sourceIdentity.Read().Changes);
+            Assert.Equal([new KeyValuePair<int, KeyChange>(1, KeyChange.Replaced)], identity.Read().Changes);
+            Assert.Equal(["test", "ship", "write"], view);
+            Assert.Equal(1, actions.Count(a => a == System.Collections.Specialized.NotifyCollectionChangedAction.Replace));
+        });
+    }
+
+    [Fact]
+    public void EditableSourceFeedsFilterSortMapAndObservableAdapter()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            using var todos = KeyedCollection<Todo, int>(t => t.Id);
+            todos.Edit(edit => { foreach (var todo in Initial) edit.AddOrUpdate(todo); });
+            var titles = todos.Rows.Where(t => !t.Done).OrderBy(t => t.Title).Select(t => t.Title);
+            var view = titles.AsObservableCollection();
+            Assert.Equal(["ship", "write"], view);
+            todos.AddOrUpdate(Initial[0] with { Title = "draft" });
+            Assert.Equal(["draft", "ship"], view);
+            todos.Edit(edit => { edit.Remove(3); edit.AddOrUpdate(Initial[1] with { Done = false }); });
+            Assert.Equal(["draft", "test"], view);
+            todos.Clear();
+            Assert.Empty(view);
+        });
+    }
+
+    [Fact]
+    public void ObservableAdapterStartsWithPreviouslySettledFailedRows()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            var source = AsyncSource<int>();
+            var rows = IndexProjection(() => new[] { 0 }, _ => source.Value);
+            source.Settle(7);
+            Assert.Equal(7, rows.Get(0));
+            source.Fail(new InvalidOperationException("later failure"));
+            var view = rows.AsObservableCollection();
+            Assert.Equal([7], view);
+        });
+    }
+
+    [Fact]
+    public void ValueReaderReportsOnlyEditedRows()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            var todos = Signal(Initial);
+            var rows = Projection(() => todos.Value, t => t.Id, t => t.Title);
+            using var values = rows.NewValueReader();
+            using var keys = rows.NewKeyReader();
+            Assert.True(values.Read().IsReset);
+            keys.Read();
+            todos.Value = [Initial[0] with { Title = "rewrite" }, Initial[1], Initial[2]];
+            var delta = values.Read();
+            Assert.Equal([new KeyValuePair<int, KeyChange>(1, KeyChange.Changed)], delta.Changes);
+            Assert.False(delta.OrderChanged);
+            Assert.True(keys.Read().IsEmpty);
+            Assert.True(values.Read().IsEmpty);
+        });
+    }
+
+    [Fact]
+    public void ObservableAdapterTouchesOnlyOneRowForOneEdit()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            var input = Signal(Initial);
+            var mapped = 0;
+            var rows = Projection(() => input.Value, t => t.Id, t => { mapped++; return t.Title; });
+            var view = rows.AsObservableCollection();
+            var actions = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+            view.CollectionChanged += (_, change) => actions.Add(change.Action);
+            input.Value = [Initial[0], Initial[1] with { Title = "retest" }, Initial[2]];
+            Assert.Equal(4, mapped);
+            Assert.Equal([System.Collections.Specialized.NotifyCollectionChangedAction.Replace], actions);
+            Assert.Equal(["write", "retest", "ship"], view);
+        });
+    }
+
+    [Fact]
+    public void ObservableAdapterRebuildsAfterAnEventHandlerThrows()
+    {
+        using var graph = new Graph();
+        graph.Run(() =>
+        {
+            var input = Signal(Initial);
+            var rows = Projection(() => input.Value, t => t.Id, t => t.Title);
+            var view = rows.AsObservableCollection();
+            var fail = true;
+            view.CollectionChanged += (_, _) =>
+            {
+                if (fail) { fail = false; throw new InvalidOperationException("consumer failed"); }
+            };
+            input.Value = [Initial[0] with { Title = "rewrite" }, Initial[1], Initial[2]];
+            input.Value = [input.Peek[0], Initial[1] with { Title = "retest" }, Initial[2]];
+            Assert.Equal(["rewrite", "retest", "ship"], view);
+        });
+    }
+
     static readonly Todo[] Initial =
     [
         new(1, "write", false, 2m),

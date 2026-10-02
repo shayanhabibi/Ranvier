@@ -134,6 +134,40 @@ match only, and a projection over a list with a duplicate key raises.
 
 :::
 
+### Direct edits
+
+`createKeyedCollection keyOf` starts an empty editable source. Its `Rows` property supports the
+collection view operators. Updating an existing key writes that row directly, avoiding the
+whole-input pass required by immutable list replacement. New keys append; removing and
+re-adding a key creates a new row and moves it to the end.
+
+*)
+let directTodos = createKeyedCollection (fun (todo: Todo) -> todo.Id)
+directTodos.Edit(fun edit ->
+    edit.AddOrUpdate { Id = 1; Title = "Write" }
+    edit.AddOrUpdate { Id = 2; Title = "Test" })
+let directTitles = directTodos.Rows |> Projection.map _.Title
+let titleChanges = directTitles.NewValueReader ()
+titleChanges.Read () |> ignore
+directTodos.AddOrUpdate { Id = 2; Title = "Retest" }
+let changedTitles = titleChanges.Read ()
+(**
+
+`changedTitles.Changes` contains `Changed` for key 2. `NewKeyReader()` reports membership and order
+only; `NewValueReader()` adds settled-value changes. The first read and a reader that falls behind
+report a reset. Changes are coalesced key hints: read current values from the projection and
+handle pending/error states there. Pending and failed rows retain their last settled value for
+value observation; state changes alone do not report `Changed`.
+
+Readers are owned by their creating scope and can be disposed early. Value readers share row
+observation, which ends when the last value reader is disposed. Initial observation evaluates
+all visible rows. Subsequent value-only pulls evaluate suspect rows.
+
+`Edit` batches synchronous changes and keeps applied changes if its callback throws. Direct
+updates preserve insertion order; removals search it in O(N), and membership passes copy key
+order. Map views consume key deltas. Filter, sort and grouping membership processing still
+scans keys.
+
 ### Selecting one element
 
 `createOptionMemo select` holds `select ()`. While the inner value stays equal under the graph's equality policy,
