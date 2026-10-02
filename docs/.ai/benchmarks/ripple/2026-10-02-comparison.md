@@ -70,6 +70,21 @@ No uncaught errors were captured on the correctness pages via Playwright `pageer
 
 Separately built minified ES library bundles export all fixture cases, including async and error probes. Same Vite options; no common comparison runner included. Ranvier **75,324 bytes**, Ripple **34,764 bytes**; gzip level 9 **17,712 / 8,818 bytes**. Ripple is about half the size for this exported fixture. This is not a minimal counter app, NuGet package size or a renderer breadth comparison. [Size metadata](2026-10-02-bundles.json).
 
+## Follow-up: size by exported workload
+
+A subsequent build-only inspection re-exported either the whole fixture or one fixture constructor at a time, with the same Vite minified ES library settings and unchanged generated implementations. Minified bytes, Ranvier / Ripple:
+
+- Entire fixture: **75,324 / 34,764**.
+- Synchronous diamond graph only: **48,236 / 19,442**.
+- Synchronous dashboard only: **53,866 / 30,561**.
+- Async view only: **62,853 / 24,106**.
+
+The dashboard export reduces Ranvier's measured fixture output by approximately 28%, without editing the engine or weakening the dashboard's implemented guarantees. It remains larger than Ripple. These exports still return the benchmark's control handles: they are not minimum-size application entry points. The inspection compiles bundles; it is not another runtime benchmark or a guarantee-specific attribution experiment.
+
+The bundler's retained-module report identifies `Core.js` as the largest Ranvier contribution, with additional Fable runtime collections/utilities. Those module `renderedLength` values are intermediate bundler metrics, not additive final gzip costs. Trace modules are not retained in the dashboard output. This supports investigating core representation, generated JavaScript and tree-shaking boundaries; it does not establish a recoverable byte budget or show that any particular guarantee accounts for the size difference.
+
+[Inspection data](2026-10-02-size-inspection.json) and [inspection script](2026-10-02-inspect-size.mjs). Copy the script into the extracted probe directory, then run `rtk proxy node inspect-size.mjs` there. The JSON's gzip values use Node `gzipSync` level 9; original bundle metadata above used Python gzip level 9, whose byte output differs slightly. Compare minified bytes across the two measurements directly.
+
 ## Environment and reproduction
 
 Windows; AMD Ryzen 9 9900X 12-Core; Node 26.7.0; Chromium 153.0.8010.12; .NET SDK 10.0.401; Fable 5.18.0; Release compilation; Vite 8.3.2. Pinned Ripple core 1.0.0-beta.6 / DOM 1.0.0-beta.7; Fable.Promise 3.2.0. Both fixtures resolve FSharp.Core 10.1.401 and Fable.Core 5.3.0. Ranvier is the local DOM PoC on `poc/fable-ranvier-dom`; no production source was modified during this experiment.
