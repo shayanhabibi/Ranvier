@@ -38,16 +38,31 @@ type Reactive =
     static member Signal<'T>(initial: 'T) : Signal<'T> =
         Api.createSignal initial
 
+    /// <summary>A settable source whose write cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member Signal<'T>(initial: 'T, comparer: IEqualityComparer<'T>) : Signal<'T> =
+        Api.createSignalWithComparer comparer initial
+
     /// <summary>A pure derived value: <c>compute</c> re-runs when a value it read changes.</summary>
     /// <remarks>A node created inside <c>compute</c> raises <c>InvalidOperationException</c>; use <c>OwningMemo</c>.</remarks>
     static member Memo<'T>(compute: Func<'T>) : Memo<'T> =
         Api.createMemo (fun _ -> compute.Invoke ())
+
+    /// <summary>A pure memo whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member Memo<'T>(compute: Func<'T>, comparer: IEqualityComparer<'T>) : Memo<'T> =
+        Api.createMemoWithComparer comparer (fun _ -> compute.Invoke ())
 
     /// <summary>
     /// A pure derived value that receives its previous value, or <c>seed</c> on its first run.
     /// </summary>
     static member Memo<'T>(compute: Func<'T, 'T>, seed: 'T) : Memo<'T> =
         Api.createMemo (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous))
+
+    /// <summary>A seeded pure memo whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member Memo<'T>(compute: Func<'T, 'T>, seed: 'T, comparer: IEqualityComparer<'T>) : Memo<'T> =
+        Api.createMemoWithComparer comparer (fun previous -> compute.Invoke (ValueOption.defaultValue seed previous))
 
     /// <summary>
     /// A value seeded by <c>seed ()</c> that accepts local edits through <c>Value</c>. An edit is dropped once the seed
@@ -71,6 +86,11 @@ type Reactive =
     static member OwningMemo<'T>(compute: Func<'T>) : Memo<'T> =
         Api.createMemoWith (fun _ -> compute.Invoke ())
 
+    /// <summary>An owning memo whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member OwningMemo<'T>(compute: Func<'T>, comparer: IEqualityComparer<'T>) : Memo<'T> =
+        Api.createOwningMemoWithComparer comparer (fun _ -> compute.Invoke ())
+
     /// <summary>An effect: <c>body</c> runs after the current flush and again when a value it read changes.</summary>
     /// <remarks>The enclosing scope disposes the effect; dispose the returned handle to stop it earlier.</remarks>
     static member Effect(body: Action) : Effect =
@@ -82,6 +102,11 @@ type Reactive =
     /// <remarks><c>act</c> runs only when <c>compute</c> settles on a value unequal to the last one acted on.</remarks>
     static member EffectOn<'T>(compute: Func<'T>, act: Action<'T>) : unit =
         Api.createEffectOn compute.Invoke act.Invoke
+
+    /// <summary>A split effect whose action cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member EffectOn<'T>(compute: Func<'T>, act: Action<'T>, comparer: IEqualityComparer<'T>) : unit =
+        Api.createEffectOnWithComparer comparer compute.Invoke act.Invoke
 
     /// <summary>
     /// A derived value that arrives later. Each change to a value read before the first <c>await</c> starts a new
@@ -112,14 +137,29 @@ type Reactive =
     static member Suspense<'T>(body: Func<'T>, fallback: Func<'T>) : Boundary<'T> =
         Api.createSuspense (fun _ -> fallback.Invoke ()) body.Invoke
 
+    /// <summary>A suspense boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member Suspense<'T>(body: Func<'T>, fallback: Func<'T>, comparer: IEqualityComparer<'T>) : Boundary<'T> =
+        Api.createSuspenseWithComparer comparer (fun _ -> fallback.Invoke ()) body.Invoke
+
     /// <summary>A value that shows <c>recover error</c> while <c>body</c> fails.</summary>
     /// <remarks>A pending read in <c>body</c> propagates to the boundary's readers.</remarks>
     static member ErrorBoundary<'T>(body: Func<'T>, recover: Func<exn, 'T>) : Boundary<'T> =
         Api.createErrorBoundary (fun ex _ -> recover.Invoke ex) body.Invoke
 
+    /// <summary>An error boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member ErrorBoundary<'T>(body: Func<'T>, recover: Func<exn, 'T>, comparer: IEqualityComparer<'T>) : Boundary<'T> =
+        Api.createErrorBoundaryWithComparer comparer (fun ex _ -> recover.Invoke ex) body.Invoke
+
     /// <summary>A value that shows <c>fallback ()</c> while <c>body</c> is pending and <c>recover error</c> while it fails.</summary>
     static member Boundary<'T>(body: Func<'T>, fallback: Func<'T>, recover: Func<exn, 'T>) : Boundary<'T> =
         Api.createBoundary (fun _ -> fallback.Invoke ()) (fun ex _ -> recover.Invoke ex) body.Invoke
+
+    /// <summary>A pending/error boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    static member Boundary<'T>(body: Func<'T>, fallback: Func<'T>, recover: Func<exn, 'T>, comparer: IEqualityComparer<'T>) : Boundary<'T> =
+        Api.createBoundaryWithComparer comparer (fun _ -> fallback.Invoke ()) (fun ex _ -> recover.Invoke ex) body.Invoke
 
     /// <summary>
     /// A command running <c>execute</c>, enabled while <c>canExecute ()</c> is true and <c>policy</c> allows. The command
