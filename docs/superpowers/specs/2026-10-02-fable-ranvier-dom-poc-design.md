@@ -1,6 +1,6 @@
 # Fable.Ranvier DOM PoC and Node playground
 
-Status: scope approved; written design awaiting review.
+Status: written design approved by the user on 2026-10-02.
 
 ## Purpose
 
