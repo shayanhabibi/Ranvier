@@ -76,7 +76,7 @@ the key is removed.
 
 :::
 
-See [Getting started](getting-started.md#the-graph).
+See [Getting started](graph.fsx).
 
 ### &lt;operation&gt; ran on thread N, but this graph is owned by thread M. Marshal through Graph.Dispatch, or set GraphOptions.ThreadAffinity to Unchecked if affinity is guaranteed some other way.
 
@@ -115,7 +115,7 @@ temperature.Value
 `GraphOptions.ThreadAffinity = Unchecked` removes the check. Use it only when every write is already
 guaranteed to arrive on one thread.
 
-See [Async and pending](async-and-pending.md#threading-and-dispatch).
+See [Async and pending](threading.md).
 
 ### &lt;operation&gt; ran on thread N outside the synchronisation context this Serialised graph was constructed on. Marshal through Graph.Dispatch.
 
@@ -178,7 +178,7 @@ before, after
 
 :::
 
-See [Async and pending](async-and-pending.md#boundaries).
+See [Async and pending](boundaries.md).
 
 ### A memo created by createMemo created an owned node in its body: a memo, effect, async value, boundary, root, projection, lookup, selector or onCleanup.
 
@@ -221,7 +221,7 @@ owningGraph.Run (fun () -> subscriptions.Value)
 
 :::
 
-See [Getting started](getting-started.md#pure-and-owning-memos).
+See [Getting started](memos.md#pure-and-owning-memos).
 
 ### A projection row's reader created an owned node: a memo, effect, async value, boundary, root, projection, lookup, selector or onCleanup.
 
@@ -271,7 +271,7 @@ The check covers the constructors as well as the `Api` creators: a reader that b
 A node created inside a memo that a row's reader pulls belongs to that memo. An owning memo keeps
 it until the memo's next run or disposal; a pure memo fails with the `createMemo` message above.
 
-See [Collections](collections.fsx#the-factory-form).
+See [Collections](projections.fsx#the-factory-form).
 
 ### The projection produced the key &lt;k&gt; twice in one pass. Keys must be unique; check the keyOf function.
 
@@ -304,7 +304,7 @@ todoTexts.Keys
 
 :::
 
-See [Collections](collections.fsx#identity).
+See [Collections](projections.fsx#identity).
 
 ### The projection's factory for key &lt;k&gt; read a pending source.
 
@@ -344,7 +344,7 @@ priced.Get 2
 
 :::
 
-See [Collections](collections.fsx#the-factory-form).
+See [Collections](projections.fsx#the-factory-form).
 
 ### The projection has no key &lt;k&gt;.
 
@@ -370,7 +370,7 @@ squares.TryGet 3, squares.TryGet 9
 
 :::
 
-See [Collections](collections.fsx#reading-a-projection).
+See [Collections](projections.fsx#reading-a-projection).
 
 ### Cannot access a disposed object. Object name: 'LookupOf`3'.
 
@@ -384,7 +384,7 @@ the read.
 **Fix.** Read it only while its owner is alive: create it in the scope that reads it, or dispose that
 scope after the last read.
 
-See [Collections](collections.fsx#lookups).
+See [Collections](lookups.fsx).
 
 ## Symptoms
 
@@ -428,7 +428,7 @@ which is safe only when every write already arrives on one thread.
 
 :::
 
-See [Async and pending](async-and-pending.md#threading-and-dispatch).
+See [Async and pending](threading.md).
 
 ### An exception inside an effect disappears
 
@@ -457,7 +457,7 @@ watcher.Status, watcher.Error.Message
 
 :::
 
-See [Getting started](getting-started.md#effects).
+See [Getting started](effects.md).
 
 ### A lookup returns an old value
 
@@ -501,7 +501,7 @@ List.ofSeq seen
 
 :::
 
-See [Collections](collections.fsx#lookups).
+See [Collections](lookups.fsx).
 
 ### An async memo does not re-run when a value read after await changes
 
@@ -511,7 +511,7 @@ inside a continuation is untracked.
 
 **Fix.** Read every reactive value before the first `await` and bind it to a local.
 
-`pumpUntil` is the helper defined in [Async and pending](async-and-pending.md#async-memos).
+`pumpUntil` is the helper defined in [Async and pending](async-memos.md).
 
 :::details Example
 
@@ -545,7 +545,7 @@ Ready "user 2"
 The continuation after `Task.Yield` settles on the thread pool, so the example pumps the graph; see
 "An async value stays Pending forever" above.
 
-See [Async and pending](async-and-pending.md#async-memos).
+See [Async and pending](async-memos.md).
 
 ### A boundary shows its fallback forever and starts a flight on every settle
 
@@ -579,7 +579,7 @@ beforeReport, reportView.TryValue
 
 :::
 
-See [Getting started](getting-started.md#pure-and-owning-memos).
+See [Getting started](memos.md#pure-and-owning-memos).
 
 ### An effect did not run inside batch
 
@@ -617,4 +617,4 @@ runsInside.Value, effectRuns
 
 :::
 
-See [Getting started](getting-started.md#batch).
+See [Getting started](batch.md).

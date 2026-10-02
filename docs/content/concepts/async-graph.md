@@ -74,7 +74,7 @@ then stops. Solid has no token to cancel, so this policy is a .NET addition.
 
 Every flight's exception is observed, including a superseded flight's and one raised after its memo or graph
 was disposed. `TaskScheduler.UnobservedTaskException` receives none of them.
-[Async and pending](../guide/async-and-pending.md#flight-policy) maps the policies to the names used by R3,
+[Async and pending](../guide/async-memos.md#flight-policy) maps the policies to the names used by R3,
 SignalsDotnet and CommunityToolkit.Mvvm.
 
 ### Not implemented

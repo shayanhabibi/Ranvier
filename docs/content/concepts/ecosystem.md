@@ -139,7 +139,7 @@ d = 34
 ReactiveUI's multi-property `WhenAnyValue` behaves the same way: setting `A` and then `B` first emits the new
 `A` with the old `B`. The usual workarounds are `DelayChangeNotifications ()` or `Throttle (TimeSpan.Zero)`.
 Ranvier updates derived values in height order, and `d` runs after both of its inputs. Two writes that
-belong together go in one [`batch`](../guide/getting-started.md#batch).
+belong together go in one [`batch`](../guide/batch.md).
 
 ## Owners instead of hooks
 
@@ -169,7 +169,7 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
 - **Avalonia.FuncUI.** Its component state already has the shape of a signal.
 - **Fluxor stores.** For Fluxor users, memos are memoised selectors: a memo over a signal holding the
   store's state recomputes when that state changes, and an equal result stops at the memo
-  ([equality cutoff](../guide/getting-started.md#equality-cutoff)).
+  ([equality cutoff](../guide/memos.md#equality-cutoff)).
 - **Blazor.** A boundary maps onto a component. Blazor has no built-in signals, and
   [dotnet/aspnetcore#67329](https://github.com/dotnet/aspnetcore/issues/67329), an open proposal, asks for
   them. For Blazor Server, `ThreadAffinity.Serialised` admits the circuit's work one thread at a time; see

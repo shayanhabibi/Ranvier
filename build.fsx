@@ -279,6 +279,9 @@ module Stage =
 
     let generateDocs = input {
         let! watch = Options.watch
+        and! hotReload =
+            Input.option<bool> "--hot-reload"
+            |> Input.desc "Runs dotnet in 'watch' mode. Changes to the doc setup will cause the server to restart."
         return stage "docs" {
             quiet
             stage "literate dependencies" {
@@ -293,7 +296,8 @@ module Stage =
             }
             run (
                 Cmd.ofString "dotnet"
-                |> Cmd.args [ "run"; "--project"; "docs/docs.fsproj"; "--" ]
+                |> Cmd.args (if hotReload then [ "watch"; "--no-hot-reload" ] else List.singleton "run")
+                |> Cmd.args [ "--project"; "docs/docs.fsproj"; "--" ]
                 |> Cmd.arg (if watch then "watch" else "build")
                 )
         }

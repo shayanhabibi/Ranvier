@@ -278,7 +278,7 @@ completes once the flight started before this one is applied.
 
 :::details Async completion and threads
 A request that completes on the thread pool reaches the graph through its dispatcher. See
-[Async and pending](async-and-pending.md#threading-and-dispatch).
+[Async and pending](threading.md).
 :::
 
 ### Read without throwing
@@ -552,7 +552,7 @@ var graph = new Graph(GraphOptions.Default
 ```
 
 `graph.Dispatch(() => …)` marshals a write from another thread, as described in
-[Async and pending](async-and-pending.md#threading-and-dispatch).
+[Async and pending](threading.md).
 
 ## Tracing
 

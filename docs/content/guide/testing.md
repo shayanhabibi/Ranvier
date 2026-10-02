@@ -217,7 +217,7 @@ Prefer a fake completed by the test. It controls result order without involving 
 
 :::details When the test must use real IO
 Wait until `graph.PendingWork` is above zero, then call `graph.Pump ()` on the test thread to apply
-the queued result. See [Dispatcher selection](async-and-pending.md#dispatcher-selection).
+the queued result. See [Dispatcher selection](threading.md#dispatcher-selection).
 :::
 
 :::warning Keep the test on the graph's thread

@@ -40,7 +40,7 @@ These are implemented and covered by tests.
 - **MVU bridge.** The `Ranvier.Elmish` package: `Mvu`, which reads an Elmish-style model through selector memos. See
   [Migrating from Elmish](../guide/elmish.md).
 - **Projection key readers.** `NewKeyReader` reports the keys added, removed and replaced since a reader last
-  looked, and the order they now hold. See [Reading changes](../guide/collections.fsx#reading-changes).
+  looked, and the order they now hold. See [Reading changes](../guide/projections.fsx#reading-changes).
 - **Serialised thread affinity.** `ThreadAffinity.Serialised` admits one thread at a time on the construction
   context, for hosts such as Blazor Server. See [Serialised hosts](contracts.md#serialised-hosts) and
   [Blazor Server](../guide/blazor-server.md).

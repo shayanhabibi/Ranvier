@@ -37,7 +37,7 @@ let theme = Theme.theme (
         "guide"
         [
             Menu.section
-                "Getting started"
+                "Introduction"
                 [
                     Menu.page "guide/index.md"
                     Menu.page "guide/installation.md"
@@ -49,10 +49,43 @@ let theme = Theme.theme (
             Menu.section
                 "Core concepts"
                 [
+                    Menu.page "guide/graph.fsx"
+                    Menu.page "guide/signals.fsx"
+                    Menu.page "guide/memos.md"
+                    Menu.page "guide/effects.md"
+                    Menu.page "guide/roots.md"
+                    Menu.page "guide/cleanup.md"
+                    Menu.page "guide/untrack.md"
+                    Menu.page "guide/batch.md"
+                    Menu.page "guide/editable.md"
+                    Menu.page "guide/drafts.md"
+                    Menu.page "guide/equality.md"
+                ]
+            Menu.section
+                "Async and pending"
+                [
                     Menu.page "guide/async-and-pending.md"
+                    Menu.page "guide/pending.md"
+                    Menu.page "guide/async-sources.md"
+                    Menu.page "guide/async-memos.md"
+                    Menu.page "guide/boundaries.md"
+                    Menu.page "guide/threading.md"
                     Menu.page "guide/testing.md"
+                ]
+            Menu.section
+                "Collections"
+                [
                     Menu.page "guide/collections.fsx"
+                    Menu.page "guide/projections.fsx"
+                    Menu.page "guide/lookups.fsx"
+                    Menu.page "guide/selectors.fsx"
+                    Menu.page "guide/collection-updates.fsx"
+                    Menu.page "guide/collection-views.fsx"
                     Menu.page "guide/aggregates.fsx"
+                ]
+            Menu.section
+                "Recipes"
+                [
                     Menu.page "guide/forms.md"
                 ]
             Menu.section

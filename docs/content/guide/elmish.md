@@ -96,7 +96,7 @@ controls [
 
 :::tip Keep unchanged values unchanged
 An `update` that returns the original model triggers nothing: the signal's
-[equality cutoff](getting-started.md#equality-cutoff) stops the write.
+[equality cutoff](signals.fsx#equality) stops the write.
 :::
 
 ::::details Test your understanding
@@ -132,7 +132,7 @@ Initial commands run before `withCmd` returns.
 
 Under the default affinity, `Dispatch` runs inline on the graph's thread. Calls from other threads
 are queued and applied on that thread, through
-[`Graph.Dispatch`](async-and-pending.md#threading-and-dispatch).
+[`Graph.Dispatch`](threading.md).
 
 :::tip Dispatch an async result directly
 A command that completes on the thread pool can call `dispatch` directly. `Mvu` handles sending
@@ -178,7 +178,7 @@ so `city` does not recompute.
 
 Under the default equality policy, records compare by reference. A nested copy-and-update keeps
 records outside the changed path, allowing their selectors to cut off propagation. See
-[Deep updates](collections.fsx#deep-updates).
+[Deep updates](collection-updates.fsx).
 :::
 ::::
 

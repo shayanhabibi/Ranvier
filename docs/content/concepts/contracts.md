@@ -263,5 +263,5 @@ point: the end of its owner's run, or a `Dispose` call. The graph behaves identi
 collector runs. A build with tracing holds weak references in its trace log, which affects diagnostics
 only.
 
-[Scopes and disposal](../guide/getting-started.md#scopes-and-disposal) and
-[Pure and owning memos](../guide/getting-started.md#pure-and-owning-memos) show these rules in code.
+[Scopes and disposal](../guide/roots.md) and
+[Pure and owning memos](../guide/memos.md#pure-and-owning-memos) show these rules in code.
