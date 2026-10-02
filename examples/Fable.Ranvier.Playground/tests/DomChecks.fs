@@ -250,7 +250,7 @@ let private checkEventBatching useDefaults =
 let eventBatchingDefaults () = checkEventBatching true
 let eventBatchingOptOut () = checkEventBatching false
 
-let cases = [|
+let cases = Array.append Ranvier.Tests.ComparerCases.cases [|
     "static nested elements preserve child nodes", staticConstruction
     "reactive text updates without replacing its node", reactiveTextKeepsIdentity
     "optional reactive attribute removes and restores", optionalAttributeRemoved

@@ -2642,7 +2642,7 @@ type AsyncSource<'T>(graph: Graph) =
 /// argument keeps its dependents clean.
 /// </para>
 /// </remarks>
-type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode) =
+type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode, ?comparer: IEqualityComparer<'T>) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -2655,11 +2655,12 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     let mutable pendingSources: HashSet<INode> = null
 
     /// <summary>
-    /// The cutoff comparer, resolved once for the same reason <c>Signal</c> resolves
-    /// it once: the policy's generic member is the only place <c>'T</c> is known,
-    /// and a typed comparer keeps the test allocation-free.
+    /// The typed cutoff comparer selected at construction.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal =
+        match comparer with
+        | Some supplied -> supplied
+        | None -> graph.Options.Equality.Comparer<'T>()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -2743,6 +2744,12 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode)
     /// </summary>
     static member internal Create(graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode) =
         let memo = Memo<'T>(graph, compute, mode)
+        memo.Attach ()
+        memo
+
+    /// <summary>A memo whose cutoff uses <c>comparer</c>, owned by the current owner.</summary>
+    static member internal CreateWithComparer(graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode, comparer: IEqualityComparer<'T>) =
+        let memo = Memo<'T>(graph, compute, mode, comparer = comparer)
         memo.Attach ()
         memo
 
@@ -3442,11 +3449,14 @@ type Effect private (graph: Graph, body: unit -> unit, _unstarted: unit) =
 /// created by <c>act</c> belong to a reused scope, discharged before the next <c>act</c> and disposed with the effect.
 /// </remarks>
 [<Sealed>]
-type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -> unit) =
+type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -> unit, ?comparer: IEqualityComparer<'T>) =
     let id = graph.NextId ()
     let sources = SourceList ()
     do Tracer.Bind (sources, graph, id)
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal =
+        match comparer with
+        | Some supplied -> supplied
+        | None -> graph.Options.Equality.Comparer<'T>()
 
     /// <summary>
     /// The value <c>act</c> last ran with: the cutoff baseline once <c>hasActed</c>.
@@ -3478,6 +3488,12 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     /// <summary>An effect owned by the current owner, with its first run queued.</summary>
     static member internal Create(graph: Graph, compute: unit -> 'T, act: 'T -> unit) =
         let node = new EffectOn<'T> (graph, compute, act)
+        node.Start ()
+        node
+
+    /// <summary>An owned split effect whose cutoff uses <c>comparer</c>, with its first run queued.</summary>
+    static member internal CreateWithComparer(graph: Graph, compute: unit -> 'T, act: 'T -> unit, comparer: IEqualityComparer<'T>) =
+        let node = new EffectOn<'T> (graph, compute, act, comparer = comparer)
         node.Start ()
         node
 
@@ -4401,7 +4417,9 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
 /// things a boundary can catch.
 /// </para>
 /// </remarks>
-type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
+type Boundary<'T> private
+    (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption,
+     ?comparer: IEqualityComparer<'T>) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -4410,9 +4428,12 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     let mutable pendingSources: HashSet<INode> = null
 
     /// <summary>
-    /// The cutoff comparer, resolved once — see <c>Memo</c>.
+    /// The typed cutoff comparer selected at construction.
     /// </summary>
-    let equal = graph.Options.Equality.Comparer<'T>()
+    let equal =
+        match comparer with
+        | Some supplied -> supplied
+        | None -> graph.Options.Equality.Comparer<'T>()
 
     let mutable freshness = Freshness.Dirty
     let mutable status = Status.Uninitialized
@@ -4440,6 +4461,14 @@ type Boundary<'T> private (graph: Graph, body: unit -> 'T, onPending: ('T voptio
     /// </summary>
     static member internal Create(graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption) =
         let boundary = Boundary<'T>(graph, body, onPending, onError)
+        boundary.Attach ()
+        boundary
+
+    /// <summary>An owned boundary whose value cutoff uses <c>comparer</c>.</summary>
+    static member internal CreateWithComparer
+        (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption,
+         onError: (exn -> 'T voption -> 'T) voption, comparer: IEqualityComparer<'T>) =
+        let boundary = Boundary<'T>(graph, body, onPending, onError, comparer = comparer)
         boundary.Attach ()
         boundary
 

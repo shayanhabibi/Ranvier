@@ -1,6 +1,7 @@
 namespace Ranvier
 
 open System
+open System.Collections.Generic
 open System.Threading
 open System.Threading.Tasks
 
@@ -209,11 +210,20 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
 /// </remarks>
 [<AutoOpen>]
 module Api =
+    let private requireComparer (comparer: IEqualityComparer<'T>) =
+        if isNull comparer then nullArg "comparer"
+
     /// <summary>
     /// A settable source.
     /// </summary>
     let createSignal (initial: 'T) =
         Signal (Graph.Current, initial)
+
+    /// <summary>A settable source whose write cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createSignalWithComparer (comparer: IEqualityComparer<'T>) (initial: 'T) =
+        requireComparer comparer
+        Signal (Graph.Current, initial, comparer)
 
     /// <summary>
     /// A derived value, recomputed on read once something it read has changed.
@@ -240,6 +250,13 @@ module Api =
     let createMemo (compute: 'T voption -> 'T) =
         Memo.Create (Graph.Current, compute, ScopeMode.Pure)
 
+    /// <summary>A pure memo whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>Pending and failed state changes still propagate. The purity and previous-value rules of <c>createMemo</c> apply.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createMemoWithComparer (comparer: IEqualityComparer<'T>) (compute: 'T voption -> 'T) =
+        requireComparer comparer
+        Memo.CreateWithComparer (Graph.Current, compute, ScopeMode.Pure, comparer)
+
     /// <summary>
     /// A derived value that owns the nodes and cleanups <c>compute</c> creates. A run's nodes and cleanups are disposed
     /// before the next run and with the memo; the cleanups run untracked, and <c>compute</c> runs once per discharge.
@@ -257,6 +274,13 @@ module Api =
     /// </remarks>
     let createMemoWith (compute: 'T voption -> 'T) =
         Memo.Create (Graph.Current, compute, ScopeMode.Owning)
+
+    /// <summary>An owning memo whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>Each run's nodes and cleanups are disposed before the next run and with the memo, including after an equal result.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createOwningMemoWithComparer (comparer: IEqualityComparer<'T>) (compute: 'T voption -> 'T) =
+        requireComparer comparer
+        Memo.CreateWithComparer (Graph.Current, compute, ScopeMode.Owning, comparer)
 
     /// <summary>
     /// A side effect, run once now and again whenever something it read changes. Disposed with the enclosing scope.
@@ -281,6 +305,13 @@ module Api =
     let createEffectOn (compute: unit -> 'T) (act: 'T -> unit) =
         EffectOn<'T>.Create(Graph.Current, compute, act)
         |> ignore
+
+    /// <summary>A split effect whose action cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>Equal values keep the previous action's resources. Compute remains pure; act remains untracked and owning.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createEffectOnWithComparer (comparer: IEqualityComparer<'T>) (compute: unit -> 'T) (act: 'T -> unit) =
+        requireComparer comparer
+        EffectOn<'T>.CreateWithComparer(Graph.Current, compute, act, comparer) |> ignore
 
     /// <summary>
     /// A derived value computed asynchronously. Reads of it raise <c>NotReadyException</c>, which a boundary catches, until
@@ -337,6 +368,13 @@ module Api =
     let createSuspense (fallback: 'T voption -> 'T) (body: unit -> 'T) =
         Boundary<'T>.Create(Graph.Current, body, ValueSome fallback, ValueNone)
 
+    /// <summary>A suspense boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>Waiting and failure state changes still propagate; the fallback and ownership rules of <c>createSuspense</c> apply.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createSuspenseWithComparer (comparer: IEqualityComparer<'T>) (fallback: 'T voption -> 'T) (body: unit -> 'T) =
+        requireComparer comparer
+        Boundary<'T>.CreateWithComparer(Graph.Current, body, ValueSome fallback, ValueNone, comparer)
+
     /// <summary>Substitutes <c>recover ex last</c> when <c>body</c> throws.</summary>
     /// <remarks>
     /// <c>last</c> is the boundary's last value, <c>ValueNone</c> before its first. Owns the nodes <c>body</c> creates
@@ -346,6 +384,13 @@ module Api =
     let createErrorBoundary (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
         Boundary<'T>.Create(Graph.Current, body, ValueNone, ValueSome recover)
 
+    /// <summary>An error boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>A throwing comparer fails the boundary without invoking <c>recover</c>.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createErrorBoundaryWithComparer (comparer: IEqualityComparer<'T>) (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
+        requireComparer comparer
+        Boundary<'T>.CreateWithComparer(Graph.Current, body, ValueNone, ValueSome recover, comparer)
+
     /// <summary>Substitutes <c>fallback last</c> while <c>body</c> is suspended and <c>recover ex last</c> when it throws.</summary>
     /// <remarks>
     /// <c>last</c> is the boundary's last value, <c>ValueNone</c> before its first. Owns the nodes <c>body</c> creates
@@ -354,6 +399,14 @@ module Api =
     /// </remarks>
     let createBoundary (fallback: 'T voption -> 'T) (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
         Boundary<'T>.Create(Graph.Current, body, ValueSome fallback, ValueSome recover)
+
+    /// <summary>A pending/error boundary whose value cutoff uses <c>comparer</c> instead of the graph's equality policy.</summary>
+    /// <remarks>Waiting, caught errors and failure state changes still propagate.</remarks>
+    /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
+    let createBoundaryWithComparer
+        (comparer: IEqualityComparer<'T>) (fallback: 'T voption -> 'T) (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
+        requireComparer comparer
+        Boundary<'T>.CreateWithComparer(Graph.Current, body, ValueSome fallback, ValueSome recover, comparer)
 
     /// <summary>
     /// Runs <c>body</c> without recording anything it reads.
@@ -595,7 +648,7 @@ module Api =
 module Signal =
     /// <summary>
     /// Writes <c>f signal.Peek</c> to <c>signal</c>. Readers wake only when the result differs from the current value
-    /// under the graph's equality policy.
+    /// under the signal's cutoff comparer.
     /// </summary>
     /// <remarks>The read is untracked.</remarks>
     /// <exception cref="T:System.InvalidOperationException">Called off the graph's thread under a guarded graph.</exception>
