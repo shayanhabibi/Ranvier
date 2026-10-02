@@ -80,9 +80,46 @@ let input =
 The cast must match the tag you constructed. The DOM globals are Fable `Global` bindings and
 are used when functions run; importing the library does not mount UI or eagerly read `document`.
 
+## Optional DOM batching
+
+`Mount.mount` keeps synchronous updates. To coalesce DOM writes within a turn:
+
+```fsharp
+let options = { DomOptions.Default with Scheduling = Microtask; BatchEvents = true }
+let mounted = Mount.mountWith options graph host factory
+mounted.Flush()
+let setterErrors = mounted.Errors
+```
+
+Each mount owns a queue with one slot per binding. Repeated updates replace that slot's pending
+write. Reactive computation still follows Ranvier's core scheduler; DOM updates wait for a
+microtask. `BatchEvents = true` additionally batches state writes within each registered event
+handler. Both options are disabled by default and can be selected independently.
+
+Each binding's first effect action writes immediately. If mounting inside a core batch, initial
+values appear when that batch settles, without waiting for a DOM microtask. Subsequent Pending
+or Failed readings cancel older queued writes and retain the last successful DOM value.
+Disposing a mount or its graph cancels its queued work.
+
+`Flush()` first settles graph work, then commits the current queue snapshot. Writes triggered
+by a setter form a later wave; recursive calls to `Flush()` do not drain that wave. A manual flush
+makes the previously scheduled callback inert. Queues remain separate even for mounts sharing
+a graph. This is microtask scheduling, with no guarantee of one commit per animation frame.
+
+Deferred setter exceptions are isolated so sibling bindings can still commit. `Errors` returns
+the exceptions from the last nonempty DOM flush; an empty flush leaves them intact. Initial
+setter errors retain core effect error semantics. Deferred errors are not recorded in the core
+effect's error state. Setters remain untracked and run under their effect action's owner, so
+resources they register are cleaned up on the next action or disposal.
+
+The scheduled path adds a memo per binding and queue overhead. Tests show 100 source writes
+coalescing into one text mutation; they do not establish a net throughput improvement. The
+browser checks cover focus/caret and a synthetic composition-input echo, not complete native
+IME behavior. Input setters should still compare the actual DOM value before assigning it.
+
 ## Scope
 
-This borrows Solid 2's split read/write idea and uses Ranvier's own synchronous effects and batching.
+This borrows Solid 2's split read/write idea and uses Ranvier's effects with optional DOM batching.
 It does not implement Solid scheduling, JSX, templates, SSR, hydration, SVG, keyed list diffing,
 dynamic subtree replacement or event delegation. The first playground covers synchronous state.
 This is a scaffold for evaluating the API, not a production renderer.

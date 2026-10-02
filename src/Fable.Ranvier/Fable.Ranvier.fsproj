@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="DomScheduling.fs"/>
         <Compile Include="Dom.fs"/>
         <Compile Include="Mount.fs"/>
     </ItemGroup>

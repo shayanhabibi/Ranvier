@@ -79,6 +79,31 @@ test("unmount removes listeners and repeated remount preserves state", async ({ 
   await expect(page.getByTestId("doubled")).toHaveText("4");
 });
 
+test("microtask mode batches a burst and preserves state across scheduling changes", async ({ page }) => {
+  await page.getByTestId("scheduling-toggle").click();
+  await expect(page.getByTestId("scheduling-status")).toContainText("Microtask");
+  expect(await page.evaluate(async () => {
+    const output = document.querySelector('[data-testid="count"]');
+    const text = output.firstChild;
+    const records = [];
+    const observer = new MutationObserver(items => records.push(...items));
+    observer.observe(text, { characterData: true });
+    document.querySelector('[data-testid="burst"]').click();
+    const immediate = text.data;
+    await Promise.resolve(); await Promise.resolve();
+    records.push(...observer.takeRecords()); observer.disconnect();
+    return [immediate, text.data, records.length];
+  })).toEqual(["0", "100", 1]);
+  await expect(page.getByTestId("doubled")).toHaveText("200");
+  await page.getByTestId("scheduling-toggle").click();
+  await expect(page.getByTestId("count")).toHaveText("100");
+  await expect(page.getByTestId("scheduling-status")).toContainText("Synchronous");
+  expect(await page.evaluate(() => {
+    document.querySelector('[data-testid="increment"]').click();
+    return document.querySelector('[data-testid="count"]').textContent;
+  })).toBe("101");
+});
+
 test("Fable watch replaces the app through Vite cleanup without reloading the page", async ({ page }) => {
   test.setTimeout(45_000);
   const source = new URL("../App.fs", import.meta.url);

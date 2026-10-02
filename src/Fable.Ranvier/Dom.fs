@@ -19,7 +19,7 @@ module Dom =
 
     let reactiveText (read: unit -> string) : Node =
         let node = document.createTextNode ""
-        createEffectOn read (fun value -> node.data <- value)
+        DomContext.bind read (fun value -> node.data <- value)
         node
 
     let attribute (name: string) (value: string) : Modifier =
@@ -27,7 +27,7 @@ module Dom =
 
     let bindAttribute (name: string) (read: unit -> string option) : Modifier =
         fun element ->
-            createEffectOn read (function
+            DomContext.bind read (function
                 | Some value -> element.setAttribute(name, value)
                 | None -> element.removeAttribute name)
 
@@ -35,15 +35,23 @@ module Dom =
         fun element -> write element value
 
     let bindProperty (read: unit -> 'T) (write: HTMLElement -> 'T -> unit) : Modifier =
-        fun element -> createEffectOn read (write element)
+        fun element -> DomContext.bind read (write element)
 
     let on (name: string) (handler: Event -> unit) : Modifier =
         fun element ->
             let graph = Graph.Current
             let owner = getOwner ()
+            let context = DomContext.current
             let target = element :> EventTarget
             let listener: EventListener =
-                fun event -> graph.Run(fun () -> runWithOwner owner (fun () -> untrack (fun () -> handler event)))
+                fun event ->
+                    graph.Run(fun () ->
+                        runWithOwner owner (fun () ->
+                            DomContext.run context (fun () ->
+                                let invoke () = untrack (fun () -> handler event)
+                                match context with
+                                | Some current when current.Options.BatchEvents -> batch invoke
+                                | _ -> invoke ())))
             let callback: EventListenerOrEventListenerObject = U2.Case1 listener
             target.addEventListener(name, callback)
             onCleanup (fun () -> target.removeEventListener(name, callback))

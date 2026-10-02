@@ -2,7 +2,9 @@
 
 A small browser playground for the [DOM PoC](../../src/Fable.Ranvier/README.md). The UI is created
 in F# using Xantham DOM types. Ranvier updates text, attributes and DOM properties without
-rebuilding the tree. Try the counter, editable name field and unmount/remount button.
+rebuilding the tree. Try the counter, editable name field and unmount/remount button. Select
+**Use microtasks**, then **Burst +100** to exercise coalescing. **Flush DOM** commits queued work
+explicitly. Changing scheduling mode remounts the demo while preserving its state.
 
 ## Run
 
@@ -43,9 +45,12 @@ rtk proxy npm test
 
 `build` compiles F# before Vite bundles it into `dist/`. `test:dom` compiles the F# behavioural
 checks and runs them with Node's test runner against jsdom. The test module is imported before
-DOM globals are installed to check import safety. `test:browser` compiles the app and runs real
+DOM globals are installed to check import safety. `test:browser` compiles the fixtures and app and runs real
 Chromium interactions against a separate Vite server on port 5178. It checks output updates,
 input node identity/focus/caret, the disabled property, and listener cleanup across remounts.
+Scheduling checks cover mutation counts, disposal before commit, setter failures and a synthetic
+composition-input echo. Node checks also exercise Pending/Failed invalidation, shared graphs,
+setter ownership, reentrant writes and mounting inside a graph batch.
 It also edits and restores `App.fs` to verify the Fable watch/Vite cleanup path without reloading
 the page. Run the browser suite in a checkout where `App.fs` is not being edited concurrently.
 The suites can be run separately with `npm run test:dom` and `npm run test:browser`.
@@ -60,6 +65,8 @@ for the pinned jsdom release; no external server or web API is required.
 - `style.css`: responsive layout and styling.
 - `tests/DomChecks.fs`: compiled F# checks of library behaviour.
 - `tests/dom.test.mjs`: Node/jsdom setup and test invocation.
+- `tests/ScheduledChecks.fs`, `tests/scheduled.test.mjs`: compiled scheduling fixtures and Node checks.
+- `tests/scheduled.html`, `tests/scheduled.spec.mjs`: browser scheduling checks.
 - `tests/playground.spec.mjs`: real browser interaction checks.
 
 `generated/`, `generated-tests/` and `dist/` are generated and ignored. The Node project references
@@ -67,7 +74,8 @@ the local `src/Fable.Ranvier` project, so library edits are part of the Fable wa
 
 ## PoC limits
 
-This covers HTML with a static child structure and synchronous state. There is no JSX, SSR,
+This covers HTML with a static child structure, synchronous state and optional microtask DOM writes.
+The queue adds overhead; reduced mutation counts are not a measured overall speedup. There is no JSX, SSR,
 hydration, SVG, keyed collection reconciliation, dynamic subtree replacement or event delegation.
 The runtime is Ranvier, not Solid; Solid 2's split effects inspired the binding approach.
 Pending/error values retain the last successful binding output rather than automatically creating

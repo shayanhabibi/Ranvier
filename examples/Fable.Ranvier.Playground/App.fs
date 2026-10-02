@@ -22,12 +22,13 @@ let start () : unit -> unit =
         let host =
             Dom.document.getElementById("app")
             |> Option.defaultWith (fun () -> invalidOp "The playground needs an #app host.")
-        let count, name, mounted = graph.Run(fun () -> createSignal 0, createSignal "world", createSignal true)
+        let count, name, mounted, queued = graph.Run(fun () -> createSignal 0, createSignal "world", createSignal true, createSignal false)
         let demoHost = Dom.createElement "div"
-        let mutable demo: IDisposable option = None
+        let mutable demo: DomMount option = None
 
         let mountDemo () =
-            demo <- Some (Mount.mount graph demoHost (fun () ->
+            let options = { Scheduling = (if queued.Value then Microtask else Synchronous); BatchEvents = queued.Value }
+            demo <- Some (Mount.mountWith options graph demoHost (fun () ->
                 let doubled = createMemo (fun _ -> count.Value * 2)
                 node "section"
                     [css "demo-grid"; testId "demo-root"
@@ -47,7 +48,10 @@ let start () : unit -> unit =
                                 [Dom.text "Increment +1"]
                              node "button" [css "secondary"; testId "reset"; Dom.attribute "type" "button"
                                             Dom.bindProperty (fun () -> count.Value = 0) setDisabled
-                                            Dom.on "click" (fun _ -> count.Value <- 0)] [Dom.text "Reset"]]
+                                            Dom.on "click" (fun _ -> count.Value <- 0)] [Dom.text "Reset"]
+                             node "button" [css "secondary"; testId "burst"; Dom.attribute "type" "button"
+                                            Dom.on "click" (fun _ ->
+                                                for _ in 1 .. 100 do count.Value <- count.Value + 1)] [Dom.text "Burst +100"]]
                          node "p" [css "note"] [Dom.text "The output changes. The DOM nodes stay."]]
                      node "article" [css "panel name-panel"]
                         [node "div" [css "panel-heading"]
@@ -73,6 +77,15 @@ let start () : unit -> unit =
                 mountDemo ()
                 mounted.Value <- true
 
+        let toggleScheduling () =
+            queued.Value <- not queued.Value
+            match demo with
+            | Some current ->
+                current.Dispose()
+                demo <- None
+                mountDemo ()
+            | None -> ()
+
         let shell = Mount.mount graph host (fun () ->
             node "div" [css "playground"]
                 [node "header" [css "page-heading"]
@@ -85,6 +98,13 @@ let start () : unit -> unit =
                      node "h1" [] [Dom.text "Create once."; node "br" [] []; node "span" [] [Dom.text "Update what changes."]]
                      node "p" [css "lead"] [Dom.text "A small playground for reactive text, properties and events. No component tree rebuild on each edit."]]
                  node "div" [css "mount-bar"]
+                    [node "span" [testId "scheduling-status"]
+                        [Dom.reactiveText (fun () -> if queued.Value then "Microtask DOM commits · batched events" else "Synchronous DOM commits")]
+                     node "button" [css "secondary"; testId "scheduling-toggle"; Dom.attribute "type" "button"; Dom.on "click" (fun _ -> toggleScheduling ())]
+                        [Dom.reactiveText (fun () -> if queued.Value then "Use synchronous" else "Use microtasks")]
+                     node "button" [css "secondary"; testId "flush-dom"; Dom.attribute "type" "button"
+                                    Dom.on "click" (fun _ -> demo |> Option.iter (fun current -> current.Flush()))] [Dom.text "Flush DOM"]]
+                 node "div" [css "mount-bar"]
                     [node "div" [css "mount-state"]
                         [node "span" [css "status-dot"; Dom.bindAttribute "data-active" (fun () -> if mounted.Value then Some "true" else None)] []
                          node "span" [testId "mount-status"] [Dom.reactiveText (fun () -> if mounted.Value then "Demo mounted" else "Demo unmounted")]]
@@ -94,7 +114,7 @@ let start () : unit -> unit =
                  node "section" [css "empty-state"; Dom.bindAttribute "hidden" (fun () -> if mounted.Value then Some "" else None)]
                     [node "h2" [] [Dom.text "The mount is disposed."]
                      node "p" [] [Dom.text "Its nodes, bindings and event listeners have been removed. Remount to continue with the same state."]]
-                 node "footer" [] [Dom.text "Built with Xantham DOM bindings and Ranvier scopes. Experimental API; synchronous state only."]])
+                 node "footer" [] [Dom.text "Built with Xantham DOM bindings and Ranvier scopes. Experimental API; DOM scheduling is opt-in."]])
         mountDemo ()
         let mutable stopped = false
         fun () ->
