@@ -11,7 +11,8 @@
     "build": "npm run compile && vite build",
     "test:dom": "npm run compile:tests && node --test tests/dom.test.mjs tests/scheduled.test.mjs",
     "test:browser": "npm run compile:tests && npm run compile && playwright test",
-    "test": "npm run test:dom && npm run test:browser"
+    "test": "npm run test:dom && npm run test:browser",
+    "bench:dom": "npm run compile:tests && node benchmarks/dom-scheduling.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

@@ -58,6 +58,11 @@ The suites can be run separately with `npm run test:dom` and `npm run test:brows
 The private npm project pins dependencies in `package-lock.json`. Node 26 is the selected minimum
 for the pinned jsdom release; no external server or web API is required.
 
+`rtk proxy npm run bench:dom` measures synchronous versus microtask DOM updates, with and without
+core batching, in headless Chromium. It validates output and work counts, saves raw samples and
+a report under `docs/.ai/benchmarks/dom-scheduling/`, and closes its own Vite server on port 5179.
+See [the benchmark method and results](../../docs/.ai/benchmarks/dom-scheduling/README.md).
+
 ## Layout
 
 - `App.fs`: application state, static element creation and explicit reactive bindings.
