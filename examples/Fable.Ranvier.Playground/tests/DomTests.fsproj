@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../../tests/Ranvier.Tests/ComparerCases.fs" Link="ComparerCases.fs" />
+    <Compile Include="../../../tests/Ranvier.Tests/ValueReaderCases.fs" Link="ValueReaderCases.fs" />
     <Compile Include="DomChecks.fs" />
     <Compile Include="ScheduledChecks.fs" />
     <ProjectReference Include="../../../src/Fable.Ranvier/Fable.Ranvier.fsproj" />

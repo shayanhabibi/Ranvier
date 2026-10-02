@@ -250,7 +250,7 @@ let private checkEventBatching useDefaults =
 let eventBatchingDefaults () = checkEventBatching true
 let eventBatchingOptOut () = checkEventBatching false
 
-let cases = Array.append Ranvier.Tests.ComparerCases.cases [|
+let cases = Array.concat [| Ranvier.Tests.ComparerCases.cases; Ranvier.Tests.ValueReaderCases.cases; [|
     "static nested elements preserve child nodes", staticConstruction
     "reactive text updates without replacing its node", reactiveTextKeepsIdentity
     "optional reactive attribute removes and restores", optionalAttributeRemoved
@@ -267,4 +267,4 @@ let cases = Array.append Ranvier.Tests.ComparerCases.cases [|
     "fragment roots are rejected without leaking bindings or listeners", fragmentRootIsRejectedWithoutLeaks
     "default mount batches event writes while keeping DOM updates synchronous", eventBatchingDefaults
     "event batching can be explicitly disabled", eventBatchingOptOut
-|]
+|] |]
