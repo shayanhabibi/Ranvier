@@ -18,6 +18,7 @@ let private brandTokensCss =
     File
         .ReadAllText(Path.Combine (__SOURCE_DIRECTORY__, "..", "brand", "tokens", "ranvier-brand-tokens.css"))
         .Replace("[data-ranvier-theme=", ":root[data-theme=")
+
 /// Colour tokens shared by both schemes. Each resolves to a --rv-* brand token for the active scheme.
 let private brandColours (t: Tokens) =
     { t with
@@ -90,6 +91,7 @@ let private darkByDefault =
             prop.dangerouslySetInnerHTML
                 "(()=>{try{if(!localStorage.getItem(\"nacara-theme\")){var d=document.documentElement;d.dataset.theme=\"dark\";d.dataset.themeSetting=\"dark\";document.addEventListener(\"DOMContentLoaded\",()=>{for(const s of document.querySelectorAll(\"[data-nacara-theme]\"))s.value=d.dataset.themeSetting})}}catch{}})();"
         ]
+
 /// Geist and Geist Mono from Google Fonts. Geist sets headings, navigation and the wordmark;
 /// body copy stays on the system stack.
 let private fontLinks =
@@ -107,10 +109,11 @@ let private fontLinks =
                 prop.href "https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"
             ]
     ]
+
 let theme (fn: ThemeOptions -> ThemeOptions) =
     Theme.defaults
     |> Theme.favIcon "favicon.svg"
-        |> Theme.lightTokens (fun t ->
+    |> Theme.lightTokens (fun t ->
         { brandColours (sizing t) with
             Shadow = "0 1px 2px rgb(23 35 45 / 6%), 0 2px 8px rgb(23 35 45 / 5%)"
             ShadowFloating = "0 12px 32px -8px rgb(23 35 45 / 18%), 0 2px 6px rgb(23 35 45 / 6%)"

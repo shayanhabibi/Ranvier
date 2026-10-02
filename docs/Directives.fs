@@ -7,17 +7,16 @@ open Nacara.Plugins
 let private centerDirective =
     Directive.create "center" Decode.node
     |> Directive.render (fun _ _ contents ->
-        Html.div [
-            prop.style [ style.display.flex; style.justifyContent.center ]
-            prop.children contents
-        ])
+        Html.div
+            [
+                prop.style [ style.display.flex; style.justifyContent.center ]
+                prop.children contents
+            ])
 
 // TODO - layer doesnt carry padding, gap, et al
 let private cardsDirective =
     Directive.create "cards" Decode.node
-    |> Directive.render (fun _ _ contents ->
-        Html.div [ prop.className "rv-cards"; prop.children contents ]
-        )
+    |> Directive.render (fun _ _ contents -> Html.div [ prop.className "rv-cards"; prop.children contents ])
 
 let private cardDirective =
     Directive.create

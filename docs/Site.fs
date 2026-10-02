@@ -23,123 +23,121 @@ let apiOptions =
             ]
     }
 
-let theme = Theme.theme (
-    Theme.navbar
-        [
-            NavbarSection ("Guide", "guide", "/guide/")
-            NavbarSection ("Concepts", "concepts", "/concepts/")
-            NavbarSection ("Benchmarks", "benchmarks", "/benchmarks/")
-            NavbarSection ("Fable", "fable", "/fable/")
-            NavbarDivider
-            NavbarSection ("Reference", "reference", "/reference/")
-        ]
-    >> Theme.menu
-        "guide"
-        [
-            Menu.section
-                "Introduction"
-                [
-                    Menu.page "guide/index.md"
-                    Menu.page "guide/installation.md"
-                    Menu.page "guide/getting-started.md"
-                    Menu.page "guide/csharp.md"
-                    Menu.page "guide/blazor-server.md"
-                    Menu.page "guide/elmish.md"
-                ]
-            Menu.section
-                "Core concepts"
-                [
-                    Menu.page "guide/graph.fsx"
-                    Menu.page "guide/signals.fsx"
-                    Menu.page "guide/memos.md"
-                    Menu.page "guide/effects.md"
-                    Menu.page "guide/roots.md"
-                    Menu.page "guide/cleanup.md"
-                    Menu.page "guide/untrack.md"
-                    Menu.page "guide/batch.md"
-                    Menu.page "guide/editable.md"
-                    Menu.page "guide/drafts.md"
-                    Menu.page "guide/equality.md"
-                ]
-            Menu.section
-                "Async and pending"
-                [
-                    Menu.page "guide/async-and-pending.md"
-                    Menu.page "guide/pending.md"
-                    Menu.page "guide/async-sources.md"
-                    Menu.page "guide/async-memos.md"
-                    Menu.page "guide/boundaries.md"
-                    Menu.page "guide/threading.md"
-                    Menu.page "guide/testing.md"
-                ]
-            Menu.section
-                "Collections"
-                [
-                    Menu.page "guide/collections.fsx"
-                    Menu.page "guide/projections.fsx"
-                    Menu.page "guide/lookups.fsx"
-                    Menu.page "guide/selectors.fsx"
-                    Menu.page "guide/collection-updates.fsx"
-                    Menu.page "guide/collection-views.fsx"
-                    Menu.page "guide/aggregates.fsx"
-                ]
-            Menu.section
-                "Recipes"
-                [
-                    Menu.page "guide/forms.md"
-                ]
-            Menu.section
-                "Reference"
-                [
-                    Menu.page "guide/tracing.md"
-                    Menu.page "guide/signal-maps.md"
-                    Menu.page "guide/troubleshooting.md"
-                ]
-        ]
-    >> Theme.menu
-        "concepts"
-        [
-            Menu.section
-                "Concepts"
-                [
-                    Menu.page "concepts/index.md"
-                    Menu.page "concepts/suspension.md"
-                    Menu.page "concepts/async-graph.md"
-                    Menu.page "concepts/contracts.md"
-                    Menu.page "concepts/ecosystem.md"
-                    Menu.page "concepts/roadmap.md"
-                ]
-        ]
-    >> Theme.menu
-        "benchmarks"
-        [
-            Menu.section
-                "Benchmarks"
-                [
-                    Menu.page "benchmarks/index.md"
-                    Menu.page "benchmarks/signals.md"
-                    Menu.page "benchmarks/memos.md"
-                    Menu.page "benchmarks/effects.md"
-                    Menu.page "benchmarks/lifetimes.md"
-                    Menu.page "benchmarks/projections.md"
-                    Menu.page "benchmarks/suspension.md"
-                    Menu.page "benchmarks/counters.md"
-                ]
-        ]
-    >> Theme.menu "fable" [ Menu.section "Fable" [ Menu.page "fable/index.md" ] ]
-    >> Theme.navbarEnd
-        [
-            NavbarIcon ("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
-        ]
-    >> Theme.editUrl "https://github.com/shayanhabibi/Ranvier/edit/main/docs"
-    >> Theme.footer (
-        Html.p
+let theme =
+    Theme.theme (
+        Theme.navbar
             [
-                Html.text "Ranvier · Preview · "
-                Html.a [ prop.href "https://github.com/shayanhabibi/Ranvier"; prop.text "GitHub" ]
-                Html.text " · Built with Nacara"
+                NavbarSection ("Guide", "guide", "/guide/")
+                NavbarSection ("Concepts", "concepts", "/concepts/")
+                NavbarSection ("Benchmarks", "benchmarks", "/benchmarks/")
+                NavbarSection ("Fable", "fable", "/fable/")
+                NavbarDivider
+                NavbarSection ("Reference", "reference", "/reference/")
             ]
-    ))
+        >> Theme.menu
+            "guide"
+            [
+                Menu.section
+                    "Introduction"
+                    [
+                        Menu.page "guide/index.md"
+                        Menu.page "guide/installation.md"
+                        Menu.page "guide/getting-started.md"
+                        Menu.page "guide/csharp.md"
+                        Menu.page "guide/blazor-server.md"
+                        Menu.page "guide/elmish.md"
+                    ]
+                Menu.section
+                    "Core concepts"
+                    [
+                        Menu.page "guide/graph.fsx"
+                        Menu.page "guide/signals.fsx"
+                        Menu.page "guide/memos.md"
+                        Menu.page "guide/effects.md"
+                        Menu.page "guide/roots.md"
+                        Menu.page "guide/cleanup.md"
+                        Menu.page "guide/untrack.md"
+                        Menu.page "guide/batch.md"
+                        Menu.page "guide/editable.md"
+                        Menu.page "guide/drafts.md"
+                        Menu.page "guide/equality.md"
+                    ]
+                Menu.section
+                    "Async and pending"
+                    [
+                        Menu.page "guide/async-and-pending.md"
+                        Menu.page "guide/pending.md"
+                        Menu.page "guide/async-sources.md"
+                        Menu.page "guide/async-memos.md"
+                        Menu.page "guide/boundaries.md"
+                        Menu.page "guide/threading.md"
+                        Menu.page "guide/testing.md"
+                    ]
+                Menu.section
+                    "Collections"
+                    [
+                        Menu.page "guide/collections.fsx"
+                        Menu.page "guide/projections.fsx"
+                        Menu.page "guide/lookups.fsx"
+                        Menu.page "guide/selectors.fsx"
+                        Menu.page "guide/collection-updates.fsx"
+                        Menu.page "guide/collection-views.fsx"
+                        Menu.page "guide/aggregates.fsx"
+                    ]
+                Menu.section "Recipes" [ Menu.page "guide/forms.md" ]
+                Menu.section
+                    "Reference"
+                    [
+                        Menu.page "guide/tracing.md"
+                        Menu.page "guide/signal-maps.md"
+                        Menu.page "guide/troubleshooting.md"
+                    ]
+            ]
+        >> Theme.menu
+            "concepts"
+            [
+                Menu.section
+                    "Concepts"
+                    [
+                        Menu.page "concepts/index.md"
+                        Menu.page "concepts/suspension.md"
+                        Menu.page "concepts/async-graph.md"
+                        Menu.page "concepts/contracts.md"
+                        Menu.page "concepts/ecosystem.md"
+                        Menu.page "concepts/roadmap.md"
+                    ]
+            ]
+        >> Theme.menu
+            "benchmarks"
+            [
+                Menu.section
+                    "Benchmarks"
+                    [
+                        Menu.page "benchmarks/index.md"
+                        Menu.page "benchmarks/signals.md"
+                        Menu.page "benchmarks/memos.md"
+                        Menu.page "benchmarks/effects.md"
+                        Menu.page "benchmarks/lifetimes.md"
+                        Menu.page "benchmarks/projections.md"
+                        Menu.page "benchmarks/suspension.md"
+                        Menu.page "benchmarks/counters.md"
+                    ]
+            ]
+        >> Theme.menu "fable" [ Menu.section "Fable" [ Menu.page "fable/index.md" ] ]
+        >> Theme.navbarEnd
+            [
+                NavbarIcon ("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)
+            ]
+        >> Theme.editUrl "https://github.com/shayanhabibi/Ranvier/edit/main/docs"
+        >> Theme.footer (
+            Html.p
+                [
+                    Html.text "Ranvier · Preview · "
+                    Html.a [ prop.href "https://github.com/shayanhabibi/Ranvier"; prop.text "GitHub" ]
+                    Html.text " · Built with Nacara"
+                ]
+        )
+    )
 
 /// Live Partas.Solid components on the pages (the landing page's animated state mark and the signal maps), compiled
 /// against the Partas.Solid 3 build committed under feed/. The generated project inherits
