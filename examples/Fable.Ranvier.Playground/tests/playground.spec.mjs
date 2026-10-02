@@ -79,6 +79,19 @@ test("unmount removes listeners and repeated remount preserves state", async ({ 
   await expect(page.getByTestId("doubled")).toHaveText("4");
 });
 
+test("default synchronous mode batches a burst before click returns", async ({ page }) => {
+  await expect(page.getByTestId("scheduling-status")).toHaveText("Synchronous DOM commits · batched events");
+  expect(await page.evaluate(() => {
+    const text = document.querySelector('[data-testid="count"]').firstChild;
+    const observer = new MutationObserver(() => {});
+    observer.observe(text, { characterData: true });
+    document.querySelector('[data-testid="burst"]').click();
+    const result = [text.data, observer.takeRecords().length];
+    observer.disconnect();
+    return result;
+  })).toEqual(["100", 1]);
+});
+
 test("microtask mode batches a burst and preserves state across scheduling changes", async ({ page }) => {
   await page.getByTestId("scheduling-toggle").click();
   await expect(page.getByTestId("scheduling-status")).toContainText("Microtask");

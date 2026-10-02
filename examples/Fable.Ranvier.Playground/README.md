@@ -5,6 +5,8 @@ in F# using Xantham DOM types. Ranvier updates text, attributes and DOM properti
 rebuilding the tree. Try the counter, editable name field and unmount/remount button. Select
 **Use microtasks**, then **Burst +100** to exercise coalescing. **Flush DOM** commits queued work
 explicitly. Changing scheduling mode remounts the demo while preserving its state.
+Events batch state writes in both modes. The default synchronous mode commits the final values
+before the handler returns; the microtask mode defers subsequent DOM commits.
 
 ## Run
 

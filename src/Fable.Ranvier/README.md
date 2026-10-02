@@ -82,10 +82,11 @@ are used when functions run; importing the library does not mount UI or eagerly 
 
 ## Optional DOM batching
 
-`Mount.mount` keeps synchronous updates. To coalesce DOM writes within a turn:
+`Mount.mount` batches event-handler state writes and updates the DOM synchronously when the
+handler's batch finishes. To also coalesce DOM writes within a turn:
 
 ```fsharp
-let options = { DomOptions.Default with Scheduling = Microtask; BatchEvents = true }
+let options = { DomOptions.Default with Scheduling = Microtask }
 let mounted = Mount.mountWith options graph host factory
 mounted.Flush()
 let setterErrors = mounted.Errors
@@ -93,8 +94,12 @@ let setterErrors = mounted.Errors
 
 Each mount owns a queue with one slot per binding. Repeated updates replace that slot's pending
 write. Reactive computation still follows Ranvier's core scheduler; DOM updates wait for a
-microtask. `BatchEvents = true` additionally batches state writes within each registered event
-handler. Both options are disabled by default and can be selected independently.
+microtask. Event batching is enabled by default; microtask DOM scheduling is opt-in. The options
+can be selected independently. To observe intermediate effects between an event handler's state
+writes, opt out with `Mount.mountWith { DomOptions.Default with BatchEvents = false } graph host factory`.
+Default batching wraps the synchronous execution of each registered handler; it does not span
+separate events or later asynchronous continuations. Signal writes made outside handlers retain
+the core's existing behavior.
 
 Each binding's first effect action writes immediately. If mounting inside a core batch, initial
 values appear when that batch settles, without waiting for a DOM microtask. Subsequent Pending

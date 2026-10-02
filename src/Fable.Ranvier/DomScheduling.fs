@@ -12,7 +12,7 @@ type DomScheduling =
 type DomOptions =
     { Scheduling: DomScheduling
       BatchEvents: bool }
-    static member Default = { Scheduling = Synchronous; BatchEvents = false }
+    static member Default = { Scheduling = Synchronous; BatchEvents = true }
 
 type internal DomQueue(graph: Graph) as this =
     let pending = Dictionary<int, unit -> unit>()

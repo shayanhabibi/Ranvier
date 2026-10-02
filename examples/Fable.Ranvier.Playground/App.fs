@@ -27,7 +27,7 @@ let start () : unit -> unit =
         let mutable demo: DomMount option = None
 
         let mountDemo () =
-            let options = { Scheduling = (if queued.Value then Microtask else Synchronous); BatchEvents = queued.Value }
+            let options = { DomOptions.Default with Scheduling = (if queued.Value then Microtask else Synchronous) }
             demo <- Some (Mount.mountWith options graph demoHost (fun () ->
                 let doubled = createMemo (fun _ -> count.Value * 2)
                 node "section"
@@ -99,7 +99,7 @@ let start () : unit -> unit =
                      node "p" [css "lead"] [Dom.text "A small playground for reactive text, properties and events. No component tree rebuild on each edit."]]
                  node "div" [css "mount-bar"]
                     [node "span" [testId "scheduling-status"]
-                        [Dom.reactiveText (fun () -> if queued.Value then "Microtask DOM commits · batched events" else "Synchronous DOM commits")]
+                        [Dom.reactiveText (fun () -> if queued.Value then "Microtask DOM commits · batched events" else "Synchronous DOM commits · batched events")]
                      node "button" [css "secondary"; testId "scheduling-toggle"; Dom.attribute "type" "button"; Dom.on "click" (fun _ -> toggleScheduling ())]
                         [Dom.reactiveText (fun () -> if queued.Value then "Use synchronous" else "Use microtasks")]
                      node "button" [css "secondary"; testId "flush-dom"; Dom.attribute "type" "button"

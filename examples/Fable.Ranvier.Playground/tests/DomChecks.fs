@@ -226,6 +226,30 @@ let fragmentRootIsRejectedWithoutLeaks () =
     button.click()
     equal "rejected listener removed" 2 count.Peek
 
+let private checkEventBatching useDefaults =
+    use graph = new Graph()
+    let count = graph.Run(fun () -> createSignal 0)
+    let host = Dom.createElement "div"
+    let writes = ResizeArray<int>()
+    let mutable root = Unchecked.defaultof<HTMLElement>
+    let factory () =
+        root <- Dom.element "button"
+            [Dom.bindProperty (fun () -> count.Value) (fun _ value -> writes.Add value)
+             Dom.on "click" (fun _ -> count.Value <- 1; count.Value <- 2)]
+            [Dom.reactiveText (fun () -> string count.Value)]
+        root :> Node
+    use mounted =
+        if useDefaults then Mount.mount graph host factory
+        else Mount.mountWith { DomOptions.Default with BatchEvents = false } graph host factory :> IDisposable
+    equal "initial render is synchronous" "0" root.textContent
+    root.click()
+    equal "final render is synchronous" "2" root.textContent
+    equal "final signal" 2 count.Peek
+    equal "binding observes expected event writes" (if useDefaults then [0; 2] else [0; 1; 2]) (List.ofSeq writes)
+
+let eventBatchingDefaults () = checkEventBatching true
+let eventBatchingOptOut () = checkEventBatching false
+
 let cases = [|
     "static nested elements preserve child nodes", staticConstruction
     "reactive text updates without replacing its node", reactiveTextKeepsIdentity
@@ -241,4 +265,6 @@ let cases = [|
     "graph disposal also cleans mounted DOM", graphDisposalCleansMount
     "event callbacks restore their mount graph and owner", eventRestoresOwnerAndGraph
     "fragment roots are rejected without leaking bindings or listeners", fragmentRootIsRejectedWithoutLeaks
+    "default mount batches event writes while keeping DOM updates synchronous", eventBatchingDefaults
+    "event batching can be explicitly disabled", eventBatchingOptOut
 |]
