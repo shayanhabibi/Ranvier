@@ -204,7 +204,8 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
 [<AutoOpen>]
 module Api =
     let private requireComparer (comparer: IEqualityComparer<'T>) =
-        if isNull comparer then nullArg "comparer"
+        if isNull comparer then
+            nullArg "comparer"
 
     /// <summary>
     /// A settable source.
@@ -304,7 +305,9 @@ module Api =
     /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
     let createEffectOnWithComparer (comparer: IEqualityComparer<'T>) (compute: unit -> 'T) (act: 'T -> unit) =
         requireComparer comparer
-        EffectOn<'T>.CreateWithComparer(Graph.Current, compute, act, comparer) |> ignore
+
+        EffectOn<'T>.CreateWithComparer(Graph.Current, compute, act, comparer)
+        |> ignore
 
     /// <summary>
     /// A derived value computed asynchronously. Reads of it raise <c>NotReadyException</c>, which a boundary catches, until
@@ -397,7 +400,11 @@ module Api =
     /// <remarks>Waiting, caught errors and failure state changes still propagate.</remarks>
     /// <exception cref="T:System.ArgumentNullException"><c>comparer</c> is null.</exception>
     let createBoundaryWithComparer
-        (comparer: IEqualityComparer<'T>) (fallback: 'T voption -> 'T) (recover: exn -> 'T voption -> 'T) (body: unit -> 'T) =
+        (comparer: IEqualityComparer<'T>)
+        (fallback: 'T voption -> 'T)
+        (recover: exn -> 'T voption -> 'T)
+        (body: unit -> 'T)
+        =
         requireComparer comparer
         Boundary<'T>.CreateWithComparer(Graph.Current, body, ValueSome fallback, ValueSome recover, comparer)
 

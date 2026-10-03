@@ -3440,6 +3440,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     let id = graph.NextId ()
     let sources = SourceList ()
     do Tracer.Bind (sources, graph, id)
+
     let equal =
         match comparer with
         | Some supplied -> supplied
@@ -4402,9 +4403,15 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
 /// things a boundary can catch.
 /// </para>
 /// </remarks>
-type Boundary<'T> private
-    (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption,
-     ?comparer: IEqualityComparer<'T>) =
+type Boundary<'T>
+    private
+    (
+        graph: Graph,
+        body: unit -> 'T,
+        onPending: ('T voption -> 'T) voption,
+        onError: (exn -> 'T voption -> 'T) voption,
+        ?comparer: IEqualityComparer<'T>
+    ) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -4451,8 +4458,13 @@ type Boundary<'T> private
 
     /// <summary>An owned boundary whose value cutoff uses <c>comparer</c>.</summary>
     static member internal CreateWithComparer
-        (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption,
-         onError: (exn -> 'T voption -> 'T) voption, comparer: IEqualityComparer<'T>) =
+        (
+            graph: Graph,
+            body: unit -> 'T,
+            onPending: ('T voption -> 'T) voption,
+            onError: (exn -> 'T voption -> 'T) voption,
+            comparer: IEqualityComparer<'T>
+        ) =
         let boundary = Boundary<'T>(graph, body, onPending, onError, comparer = comparer)
         boundary.Attach ()
         boundary

@@ -25,9 +25,14 @@ node_modules/
 /fable/**/fable_modules/
 
 .superpowers/
+.serena/
+*.user
 
 # SageFs session cache
 .SageFs/
 
 # Fable test harness output
 /dist/
+
+# Releases
+artifacts/
