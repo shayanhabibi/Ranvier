@@ -6,8 +6,8 @@ AMD Ryzen 9 9900X 4.40GHz, 1 CPU, 24 logical and 12 physical cores
   [Host] : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4 DEBUG
   Short  : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
 
-Job=Short  IterationCount=3  LaunchCount=1  
-UnrollFactor=16  WarmupCount=3  Categories=TimedPolicy  
+Job=Short  IterationCount=3  LaunchCount=1
+UnrollFactor=16  WarmupCount=3  Categories=TimedPolicy
 
 ```
 | Method          | Inputs | Mean         | Error       | StdDev    | Op/s         | Ratio        | RatioSD | Gen0   | Allocated | Alloc Ratio |
