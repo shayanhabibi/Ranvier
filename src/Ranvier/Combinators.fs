@@ -45,35 +45,51 @@ type internal HeldOut<'K when 'K: equality>(graph: Graph) =
 /// </summary>
 type internal MapView<'K, 'V, 'U when 'K: equality>(graph: Graph, upstream: Projection<'K, 'V>, map: 'K -> 'U, factory: (unit -> 'K) -> (unit -> 'U)) as this
     =
-    inherit RowsOf<RowEntry<'K, 'V>, 'K, 'U>(
-        graph,
-        (if isNull (box map) then Unchecked.defaultof<_> else fun entry -> map entry.Key),
-        (if isNull (box factory) then Unchecked.defaultof<_> else fun read -> factory(fun () -> (read ()).Key)))
+    inherit
+        RowsOf<RowEntry<'K, 'V>, 'K, 'U>(
+            graph,
+            (if isNull (box map) then
+                 Unchecked.defaultof<_>
+             else
+                 fun entry -> map entry.Key),
+            (if isNull (box factory) then
+                 Unchecked.defaultof<_>
+             else
+                 fun read -> factory (fun () -> (read ()).Key))
+        )
 
     let heldOut = HeldOut<'K> graph
 
-    let reader = graph.RunOwned(this.Scope, upstream.NewKeyReader)
+    let reader = graph.RunOwned (this.Scope, upstream.NewKeyReader)
 
     do
-        this.ReadDelta <- fun () ->
-            heldOut.Begin ()
-            let delta = reader.Read ()
-            heldOut.Publish upstream
-            delta
-        this.VisitDelta <- fun key -> this.Visit(key, upstream.Entries.Find key)
+        this.ReadDelta <-
+            fun () ->
+                heldOut.Begin ()
+                let delta = reader.Read ()
+                heldOut.Publish upstream
+                delta
+
+        this.VisitDelta <- fun key -> this.Visit (key, upstream.Entries.Find key)
 
     /// <summary>The keys <c>upstream</c> held out of its <c>Keys</c> at the last pass. A tracked read.</summary>
     member _.HeldOut = heldOut.Keys
 
     override this.Enumerate() =
         heldOut.Begin ()
+
         for key in upstream.Keys do
             let item = upstream.Entries.Find key
             let entry = this.Entries.Find key
-            if not (isNull entry)
-               && not (obj.ReferenceEquals((entry :?> ItemRow<RowEntry<'K, 'V>, 'K, 'U>).Item.Peek, item)) then
+
+            if
+                not (isNull entry)
+                && not (obj.ReferenceEquals ((entry :?> ItemRow<RowEntry<'K, 'V>, 'K, 'U>).Item.Peek, item))
+            then
                 this.RetireChanged key
-            this.Visit(key, item)
+
+            this.Visit (key, item)
+
         heldOut.Publish upstream
 
 /// <summary>
@@ -1003,7 +1019,8 @@ module Projection =
             let k = key ()
             mapping k (fun () -> upstream.Get k)
 
-        let view = new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
+        let view =
+            new MapView<'K, 'V, 'U> (upstream.Graph, upstream, Unchecked.defaultof<_>, factory)
 
         if not (isNull (box upstream.PendingExtra)) then
             view.PendingExtra <- fun () -> view.HeldOut

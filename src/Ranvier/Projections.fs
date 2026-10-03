@@ -586,7 +586,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private _.Retire(entry: RowEntry<'K, 'V>) =
         entry.Live <- false
 
-        if not (isNull (box values)) then values.Retire entry
+        if not (isNull (box values)) then
+            values.Retire entry
 
         if
             not (isNull log)
@@ -618,14 +619,17 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>Retires a row whose upstream identity changed during snapshot recovery.</summary>
     member internal this.RetireChanged(key: 'K) =
         let entry = entries.Find key
+
         if not (isNull entry) then
-            graph.RunUntracked(fun () -> graph.RunBatch(fun () ->
-                inCleanup <- true
-                try
-                    entries.Remove key
-                    this.Retire entry
-                finally
-                    inCleanup <- false))
+            graph.RunUntracked (fun () ->
+                graph.RunBatch (fun () ->
+                    inCleanup <- true
+
+                    try
+                        entries.Remove key
+                        this.Retire entry
+                    finally
+                        inCleanup <- false))
 
     member private this.Run() =
         sources.BeginRun ()
@@ -655,13 +659,20 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         // whatever the failed one applied.
         try
             try
-                graph.RunHosted (this :> IComputation, fun () ->
-                    if not (isNull (box this.ReadDelta)) then
-                        delta <- this.ReadDelta ()
+                graph.RunHosted (
+                    this :> IComputation,
+                    fun () ->
+                        if not (isNull (box this.ReadDelta)) then
+                            delta <- this.ReadDelta ()
 
-                    if isNull (box delta) || delta.IsReset || previousStatus <> Status.None then
-                        delta <- Unchecked.defaultof<_>
-                        this.Pass.Enumerate ())
+                        if
+                            isNull (box delta)
+                            || delta.IsReset
+                            || previousStatus <> Status.None
+                        then
+                            delta <- Unchecked.defaultof<_>
+                            this.Pass.Enumerate ()
+                )
             finally
                 if disposed then
                     sources.Clear (this :> IComputation)
@@ -671,9 +682,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 beaconsStale <- true
 
             if not disposed then
-                graph.RunUntracked (fun () -> graph.RunBatch (fun () ->
-                    if isNull (box delta) then this.ApplyDiff ()
-                    else this.ApplyDelta delta))
+                graph.RunUntracked (fun () ->
+                    graph.RunBatch (fun () ->
+                        if isNull (box delta) then
+                            this.ApplyDiff ()
+                        else
+                            this.ApplyDelta delta))
 
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
@@ -786,8 +800,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         try
             for change in delta.Changes do
-                if change.Value = KeyChange.Removed || change.Value = KeyChange.Replaced then
+                if
+                    change.Value = KeyChange.Removed
+                    || change.Value = KeyChange.Replaced
+                then
                     let entry = entries.Find change.Key
+
                     if not (isNull entry) then
                         entries.Remove change.Key
                         this.Retire entry
@@ -796,7 +814,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
         if not disposed then
             for change in delta.Changes do
-                if change.Value = KeyChange.Added || change.Value = KeyChange.Replaced then
+                if
+                    change.Value = KeyChange.Added
+                    || change.Value = KeyChange.Replaced
+                then
                     this.VisitDelta change.Key
 
             this.Pass.CreateAdded ()
@@ -1318,7 +1339,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let reader = this.NewValueReader ()
 
         let applyValues (delta: ProjectionDelta<'K>) =
-            let mutable reconcile = not populated.Value || delta.IsReset || delta.OrderChanged
+            let mutable reconcile =
+                not populated.Value
+                || delta.IsReset
+                || delta.OrderChanged
 
             if not reconcile then
                 try
@@ -1328,7 +1352,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
 
                         match accepted with
                         | ValueSome value when position > 0 ->
-                            if change.Value = KeyChange.Replaced || not (equal.Equals(shownValues.Value[position - 1], value)) then
+                            if
+                                change.Value = KeyChange.Replaced
+                                || not (equal.Equals (shownValues.Value[position - 1], value))
+                            then
                                 view[position - 1] <- value
                                 shownValues.Value[position - 1] <- value
                         | ValueNone when position = 0 -> ()
@@ -1348,8 +1375,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                     if applyValues delta then
                         let current = delta.Keys
                         let replaced = Platform.KeySet<'K>()
+
                         for change in delta.Changes do
-                            if change.Value = KeyChange.Replaced then replaced.Add change.Key |> ignore
+                            if change.Value = KeyChange.Replaced then
+                                replaced.Add change.Key |> ignore
+
                         let visible = ResizeArray<'K>(current.Length)
                         let nextValues = ResizeArray<'V>(current.Length)
 
@@ -1504,22 +1534,38 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// </remarks>
     member this.NewValueReader() : ProjectionReader<'K> =
         if not disposed && isNull (box values) then
-            values <- ProjectionValues(graph, entries.Find, (fun () -> this.Keys), (fun key ->
-                if not (isNull log) then log.RecordValue key))
+            values <-
+                ProjectionValues (
+                    graph,
+                    entries.Find,
+                    (fun () -> this.Keys),
+                    (fun key ->
+                        if not (isNull log) then
+                            log.RecordValue key)
+                )
 
         let host =
             { new IKeyLogHost<'K> with
                 member _.ReadKeys() =
                     let current = this.Keys
-                    if not (isNull (box values)) then values.Read current
-                    current
-                member _.LiveCount = entries.Count
-                member _.Detach reader = this.DetachReader reader }
 
-        let reader = new ProjectionReader<'K>(host, values = true)
+                    if not (isNull (box values)) then
+                        values.Read current
+
+                    current
+
+                member _.LiveCount = entries.Count
+
+                member _.Detach reader =
+                    this.DetachReader reader
+            }
+
+        let reader = new ProjectionReader<'K> (host, values = true)
 
         if not disposed then
-            if isNull log then log <- KeyLog<'K>()
+            if isNull log then
+                log <- KeyLog<'K>()
+
             log.Add reader
 
         reader.Link <- graph.CurrentOwner.AttachLinked reader
@@ -1529,17 +1575,23 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         if not (isNull log) then
             log.Remove reader
 
-            if reader.ReadsValues && log.ValueCount = 0 && not (isNull (box values)) then
+            if
+                reader.ReadsValues
+                && log.ValueCount = 0
+                && not (isNull (box values))
+            then
                 values.Dispose ()
                 values <- Unchecked.defaultof<_>
 
-            if log.Count = 0 then log <- null
+            if log.Count = 0 then
+                log <- null
 
     interface IKeyLogHost<'K> with
         member this.ReadKeys() = this.Keys
         member _.LiveCount = entries.Count
 
-        member _.Detach reader = this.DetachReader reader
+        member _.Detach reader =
+            this.DetachReader reader
 
     interface IDisposable with
         member this.Dispose() =

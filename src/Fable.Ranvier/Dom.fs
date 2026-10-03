@@ -13,9 +13,11 @@ module Dom =
     [<Global "document">]
     let document: Document = jsNative
 
-    let createElement (name: string) : HTMLElement = document.createElement name
+    let createElement (name: string) : HTMLElement =
+        document.createElement name
 
-    let text (value: string) : Node = document.createTextNode value
+    let text (value: string) : Node =
+        document.createTextNode value
 
     let reactiveText (read: unit -> string) : Node =
         let node = document.createTextNode ""
@@ -23,12 +25,12 @@ module Dom =
         node
 
     let attribute (name: string) (value: string) : Modifier =
-        fun element -> element.setAttribute(name, value)
+        fun element -> element.setAttribute (name, value)
 
     let bindAttribute (name: string) (read: unit -> string option) : Modifier =
         fun element ->
             DomContext.bind read (function
-                | Some value -> element.setAttribute(name, value)
+                | Some value -> element.setAttribute (name, value)
                 | None -> element.removeAttribute name)
 
     let property (write: HTMLElement -> 'T -> unit) (value: 'T) : Modifier =
@@ -43,21 +45,30 @@ module Dom =
             let owner = getOwner ()
             let context = DomContext.current
             let target = element :> EventTarget
+
             let listener: EventListener =
                 fun event ->
-                    graph.Run(fun () ->
+                    graph.Run (fun () ->
                         runWithOwner owner (fun () ->
                             DomContext.run context (fun () ->
-                                let invoke () = untrack (fun () -> handler event)
+                                let invoke () =
+                                    untrack (fun () -> handler event)
+
                                 match context with
                                 | Some current when current.Options.BatchEvents -> batch invoke
                                 | _ -> invoke ())))
+
             let callback: EventListenerOrEventListenerObject = U2.Case1 listener
-            target.addEventListener(name, callback)
-            onCleanup (fun () -> target.removeEventListener(name, callback))
+            target.addEventListener (name, callback)
+            onCleanup (fun () -> target.removeEventListener (name, callback))
 
     let element (name: string) (modifiers: Modifier list) (children: Node list) : HTMLElement =
         let node = createElement name
-        for modifier in modifiers do modifier node
-        for child in children do node.appendChild child |> ignore
+
+        for modifier in modifiers do
+            modifier node
+
+        for child in children do
+            node.appendChild child |> ignore
+
         node

@@ -33,13 +33,17 @@ type internal ValueRow<'K, 'V>(graph: Graph, entry: RowEntry<'K, 'V>, touched: V
 
     interface IComputation with
         member _.AddSource _ = ()
-        member this.MarkDirty() = touched this
-        member this.MarkCheck() = touched this
+
+        member this.MarkDirty() =
+            touched this
+
+        member this.MarkCheck() =
+            touched this
 
 /// <summary>Shared settled-value observation, active only while value readers exist.</summary>
 [<Sealed>]
-type internal ProjectionValues<'K, 'V when 'K: equality>
-    (graph: Graph, find: 'K -> RowEntry<'K, 'V>, readKeys: unit -> 'K[], changed: 'K -> unit) as this =
+type internal ProjectionValues<'K, 'V when 'K: equality>(graph: Graph, find: 'K -> RowEntry<'K, 'V>, readKeys: unit -> 'K[], changed: 'K -> unit) as this
+    =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -71,18 +75,27 @@ type internal ProjectionValues<'K, 'V when 'K: equality>
                 let entry = find key
                 let old = rows.Find key
 
-                if not (isNull entry) && (isNull (box old) || not (obj.ReferenceEquals (old.Entry, entry))) then
-                    if not (isNull (box old)) then this.Detach old
-                    let row = ValueRow(graph, entry, touched)
+                if
+                    not (isNull entry)
+                    && (isNull (box old)
+                        || not (obj.ReferenceEquals (old.Entry, entry)))
+                then
+                    if not (isNull (box old)) then
+                        this.Detach old
+
+                    let row = ValueRow (graph, entry, touched)
+
                     if entry.Settled then
                         row.HasValue <- true
                         row.Value <- entry.Row.Peek
-                    rows.Set(key, row)
+
+                    rows.Set (key, row)
                     (entry.Row :> ISource).AddObserver(row :> IComputation)
                     touched row
 
-            rows.Iterate(fun key _ ->
-                if not (seen.Contains key) then removed.Add key)
+            rows.Iterate (fun key _ ->
+                if not (seen.Contains key) then
+                    removed.Add key)
 
             for key in removed do
                 this.Detach (rows.Find key)
@@ -108,20 +121,28 @@ type internal ProjectionValues<'K, 'V when 'K: equality>
                             if row.Attached && row.Entry.Live then
                                 match graph.RunUntracked (fun () -> row.Entry.Row.TryValue) with
                                 | Ready value ->
-                                    if not row.HasValue || not (equal.Equals(row.Value, value)) then
+                                    if
+                                        not row.HasValue
+                                        || not (equal.Equals (row.Value, value))
+                                    then
                                         changed row.Entry.Key
                                         row.Value <- value
                                         row.HasValue <- true
                                         observers.NotifyDirtyExcept graph.CurrentComputation
-                                | Pending | Failed _ -> ()
+                                | Pending
+                                | Failed _ -> ()
                         with _ ->
-                            if row.Queued then processed <- processed + 1
-                            else row.Queued <- true
+                            if row.Queued then
+                                processed <- processed + 1
+                            else
+                                row.Queued <- true
+
                             reraise ()
 
                         processed <- processed + 1
                 finally
-                    if processed > 0 then queue.RemoveRange(0, processed)
+                    if processed > 0 then
+                        queue.RemoveRange (0, processed)
             finally
                 running <- false
 
@@ -131,7 +152,11 @@ type internal ProjectionValues<'K, 'V when 'K: equality>
 
     member this.Retire(entry: RowEntry<'K, 'V>) =
         let row = rows.Find entry.Key
-        if not (isNull (box row)) && obj.ReferenceEquals(row.Entry, entry) then
+
+        if
+            not (isNull (box row))
+            && obj.ReferenceEquals (row.Entry, entry)
+        then
             this.Detach row
             rows.Remove entry.Key
             keys <- null
@@ -139,13 +164,16 @@ type internal ProjectionValues<'K, 'V when 'K: equality>
 
     member _.TryAccepted(key: 'K) =
         let row = rows.Find key
-        if not (isNull (box row)) && row.HasValue then ValueSome row.Value
-        else ValueNone
+
+        if not (isNull (box row)) && row.HasValue then
+            ValueSome row.Value
+        else
+            ValueNone
 
     member this.Dispose() =
         if not disposed then
             disposed <- true
-            rows.Iterate(fun _ row -> this.Detach row)
+            rows.Iterate (fun _ row -> this.Detach row)
             rows.Clear ()
             queue.Clear ()
             seen.Clear ()
@@ -156,11 +184,15 @@ type internal ProjectionValues<'K, 'V when 'K: equality>
         member _.Status = Status.None
 
     interface ISource with
-        member _.AddObserver c = observers.Add c
-        member _.RemoveObserver c = observers.Remove c
+        member _.AddObserver c =
+            observers.Add c
+
+        member _.RemoveObserver c =
+            observers.Remove c
+
         member _.UpdateIfNecessary() =
             if not disposed then
                 try
-                    graph.RunUntracked(fun () -> this.Refresh (readKeys ()))
+                    graph.RunUntracked (fun () -> this.Refresh (readKeys ()))
                 with _ ->
                     observers.NotifyDirty ()

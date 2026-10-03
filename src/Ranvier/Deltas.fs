@@ -273,8 +273,11 @@ type internal KeyLog<'K when 'K: equality>() =
 
     member _.ValueCount =
         let mutable count = 0
+
         for reader in readers do
-            if reader.ReadsValues then count <- count + 1
+            if reader.ReadsValues then
+                count <- count + 1
+
         count
 
     member _.Add(reader: ProjectionReader<'K>) =
@@ -290,7 +293,7 @@ type internal KeyLog<'K when 'K: equality>() =
     member _.RecordValue(key: 'K) =
         for reader in readers do
             if reader.ReadsValues then
-                reader.Record(key, KeyChange.Changed)
+                reader.Record (key, KeyChange.Changed)
 
     /// <summary>Flags every reader for a reset.</summary>
     member _.Reset() =

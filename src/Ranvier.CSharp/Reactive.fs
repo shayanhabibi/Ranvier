@@ -35,7 +35,9 @@ open Ranvier
 type Reactive =
     /// <summary>An empty editable collection keyed by <c>keyOf</c>, with insertion order and reactive rows.</summary>
     static member KeyedCollection<'V, 'K when 'K: equality>(keyOf: Func<'V, 'K>) : KeyedCollection<'K, 'V> =
-        if isNull keyOf then nullArg "keyOf"
+        if isNull keyOf then
+            nullArg "keyOf"
+
         Api.createKeyedCollection keyOf.Invoke
 
     /// <summary>A settable source holding <c>initial</c>.</summary>
