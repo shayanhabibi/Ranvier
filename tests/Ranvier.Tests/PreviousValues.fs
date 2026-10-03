@@ -376,8 +376,6 @@ let tests =
                 Expect.throws (fun () -> pureMemo.Value |> ignore) "a pure one raises"
             }
 
-            (*FOR-REVIEW Pins the F# call forms beside the seeded constructors. A seed placed after compute breaks the
-              owning and bool forms; a (Graph, Func<'T>) constructor would make the first form ambiguous. *)
             test "the Memo constructor call forms resolve beside the seeded overloads" {
                 let g = new Graph ()
                 let s = Signal (g, 2)

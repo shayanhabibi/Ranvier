@@ -47,10 +47,6 @@ type Mvu<'Model, 'Msg>
     /// <c>SynchronizationContext</c> at construction, that drain is <c>Graph.Pump</c>.
     /// </remarks>
     member this.Dispatch(msg: 'Msg) : unit =
-        //FOR-REVIEW Routes off-thread calls through the inbox (one thread-id test per dispatch) and allocates a closure per
-        //FOR-REVIEW dispatch to run update untracked. In core the closure was allocated only inside a computation; outside
-        //FOR-REVIEW Ranvier the test for a running computation is internal, so the bridge calls Graph.Untrack on every
-        //FOR-REVIEW on-thread dispatch. Graph.Untrack on the graph's thread takes no hold, so writes still flush as before.
         if graph.IsOnGraphThread then
             graph.Untrack (fun () -> this.Apply msg)
         else
@@ -64,8 +60,6 @@ type Mvu<'Model, 'Msg>
     /// <exception cref="T:System.InvalidOperationException">Called inside a pure body, such as a <c>createMemo</c> body.</exception>
     member _.Select(select: 'Model -> 'A) : Memo<'A> =
 #if FABLE_COMPILER
-        //FOR-REVIEW Fable has no public Memo constructor, so the selector memo belongs to Graph.Current, which is the
-        //FOR-REVIEW bridge's graph unless Select is called while another graph is current.
         createMemo (fun _ -> select root.Value)
 #else
         new Memo<'A> (graph, Func<'A voption, 'A>(fun _ -> select root.Value))

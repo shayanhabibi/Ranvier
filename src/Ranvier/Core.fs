@@ -1074,7 +1074,6 @@ module internal Activation =
         activated.Value <- entry
 #endif
 
-//FOR-REVIEW The note's §3 lists Failure as public; it is internal here because no public member returns it. Make it public only alongside an accessor such as a node's Failure property.
 /// <summary>
 /// A failed node's exception and the node it originated in. Every node the exception reaches through reads holds the
 /// same record.
@@ -1504,7 +1503,6 @@ type Graph(options: GraphOptions) =
         // A full fence: the inbox check below observes every enqueue whose drain found the graph held by this thread.
         Interlocked.Exchange (&holder, 0) |> ignore
 
-        //FOR-REVIEW The note has the releasing thread drain the inbox itself before it clears `holder`. Posting a drain instead keeps user work out of the `finally` of a failing entry, at the cost of one context hop for a settle that arrived while the graph was held.
         if not inbox.IsEmpty then
             dispatcher.Post (Action this.PumpFromDispatcher)
 #else
@@ -1928,7 +1926,6 @@ type Graph(options: GraphOptions) =
     /// deferred as well. Under <c>Serialised</c>, false on every thread other than the holder, so a stale read from
     /// such a thread enters the graph through <c>EnterPull</c>.
     /// </summary>
-    //FOR-REVIEW The `serialised` test adds one branch to every stale read inside a body on Guarded and Unchecked graphs. Without it, a stale read from a second thread during the holder's flush saw `current` set and refreshed the memo unheld.
     member internal _.Deferring =
         (pullDepth > 0 || not (isNull (box current)))
 #if !FABLE_COMPILER
@@ -1964,7 +1961,6 @@ type Graph(options: GraphOptions) =
         if pullDepth = 0 then
             this.LeaveAmbient pullAmbient
 
-            //FOR-REVIEW One load and branch per outermost stale read, on the hot path the Memos benchmarks cover. Without it a failed read swallowed by a body pulled outside every flush stays reachable from the graph until the next caught failure or flush. Drop it if the A/B gate objects, and document that retention instead.
             if not (isNull lastRaised) then
                 lastRaised <- null
 
@@ -2123,7 +2119,6 @@ type Graph(options: GraphOptions) =
             this.LeaveAmbient previousAmbient
 
     member internal this.NextId() =
-        //FOR-REVIEW Node creation checks a Serialised graph but does not hold it: the constructor's work ends outside NextId. A node created inside CreateRoot, a body or a batch is held by that entry.
         this.AssertOnGraphThread "Creating a node"
         nextId <- nextId + 1
         nextId
@@ -2710,14 +2705,6 @@ type Memo<'T> private (graph: Graph, compute: 'T voption -> 'T, mode: ScopeMode,
         Memo<'T>(graph, compute.Invoke, (if owning then ScopeMode.Owning else ScopeMode.Pure))
         then this.Attach ()
 
-    (*FOR-REVIEW The seed precedes compute, unlike Reactive.Memo(compute, seed). A seed after compute makes
-      Memo (graph, (fun _ -> ...), true) fail overload resolution in F# (FS0041 "No overloads match" for a non-bool
-      memo, ambiguity for a bool one) and makes C# new Memo<bool>(graph, _ => x, false) ambiguous (CS0121). The
-      order matches Aggregate(seed, folder). The (Graph, Func<'T>) constructors from the note are not added: beside
-      (Graph, Func<'T voption, 'T>) they make F# Memo (graph, fun _ -> ...) ambiguous (FS0041), and C# already
-      writes new Memo<int>(graph, _ => ...) without naming ValueOption. OverloadResolutionPriority does not help:
-      F# ignores it. PreviousValues "the Memo constructor call forms resolve beside the seeded overloads" and C#
-      PreviousValueTests.MemoConstructorCallFormsResolve pin the call forms. *)
     /// <summary>
     /// A pure memo over <c>compute</c>, which receives the value last published, or <c>seed</c> before the first.
     /// </summary>
@@ -3453,6 +3440,7 @@ type internal EffectOn<'T> private (graph: Graph, compute: unit -> 'T, act: 'T -
     let id = graph.NextId ()
     let sources = SourceList ()
     do Tracer.Bind (sources, graph, id)
+
     let equal =
         match comparer with
         | Some supplied -> supplied
@@ -3902,7 +3890,6 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
         retireIfQuiet ()
 
         // An owed trailing run holds the node pending as a pending source does.
-        //FOR-REVIEW `owed ||` is one local bool test per applied result for every policy; the alternative is a separate FinishCurrent match arm duplicating the four outcome arms.
         let suspended =
             owed
             || not (isNull pendingSources)
@@ -4009,7 +3996,6 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
     /// Under <c>FinishCurrent</c> with a flight in progress, owes a trailing run instead and keeps the scope.
     /// </summary>
     member private this.Start() =
-        //FOR-REVIEW Hot path: one int test per Start for CancelPrevious and KeepLatest (queued stays 0); Queue with results outstanding also pays one policy tag compare.
         if
             queued <> 0
             && (match graph.Options.FlightPolicy with
@@ -4417,9 +4403,15 @@ type AsyncMemo<'T> private (graph: Graph, compute: Previous<'T> -> CancellationT
 /// things a boundary can catch.
 /// </para>
 /// </remarks>
-type Boundary<'T> private
-    (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption, onError: (exn -> 'T voption -> 'T) voption,
-     ?comparer: IEqualityComparer<'T>) =
+type Boundary<'T>
+    private
+    (
+        graph: Graph,
+        body: unit -> 'T,
+        onPending: ('T voption -> 'T) voption,
+        onError: (exn -> 'T voption -> 'T) voption,
+        ?comparer: IEqualityComparer<'T>
+    ) =
     let id = graph.NextId ()
     let observers = ObserverSet ()
     do Tracer.Bind (observers, graph, id)
@@ -4466,8 +4458,13 @@ type Boundary<'T> private
 
     /// <summary>An owned boundary whose value cutoff uses <c>comparer</c>.</summary>
     static member internal CreateWithComparer
-        (graph: Graph, body: unit -> 'T, onPending: ('T voption -> 'T) voption,
-         onError: (exn -> 'T voption -> 'T) voption, comparer: IEqualityComparer<'T>) =
+        (
+            graph: Graph,
+            body: unit -> 'T,
+            onPending: ('T voption -> 'T) voption,
+            onError: (exn -> 'T voption -> 'T) voption,
+            comparer: IEqualityComparer<'T>
+        ) =
         let boundary = Boundary<'T>(graph, body, onPending, onError, comparer = comparer)
         boundary.Attach ()
         boundary
@@ -4737,9 +4734,6 @@ type Boundary<'T> private
     static member Catching(graph: Graph, body: Func<'T>, fallback: Func<'T voption, 'T>, recover: Func<exn, 'T voption, 'T>) =
         Boundary<'T>.Create(graph, body.Invoke, ValueSome fallback.Invoke, ValueSome (fun ex previous -> recover.Invoke (ex, previous)))
 
-    (*FOR-REVIEW The seed forms put the seed before the handlers, as the seeded Memo constructors do; the Reactive
-      facade puts it last, as Reactive.Memo(compute, seed) does. Each overload differs in arity from its ValueOption
-      form, so either order resolves. *)
     /// <summary>
     /// <c>Suspense</c> whose <c>fallback</c> receives the boundary's last value, or <c>seed</c> before its first.
     /// </summary>
