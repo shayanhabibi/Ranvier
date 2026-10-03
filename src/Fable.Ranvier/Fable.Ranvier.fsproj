@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="DomScheduling.fs"/>
+        <Compile Include="Dom.fs"/>
+        <Compile Include="Mount.fs"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Ranvier\Ranvier.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Xantham.Fable.Core.TS" Version="0.1.0" />
+      <PackageReference Update="FSharp.Core" Version="10.1.401" />
+    </ItemGroup>
+
+</Project>

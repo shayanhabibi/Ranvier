@@ -14,6 +14,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Ranvier/Ranvier.fsproj" />
+    <Project Path="src/Fable.Ranvier/Fable.Ranvier.fsproj" />
     <Project Path="src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
     <Project Path="src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />
   </Folder>

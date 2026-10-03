@@ -83,6 +83,26 @@ Global flags: `--quick` skips restores and cleaning,
 `--format` formats before building, `--dry-format` checks formatting before building,
 `-c` picks the configuration (default `Release`).
 
+## Git hooks
+
+Enable the tracked pre-commit hook after cloning (requires Git, RTK, PowerShell 7 and the .NET SDK):
+
+```powershell
+rtk proxy pwsh -NoProfile -File scripts/setup-hooks.ps1
+```
+
+It checks staged whitespace, F# formatting with the pinned Fantomas version, and `FOR-REVIEW`
+comments with the bundled comment-hygiene scanner. Whole staged F# files must pass; existing
+review markers in a changed file also block its commit. String literals containing markers are
+allowed. Checks use a temporary copy of index contents and never modify or stage your files.
+
+Run it manually with `rtk proxy pwsh -NoProfile -File scripts/check-staged.ps1`.
+Full test suites remain explicit verification commands and CI checks. `git commit --no-verify`
+bypasses the local hook when needed.
+
+Verify the hook itself with `rtk proxy pwsh -NoProfile -File scripts/test-hooks.ps1`.
+Its commit-level tests run in a disposable repository.
+
 ## Layout
 
 ```
