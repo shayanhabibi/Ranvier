@@ -109,38 +109,6 @@ type internal ProjectionBeacon(graph: Graph, host: IBeaconHost) =
     member _.ObserverCount = observers.Count
 
 /// <summary>
-/// One live key: the row, and the scope holding the nodes its factory created.
-/// </summary>
-/// <remarks>
-/// <c>Scope</c> is null in the value form, where the row is the key's only node.
-/// </remarks>
-[<AllowNullLiteral>]
-type internal RowEntry<'K, 'V>(key: 'K) =
-    member _.Key = key
-
-    member val Row: Memo<'V> = Unchecked.defaultof<Memo<'V>> with get, set
-    member val Scope: Owner = Unchecked.defaultof<Owner> with get, set
-
-    /// <summary>
-    /// The row's reader: <c>map</c> over the item in the value form, the factory's
-    /// result in the factory form.
-    /// </summary>
-    member val Reader: unit -> 'V = Unchecked.defaultof<unit -> 'V> with get, set
-
-    /// <summary>Whether the row memo has committed a value.</summary>
-    member val Settled = false with get, set
-
-    /// <summary>
-    /// Whether the row is pending and observed by the projection's <c>RowWatch</c>.
-    /// </summary>
-    member val Watched = false with get, set
-
-    /// <summary>
-    /// False once the key is removed or the projection is disposed.
-    /// </summary>
-    member val Live = true with get, set
-
-/// <summary>
 /// A row with its item source.
 /// </summary>
 [<Sealed; AllowNullLiteral>]
@@ -313,6 +281,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <summary>The live key readers, and null while none exists.</summary>
     let mutable log: KeyLog<'K> = null
 
+    let mutable values: ProjectionValues<'K, 'V> = Unchecked.defaultof<_>
+
     let beacon = ProjectionBeacon (graph, this)
 
     /// <summary>
@@ -463,6 +433,11 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member internal _.PassKeys = passKeys
     member internal _.Seen = seen
 
+    /// <summary>The tracked input delta for a membership pass, or null for snapshot enumeration.</summary>
+    member val internal ReadDelta: unit -> ProjectionDelta<'K> = Unchecked.defaultof<_> with get, set
+    /// <summary>Stages an added or replaced key from the input delta.</summary>
+    member val internal VisitDelta: 'K -> unit = Unchecked.defaultof<_> with get, set
+
     /// <summary>
     /// Leaves the last key of <c>PassKeys</c> out of <c>Keys</c> while keeping its row. The key readers see the key as
     /// removed until a pass includes it again.
@@ -611,6 +586,9 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     member private _.Retire(entry: RowEntry<'K, 'V>) =
         entry.Live <- false
 
+        if not (isNull (box values)) then
+            values.Retire entry
+
         if
             not (isNull log)
             && (isNull (box lastHidden)
@@ -638,6 +616,21 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         else
             puller
 
+    /// <summary>Retires a row whose upstream identity changed during snapshot recovery.</summary>
+    member internal this.RetireChanged(key: 'K) =
+        let entry = entries.Find key
+
+        if not (isNull entry) then
+            graph.RunUntracked (fun () ->
+                graph.RunBatch (fun () ->
+                    inCleanup <- true
+
+                    try
+                        entries.Remove key
+                        this.Retire entry
+                    finally
+                        inCleanup <- false))
+
     member private this.Run() =
         sources.BeginRun ()
         runs <- runs + 1
@@ -659,13 +652,27 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         checkPending <- false
         failure <- null
         status <- Status.None
+        let mutable delta: ProjectionDelta<'K> = Unchecked.defaultof<_>
 
         // The guard covers the diff as well as `Enumerate`: a failure in either
         // leaves the projection `Dirty`, and the next pass diffs against
         // whatever the failed one applied.
         try
             try
-                graph.RunHosted (this :> IComputation, this.Pass.Enumerate)
+                graph.RunHosted (
+                    this :> IComputation,
+                    fun () ->
+                        if not (isNull (box this.ReadDelta)) then
+                            delta <- this.ReadDelta ()
+
+                        if
+                            isNull (box delta)
+                            || delta.IsReset
+                            || previousStatus <> Status.None
+                        then
+                            delta <- Unchecked.defaultof<_>
+                            this.Pass.Enumerate ()
+                )
             finally
                 if disposed then
                     sources.Clear (this :> IComputation)
@@ -675,7 +682,12 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
                 beaconsStale <- true
 
             if not disposed then
-                graph.RunUntracked (fun () -> graph.RunBatch this.ApplyDiff)
+                graph.RunUntracked (fun () ->
+                    graph.RunBatch (fun () ->
+                        if isNull (box delta) then
+                            this.ApplyDiff ()
+                        else
+                            this.ApplyDelta delta))
 
                 // Readers parked on a pending or failed pass wake when it
                 // resolves, whether or not any row moved.
@@ -780,6 +792,44 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         this.Pass.CommitWrites ()
         this.Pass.ClearStaged ()
         publishKeys ()
+
+        this.ObservePass ()
+
+    member private this.ApplyDelta(delta: ProjectionDelta<'K>) =
+        inCleanup <- true
+
+        try
+            for change in delta.Changes do
+                if
+                    change.Value = KeyChange.Removed
+                    || change.Value = KeyChange.Replaced
+                then
+                    let entry = entries.Find change.Key
+
+                    if not (isNull entry) then
+                        entries.Remove change.Key
+                        this.Retire entry
+        finally
+            inCleanup <- false
+
+        if not disposed then
+            for change in delta.Changes do
+                if
+                    change.Value = KeyChange.Added
+                    || change.Value = KeyChange.Replaced
+                then
+                    this.VisitDelta change.Key
+
+            this.Pass.CreateAdded ()
+            this.Pass.CommitWrites ()
+            this.Pass.ClearStaged ()
+
+            if not (obj.ReferenceEquals (keys.Peek, delta.Keys)) then
+                keys.WriteExcept (delta.Keys, puller)
+
+            this.ObservePass ()
+
+    member private _.ObservePass() =
 
         observed <-
             keys.ObserverCount > 0
@@ -1264,7 +1314,8 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// <para>
     /// The first population raises one <c>Reset</c> and one <c>Add</c> per value. Each later change raises a <c>Remove</c> per
     /// departed row, an <c>Add</c> per new row, at most one <c>Move</c> per row outside the longest run of rows that kept their
-    /// order, and a <c>Replace</c> per row whose value differs under the graph's equality policy. O(N log N) per change.
+    /// order, and a <c>Replace</c> per unequal value or replaced row. Value-only edits cost O(changed rows);
+    /// membership, order and reset reconciliation cost O(N log N).
     /// </para>
     /// <para>
     /// Rows follow the rule <c>Snapshot</c> gives for pending and failed rows. While the pass is suspended, the collection
@@ -1285,64 +1336,100 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         let nextIndex = ref (Platform.KeyMap<'K, int>())
         let populated = ref false
 
+        let reader = this.NewValueReader ()
+
+        let applyValues (delta: ProjectionDelta<'K>) =
+            let mutable reconcile =
+                not populated.Value
+                || delta.IsReset
+                || delta.OrderChanged
+
+            if not reconcile then
+                try
+                    for change in delta.Changes do
+                        let position = shownIndex.Value.Find change.Key
+                        let accepted = values.TryAccepted change.Key
+
+                        match accepted with
+                        | ValueSome value when position > 0 ->
+                            if
+                                change.Value = KeyChange.Replaced
+                                || not (equal.Equals (shownValues.Value[position - 1], value))
+                            then
+                                view[position - 1] <- value
+                                shownValues.Value[position - 1] <- value
+                        | ValueNone when position = 0 -> ()
+                        | _ -> reconcile <- true
+                with _ ->
+                    populated.Value <- false
+                    reraise ()
+
+            reconcile
+
         Effect.Create (
             graph,
             fun () ->
                 if not disposed then
-                    let current = this.Keys
-                    let visible = ResizeArray<'K>(current.Length)
-                    let values = ResizeArray<'V>(current.Length)
+                    let delta = reader.Read ()
 
-                    for key in current do
-                        let entry = entries.Find key
+                    if applyValues delta then
+                        let current = delta.Keys
+                        let replaced = Platform.KeySet<'K>()
 
-                        if not (isNull entry) then
-                            // Tracked, so the effect wakes when the row moves.
-                            entry.Row.TryValue |> ignore
+                        for change in delta.Changes do
+                            if change.Value = KeyChange.Replaced then
+                                replaced.Add change.Key |> ignore
 
-                            if entry.Settled then
+                        let visible = ResizeArray<'K>(current.Length)
+                        let nextValues = ResizeArray<'V>(current.Length)
+
+                        for key in current do
+                            match values.TryAccepted key with
+                            | ValueSome value ->
                                 visible.Add key
-                                values.Add entry.Row.Peek
+                                nextValues.Add value
+                            | ValueNone -> ()
 
-                    let visible = visible.ToArray ()
-                    let values = values.ToArray ()
-                    let positions = nextIndex.Value
-                    positions.Clear ()
+                        let visible = visible.ToArray ()
+                        let values = nextValues.ToArray ()
+                        let positions = nextIndex.Value
+                        positions.Clear ()
 
-                    for i in 0 .. visible.Length - 1 do
-                        positions.Set (visible[i], i + 1)
+                        for i in 0 .. visible.Length - 1 do
+                            positions.Set (visible[i], i + 1)
 
-                    try
-                        if not populated.Value then
-                            populated.Value <- true
-                            view.Clear ()
+                        try
+                            if not populated.Value then
+                                populated.Value <- true
+                                view.Clear ()
 
-                            for v in values do
-                                view.Add v
-                        else
-                            for edit in Positional.diff shown.Value visible do
-                                match edit with
-                                | PositionalChange.RemoveAt index -> view.RemoveAt index
-                                | PositionalChange.InsertAt (index, key) -> view.Insert (index, values[positions.Find key - 1])
-                                | PositionalChange.Move (oldIndex, newIndex) -> view.Move (oldIndex, newIndex)
+                                for v in values do
+                                    view.Add v
+                            else
+                                for edit in Positional.diff shown.Value visible do
+                                    match edit with
+                                    | PositionalChange.RemoveAt index -> view.RemoveAt index
+                                    | PositionalChange.InsertAt (index, key) -> view.Insert (index, values[positions.Find key - 1])
+                                    | PositionalChange.Move (oldIndex, newIndex) -> view.Move (oldIndex, newIndex)
 
-                            for i in 0 .. visible.Length - 1 do
-                                let previous = shownIndex.Value.Find visible[i]
+                                for i in 0 .. visible.Length - 1 do
+                                    let previous = shownIndex.Value.Find visible[i]
 
-                                if
-                                    previous > 0
-                                    && not (equal.Equals (shownValues.Value[previous - 1], values[i]))
-                                then
-                                    view[i] <- values[i]
-                    with _ ->
-                        // A view left partway through the edits is rebuilt on the next run.
-                        populated.Value <- false
-                        reraise ()
+                                    if
+                                        previous > 0
+                                        && (replaced.Contains visible[i]
+                                            || not (equal.Equals (shownValues.Value[previous - 1], values[i])))
+                                    then
+                                        view[i] <- values[i]
+                        with _ ->
+                            // A view left partway through the edits is rebuilt on the next run.
+                            populated.Value <- false
+                            reraise ()
 
-                    shown.Value <- visible
-                    shownValues.Value <- values
-                    nextIndex.Value <- shownIndex.Value
-                    shownIndex.Value <- positions
+                        shown.Value <- visible
+                        shownValues.Value <- values
+                        nextIndex.Value <- shownIndex.Value
+                        shownIndex.Value <- positions
         )
         |> ignore
 
@@ -1407,6 +1494,10 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             if not (isNull log) then
                 log.Reset ()
 
+            if not (isNull (box values)) then
+                values.Dispose ()
+                values <- Unchecked.defaultof<_>
+
             scope.Dispose ()
 
             if not (isNull (box passScope)) then
@@ -1435,16 +1526,71 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
         reader.Link <- graph.CurrentOwner.AttachLinked reader
         reader
 
+    /// <summary>A reader of membership, order and settled row-value changes, owned by the calling scope.</summary>
+    /// <remarks>
+    /// Observes visible rows while it lives. Pending and failed rows retain their last accepted value; their status changes
+    /// alone do not report <c>Changed</c>. The first read and overflow report a reset, as <c>NewKeyReader</c> does.
+    /// </remarks>
+    member this.NewValueReader() : ProjectionReader<'K> =
+        if not disposed && isNull (box values) then
+            values <-
+                ProjectionValues (
+                    graph,
+                    entries.Find,
+                    (fun () -> this.Keys),
+                    (fun key ->
+                        if not (isNull log) then
+                            log.RecordValue key)
+                )
+
+        let host =
+            { new IKeyLogHost<'K> with
+                member _.ReadKeys() =
+                    let current = this.Keys
+
+                    if not (isNull (box values)) then
+                        values.Read current
+
+                    current
+
+                member _.LiveCount = entries.Count
+
+                member _.Detach reader =
+                    this.DetachReader reader
+            }
+
+        let reader = new ProjectionReader<'K> (host, values = true)
+
+        if not disposed then
+            if isNull log then
+                log <- KeyLog<'K>()
+
+            log.Add reader
+
+        reader.Link <- graph.CurrentOwner.AttachLinked reader
+        reader
+
+    member private _.DetachReader(reader: ProjectionReader<'K>) =
+        if not (isNull log) then
+            log.Remove reader
+
+            if
+                reader.ReadsValues
+                && log.ValueCount = 0
+                && not (isNull (box values))
+            then
+                values.Dispose ()
+                values <- Unchecked.defaultof<_>
+
+            if log.Count = 0 then
+                log <- null
+
     interface IKeyLogHost<'K> with
         member this.ReadKeys() = this.Keys
         member _.LiveCount = entries.Count
 
         member _.Detach reader =
-            if not (isNull log) then
-                log.Remove reader
-
-                if log.Count = 0 then
-                    log <- null
+            this.DetachReader reader
 
     interface IDisposable with
         member this.Dispose() =

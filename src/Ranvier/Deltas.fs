@@ -11,7 +11,7 @@ type KeyChange =
     | Removed = 1
     /// <summary>Live at both reads, removed and re-added between them: a new row, and a new scope in the factory form.</summary>
     | Replaced = 2
-    /// <summary>Reserved for value readers. A key reader reports <c>Added</c>, <c>Removed</c> and <c>Replaced</c>.</summary>
+    /// <summary>The row's settled value changed. A key reader does not report this change.</summary>
     | Changed = 3
 
 /// <summary>
@@ -58,6 +58,9 @@ type internal KeyChanges<'K when 'K: equality>() =
                 && previous = KeyChange.Removed
             then
                 pairs[slot - 1] <- KeyValuePair (key, KeyChange.Replaced)
+            elif change = KeyChange.Changed then
+                if previous = KeyChange.Changed then
+                    pairs[slot - 1] <- KeyValuePair (key, change)
             else
                 pairs[slot - 1] <- KeyValuePair (key, change)
         else
@@ -78,7 +81,7 @@ type internal KeyChanges<'K when 'K: equality>() =
         member _.GetEnumerator() : Collections.IEnumerator =
             (pairs :> Collections.IEnumerable).GetEnumerator()
 
-/// <summary>The changes to a projection's membership and order between two reads by one <c>ProjectionReader</c>.</summary>
+/// <summary>The membership, order and optional settled-value changes between two reads by a projection reader.</summary>
 #if FABLE_COMPILER
 [<Sealed; Fable.Core.AttachMembers>]
 #else
@@ -87,7 +90,7 @@ type internal KeyChanges<'K when 'K: equality>() =
 type ProjectionDelta<'K when 'K: equality> internal (changes: KeyChanges<'K>, keys: 'K[], previousKeys: 'K[], isReset: bool) =
     let mutable positional: IReadOnlyList<PositionalChange<'K>> = null
 
-    /// <summary>One entry per key whose membership moved, in an unspecified order. Empty on a reset.</summary>
+    /// <summary>One entry per changed key, in an unspecified order. Empty on a reset.</summary>
     member _.Changes: IReadOnlyCollection<KeyValuePair<'K, KeyChange>> = changes
 
     /// <summary>The key order at this read: the array the projection's <c>Keys</c> returned. Empty after the projection is disposed.</summary>
@@ -142,11 +145,11 @@ type internal IKeyLogHost<'K when 'K: equality> =
     /// <summary>Stops recording into <c>reader</c>.</summary>
     abstract Detach: reader: ProjectionReader<'K> -> unit
 
-/// <summary>A cursor over a projection's membership and order. Disposed with the scope that created it.</summary>
+/// <summary>A cursor over projection changes. Disposed with the scope that created it.</summary>
 /// <remarks>
 /// Each reader keeps its own changes, at most <c>max(64, N)</c> of them with <c>N</c> the live key count as each change
 /// arrives; past that its next read reports a reset. A write that removes most keys can therefore read as a reset. Created
-/// by <c>Projection.NewKeyReader</c>.
+/// by <c>Projection.NewKeyReader</c> or <c>Projection.NewValueReader</c>; the latter also reports settled value changes.
 /// </remarks>
 and
 #if FABLE_COMPILER
@@ -154,7 +157,7 @@ and
 #else
     [<Sealed>]
 #endif
-    ProjectionReader<'K when 'K: equality> internal (host: IKeyLogHost<'K>) =
+    ProjectionReader<'K when 'K: equality> internal (host: IKeyLogHost<'K>, ?values: bool) =
     let empty = KeyChanges<'K>()
     let mutable changes = KeyChanges<'K>()
 
@@ -171,6 +174,8 @@ and
     let mutable idle: ProjectionDelta<'K> = Unchecked.defaultof<ProjectionDelta<'K>>
     let mutable disposed = false
     let mutable link: OwnerLink = null
+
+    member internal _.ReadsValues = defaultArg values false
 
     /// <summary>The owner link, kept only while the reader runs.</summary>
     member internal _.Link
@@ -265,6 +270,15 @@ type internal KeyLog<'K when 'K: equality>() =
 
     member _.Count = readers.Count
 
+    member _.ValueCount =
+        let mutable count = 0
+
+        for reader in readers do
+            if reader.ReadsValues then
+                count <- count + 1
+
+        count
+
     member _.Add(reader: ProjectionReader<'K>) =
         readers.Add reader
 
@@ -274,6 +288,11 @@ type internal KeyLog<'K when 'K: equality>() =
     member _.Record(key: 'K, change: KeyChange) =
         for i in 0 .. readers.Count - 1 do
             readers[i].Record(key, change)
+
+    member _.RecordValue(key: 'K) =
+        for reader in readers do
+            if reader.ReadsValues then
+                reader.Record (key, KeyChange.Changed)
 
     /// <summary>Flags every reader for a reset.</summary>
     member _.Reset() =
