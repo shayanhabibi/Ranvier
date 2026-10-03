@@ -58,8 +58,14 @@ lengths.Get 3
 
 :::details Cost of membership and order changes
 
-A view's pass still walks the upstream `Keys`, so a membership or order change costs O(N) per view, as it does for
-the source projection. The combinators remove the per-key user calls for unchanged rows, not that walk.
+Map membership consumes upstream key deltas, retaining unchanged rows and reusing the upstream key
+array. Source membership changes copy the ordered key array. Filters, sorts and grouping still scan upstream keys on their
+membership paths; their cached per-row functions avoid repeated user calls for unchanged rows.
+Some aggregate membership paths also scan keys.
+
+With an [editable keyed source](collection-updates.fsx#direct-edits), an existing-key write avoids
+a whole-input collection pass and preserves the key array. This does not make every view's
+membership or order processing proportional to the changed rows.
 
 :::
 

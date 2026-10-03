@@ -17,6 +17,8 @@ These are implemented and covered by tests.
 
 - **Reactive core.** Signals, memos, effects and owners, with automatic dependency tracking, height-ordered
   updates and an equality cutoff. See [Getting started](../guide/getting-started.md).
+- **Per-node equality.** Typed comparers for signals, memos, split effects and boundaries, overriding
+  the graph's default value cutoff. See [Equality](../guide/equality.md#per-node-comparers).
 - **Pending channel and boundaries.** A propagating "not ready" status, with `createSuspense`,
   `createErrorBoundary` and `createBoundary` to decide what to show in the meantime. See
   [Suspension](suspension.md).
@@ -31,16 +33,22 @@ These are implemented and covered by tests.
 - **C# package.** `Ranvier.CSharp` with delegate-based factories, `Tracing`, `ReactiveBindings` for
   `INotifyPropertyChanged` and `INotifyDataErrorInfo`, and `ReactiveCommand`, an `ICommand` whose `CanExecute`
   and busy state come from graph nodes. `AsObservableCollection` raises `Add`, `Remove`,
-  `Move` and `Replace` changes in place of `Reset`. Previous values reach C# through a seed or
+  `Move` and `Replace` changes after population; initial population and reset recovery use `Reset`.
+  Value-only updates consume settled-value deltas. Previous values reach C# through a seed or
   `SettledOr`/`TrySettled`, without `ValueOption`. See [C#](../guide/csharp.md).
-- **Native AOT and trimming.** The packages publish under Native AOT with no trim or AOT warnings, checked
-  in CI. See [Installation](../guide/installation.md#native-aot-and-trimming).
+- **Native AOT and trimming.** CI publishes untraced package smoke applications under .NET 10 for
+  `linux-x64` with no trim or AOT warnings. This covers that configuration, not every traced build or
+  deployment target. See [Installation](../guide/installation.md#native-aot-and-trimming).
 - **F# application patterns.** `createEditable` and `createDraft` for values seeded from upstream and edited
   locally, and forms as records of signals. See [Editable values and forms](../guide/forms.md).
 - **MVU bridge.** The `Ranvier.Elmish` package: `Mvu`, which reads an Elmish-style model through selector memos. See
   [Migrating from Elmish](../guide/elmish.md).
-- **Projection key readers.** `NewKeyReader` reports the keys added, removed and replaced since a reader last
-  looked, and the order they now hold. See [Reading changes](../guide/projections.fsx#reading-changes).
+- **Editable keyed collections.** `createKeyedCollection` provides direct row edits in insertion order,
+  with batched `Edit` callbacks and the existing projection operators. See
+  [Direct edits](../guide/collection-updates.fsx#direct-edits).
+- **Projection change readers.** `NewKeyReader` reports membership and order; `NewValueReader` also
+  reports unequal settled row values. Readers have independent bounded cursors and return a reset
+  on their first read or after overflow. See [Reading changes](../guide/projections.fsx#reading-changes).
 - **Serialised thread affinity.** `ThreadAffinity.Serialised` admits one thread at a time on the construction
   context, for hosts such as Blazor Server. See [Serialised hosts](contracts.md#serialised-hosts) and
   [Blazor Server](../guide/blazor-server.md).
@@ -57,10 +65,12 @@ These are implemented and covered by tests.
 
 None of these is available. Each one is an open question about whether and how it fits.
 
-- **A drop-while-running flight policy.** A policy that ignores a new run while one is in progress, as R3's
-  `Drop` and CommunityToolkit's `AsyncRelayCommand` do.
+- **A drop-while-running flight policy.** A policy that ignores a new run while one is in progress,
+  analogous to [R3's `AwaitOperation.Drop`](https://github.com/Cysharp/R3#asyncawait-support).
+  Command gating through `CanExecute` is a separate feature already available in `ReactiveCommand`.
 - **Debounce and throttle.** As a flight policy or as a combinator.
-- **Projection value readers and delta views.** Key readers ship; the next stages are readers that report the
-  rows whose values changed, then views that apply deltas instead of re-reading their upstream keys.
+- **More incremental collection views.** Map membership consumes upstream key deltas. Filter, sort,
+  grouping and some aggregate membership paths still scan keys; further delta processing remains
+  under consideration.
 
 The [Ecosystem](ecosystem.md) page lists the current gaps these items address.

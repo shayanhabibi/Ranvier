@@ -5,7 +5,7 @@ order: 1
 
 > **Preview** — Ranvier is pre-release; its APIs may change.
 
-**Status: Implemented.** Ranvier compiles with Fable, so the same reactive graph runs in JavaScript as well as on .NET. The .NET test suite runs against the compiled engine under Node.js. No package is published yet, for either target. This page lists where the two targets differ.
+**Status: Implemented, not yet packaged for Fable.** Ranvier compiles with Fable and runs its shared test suite against the compiled engine under Node.js. [.NET preview packages](https://www.nuget.org/packages/Ranvier) are published; a Fable package is not yet published. This page lists the platform differences, including cases where evaluation timing or equality differs.
 
 ## Intent
 
@@ -20,7 +20,7 @@ The engine already compiles under Fable, and a smoke check runs the compiled eng
 - scope disposal and error boundaries;
 - the equality cutoff;
 - keyed projections, selectors and index projections;
-- `AsyncSource`, and `AsyncMemo` through `createAsync` and `createAsyncWith`, under all three flight policies.
+- `AsyncSource`, and `AsyncMemo` through `createAsync` and `createAsyncWith`, under all four flight policies.
 
 Ranvier's engine compiles under Fable in this repository, and the .NET test suite runs against it under Node.js (`dotnet fsi build.fsx test-fable`), once untraced and once with the trace log compiled in. Tests that exercise a .NET-only facility, such as threads, garbage collection or `ObservableCollection`, are compiled out. The run writes `docs/.ai/fable-compat.md`: the tests that pass, fail and are excluded, in each file. Every failure listed there is one of the differences below. No Fable package is published, and the Fable build is not part of Ranvier's release process yet.
 

@@ -357,7 +357,7 @@ List.ofSeq view
 
 :::details UI notifications, cost and lifetime
 
-The collection raises the fewest item events that turn its old contents into the new ones, so a bound
+The collection reconciles membership and order with individual item events, so a bound
 list control keeps its unchanged items:
 
 - The first population raises one `Reset`, followed by one `Add` per value.
@@ -366,7 +366,12 @@ list control keeps its unchanged items:
   neighbours raises one `Move`.
 - A row whose value changed, under the graph's equality policy, raises one `Replace`.
 
-Each change costs O(N log N): the effect compares every row against a copy of the previous contents.
+After initial population, value-only updates consume settled-value reader deltas and replace only
+changed accepted values; they do not poll every row. Membership/order reconciliation scans the visible
+keys and uses an O(N log N) positional diff. Initial population, reset recovery and recovery after a
+notification failure rebuild with `Reset` followed by `Add` events. A row settling for the first time
+can also require membership reconciliation. Pending or failed rows keep their last accepted value;
+rows that have never settled are omitted.
 
 The updates stop when the calling scope is disposed or re-runs, or when the projection is disposed.
 
@@ -377,6 +382,10 @@ The updates stop when the calling scope is disposed or re-runs, or when the proj
 `NewKeyReader ()` returns a reader of the projection's membership and order, owned by the calling scope.
 Each `Read ()` reports the keys added, removed or replaced since the reader's previous read, in time
 proportional to the changes.
+
+`NewValueReader ()` returns the same kind of reader, adding `KeyChange.Changed` for unequal
+settled row values. It works on source projections and on collection views, including the
+`Rows` of an [editable keyed collection](collection-updates.fsx#direct-edits).
 
 
 *)
@@ -415,6 +424,49 @@ let delta = reader.Read ()
 A key reader reports membership and order; read row values with `Get` for the keys in `Changes`. Each
 reader costs one map update per added or removed key, and a projection without readers pays one null
 check.
+
+:::
+
+### Settled row changes
+
+After the first reset, renaming todo 2 reports its key even though membership and order stay the same.
+
+*)
+let valueReader = titles.NewValueReader ()
+valueReader.Read () |> ignore
+
+todos.Value <-
+    todos.Value
+    |> List.map (fun t -> if t.Id = 2 then { t with Title = "Final review" } else t)
+
+let valueDelta = valueReader.Read ()
+[ for change in valueDelta.Changes -> change.Key, change.Value ]
+(**
+
+```text
+[(2, Changed)]
+```
+
+`Changes` contains keys rather than value snapshots. Read the current row through `Get` or
+`TryGet` and handle its pending/error state there. Multiple writes between reads coalesce:
+these deltas are refresh hints, not a history of every intermediate value. Membership changes
+take precedence over `Changed` for the same key, so an added or replaced row needs one refresh.
+
+:::details Observation, equality and lifetime
+
+- Settled values compare under `GraphOptions.Equality`. Status changes alone do not report
+  `Changed`. Pending or failed rows retain their last accepted settled value; their next unequal
+  settled value, or their first settled value, reports a change.
+- Value readers share row observation and accepted values, while each keeps its own bounded
+  cursor. The first value read evaluates all visible rows. Later value-only pulls
+  evaluate suspect rows; membership processing can still scan keys.
+- `Read` tracks membership and the value observation, so it can drive an effect on row changes.
+  If the projection's pass is pending or failed, `Read` raises and preserves its unread changes.
+- First reads, overflow and projection disposal report `IsReset` with empty `Changes`;
+  rebuild from `delta.Keys`. `Positional` handles membership and order, not row-value refreshes.
+- Readers belong to the scope that created them. Dispose a reader to stop it early; disposing
+  the last value reader releases shared observation. Reading a disposed reader raises
+  `ObjectDisposedException`.
 
 :::
 

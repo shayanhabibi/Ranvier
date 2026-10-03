@@ -150,7 +150,8 @@ show refused.TryValue, show faulted.TryValue
 
 `CancelPrevious` and `KeepLatest` publish the same values. They differ only in whether the
 superseded flight's `CancellationToken` is cancelled. Pass the token to the IO the flight performs,
-so that `CancelPrevious` stops the superseded IO.
+so that `CancelPrevious` requests cancellation of superseded IO. The operation must cooperate with
+the token; cancellation does not guarantee that work or external side effects stop.
 
 Compare this queued replay with the default-policy map below. Three flights start; the
 newest answer waits until both older answers can be applied in order.
@@ -203,8 +204,11 @@ save, where the settled value must still match the latest inputs.
 
 :::details Compare policies with other .NET libraries
 
-The same policies under the names other .NET libraries use. A name appears only where its behaviour
-matches exactly:
+The following names describe related scheduling choices in
+[R3](https://github.com/Cysharp/R3#asyncawait-support) and
+[SignalsDotnet](https://github.com/fedeAlterio/SignalsDotnet). They are scheduling parallels, not
+interchangeable APIs or identical state semantics: stream operators and computed signals do not share
+Ranvier's demand-driven flights, `Previous.Settled` or propagating pending channel.
 
 | Ranvier | R3 `AwaitOperation` | SignalsDotnet `ConcurrentChangeStrategy` |
 |---------|---------------------|------------------------------------------|
@@ -231,7 +235,9 @@ CommunityToolkit's `AsyncRelayCommand` has no async-memo counterpart. `AllowConc
 gate on `CanExecute` for a command with no result: `false` reports the command as not executable while
 it runs, and `true` lets executions overlap. An async memo has no `CanExecute`: every change starts a
 new flight, or under `FinishCurrent` a trailing one. For commands, C# has `ReactiveCommand`, whose
-`CommandPolicy.Disable` matches `AllowConcurrentExecutions = false`; see [C#](csharp.md#commands).
+`CommandPolicy.Disable` provides analogous command gating to
+[`AllowConcurrentExecutions = false`](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/relaycommand#handling-concurrent-executions);
+this is not an async-memo drop policy. See [C#](csharp.md#commands).
 Debounce and throttle are not implemented either, as a policy or as a combinator.
 
 :::

@@ -75,6 +75,34 @@ memos and signals, inside any existing view model; `ReactiveObject` is a base cl
 `ReactiveCommand` is an `ICommand` whose `CanExecute` and busy state come from graph nodes; see
 [Commands](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/csharp.md#commands).
 
+## Editable collections
+
+Create an editable source inside `graph.Run`, then derive views from its `Rows`:
+
+```csharp
+var items = Reactive.KeyedCollection<(int Id, string Title), int>(item => item.Id);
+items.Edit(edit =>
+{
+    edit.AddOrUpdate((1, "Write"));
+    edit.AddOrUpdate((2, "Test"));
+});
+var titles = items.Rows.Select(item => item.Title);
+using var reader = titles.NewValueReader();
+reader.Read();
+items.AddOrUpdate((2, "Retest"));
+var delta = reader.Read();
+```
+
+An existing-key write preserves its position and updates its row directly. New keys append;
+`Remove` and `Clear` change membership. `Edit` batches synchronous writes and retains applied
+edits if the callback throws.
+
+`NewKeyReader` reports membership and order; `NewValueReader` also reports `KeyChange.Changed`
+for unequal settled values under the graph policy. First reads and overflow report a reset.
+Deltas contain coalesced key hints: read current values through the projection and handle its
+pending/error states there. Dispose readers to release shared observation. See the
+[C# collection guide](https://shayanhabibi.github.io/Ranvier/guide/csharp/#collections).
+
 ## Tracing
 
 `Tracing.Named` and `Tracing.Label` compile in every build. The queries (`Origin`, `Why`, `WhyDepth`, `WhyNot`,

@@ -332,7 +332,9 @@ then one object per event. `Trace.dump graph path` writes the same text to a fil
 
 :::
 
-The same program produces the same dump, byte for byte, on every run of a single-threaded graph.
+The verification sample produces byte-identical dumps across repeated runs with identical inputs and
+event order. Single-threaded access alone does not make async completion order, source sites or payload
+formatting deterministic for every program.
 `Trace.events graph` returns the raw `TraceEvent[]` for your own analysis.
 
 ## Limits
@@ -344,14 +346,15 @@ Ship against the untraced `Ranvier` package.
 
 :::details Platform, lifetime and query limits
 
-- **Fable records, without dumps.** A Fable build records the log that [signal maps](signal-maps.md)
-  draw; `Trace.dump` is absent there.
+- **Fable records and text dumps.** A Fable build records the log that [signal maps](signal-maps.md)
+  draw and exposes `Trace.dumpText`; file-writing `Trace.dump` and `TraceModel.parseDump` are absent.
 - **Development builds only.** A traced build is slower and allocates per event. Ship against the
   untraced `Ranvier` package.
-- **The log is unbounded.** Every event stays in memory for the graph's lifetime. A long session
-  grows without limit; a checkpoint to trim it is planned.
-- **No values.** The log records that a node moved, not its old or new value. `history` lists runs
-  without their values; value capture is planned.
+- **The log retains events.** Events stay in memory for the graph's lifetime, up to the implementation's
+  sequence limit. There is no eviction or checkpoint API.
+- **Payloads retain values.** Writes, transitions and settlements can retain values or exceptions in
+  event payloads. These are object references, not immutable historical snapshots: later mutation can
+  affect their formatting. Retention can keep application objects alive for the log's lifetime.
 - **Flights are async memo flights.** `waitingOn` lists the flights of an `AsyncMemo`. An
   `AsyncSource` has no flights: its settles appear as `Settle` and `Fail` events.
 - **Combinator nodes carry the site of the combinator call.** Rows and internal nodes of `filter`,
@@ -361,8 +364,9 @@ Ship against the untraced `Ranvier` package.
 - **Dumps run between flushes, on the graph thread.** `Trace.dump` and `Trace.dumpText` raise
   `InvalidOperationException` off the graph's thread or inside a flush, a discharge or a
   computation's run. Inside `batch` they succeed. The queries run at any time on the graph thread.
-- **Unchecked graphs order events by lock.** A graph with `ThreadAffinity = Unchecked` records
-  safely from several threads, but its event order, and so its dump, can differ between runs.
+- **Trace locking is not graph synchronization.** The event log serializes recording, but
+  `ThreadAffinity = Unchecked` does not make graph operations safe to run concurrently. The caller must
+  still serialize graph access; async event order can differ between runs.
 - **Labels are names, not keys.** Nodes sharing a label under one owner are told apart by creation
   order: the second takes `#1`, the third `#2`.
 
@@ -372,7 +376,7 @@ Ship against the untraced `Ranvier` package.
 
 :::details Verification gates for trace changes
 
-`tools/verify-trace.fsx` gates every change to the trace code:
+The repository provides `tools/verify-trace.fsx` to check trace changes:
 
 - The untraced Release IL references no trace type and equals the IL of the merge base, method by
   method. The packed DLL's public surface equals a committed baseline plus `Trace.named` and

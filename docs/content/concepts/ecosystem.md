@@ -20,44 +20,63 @@ effects, owners, height-ordered updates and equality cutoff) is well established
 provide it too.
 
 It is early. The project is pre-release and has one maintainer. It targets `net10.0`, `net8.0` and `netstandard2.1`, and its public
-API is designed for F#. Evaluate it with that in mind.
+API includes an F# core and a delegate-based C# facade. Evaluate it with that in mind.
 
 ## Related libraries
 
 | Library | Tracking | Update model | Async state |
 | --- | --- | --- | --- |
-| [FSharp.Data.Adaptive](https://github.com/fsprojects/FSharp.Data.Adaptive) | Explicit, through `adaptive { }` and `let!` | Level-ordered, pull | Outside the adaptive model |
-| [SignalsDotnet](https://www.nuget.org/packages/SignalsDotnet) | Automatic, on read | Push, built on R3 | `IsComputing` flag, cancellation strategies |
-| [R3](https://github.com/Cysharp/R3) / System.Reactive | Explicit subscriptions | Push streams | Stream events; errors and completion end the stream |
-| [Fable.Ripple](https://github.com/fable-hub/Fable.Ripple) | Automatic, dynamic | Pull, synchronous settle | Not part of the node model |
-| [Solid 2.0](https://docs.solidjs.com/) (via [Partas.Solid](https://github.com/shayanhabibi/Partas.Solid)) | Automatic, dynamic | Height-ordered | Pending channel and boundaries |
+| [FSharp.Data.Adaptive](https://github.com/fsprojects/FSharp.Data.Adaptive) | Dynamic, through adaptive APIs and token-bearing reads | Level-ordered, push invalidation / pull evaluation | Application-defined state; no documented built-in propagating pending channel |
+| [SignalsDotnet](https://github.com/fedeAlterio/SignalsDotnet) | Automatic, on read | R3-based; unobserved computed signals do no work | `IsComputing`, exception handling, cancellation strategies |
+| [R3](https://github.com/Cysharp/R3) / [System.Reactive](https://github.com/dotnet/reactive) | Explicit stream composition | Push streams | Rx `OnError` is terminal; R3 `OnErrorResume` is recoverable |
+| [Fable.Ripple](https://github.com/fable-hub/Fable.Ripple) | Automatic, dynamic | Pull, synchronous settle | Application-managed async-state values |
+| [Solid 2.0 RC](https://github.com/solidjs/solid/discussions/2995) | Automatic, dynamic | Batched reactive graph | Pending propagation and loading boundaries |
 | Ranvier | Automatic, dynamic | Height-ordered, pull | Pending channel and boundaries |
 
 ### FSharp.Data.Adaptive
 
 A mature F# incremental computation library, used by the Aardvark platform. Its adaptive collections
-(`aset`, `alist`, `amap`) pass deltas from one stage to the next. Ranvier's
-[projections](../guide/collections.fsx) are keyed collections with `filter`, `map`, `sortBy`, `groupBy` and
-fold views. Each view re-reads its upstream keys on a membership or order change. A key reader reports the keys
-added, removed and replaced, and the new order; readers of value changes and views that apply deltas are still in
-design. Dependencies are threaded explicitly through the `adaptive { }` computation expression, which makes them
-visible in the code. If you need delta-based incremental collections or a proven F# library today, use Adaptive.
+(`aset`, `alist`, `amap`) pass deltas from one stage to the next and provide an established family of
+incremental operators. Its adaptive APIs and `let!` expose the inputs in code; the engine registers and
+maintains dynamic dependencies during token-bearing evaluation. See the
+[Adaptive model](https://fsprojects.github.io/FSharp.Data.Adaptive/) and
+[AVal API](https://fsprojects.github.io/FSharp.Data.Adaptive/reference/fsharp-data-adaptive-avalmodule.html).
+
+Ranvier also implements delta-based incremental collection paths. Its
+[editable keyed sources](../guide/collection-updates.fsx#direct-edits) update an existing row without
+rescanning a source list or replacing the key array. Map views consume upstream membership deltas and
+retain unchanged rows. Key readers report membership and order; value readers observe changed rows and
+report unequal settled values. The C# `AsObservableCollection` adapter uses those value deltas for
+value-only replacements rather than polling every row.
+
+That closes the gap for these paths, not for every collection operator. Ranvier's filter, sort and grouping
+membership paths still scan keys; sorting changed ranks uses a full sort. Some aggregate membership paths
+also scan keys, and source membership changes copy the ordered key array. Map views reuse the upstream
+array. Whole-list projection sources still reconcile their input when the list changes. See
+[view costs](../guide/collection-views.fsx) and
+[reader and adapter costs](../guide/projections.fsx#reading-changes).
+
+Adaptive offers sets, maps and indexed lists with a broader established incremental API; Ranvier combines
+keyed rows with ownership and propagating pending/failed states. Compare the operators, reset paths and
+update patterns your workload needs. Neither library's use of deltas proves every operation costs only
+the number of changed rows, and this page makes no comparative performance claim.
 
 ### SignalsDotnet
 
 A published signals library for .NET MVVM, with integrations listed for WPF, Avalonia, MAUI, Uno, Blazor,
 Unity and Godot. It tracks automatically and exposes async computations through an `IsComputing` flag.
-It is built on R3, so every signal is also an `Observable<T>`, and every signal implements
+It is built on R3 and exposes `Values` and `FutureValues` observable streams. Signals implement
 `INotifyPropertyChanged`. `CollectionSignal` wraps an `ObservableCollection` and reacts both to the
 collection being replaced and to its contents changing. The `SignalsDotnet.Blazor` package provides a
 `TrackedScope` component that re-renders only the region of markup whose signals changed.
 `SignalsDotnet.Query` and `SignalsDotnet.AspNetCore`, which streams projections as server-sent events, are
-in alpha. Its cancellation strategies for concurrent async runs are a direct counterpart of Ranvier's
-[flight policies](async-graph.md#superseded-flights). If you want signals in a C# view model now, it is
-available and documented.
+in alpha. Its documented `CancelCurrent` and `ScheduleNext` strategies offer cancellation/restart and
+one trailing run. These are scheduling parallels to some Ranvier
+[flight policies](async-graph.md#superseded-flights), not identical async-state contracts.
 
-The two libraries differ mainly in how async state travels: as a flag that each consumer checks, or as a
-status that propagates to a boundary. In SignalsDotnet, writes wrapped in an atomic operation run each effect
+One distinction is how async state travels: SignalsDotnet exposes `IsComputing` and configurable exception
+handling; Ranvier propagates pending and failed states through dependent reads to a boundary. SignalsDotnet
+also documents linked signals, reactive dictionaries and source generators. In SignalsDotnet, writes wrapped in an atomic operation run each effect
 once, at the end. Its documentation does not say whether derived values update in height order.
 
 ### R3 and System.Reactive
@@ -65,7 +84,10 @@ once, at the end. Its documentation does not say whether derived values update i
 Push-based streams, familiar to most .NET developers, with a large operator vocabulary. They model events
 over time. A derived value that must stay consistent across several inputs is a different shape of
 problem, and Ranvier addresses that shape. For event pipelines, throttling, windowing and time-based
-composition, a stream library is the right tool.
+composition, a stream library provides operators Ranvier does not implement. Streams can also represent
+state; the distinction here is graph-wide settling versus independent emissions. R3 supports recoverable
+`OnErrorResume` notifications and ends via `OnCompleted(Result)`; System.Reactive's `OnError` terminates
+the subscription, with recovery available through operators such as `Catch` and `Retry`.
 
 Both are active. System.Reactive 7.0.0 was released in July 2026. R3 is a redesign by the author of
 ReactiveProperty, whose README now says "If you're developing a new application, consider using R3 instead
@@ -76,22 +98,26 @@ System.Reactive by default. The `ReactiveUI.Reactive` package keeps System.React
 ### Fable.Ripple
 
 A fine-grained reactive library written from scratch in F# for Fable. It ships a DOM layer, forms, a router
-and component tests. Its core is written with careful attention to the code Fable generates. It promises
+and component tests, currently as beta packages. Its core is written with careful attention to the code Fable generates. It promises
 that a write settles synchronously, with no scheduler tick. For browser UI in F# without Solid, Ripple
-provides a complete stack, and Ranvier provides only a core.
+provides those UI packages, while Ranvier provides a core. Ripple documents
+[application-managed async state](https://github.com/fable-hub/Fable.Ripple/blob/main/docs/content/ripple-dom/async-data.md)
+rather than built-in pending propagation.
 
 ### Solid (through Partas.Solid)
 
-Ranvier's suspension model follows Solid 2.0's signals: the pending channel, status-parameterised
-boundaries, re-running bodies from the top, and recovery driven by re-reads. In the browser, Partas.Solid
-binds Solid's own signals directly. They are what Solid's renderer reads, and they add no F# runtime to the
-bundle. For a Partas.Solid application, use Solid's signals.
+Ranvier's suspension model is inspired by
+[Solid 2's async design](https://github.com/solidjs/solid/blob/next/documentation/solid-2.0/05-async-data.md):
+pending propagation, boundaries and recovery through re-reads. Solid 2 remains a release candidate;
+scheduling, transitions, rendering and APIs are not interchangeable with Ranvier. Partas.Solid binds
+Solid's browser APIs. For a Partas.Solid application, use the Solid bindings supported by your installed
+version so the renderer observes its own graph. This does not imply every Solid 2 API is already bound,
+or that arbitrary Fable application code needs no Fable runtime.
 
 ### Prior art
 
 Height-ordered, cutoff-aware recomputation descends from Adapton, Jane Street's Incremental and
-FSharp.Data.Adaptive. The [Clef](https://clef-lang.com) language specification describes a Solid-style
-reactive surface over incremental nodes, and it leaves asynchronous suspension unspecified.
+FSharp.Data.Adaptive. These share incremental-computation ideas, rather than identical APIs or async contracts.
 
 ## Diamonds without glitches
 
@@ -115,7 +141,7 @@ d = 23
 d = 34
 ```
 
-The same diamond in System.Reactive, with `CombineLatest`, emits once per leg. The first emission after each
+In the following synchronous System.Reactive subscription topology, `CombineLatest` emits once per leg. The first emission after each
 write combines the new `b` with the old `c`, a state the source never had.
 
 ```fsharp
@@ -136,23 +162,24 @@ d = 24
 d = 34
 ```
 
-ReactiveUI's multi-property `WhenAnyValue` behaves the same way: setting `A` and then `B` first emits the new
-`A` with the old `B`. The usual workarounds are `DelayChangeNotifications ()` or `Throttle (TimeSpan.Zero)`.
-Ranvier updates derived values in height order, and `d` runs after both of its inputs. Two writes that
+These intermediate emissions follow `CombineLatest`'s stream contract. This example does not imply every
+Rx architecture produces inconsistent state: an application can derive both branches from one combined
+state emission. Buffering or scheduling also changes delivery, but is not by itself a graph-consistency
+guarantee. Ranvier updates this derived graph in height order, and `d` runs after both inputs. Two writes that
 belong together go in one [`batch`](../guide/batch.md).
 
 ## Owners instead of hooks
 
-Ranvier has no rules of hooks. A node is an object held by reference, and its identity is independent of
-call order or line number, unlike React hooks or FuncUI's hook identity (FuncUI#212). A body may create
-nodes inside a branch or a loop, and each run may create a different set. Each node belongs to the
-[owner](contracts.md#ownership) that was current at its creation, and the next run of that owner disposes
-it. The cost is that state created in a body starts again on each run: state that has to survive a re-run
-lives outside the body.
+Ranvier node identity belongs to the node object and does not depend on a render-time hook call position.
+An owning body, such as `createMemoWith` or an effect, may create owned nodes inside branches and loops;
+each run may create a different set. Pure memo bodies have stricter creation rules. Owned nodes belong to
+the [owner](contracts.md#ownership) current at creation, and its next run disposes them. Signals and async
+sources are unowned. State that must survive a body's re-run lives outside that body.
 
 ## Where Ranvier may fit
 
-These are directions the design is aimed at. The XAML bridge ships in Ranvier.CSharp; the others have no integration yet.
+The C# binding adapters and Elmish bridge ship. Other entries below describe application patterns or
+recipes, not framework-specific renderer packages.
 
 - **XAML view models (WPF, Avalonia, MAUI, Uno, WinUI).** `ReactiveBindings` in
   [Ranvier.CSharp](../guide/csharp.md#binding-to-xaml) is the `INotifyPropertyChanged` bridge, usable inside an
@@ -161,7 +188,7 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   dispatcher follows the UI thread's `SynchronizationContext`, and each handler runs on the context it subscribed
   from. No framework-specific package ships yet.
 - **Models shared between server and browser.** The same F# model code could run on .NET (server rendering,
-  tests, desktop) and through Fable, with suspension that matches Solid 2.0. The Fable target is implemented
+  tests, desktop) and through Fable, with Ranvier's pending and failure channels. The Fable target is implemented
   and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 - **Deterministic async in tests.** With `ManualDispatcher`, a test chooses when each flight settles and
   reads Pending, Ready and Failed states as values, with no UI thread involved. See
@@ -181,17 +208,18 @@ These are directions the design is aimed at. The XAML bridge ships in Ranvier.CS
   `INotifyDataErrorInfo`), `ReactiveCommand` (`ICommand` with a derived `CanExecute`) and
   `Projection.AsObservableCollection`.
 - No debounce or throttle, and no flight policy that drops a new run while one is in progress.
-- Projection key readers report membership and order changes only. Readers of row value changes, and views that
-  apply deltas instead of re-reading their upstream keys, are in design.
+- Further collection incrementality: the scanning and sorting paths described above remain. Readers
+  coalesce changes between reads and use bounded logs with reset recovery; they describe current state,
+  not an event history. Coalescing is a state-delta contract, not evidence of absent incrementality.
 - The Fable target is implemented and not yet published; see [Fable (JavaScript) target](../fable/index.md).
 
 The [roadmap](roadmap.md) lists which of these are under consideration.
 
 ## Choosing
 
-- Use **FSharp.Data.Adaptive** for incremental collections, or for a mature F# incremental library.
-- Use **SignalsDotnet** for signals in C# MVVM today.
+- Consider **FSharp.Data.Adaptive** for its established adaptive sets, maps, indexed lists and incremental operators.
+- Consider **SignalsDotnet** for its R3 integration, MVVM/UI packages and documented signal features.
 - Use **R3 or System.Reactive** for event streams and time-based composition.
 - Use **Solid through Partas.Solid**, or **Fable.Ripple**, for browser UI in F#.
 - Consider **Ranvier** when async loading and error states should propagate through derived values to a
-  boundary, and you can work with a pre-release F# library.
+  boundary, with owned computations and incremental keyed rows, in F# or C#. Its packages are pre-release.

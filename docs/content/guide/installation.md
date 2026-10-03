@@ -20,7 +20,8 @@ Choose the package for your language, then continue with [Getting started](getti
 :::
 
 :::tip Prefer .NET 10
-Targets below .NET 9 lack key exception-handling optimisations used by Ranvier.
+The [pending-throw measurements](../concepts/suspension.md#what-a-throw-costs) document runtime-specific
+exception costs. They are measurements of that path, not a guarantee of faster application workloads.
 :::
 
 ## From NuGet
@@ -39,10 +40,10 @@ dotnet add package Ranvier --prerelease
 
 :::
 
-:::tab CPM
+:::tab Package reference
 
 ```xml
-<PackageReference Include="Ranvier" Version="0.1.0-preview.1" />
+<PackageReference Include="Ranvier" Version="0.1.0-preview.4" />
 ```
 
 :::
@@ -59,10 +60,10 @@ dotnet add package Ranvier --prerelease
 dotnet add package Ranvier.CSharp --prerelease
 ```
 :::
-:::tab CPM
+:::tab Package reference
 
 ```xml
-<PackageReference Include="Ranvier.CSharp" Version="0.1.0-preview.1" />
+<PackageReference Include="Ranvier.CSharp" Version="0.1.0-preview.4" />
 ```
 :::
 ::::
@@ -79,10 +80,10 @@ dotnet add package Ranvier.Elmish --prerelease
 
 :::
 
-:::tab CPM
+:::tab Package reference
 
 ```xml
-<PackageReference Include="Ranvier.Elmish" Version="0.1.0-preview.1" />
+<PackageReference Include="Ranvier.Elmish" Version="0.1.0-preview.4" />
 ```
 
 :::
@@ -96,8 +97,10 @@ The MVU bridge, `Mvu`, ships as its own package, `Ranvier.Elmish`, which depends
 
 ## Native AOT and trimming
 
-On `net8.0` or later, `Ranvier`, `Ranvier.CSharp` and `Ranvier.Elmish` support trimming and Native
-AOT. CI tests both. Publish with `<PublishAot>true</PublishAot>`.
+The untraced `Ranvier`, `Ranvier.CSharp` and `Ranvier.Elmish` packages support trimming and Native AOT.
+CI publishes smoke applications on .NET 10 for `linux-x64` and treats trim/AOT warnings as errors.
+That validates this configuration; test your own deployment target and dependencies. Publish with
+`<PublishAot>true</PublishAot>`.
 
 :::warning Traced builds and AOT
 Traced packages retain reflection-based `ToString` implementations in their trace types. Their

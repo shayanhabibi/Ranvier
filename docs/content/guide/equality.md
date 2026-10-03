@@ -2,7 +2,8 @@
 title: Equality
 ---
 
-`GraphOptions.Equality` sets the comparison for every signal and memo in the graph.
+`GraphOptions.Equality` sets the default value comparison for signals and memos in the graph.
+Individual nodes can override it with a typed comparer.
 
 - `JsIdentityPolicy`, the default, follows JavaScript `===`.
 - `StructuralPolicy` uses `EqualityComparer<'T>.Default`.
@@ -87,11 +88,51 @@ Writing the same object instance back is cut off on both targets.
 
 :::
 
+## Per-node comparers
+
+Use a `WithComparer` factory to give one node an `IEqualityComparer<'T>`. Other nodes keep the
+graph policy. Call these factories inside an active graph, as with their ordinary counterparts.
+
+```fsharp
+let name = createSignalWithComparer System.StringComparer.OrdinalIgnoreCase "Ada"
+let label =
+    createMemoWithComparer System.StringComparer.OrdinalIgnoreCase (fun _ -> name.Value.Trim())
+
+name.Value <- "ADA"
+printfn "%s" name.Value // Ada: an equal signal write keeps the stored value
+```
+
+A signal rejects an equal write. A memo caches its newly computed result but suppresses
+downstream work when it compares equal. The comparer controls settled-value cutoffs; pending,
+failed, waiting and caught-error state changes still propagate.
+
+The opt-in factories are `createSignalWithComparer`, `createMemoWithComparer`,
+`createOwningMemoWithComparer`, `createEffectOnWithComparer`, `createSuspenseWithComparer`,
+`createErrorBoundaryWithComparer` and `createBoundaryWithComparer`. Their ownership, purity and
+previous-value rules match the ordinary factories. Comparers are selected once at construction.
+Async sources, async memos and collection value cutoffs continue to use the graph policy.
+
+:::details Invalid comparers and comparer failures
+Null comparers are rejected at construction. If a signal's comparer throws, the signal stays
+unchanged and the exception reaches its writer. On a computed node, a comparer exception fails
+the node through its existing error handling. A boundary's recovery handler handles body errors;
+a comparer exception fails the boundary directly.
+:::
+
+From C#, pass the comparer as an additional argument:
+
+```csharp
+var name = Reactive.Signal("Ada", StringComparer.OrdinalIgnoreCase);
+var label = Reactive.Memo(() => name.Value.Trim(), StringComparer.OrdinalIgnoreCase);
+```
+
+## Graph-wide policies
+
 :::details Define a custom equality policy
 
 Pass an `IEqualityPolicy` as `GraphOptions.Equality`. Its `Comparer<'T>` supplies the comparer for
-each value type and is called once when a node is created. Individual nodes cannot take their own
-comparers.
+each value type and is called once when a node using the graph policy is created. A per-node
+comparer overrides it for that node.
 
 For example, this graph treats strings that differ only in case as equal:
 

@@ -120,8 +120,8 @@ was kept.
 
 **A result type on every read.** `Reading<'T>` with a computation expression that stops at `Pending` is
 sound, does not allocate, and compiles under Fable. However, every helper between the read and the memo
-would then have to return `Reading<_>` as well. This is the call-site colouring that Solid 2.0 removed when
-it made async a property of every computation. `Reading<'T>` therefore ships as the result of `TryValue`,
+would then have to return `Reading<_>` as well. Ranvier's pending channel avoids this call-site colouring,
+inspired by Solid 2's release-candidate async design. `Reading<'T>` ships as the result of `TryValue`,
 for code that wants to handle Pending explicitly, but it is not the default read.
 
 **F# resumable code.** Resumable state machines (the machinery behind `task { }`) could in principle pause
@@ -151,8 +151,10 @@ added about 4 ns over a plain call. Throw cost grows roughly linearly with stack
 30% cheaper on .NET 10 and 11 than on .NET 9.
 
 Reusing a cached exception object does not help on .NET. Fresh throws measured slightly cheaper than cached
-ones on .NET 9, 10 and 11, so `NotReadyException` is allocated fresh for each throw. (In JavaScript, Solid
-reduces the cost of its throw by disabling stack capture. .NET has no equivalent.)
+ones on .NET 9, 10 and 11, so `NotReadyException` is allocated fresh for each throw. JavaScript can use
+thrown marker objects without an `Error` stack. Ranvier's .NET implementation has no supported way to
+disable runtime stack capture for this exception; overriding the rendered `StackTrace` does not avoid
+the capture cost.
 
 The number of throws depends on how many transparent reads hit pending sources, not on the size of the
 graph. The engine's own traversals, `TryValue`, and boundary checks do not throw. In a page-sized graph where

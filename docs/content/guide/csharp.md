@@ -174,6 +174,7 @@ The remaining factories cover async values, boundaries, scopes and collections.
 | `Root(owner => …)` | `createRoot` |
 | `CurrentOwner`, `RunWithOwner(owner, …)` | `getOwner`, `runWithOwner` |
 | `Projection(source, keyOf, map)` | `createProjection` |
+| `KeyedCollection<T, K>(keyOf)` | `createKeyedCollection` |
 | `IndexProjection(source, map)` | `createIndexProjection` |
 | `Lookup(source, f, affected)`, `Selector(source)` | `createLookup`, `createSelector` |
 
@@ -194,6 +195,23 @@ var shown = Suspense(() => name.Value, previous => previous, "Loading");
 :::details Construct a boundary with an explicit graph
 `Boundary<T>.Suspense`, `Errors` and `Catching` take the graph explicitly, with the seed before the handlers.
 :::
+
+### Per-node equality
+
+Pass an `IEqualityComparer<T>` to `Signal`, `Memo`, `OwningMemo`, `EffectOn`, `Suspense`,
+`ErrorBoundary` or `Boundary` to override the graph's value cutoff for that node. Seeded memo
+and boundary forms also have comparer overloads.
+
+```csharp
+var name = Signal("Ada", StringComparer.OrdinalIgnoreCase);
+var label = Memo(() => name.Value.Trim(), StringComparer.OrdinalIgnoreCase);
+EffectOn(() => label.Value, Console.WriteLine, StringComparer.OrdinalIgnoreCase);
+```
+
+An equal signal write keeps its stored value. A memo caches its new result but suppresses
+downstream work when it compares equal. Pending/error state transitions still propagate.
+Omit the comparer to use `GraphOptions.Equality`; null comparers throw `ArgumentNullException`.
+See [Equality](equality.md#per-node-comparers) for comparer failures and supported factories.
 
 ## Async values
 
@@ -321,6 +339,30 @@ var firstPage = open.Take(() => pageSize.Value);
 Use `rows.TryGetValue(key, out var row)` for a row that may be absent. `Lookup` supports the same
 method. Use `AsObservableCollection` to bind a projection to a WPF, Avalonia or MAUI list.
 
+### Editable keyed collections
+
+For updates arriving one item at a time, use `KeyedCollection<T, K>` inside an active graph:
+
+```csharp
+var items = KeyedCollection<(int Id, string Title), int>(item => item.Id);
+items.Edit(edit =>
+{
+    edit.AddOrUpdate((1, "Write"));
+    edit.AddOrUpdate((2, "Test"));
+});
+var titles = items.Rows.Select(item => item.Title);
+items.AddOrUpdate((2, "Retest"));
+```
+
+`AddOrUpdate` preserves an existing key's position and writes its row directly. New keys append.
+`Remove(key)` returns false for an absent key; `Clear()` removes all rows. Removing and re-adding
+a key creates a new row at the end, reported as `Replaced` to a reader that saw the old row.
+Keys compare structurally; row values use the graph policy.
+
+`Edit` batches synchronous writes. Applied edits survive a throwing callback; it does not roll
+back or span asynchronous work. Removing a key searches insertion order in O(N), and membership
+passes copy key order. The collection is owned by its creating scope and can be disposed early.
+
 :::details Read collection changes directly
 
 `rows.NewKeyReader()` returns a disposable reader. Each `Read()` reports the keys added, removed
@@ -344,6 +386,38 @@ foreach (var (key, change) in delta.Changes)
 
 `delta.IsReset` asks for a rebuild from `delta.Keys`, and `delta.Positional` lists the index edits from
 `PreviousKeys` to `Keys`.
+
+Use `NewValueReader()` when the consumer also needs settled row-value changes:
+
+```csharp
+using var reader = titles.NewValueReader();
+reader.Read();
+items.AddOrUpdate((2, "Review"));
+var delta = reader.Read();
+if (delta.IsReset)
+{
+    foreach (var key in delta.Keys)
+        if (titles.TryGetValue(key, out var row)) Console.WriteLine(row);
+}
+else
+{
+    foreach (var (key, change) in delta.Changes)
+        if (change == KeyChange.Changed && titles.TryGetValue(key, out var row))
+            Console.WriteLine(row);
+}
+```
+
+The example prints the changed title. A full list consumer also handles `Added`, `Removed` and
+`Replaced`, and applies `Positional` for order changes. Deltas are coalesced key hints; use the
+projection to read current values and handle pending/error states there.
+
+The first read and overflow return a reset. Each reader has an independent bounded cursor.
+Value readers share observation of settled values under the graph policy: initial observation
+evaluates every visible row, then value-only pulls evaluate suspect rows. Pending and failed rows
+keep their last accepted value; status changes alone do not report `Changed`. Dispose readers
+to release observation. See [Reading changes](projections.fsx#reading-changes) for the full contract.
+
+`AsObservableCollection` uses this shared cache to refresh changed rows without polling every row.
 
 :::
 

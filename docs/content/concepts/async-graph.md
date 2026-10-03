@@ -13,9 +13,9 @@ what changes on JavaScript through Fable. [Suspension](suspension.md) covers the
 
 ## Async as a property of every computation
 
-Solid 2.0 removed `createResource`. Its release notes give the reason as "all computations".
-Async is no longer a separate primitive. Every computation can be pending, and loading boundaries became
-constructs of the graph, not of the renderer. Ranvier follows the same model:
+[Solid 2's release-candidate async design](https://github.com/solidjs/solid/blob/next/documentation/solid-2.0/05-async-data.md)
+allows async values to participate in ordinary computations and propagate pending state to loading
+boundaries. Ranvier adopts that pending-channel idea, without claiming identical scheduling or rendering:
 
 - Any memo, effect or boundary becomes Pending when it reads a pending value. It needs no special
   constructor to do so.
@@ -69,8 +69,10 @@ the older flight:
 `FinishCurrent` starts no flight while one is in progress. The flight finishes, and every change during it folds
 into one trailing run against the current inputs; the memo stays pending until that run settles.
 
-Pass the `CancellationToken` to the I/O that the flight performs. Under `CancelPrevious`, the superseded I/O
-then stops. Solid has no token to cancel, so this policy is a .NET addition.
+Pass the `CancellationToken` to the I/O that the flight performs. Under `CancelPrevious`, cancellation
+is requested for superseded work; the operation must cooperate. This does not guarantee that its I/O or
+external side effects stop. JavaScript also has cancellation mechanisms such as `AbortController`;
+Ranvier's .NET API supplies the token used by .NET tasks.
 
 Every flight's exception is observed, including a superseded flight's and one raised after its memo or graph
 was disposed. `TaskScheduler.UnobservedTaskException` receives none of them.
@@ -82,29 +84,21 @@ SignalsDotnet and CommunityToolkit.Mvvm.
 *Exploratory.* The following ideas from the design research have not been built:
 
 - an `Async<'T>` adapter for cold, restartable F# async workflows
-- a streaming memo over `IAsyncEnumerable<'T>`, matching Solid's async-iterable results
+- a streaming memo over `IAsyncEnumerable<'T>`, inspired by async-iterable reactive results
 - a drop-while-running policy, which ignores changes while a flight is in progress (R3 `Drop`)
 - a coalescing policy that publishes the finished flight's result before the trailing run (SignalsDotnet
   `ScheduleNext`, R3 `ThrottleFirstLast`); `FinishCurrent` keeps the memo pending until the trailing run settles
 - debounce and throttle, as a flight policy or as a combinator
 
-A streaming memo will live as long as its owner scope, as every other node does. Losing its last reader
-will not pause or stop the stream. Disposing the owner cancels the stream's token and disposes its
-enumerator. Create a streaming memo in the same scope as its readers. A memo created in a longer-lived
-scope, such as the graph's root, keeps pulling from its producer after its readers are gone.
-
-A streaming memo will reject `FlightPolicy.Queue`. That policy applies every result in start order, so a
-new stream's values would apply only once every earlier stream completed, and an infinite stream never
-completes. `CancelPrevious` and `KeepLatest` will apply to streams as they do to tasks.
-
-A stream that completes without yielding a value will settle the memo as `Failed` with
-`InvalidOperationException`. A stream that completes after yielding keeps its last value.
+Streaming lifetime, restart policies and empty-stream behavior remain design questions. No streaming API
+or contract is shipped. In particular, applying start-order `Queue` semantics to infinite streams would
+prevent later streams from publishing until earlier streams completed.
 
 ## Threads and dispatch
 
 *Implemented.*
 
-JavaScript has one thread, so Solid's graph never has to ask which thread a completion arrives on. On .NET,
+A JavaScript graph normally runs within one execution context; workers are separate contexts. On .NET,
 a task usually completes on the thread pool. Ranvier gives each graph an owning thread and marshals
 completions back to it.
 
@@ -163,8 +157,8 @@ A pending node has to outlive the loss of its last subscriber, or its flight wou
 disposed node. On .NET, an in-flight task also holds a strong reference to the node. Teardown is therefore
 deterministic:
 
-- Nodes belong to an owner scope. `createRoot` creates a scope, and disposing that scope disposes everything
-  under it.
+- Owned computations belong to an owner scope. `createRoot` creates a scope, and disposing it disposes
+  the owned nodes under it. Signals and async sources are unowned.
 - Disposing an async memo cancels its flight's token.
 - A node that is Pending when it is disposed becomes Failed with `ObjectDisposedException`, so nothing waits
   on it indefinitely.
@@ -174,9 +168,9 @@ computation.
 
 ## One source, two targets
 
-The core is written in F# that compiles both on .NET and through Fable to JavaScript. Where the two targets
-differ, the difference is a construction-time option on `GraphOptions`, not a conditional branch in the
-graph:
+The core is written in F# that compiles both on .NET and through Fable to JavaScript. It shares the graph
+model, with platform-specific implementations and some construction-time `GraphOptions`. Important
+differences include:
 
 - **Equality.** The default `JsIdentityPolicy` matches JavaScript's `===`. It compares primitives and
   strings by value and reference types by reference. On .NET it compares other value types by value, and
@@ -185,10 +179,10 @@ graph:
 - **Exceptions.** Suspension uses a throw on both targets, so user code looks the same on both. This is one
   more reason resumable code was rejected: Fable cannot compile it, so it would have produced code that
   builds on one target and not on the other.
-- **Threads.** JavaScript has one thread and ignores the dispatcher machinery.
+- **Threads.** A Fable graph runs in one JavaScript execution context and ignores the .NET dispatcher machinery.
 
 The Fable target is implemented; see [Fable (JavaScript) target](../fable/index.md). On the browser, Solid's own signals (through Partas.Solid) are the natural choice for
-rendering. A second graph is useful mainly for models that are shared with a .NET server. See
+rendering in Partas.Solid applications. Ranvier can also serve other consumers of a shared .NET/Fable model. See
 [Ecosystem](ecosystem.md).
 
 ## Outside the scope of the core
