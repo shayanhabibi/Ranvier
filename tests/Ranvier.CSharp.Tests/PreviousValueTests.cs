@@ -90,7 +90,6 @@ public class PreviousValueTests
         Assert.Equal(6, owning.Value);
     }
 
-    //FOR-REVIEW Pins the C# call forms beside the seeded constructors. With the seed after compute, the Memo<bool> owning form below is CS0121.
     [Fact]
     public void MemoConstructorCallFormsResolve()
     {

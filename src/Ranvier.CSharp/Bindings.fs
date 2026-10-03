@@ -289,10 +289,6 @@ type ReactiveCommand
     [<VolatileField>]
     let mutable disposed = false
 
-    (*FOR-REVIEW `armed` is one signal per command beyond the note's three nodes. It keeps the notify pass from
-      evaluating `Enabled` before the view model's constructor has assigned every command the predicate reads (the
-      reviewer's sample hazard). The alternative, arming through the bindings' `version` signal, re-runs every slot
-      of the bindings on each arm. *)
     let struct (owner, armed, running, error, enabled) =
         graph.CreateRoot (
             Func<Owner, _>(fun owner ->
@@ -330,9 +326,6 @@ type ReactiveCommand
                         armed.Value <- true)
             )
 
-    (*FOR-REVIEW A callback registered on an execution's token that throws makes `Cancel` throw an AggregateException.
-      It is dropped here, so `ExecuteAsync`, `Cancel` and `Dispose` never fail because of a user's registration. The
-      alternative is to surface it as the command's `Error`. *)
     let cancelAll () =
         for cts in flights.ToArray () do
             try

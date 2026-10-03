@@ -213,7 +213,6 @@ and
             idle <- Unchecked.defaultof<ProjectionDelta<'K>>
             delta
         elif changes.Size > 0 then
-            //FOR-REVIEW A non-empty read allocates a fresh accumulator (ResizeArray + KeyMap, about 400 B on .NET) because the delta keeps the old one. Pooling would need a delta lifetime rule; left as allocation until the A/B gate says otherwise.
             let delta = ProjectionDelta (changes, current, cursor, false)
             changes <- KeyChanges<'K>()
             cursor <- current

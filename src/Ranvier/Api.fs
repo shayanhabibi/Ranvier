@@ -57,8 +57,6 @@ type internal EditComparer<'T>(equal: Collections.Generic.IEqualityComparer<'T>)
             | ValueNone -> 0
             | ValueSome (struct (version, _)) -> version
 
-(*FOR-REVIEW Named Editable rather than the note's Writable to avoid a clash with ReactiveBindings.Writable
-  (wave-b decisions.md). Confirm the name. *)
 /// <summary>
 /// A value seeded from upstream that accepts local edits. <c>Value</c> holds the edit while one is in force and the seed's
 /// value otherwise. Owned by the scope current at creation.
@@ -82,10 +80,6 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
     /// <summary>The version of the seed's last published value; 0 before the first.</summary>
     let mutable settled = 0
 
-    (*FOR-REVIEW The note stamps the seed with a struct tuple. A sealed Stamp class is used instead: on .NET a struct tuple
-      memo compares its 'T with EqualityComparer.Default (a deep compare of a record per equal re-run), and under Fable
-      it compares by reference. The class compares by reference on both targets and costs one allocation per unequal
-      seed value; edits stay allocation-free on .NET. *)
     let stamped =
         Memo.Create (
             graph,
@@ -119,7 +113,6 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
 
     /// <summary>True when an edit made against seed version <c>version</c> is still in force. A tracked read of the seed.</summary>
     let inForce (version: int) =
-        //FOR-REVIEW The note leaves pending/failed seeds open: a pending seed keeps a current edit in force, a failed one drops it.
         draft
         || match stamped.TryValue with
            | Ready stamp -> stamp.Version = version
