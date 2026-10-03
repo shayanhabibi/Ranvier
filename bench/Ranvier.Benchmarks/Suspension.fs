@@ -227,7 +227,6 @@ type FlightBenchmarks() =
     let mutable tick = 0
 
     /// <summary>The case name of the graph's <c>FlightPolicy</c>.</summary>
-    //FOR-REVIEW FinishCurrent does not exist on master: the master side of the A/B gate needs this value removed from Params.
     [<Params("CancelPrevious", "KeepLatest", "Queue", "FinishCurrent")>]
     member val Policy = "CancelPrevious" with get, set
 

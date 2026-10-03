@@ -3,6 +3,23 @@
 C# entry points for [Ranvier](https://github.com/shayanhabibi/Ranvier): the `Reactive` factories take
 delegates, and extension methods cover `Graph.Run`, `Signal.Update` and the projection operators.
 
+## Per-node equality
+
+Signals, memos (including owning and seeded forms), split effects and boundaries accept an
+optional typed comparer through additional overloads:
+
+```csharp
+var name = Reactive.Signal("Ada", StringComparer.OrdinalIgnoreCase);
+var label = Reactive.Memo(() => name.Value.Trim(), StringComparer.OrdinalIgnoreCase);
+Reactive.EffectOn(() => label.Value, Console.WriteLine, StringComparer.OrdinalIgnoreCase);
+```
+
+Call these factories inside `graph.Run` or an active graph scope. Omit the comparer to use the
+graph policy. A supplied comparer applies only to that node; pending/error state transitions
+and ownership rules still apply. Null comparers throw `ArgumentNullException`.
+
+## Basic use
+
 ```csharp
 using Ranvier;
 using Ranvier.CSharp;

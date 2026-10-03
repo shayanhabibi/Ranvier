@@ -9,6 +9,8 @@
         <Compile Include="$(MSBuildThisFileDirectory)AmbientGraph.fs" Link="AmbientGraph.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Owners.fs" Link="Owners.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Equality.fs" Link="Equality.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)ComparerCases.fs" Link="ComparerCases.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)NodeComparers.fs" Link="NodeComparers.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Async.fs" Link="Async.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Boundaries.fs" Link="Boundaries.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Threading.fs" Link="Threading.fs" />

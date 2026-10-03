@@ -1424,7 +1424,6 @@ type Projection<'K, 'V when 'K: equality> internal (graph: Graph) as this =
     /// reports a reset with empty <c>Keys</c>.
     /// </remarks>
     member this.NewKeyReader() : ProjectionReader<'K> =
-        //FOR-REVIEW On a disposed projection this returns a reader (first read: reset, empty Keys) instead of raising ObjectDisposedException as AsObservableCollection does; Keys on a disposed projection reads empty rather than raising.
         let reader = new ProjectionReader<'K> (this)
 
         if not disposed then
@@ -1911,7 +1910,6 @@ type Lookup<'K, 'V when 'K: equality> internal (graph: Graph) as this =
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
         else
             failed.Add key |> ignore
-            //FOR-REVIEW A Lookup is not an INode, so a key function failure reports the key's internal cell. Implementing INode on Lookup (an Id per lookup) would let ErrorOrigin name the lookup itself; left out as new public surface.
             cell.Fail (graph.FailureOf (failure, cell, null))
             Tracer.RunEnd (graph, (cell :> INode).Id, (cell :> INode).Status)
 
