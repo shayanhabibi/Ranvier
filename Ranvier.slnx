@@ -21,6 +21,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Ranvier.Tests/Ranvier.Tests.fsproj" />
     <Project Path="tests/Ranvier.CSharp.Tests/Ranvier.CSharp.Tests.csproj" />
+    <Project Path="fable/Ranvier.Tests.Fable/Ranvier.Tests.Fable.fsproj" />
     <Project Path="tests/Ranvier.AotSmoke/Ranvier.AotSmoke.fsproj" />
   </Folder>
   <Folder Name="/bench/">

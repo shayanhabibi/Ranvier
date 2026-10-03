@@ -80,10 +80,6 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
     /// <summary>The version of the seed's last published value; 0 before the first.</summary>
     let mutable settled = 0
 
-    (*REVIEW The note stamps the seed with a struct tuple. A sealed Stamp class is used instead: on .NET a struct tuple
-      memo compares its 'T with EqualityComparer.Default (a deep compare of a record per equal re-run), and under Fable
-      it compares by reference. The class compares by reference on both targets and costs one allocation per unequal
-      seed value; edits stay allocation-free on .NET. *)
     let stamped =
         Memo.Create (
             graph,
@@ -207,6 +203,13 @@ type Editable<'T> internal (graph: Graph, seed: 'T voption -> 'T, draft: bool) =
 /// </remarks>
 [<AutoOpen>]
 module Api =
+    /// <summary>An empty editable collection with insertion order and reactive rows.</summary>
+    let createKeyedCollection (keyOf: 'V -> 'K) : KeyedCollection<'K, 'V> =
+        if isNull (box keyOf) then
+            nullArg "keyOf"
+
+        new KeyedCollection<'K, 'V> (Graph.Current, keyOf)
+
     let private requireComparer (comparer: IEqualityComparer<'T>) =
         if isNull comparer then
             nullArg "comparer"

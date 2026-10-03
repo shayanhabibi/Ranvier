@@ -13,7 +13,7 @@
         <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier.CSharp: C# entry points for Ranvier, with the tracing queries compiled in. Depends on Ranvier.Traced.</Description>
         <PackageTags>reactive;reactivity;signals;memo;effects;fine-grained;csharp</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>0.1.0-preview.3</Version>
+        <Version>0.1.0-preview.4</Version>
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 

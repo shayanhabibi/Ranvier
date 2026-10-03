@@ -429,3 +429,101 @@ These are reported by the survey. Verify each before editing the ecosystem page.
 - Fabulous issue search was rate-limited; only its discussions and #258 were read.
 - The reactiveui.net handbook returned 404 through the fetch tool; quotes come from the
   reactiveui/website source repo.
+
+---
+
+## Follow-up: sceptical assessment against CommunityToolkit.Mvvm (2026-10-02)
+
+This addendum qualifies the earlier survey's positioning claims. Evidence comes from the current
+Ranvier documentation, CommunityToolkit.Mvvm 8.4.0 documentation/source, and the local C# and WPF
+replay benchmark. It is not a new survey of every library above. Earlier statements that an INPC
+adapter is missing are stale: Ranvier now has a C# `ReactiveObject` binding surface.
+
+### Coordination code, rather than an absence of MVVM features
+
+Toolkit already supplies generated observable properties, dependent-property notifications,
+commands, validation, cancellation and task-completion notifications. `ObservableObject` suppresses
+equal assignments; `AsyncRelayCommand` exposes `IsRunning` and `ExecutionTask`. Its completion
+monitor checks that the completing task is still the current execution. Ranvier should not claim
+exclusive support for equality suppression, loading state, validation or latest-task monitoring.
+
+Ranvier's more specific distinction is a runtime dependency graph: reads establish dependencies,
+derived values cache results, and pending/error state can propagate through computations to a
+boundary. This can reduce explicit notification and state-coordination code as relationships become
+more interconnected. A larger app with many independent fields and commands may remain concise
+with Toolkit's generators. No maintenance study or growing-app code-size comparison was performed;
+the boilerplate advantage is a design inference, not a measured general result.
+
+Concurrency and lifetime claims also need boundaries. Ranvier's async policies govern publication
+of returned memo results, not arbitrary side effects or property assignments inside the task.
+Owners dispose owned computations and registered cleanup when their scope is disposed; arbitrary
+resources still need registration, and the application must dispose its scopes. Toolkit has weak
+messaging and cancellation facilities, so it is unfair to describe it as having no lifetime tools.
+Ranvier's guarded graph affinity and dispatcher help enforce its own threading contract; they do
+not make all application code thread-safe. Batching defers effects and is not a rollback transaction.
+
+Sources: [Toolkit overview](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/),
+[ObservableObject](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/observableobject),
+[AsyncRelayCommand](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/asyncrelaycommand),
+[8.4.0 command source](https://github.com/CommunityToolkit/dotnet/blob/v8.4.0/src/CommunityToolkit.Mvvm/Input/AsyncRelayCommand.cs).
+
+### Tracing: a useful distinction with a narrower scope
+
+MVVM is a pattern, not a diagnostics product. The reviewed Toolkit surface has no built-in
+equivalent to Ranvier's causal dependency-graph tracing. However, applications using Toolkit are
+not without diagnostics: WPF has `PresentationTraceSources`, and Visual Studio's XAML Binding
+Failures window identifies failed bindings and their relevant context. These tools diagnose the
+binding layer; they do not automatically reconstruct a chain of application-level calculated
+properties or explain an equality cutoff in a reactive computation graph. Custom logging can add
+that information, at the cost of explicit instrumentation.
+
+Ranvier documents queries for why a node ran or did not run, its creation site and owner chain,
+graph snapshots, run history, and pending async memo flights including superseded outcomes. These
+are a plausible advantage when debugging propagation inside a Ranvier graph. They do not replace
+XAML binding diagnostics, application logging, or a performance profiler. A WPF app using Ranvier
+can use both sets of tools. No comparative debugging/usability study was conducted, so "better
+diagnostics overall" is not established.
+
+The feature is explicitly preview/research. Traced builds allocate per event, run more slowly,
+and retain an unbounded event log for the graph's lifetime. Untraced builds compile instrumentation
+out. There is also a documentation inconsistency: examples show captured values, while the limits
+section says value capture is planned and history contains no values. Do not advertise full value
+history or state replay without resolving that contradiction and verifying the implementation.
+Event/graph replay alone does not establish application time-travel debugging.
+
+Sources: [Ranvier tracing](../content/guide/tracing.md),
+[WPF trace sources](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.presentationtracesources?view=windowsdesktop-10.0),
+[Visual Studio binding diagnostics](https://learn.microsoft.com/en-us/visualstudio/xaml-tools/xaml-data-binding-diagnostics).
+
+### Performance: the small example favours Toolkit
+
+The local benchmark compared Toolkit 8.4.0 with Ranvier revision
+`ac96be31ee37d6e3e27a8fda366ad113bb2d9e94`, using Release builds with tracing and tiered compilation
+off. It replayed loading, edits, refresh, failure/retry, independent rows and screen lifetime.
+The basic runner passed 36 correctness checks; the real WPF binding runner passed 20.
+
+Toolkit had lower median CPU time and UI-thread allocation in every CPU-focused flow tested.
+With actual WPF controls and bindings, Ranvier's steady-state medians were approximately 6–15%
+slower, and screen creation/disposal approximately 59% slower. Several steady-state trial ranges
+overlapped. Ranvier emitted fewer notifications for refresh and error/retry, but that did not
+translate into lower measured time or allocation. A changed row already targets one row in the
+Toolkit baseline; comparing against a whole-screen refresh would misrepresent Toolkit.
+
+These are synthetic replays of realistic flows on one machine, with controlled services and
+headless WPF controls. They exclude layout, paint/GPU work and background-thread allocation.
+The delayed-service flow was dominated by timers/scheduling and supports no speed claim. The
+benchmark does not determine performance for expensive, shared derived computations or larger
+dependency graphs. It supports a coordination/diagnostics pitch for this example, not a speed pitch.
+
+Evidence: [benchmark report](../../experiments/csharp-viewmodel-bench/report.md),
+[harness and commands](../../experiments/csharp-viewmodel-bench/README.md).
+
+### Positioning that the evidence supports
+
+Describe Ranvier as reducing explicit coordination for interconnected derived and async state,
+with causal tracing of the graph it manages. Avoid claiming that Toolkit cannot build the same
+correct application, that every growing app has less code with Ranvier, or that Ranvier is faster.
+The original §8 statement "go beyond anything surveyed" is too broad: the survey itself found
+subscription trackers and time-travel requests, and did not compare diagnostics comprehensively.
+The strongest verified comparison here is the narrower absence of automatic causal computation
+tracing in Toolkit's reviewed surface, alongside existing WPF binding diagnostics.

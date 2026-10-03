@@ -23,7 +23,6 @@
     `%+A`-based generated `ToString`, and marks it trimmable and AOT-compatible on net8.0 and later. A traced build keeps
     the generated `ToString` text of its public trace types and makes no AOT claim.
     -->
-    <!--//REVIEW The traced build (Ranvier.Traced) is no longer reflection-free and no longer IsAotCompatible, so a NativeAOT publish of it now warns; the alternative is hand-written ToString on the ~16 public trace records and unions. -->
     <PropertyGroup Condition="'$(RanvierAotClean)' == 'true' and '$(RanvierTrace)' != 'true'">
         <OtherFlags>$(OtherFlags) --reflectionfree</OtherFlags>
         <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
