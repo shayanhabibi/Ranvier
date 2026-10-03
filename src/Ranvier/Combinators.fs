@@ -1,5 +1,52 @@
 namespace Ranvier
 
+/// <summary>Debounce and throttle factories with explicit graph ownership.</summary>
+/// <remarks>Durations are nonnegative; zero publishes through normal graph scheduling. Captures run in a pure scope.</remarks>
+[<AutoOpen>]
+module TimedCombinators =
+    let private timed mode options delay read (graph: Graph) =
+        graph.Entered (
+            "Creating a node",
+            fun () ->
+                let node = new Timed<_> (graph, options, delay, mode, read)
+                node.Start ()
+                node
+        )
+
+    /// <summary>Publishes the latest changed capture after <c>delay</c> of quiet, using the supplied clock and comparer.</summary>
+    let debounceWith options delay read graph =
+        timed TimedMode.Debounce options delay read graph
+
+    /// <summary>Publishes the latest changed capture after <c>delay</c> of quiet, using system time and graph equality.</summary>
+    let debounce delay read graph =
+        debounceWith TimedOptions.defaults delay read graph
+
+    /// <summary>Admits the first eligible changed capture and discards changes during its cooldown.</summary>
+    /// <remarks>Uses the supplied clock and comparer; creates no timer.</remarks>
+    let throttleFirstWith options interval read graph =
+        timed TimedMode.First options interval read graph
+
+    /// <summary>Admits leading changes at most once per interval, using system time and graph equality.</summary>
+    let throttleFirst interval read graph =
+        throttleFirstWith TimedOptions.defaults interval read graph
+
+    /// <summary>Admits the latest changed capture at the first change's fixed deadline, using the supplied options.</summary>
+    let throttleLastWith options interval read graph =
+        timed TimedMode.Last options interval read graph
+
+    /// <summary>Admits the latest changed capture after each fixed window, using system time and graph equality.</summary>
+    let throttleLast interval read graph =
+        throttleLastWith TimedOptions.defaults interval read graph
+
+    /// <summary>Admits a leading change and one latest trailing change per interval, using the supplied options.</summary>
+    /// <remarks>A trailing admission starts another cooldown at actual owner-thread admission time.</remarks>
+    let throttleWith options interval read graph =
+        timed TimedMode.Both options interval read graph
+
+    /// <summary>Admits leading and latest trailing changes, using system time and graph equality.</summary>
+    let throttle interval read graph =
+        throttleWith TimedOptions.defaults interval read graph
+
 /// <summary>A view's pending keys absent from its <c>Keys</c>, written by the view's pass.</summary>
 type internal HeldOut<'K when 'K: equality>(graph: Graph) =
     let cell = Signal<'K[]>(graph, Array.empty)

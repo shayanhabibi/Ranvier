@@ -316,8 +316,20 @@ controls [
 
 ## Dumps
 
-`Trace.dumpText graph` returns the log as JSON Lines, schema 1: a header, the folded starting state,
+`Trace.dumpText graph` returns the log as JSON Lines: a header, the folded starting state,
 then one object per event. `Trace.dump graph path` writes the same text to a file.
+
+Graphs without timed nodes retain schema 1. Debounce and throttle select schema 2; the .NET parser
+accepts both. `TimedState` events retain captured and published status, the window, remaining time,
+and the winning capture. Their timestamp is relative to the first timed node using that clock.
+The graph assigns each clock a stable `timebase` number, so independent clock origins remain
+independent. OS timer handles and absolute clock origins are omitted.
+
+Use `Trace.timing graph node` for a live timed gate, alongside `Trace.whyNot`. It returns `None`
+for nodes outside this graph or other node kinds. `TraceModel.timing events nodeId` returns the
+latest recorded timing state for replay, including parsed dumps. Timed captures count as runs;
+expiry publication points downstream causes at the winning capture without creating a flight.
+Deterministic dumps require the same inputs and callback order; native dispatch order can vary.
 
 :::details JSON Lines dump format
 

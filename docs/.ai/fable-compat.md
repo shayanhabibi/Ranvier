@@ -54,12 +54,13 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | MapSemantics.fs | 42 | 42 | 41 | 42 | 42 | 41 | 0 | 1 |
 | Lenses.fs | 23 | 20 | 20 | 23 | 20 | 20 | 0 | 0 |
 | Combinators.fs | 126 | 126 | 126 | 126 | 126 | 126 | 1 | 0 |
+| Timed.fs | 31 | 31 | 31 | 38 | 38 | 38 | 0 | 0 |
 | PreviousValues.fs | 11 | 11 | 11 | 11 | 11 | 11 | 14 | 0 |
 | Texts.fs | 5 | 5 | 5 | 5 | 5 | 5 | 1 | 0 |
 | FailureOrigins.fs | 16 | 16 | 15 | 16 | 16 | 15 | 2 | 0 |
 | Editables.fs | 17 | 17 | 17 | 17 | 17 | 17 | 1 | 0 |
 | MvuBridge.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
-| **Total** | 784 | 766 | 722 | 860 | 838 | 789 | 87 | 1 |
+| **Total** | 815 | 797 | 753 | 898 | 876 | 827 | 87 | 1 |
 
 ## Tests.fs
 
@@ -1312,6 +1313,51 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - sumBy over floats reads zero once every row leaves
 - a throwing add recomputes from the cached values on the next read
 - a batch of edits reads the combined result
+
+</details>
+
+## Timed.fs
+
+<details><summary>38 passed in every build and delivery that runs them</summary>
+
+- system timer rejects a negative wait
+- system timer can disarm and dispose an unarmed long wait
+- computed input extends the quiet deadline on every change
+- zero delay uses normal graph propagation without a timer
+- leading throttle never replays suppressed input and creates no timers
+- trailing throttle admits latest at the first input deadline
+- leading plus trailing sustains windows without catch-up bursts
+- debounce rejects negative durations
+- debounce cancels stale wakes on disposal
+- debounce makes failures visible and can recover
+- first rejects negative durations
+- first cancels stale wakes on disposal
+- first makes failures visible and can recover
+- last rejects negative durations
+- last cancels stale wakes on disposal
+- last makes failures visible and can recover
+- both rejects negative durations
+- both cancels stale wakes on disposal
+- both makes failures visible and can recover
+- pending retains the published value and cancels a candidate
+- first ready value after pending is immediate
+- pending after an initial failure replaces that failure and notifies readers
+- unchanged check does not extend a debounce deadline
+- batched writes returning to the captured input do not extend the deadline
+- an expiry inside a batch cannot publish before its last source write
+- conditional capture detaches unused dependencies before admission
+- reentrant downstream writes preserve the next candidate
+- equal admission does not rerun downstream
+- swallowed pure-scope violation still fails capture
+- throwing comparer publishes a failure and recovers on the next capture
+- owner disposal cancels unpublished work and detaches its input
+- independent clock origins do not alter deterministic dumps (traced only)
+- admission comparer failure retains the winning source cause (traced only)
+- leading suppression retains the published winning capture (traced only)
+- admission names the winning capture and reports the held window (traced only)
+- recorded timing distinguishes pending capture and failure from published state (traced only)
+- timing rejects another graph with colliding node identifiers (traced only)
+- manual-clock traces and schema roundtrip are deterministic (traced only)
 
 </details>
 

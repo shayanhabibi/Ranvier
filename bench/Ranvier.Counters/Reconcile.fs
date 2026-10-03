@@ -29,12 +29,13 @@ let private fromLogs (logs: TraceEvent[] seq) : (string * int64)[] =
 
                 match kind with
                 | TraceNodeKind.Signal -> add "SignalsCreated"
-                | TraceNodeKind.Memo -> add "MemosCreated"
+                | TraceNodeKind.Memo
+                | TraceNodeKind.Timed -> add "MemosCreated"
                 | TraceNodeKind.Effect -> add "EffectsCreated"
                 | _ -> ()
             | TraceEventKind.RunStart ->
                 match kinds.TryGetValue e.Node with
-                | true, TraceNodeKind.Memo -> add "MemoRecomputes"
+                | true, (TraceNodeKind.Memo | TraceNodeKind.Timed) -> add "MemoRecomputes"
                 | true, TraceNodeKind.Effect -> add "EffectRuns"
                 | _ -> ()
             | TraceEventKind.EdgeAdd -> add "EdgesAdded"

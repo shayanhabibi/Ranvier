@@ -935,6 +935,8 @@ module TraceModel =
                             Status =
                                 (if n.Status = TraceNodeStatus.Disposed then
                                      TraceNodeStatus.Disposed
+                                 elif n.Kind = TraceNodeKind.Timed then
+                                     n.Status
                                  else
                                      TraceNodeStatus.Running)
                         }
@@ -947,11 +949,27 @@ module TraceModel =
                 | None -> ()
             | TraceEventKind.RunEnd ->
                 updateNode e.Node (fun n ->
-                    if n.Status = TraceNodeStatus.Disposed then
+                    if
+                        n.Status = TraceNodeStatus.Disposed
+                        || n.Kind = TraceNodeKind.Timed
+                    then
                         n
                     else
                         { n with
                             Status = TraceNodeStatus.Ended (enum<RunStatus> e.Arg)
+                        })
+            | TraceEventKind.TimedPublished ->
+                updateNode e.Node (fun n ->
+                    if n.Status = TraceNodeStatus.Disposed then
+                        n
+                    else
+                        { n with
+                            Status =
+                                TraceNodeStatus.Ended (
+                                    if e.Arg &&& 1 <> 0 then RunStatus.Pending
+                                    elif e.Arg &&& 2 <> 0 then RunStatus.Error
+                                    else RunStatus.Ok
+                                )
                         })
             | TraceEventKind.EdgeAdd
             | TraceEventKind.EdgeRemove ->
@@ -1644,6 +1662,21 @@ module TraceModel =
 
         sb.Append "]}}" |> ignore
 
+    /// <summary>The latest recorded captured and published timing state of a node, or None for an absent timed state.</summary>
+    let timing (events: TraceEvent[]) (node: int) : TraceTiming option =
+        events
+        |> Array.tryFindBack (fun e ->
+            e.Node = node
+            && e.Kind = TraceEventKind.TimedState)
+        |> Option.map (fun e -> (e.Payload :?> TraceTimedState).Timing)
+
+    let private jsonFloat (value: float) : string =
+#if FABLE_COMPILER
+        Fable.Core.JsInterop.emitJsExpr value "String($0)"
+#else
+        value.ToString ("R", Globalization.CultureInfo.InvariantCulture)
+#endif
+
     let private eventJson (sb: StringBuilder) (e: TraceEvent) =
         sb
             .Append("{\"seq\":")
@@ -1664,11 +1697,35 @@ module TraceModel =
             ",\"payload\":"
         |> ignore
 
-        jsonString sb (payloadText e.Payload)
+        if e.Kind = TraceEventKind.TimedState then
+            let state = e.Payload :?> TraceTimedState
+            let timing = state.Timing
+
+            sb
+                .Append("null,\"timing\":{\"timebase\":")
+                .Append(state.Clock)
+                .Append(",\"at\":")
+                .Append(jsonFloat state.AtMilliseconds)
+                .Append(",\"mode\":")
+            |> ignore
+
+            jsonString sb timing.Mode
+
+            sb.Append(",\"captured\":").Append(int (byte timing.CapturedStatus)).Append(",\"published\":").Append(int (byte timing.PublishedStatus))
+            |> ignore
+
+            sb.Append(",\"open\":").Append(if timing.WindowOpen then "true" else "false").Append(",\"remaining\":")
+            |> ignore
+
+            sb.Append(jsonFloat timing.RemainingMilliseconds).Append(",\"capture\":").Append(timing.WinningCapture).Append('}')
+            |> ignore
+        else
+            jsonString sb (payloadText e.Payload)
+
         sb.Append '}' |> ignore
 
     /// <summary>
-    /// The JSONL dump, schema 1: a header line, a snapshot line holding <c>before</c>, then one line per event.
+    /// The JSONL dump: a header, the snapshot holding <c>before</c>, then one line per event. Timed nodes select schema 2.
     /// </summary>
     /// <remarks>
     /// <c>before</c> is the state ahead of the first event; <c>checkpoint</c> names the file holding earlier events, or
@@ -1677,7 +1734,26 @@ module TraceModel =
     let dumpText (target: string) (checkpoint: string) (before: TraceSnapshot) (events: TraceEvent[]) : string =
         let sb = StringBuilder ()
         let seqFrom = if events.Length = 0 then before.Seq + 1 else events[0].Seq
-        sb.Append "{\"schema\":1,\"target\":" |> ignore
+
+        let timed =
+            events
+            |> Array.exists (fun e ->
+                e.Kind = TraceEventKind.NodeNew
+                && e.Arg = int TraceNodeKind.Timed)
+
+        let schema =
+            if
+                timed
+                || (before.Nodes.Values
+                    |> Seq.exists (fun n -> n.Kind = TraceNodeKind.Timed))
+            then
+                2
+            else
+                1
+
+        sb.Append("{\"schema\":").Append(schema).Append(",\"target\":")
+        |> ignore
+
         jsonString sb target
 
         let graph =
@@ -1710,8 +1786,8 @@ module TraceModel =
         sb.ToString ()
 
 #if !FABLE_COMPILER
-    /// <summary>The header, snapshot and events of a JSONL dump in schema 1.</summary>
-    /// <exception cref="T:System.FormatException">The text is not a schema 1 dump.</exception>
+    /// <summary>The header, snapshot and events of a JSONL dump in schema 1 or 2.</summary>
+    /// <exception cref="T:System.FormatException">The text is not a supported trace dump.</exception>
     let parseDump (text: string) : TraceDump =
         let lines = text.Split ([| '\n' |], StringSplitOptions.RemoveEmptyEntries)
 
@@ -1721,8 +1797,10 @@ module TraceModel =
         use header = Text.Json.JsonDocument.Parse lines[0]
         let h = header.RootElement
 
-        if h.GetProperty("schema").GetInt32() <> 1 then
-            raise (FormatException "The trace dump is not schema 1.")
+        let schema = h.GetProperty("schema").GetInt32()
+
+        if schema <> 1 && schema <> 2 then
+            raise (FormatException "The trace dump schema is unsupported.")
 
         let str (e: Text.Json.JsonElement) (name: string) =
             let p = e.GetProperty name
@@ -1819,16 +1897,38 @@ module TraceModel =
                 for line in lines[2..] ->
                     use doc = Text.Json.JsonDocument.Parse line
                     let e = doc.RootElement
+                    let kind = Enum.Parse<TraceEventKind>(str e "kind")
+
+                    let payload =
+                        if kind = TraceEventKind.TimedState then
+                            let t = e.GetProperty "timing"
+
+                            box
+                                {
+                                    Clock = int' t "timebase"
+                                    AtMilliseconds = t.GetProperty("at").GetDouble()
+                                    Timing =
+                                        {
+                                            Mode = str t "mode"
+                                            CapturedStatus = LanguagePrimitives.EnumOfValue<byte, Status>(byte (int' t "captured"))
+                                            PublishedStatus = LanguagePrimitives.EnumOfValue<byte, Status>(byte (int' t "published"))
+                                            WindowOpen = bool' t "open"
+                                            RemainingMilliseconds = t.GetProperty("remaining").GetDouble()
+                                            WinningCapture = int' t "capture"
+                                        }
+                                }
+                        else
+                            box (str e "payload")
 
                     {
                         Seq = int' e "seq"
-                        Kind = Enum.Parse<TraceEventKind>(str e "kind")
+                        Kind = kind
                         Node = int' e "node"
                         Other = int' e "other"
                         Arg = int' e "arg"
                         Flag = int' e "flag"
                         Cause = int' e "cause"
-                        Payload = box (str e "payload")
+                        Payload = payload
                     }
             |]
 

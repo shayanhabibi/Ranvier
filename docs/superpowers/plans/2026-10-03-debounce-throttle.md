@@ -10,7 +10,15 @@
 
 **Spec:** [Debounce and throttle design](../specs/2026-10-03-debounce-throttle-design.md). Research: [prior art](../../.ai/debounce-throttle-prior-art.md).
 
-This is a planning deliverable on `feat/debounce-throttle`, based on `506c8d29c57e29d92cdce7164d89886a6d0b5618`. Execute the tasks below in order. No product implementation has been performed as part of this plan.
+Implementation is available on `feat/debounce-throttle`, based on `506c8d29c57e29d92cdce7164d89886a6d0b5618`. The task lists below preserve the original execution requirements; this status records what was actually delivered and what remains outstanding.
+
+## Execution status (2026-10-03)
+
+Tasks 1–5 are implemented: portable clocks, all four timed modes, causal tracing and recorded timing/schema 2, C# factories, shared Fable tests and Windows NativeAOT smoke. Timed tests live together in `tests/Ranvier.Tests/Timed.fs`; the manual clock has its own `TimedTestClock.fs` rather than enlarging general test support. Clock and node slices were combined into a green implementation commit. Counter scenarios exercise the timed trace path; existing sample dumps remain unchanged.
+
+Task 6 has allocation/counter baselines and 30 BenchmarkDotNet Short cases, plus a deterministic JavaScript policy harness. Production retains lazy deadline extension. Native timer policy throughput, separate callback/dispatch costs, construction/equal-write measurements and real deadline latency distributions remain unmeasured. Required elevated retired-instruction measurements are blocked by this host's non-elevated Windows process. See [performance evidence](../../.ai/debounce-throttle-performance.md) for measured results and their limits.
+
+Task 7 includes the timing guide, schema documentation, full traced/untraced .NET and C# tests, actual Fable runs, format/XML/comment checks, packed API comparison and AOT smoke. New API additions are explicitly enumerated; existing signatures are retained. Review found and fixed per-clock origin normalization and admission-failure history attribution, including a regression with an equal capture after the winning input. The final trace verifier retains pre-existing projection lint and stale legacy API-baseline failures rather than waiving them. Performance acceptance remains pending the measurements above.
 
 ## Global constraints
 

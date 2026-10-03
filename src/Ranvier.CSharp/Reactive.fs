@@ -33,6 +33,87 @@ open Ranvier
 /// </example>
 [<AbstractClass; Sealed>]
 type Reactive =
+    /// <summary>Publishes the latest changed pure capture after a nonnegative quiet period.</summary>
+    /// <remarks>The first ready value is immediate. A null clock/comparer selects system time/graph equality.</remarks>
+    static member Debounce<'T>
+        (
+            delay: TimeSpan,
+            read: Func<'T>,
+            [<Optional; DefaultParameterValue(null: TimedClock)>] clock: TimedClock,
+            [<Optional>] comparer: IEqualityComparer<'T>
+        ) : Timed<'T> =
+        if isNull read then
+            nullArg (nameof read)
+
+        debounceWith
+            {
+                Clock = (if isNull clock then TimedClock.system else clock)
+                Comparer = Option.ofObj comparer
+            }
+            delay
+            read.Invoke
+            Graph.Current
+
+    /// <summary>Admits leading and latest trailing changes from a pure capture, at most once per nonnegative interval.</summary>
+    static member Throttle<'T>
+        (
+            interval: TimeSpan,
+            read: Func<'T>,
+            [<Optional; DefaultParameterValue(null: TimedClock)>] clock: TimedClock,
+            [<Optional>] comparer: IEqualityComparer<'T>
+        ) : Timed<'T> =
+        if isNull read then
+            nullArg (nameof read)
+
+        throttleWith
+            {
+                Clock = (if isNull clock then TimedClock.system else clock)
+                Comparer = Option.ofObj comparer
+            }
+            interval
+            read.Invoke
+            Graph.Current
+
+    /// <summary>Admits leading changes from a pure capture and discards changes during each nonnegative cooldown.</summary>
+    static member ThrottleFirst<'T>
+        (
+            interval: TimeSpan,
+            read: Func<'T>,
+            [<Optional; DefaultParameterValue(null: TimedClock)>] clock: TimedClock,
+            [<Optional>] comparer: IEqualityComparer<'T>
+        ) : Timed<'T> =
+        if isNull read then
+            nullArg (nameof read)
+
+        throttleFirstWith
+            {
+                Clock = (if isNull clock then TimedClock.system else clock)
+                Comparer = Option.ofObj comparer
+            }
+            interval
+            read.Invoke
+            Graph.Current
+
+    /// <summary>Admits the latest pure capture after a fixed nonnegative window opened by the first changed capture.</summary>
+    static member ThrottleLast<'T>
+        (
+            interval: TimeSpan,
+            read: Func<'T>,
+            [<Optional; DefaultParameterValue(null: TimedClock)>] clock: TimedClock,
+            [<Optional>] comparer: IEqualityComparer<'T>
+        ) : Timed<'T> =
+        if isNull read then
+            nullArg (nameof read)
+
+        throttleLastWith
+            {
+                Clock = (if isNull clock then TimedClock.system else clock)
+                Comparer = Option.ofObj comparer
+            }
+            interval
+            read.Invoke
+            Graph.Current
+
     /// <summary>An empty editable collection keyed by <c>keyOf</c>, with insertion order and reactive rows.</summary>
     static member KeyedCollection<'V, 'K when 'K: equality>(keyOf: Func<'V, 'K>) : KeyedCollection<'K, 'V> =
         if isNull keyOf then

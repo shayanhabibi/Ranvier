@@ -250,7 +250,7 @@ type Assembly(dll: string) =
 // ---------------------------------------------------------------------------------------------------------------
 // Gate 1: IL scan
 
-let tracedTypes = set [ "Tracer"; "TraceLog"; "TraceEvent"; "TraceEventKind"; "TraceNodeKind"; "TraceModel"; "ITraced" ]
+let tracedTypes = set [ "Tracer"; "TraceLog"; "TraceEvent"; "TraceEventKind"; "TraceNodeKind"; "TraceModel"; "ITraced"; "TraceTiming"; "TraceTimedState"; "ITimedTrace" ]
 
 let private simpleName (qualified: string) =
     let t = qualified.Split("::").[0].Split('<').[0]
@@ -396,7 +396,7 @@ let forbiddenInArgs =
     ]
     |> List.map Regex
 
-let engineFiles = [ "Core.fs"; "Projections.fs"; "Combinators.fs"; "Api.fs" ]
+let engineFiles = [ "Core.fs"; "Projections.fs"; "Combinators.fs"; "Api.fs"; "Timed.fs"; "TimedClock.fs" ]
 
 let declarationStart =
     Regex @"^(let|val|member|abstract|default|override|interface|static member|static val|new|\[<)\b"
@@ -671,7 +671,7 @@ let isElevated () =
 
 let lint () =
     let violations, blocks = lintEngine ()
-    let appendix = appendixA ()
+    let appendix = appendixA () |> Set.add ("Timed.fs", "Timed")
 
     let unlisted =
         blocks - appendix
@@ -801,9 +801,14 @@ let packGate () =
 
     let surface = publicSurface dll |> set
     let baseline = File.ReadAllLines baselineFile |> Array.filter (fun l -> l <> "") |> set
-    let added = surface - baseline - permittedAdditions |> Seq.map (fun l -> "added:   " + l)
+    let timedAdditions = File.ReadAllLines(Path.Combine(root, "docs", ".ai", "debounce-throttle-api-additions.txt")) |> Array.filter(fun l -> l <> "") |> set
+    let added = surface - baseline - permittedAdditions - timedAdditions |> Seq.map (fun l -> "added:   " + l)
     let removed = baseline - surface |> Seq.map (fun l -> "removed: " + l)
     check "gate 1: packed public surface equals the baseline plus Trace.named and Trace.label" (List.ofSeq (Seq.append added removed)) ""
+
+    let mergeSurface = publicSurface(Path.Combine(work, "il-base-out", "Ranvier.dll")) |> set
+    check "gate 1: timed public API is exactly additive against merge-base"
+        ([ for l in mergeSurface - surface -> "removed: " + l ] @ [ for l in surface - mergeSurface - timedAdditions -> "unexpected: " + l ] @ [ for l in timedAdditions - (surface - mergeSurface) -> "missing addition: " + l ]) ""
 
     let (debugCode, _) =
         run root [] "dotnet" [ "pack"; "src/Ranvier"; "-c"; "Debug"; "-o"; Path.Combine (work, "pack-debug") ]
@@ -932,6 +937,79 @@ let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: s
         | None -> ()
 
 let namedGate = zeroCostGate "Trace.named" "named-zero-cost" "NamedZeroCost" "NAMED" None
+/// <summary>Compares the feature's untraced IL with a source copy whose timed hook statements are replaced by unit.</summary>
+let timedHookGate () =
+    let dir = Path.Combine (work, "timed-hook-free")
+    let copy = Path.Combine (dir, "src", "Ranvier")
+    Directory.CreateDirectory copy |> ignore
+    File.Copy (Path.Combine (root, "src", "Directory.Build.props"), Path.Combine (dir, "src", "Directory.Build.props"), true)
+
+    for file in Directory.GetFiles (root) do
+        if
+            [ ".props"; ".targets"; ".json" ]
+            |> List.contains (Path.GetExtension file)
+        then
+            File.Copy (file, Path.Combine (dir, Path.GetFileName file), true)
+
+    for file in Directory.GetFiles (src) do
+        let target = Path.Combine (copy, Path.GetFileName file)
+
+        if Path.GetFileName file = "Timed.fs" then
+            let lines =
+                File.ReadAllLines file
+                |> Array.map (fun line ->
+                    let index = line.IndexOf "Tracer."
+
+                    if index < 0 then
+                        line
+                    else
+                        let prefix = line.Substring (0, index)
+
+                        if prefix.Trim () = "do" then
+                            prefix + "()"
+                        elif prefix.Contains "then" then
+                            prefix + "()"
+                        else
+                            String (' ', line.Length - line.TrimStart().Length)
+                            + "()")
+
+            File.WriteAllLines (target, lines)
+        else
+            File.Copy (file, target, true)
+
+    let out = Path.Combine (work, "timed-hook-free-out")
+
+    runChecked
+        dir
+        []
+        "dotnet"
+        [
+            "build"
+            copy
+            "-c"
+            "Release"
+            "-f"
+            "net10.0"
+            "-p:RanvierTrace=false"
+            "-o"
+            out
+            "-warnaserror"
+        ]
+    |> ignore
+
+    let feature = methodBodies (Path.Combine (work, "untraced", "Ranvier.dll"))
+    let without = methodBodies (Path.Combine (out, "Ranvier.dll"))
+
+    check
+        "gate 1: timed hooks erase to hook-free feature IL"
+        [
+            if feature <> without then
+                for KeyValue (name, body) in feature do
+                    if without.TryFind name <> Some body then
+                        yield "changed: " + name
+        ]
+        ""
+
 let labelGate = zeroCostGate "Trace.label" "label-zero-cost" "LabelZeroCost" "LABEL" (Some "label")
 
 let fableGate () =
@@ -1063,6 +1141,7 @@ step "lint" lint
 if not lintOnly then
     step "gate 1: IL scan" ilGate
     step "gate 1: IL against the merge-base" mergeBaseIlGate
+    step "gate 1: timed hook erasure" timedHookGate
     step "gate 1: pack" packGate
     step "gate 1: Trace.named sample" namedGate
     step "gate 1: Trace.label sample" labelGate

@@ -3,7 +3,7 @@
 Date: 2026-10-03
 Branch: `feat/debounce-throttle`
 Baseline: `506c8d29c57e29d92cdce7164d89886a6d0b5618`
-Status: proposed implementation design; no feature code implemented.
+Status: implemented on the feature branch; performance acceptance pending elevated hardware counters and native timer measurements. See the [execution status](../plans/2026-10-03-debounce-throttle.md) and [performance evidence](../../.ai/debounce-throttle-performance.md).
 
 This design supersedes the deferred proposal in [the earlier design](../../.ai/designs/debounce-throttle.md). Its evidence is collected in [the prior-art research](../../.ai/debounce-throttle-prior-art.md). The implementation sequence is in [the plan](../plans/2026-10-03-debounce-throttle.md).
 
@@ -94,7 +94,7 @@ Append event kinds for captured input, window armed/extended, suppressed admissi
 
 Capture pending/failure and published pending/failure are separate in both live tracing and event folding. Run counts count captures; moved counts count actual changed published states. Reconciliation must agree with library counters, and folded live edges must match the graph after conditional dependency changes and disposal. Equal publication and dropped throttle inputs receive distinct suppression reasons.
 
-Use JSONL schema 2 for dumps that include timed events/metadata. Preserve schema 1 for graphs without timed nodes and accept both schemas in the parser. Fold timer times as relative offsets from the graph's first traced timed event; do not serialize OS handles or absolute monotonic origins. Manual-clock scripts with identical input and callback order must produce byte-identical dumps. Real OS dispatch order is not promised to be deterministic.
+Use JSONL schema 2 for dumps that include timed events/metadata. Preserve schema 1 for graphs without timed nodes and accept both schemas in the parser. Assign each clock instance a timebase by its encounter order in the graph and fold timer times as offsets from that clock's first timed-node construction. Distinct injected clocks may have unrelated origins; do not serialize OS handles or absolute monotonic origins. Manual-clock scripts with identical input and callback order must produce byte-identical dumps. Real OS dispatch order is not promised to be deterministic.
 
 All trace state, event creation, labels, and causal bookkeeping must be absent from untraced builds. Guard new state with `RANVIER_TRACE` and follow existing conditional hook conventions. The trace gate must prove no residue and compare untraced methods with a build of the same feature with hooks removed. Existing method bodies must still match the merge-base gate; do not waive the gate to accommodate this feature. Explicitly list new public symbols in pack/API compatibility checks.
 

@@ -7,6 +7,37 @@ module CounterBench.Workloads
 open System
 open Ranvier
 
+type private TimedWorkloadClock() =
+    inherit TimedClock()
+    let timers = ResizeArray<Action * float ref>()
+    let mutable now = 0.
+    override _.NowMilliseconds = now
+
+    override _.CreateTimer(callback) =
+        let due = ref infinity
+        timers.Add (callback, due)
+
+        { new TimedTimer() with
+            member _.Arm delay =
+                due.Value <- now + delay.TotalMilliseconds
+
+            member _.Disarm() =
+                due.Value <- infinity
+
+            member _.Dispose() =
+                due.Value <- infinity
+        }
+
+    member _.Advance() =
+        now <- now + 100.
+
+        for i in 0 .. timers.Count - 1 do
+            let callback, due = timers[i]
+
+            if due.Value <= now then
+                due.Value <- infinity
+                callback.Invoke ()
+
 /// <summary>State built outside the measured region, as the scenarios' <c>Prepared</c>.</summary>
 type Workload =
     {
@@ -57,6 +88,44 @@ let inline newGraph () =
 let private teardown (owner: Owner) (graph: Graph) () =
     owner.Dispose ()
     (graph :> IDisposable).Dispose()
+
+/// <summary>Writes one source observed by 64 timed nodes, optionally admitting each changed capture.</summary>
+let timed (mode: string) (admit: bool) (n: int) =
+    let graph = newGraph ()
+    let clock = TimedWorkloadClock ()
+
+    let owner, source =
+        graph.CreateRoot (fun owner ->
+            use _active = graph.Activate ()
+            let source = createSignal 0
+
+            let factory =
+                match mode with
+                | "first" -> throttleFirstWith
+                | "last" -> throttleLastWith
+                | "both" -> throttleWith
+                | _ -> debounceWith
+
+            for _ in 1..64 do
+                let output =
+                    factory { Clock = clock; Comparer = None } (TimeSpan.FromMilliseconds 100.) (fun () -> source.Value) graph
+
+                createEffect (fun () -> sink <- output.Value)
+
+            owner, source)
+
+    source.Value <- 1
+
+    {
+        Run =
+            fun () ->
+                for _ in 1..n do
+                    source.Value <- source.Peek + 1
+
+                    if admit then
+                        clock.Advance ()
+        Teardown = teardown owner graph
+    }
 
 /// <summary>
 /// A <c>Rows</c>-row projection through a <c>filter</c> on a query signal and a <c>sortBy</c> on a direction signal.

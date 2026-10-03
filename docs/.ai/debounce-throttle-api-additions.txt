@@ -1,0 +1,52 @@
+member Ranvier.TimedClock .ctor() : Void
+member Ranvier.TimedClock CreateTimer(System.Action) : Ranvier.TimedTimer
+member Ranvier.TimedClock get_NowMilliseconds() : Double
+member Ranvier.TimedClockModule static get_system() : Ranvier.TimedClock
+member Ranvier.TimedClockModule static ofTimeProvider(System.TimeProvider) : Ranvier.TimedClock
+member Ranvier.TimedCombinators static debounce<1>(System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static debounceWith<1>(Ranvier.TimedOptions`1<!!0>,System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttle<1>(System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttleFirst<1>(System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttleFirstWith<1>(Ranvier.TimedOptions`1<!!0>,System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttleLast<1>(System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttleLastWith<1>(Ranvier.TimedOptions`1<!!0>,System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedCombinators static throttleWith<1>(Ranvier.TimedOptions`1<!!0>,System.TimeSpan,Microsoft.FSharp.Core.FSharpFunc`2<Microsoft.FSharp.Core.Unit,!!0>,Ranvier.Graph) : Ranvier.Timed`1<!!0>
+member Ranvier.TimedOptions static defaults<1>() : Ranvier.TimedOptions`1<!!0>
+member Ranvier.TimedOptions`1 .ctor(Ranvier.TimedClock,Microsoft.FSharp.Core.FSharpOption`1<System.Collections.Generic.IEqualityComparer`1<!0>>) : Void
+member Ranvier.TimedOptions`1 Equals(Object) : Boolean
+member Ranvier.TimedOptions`1 Equals(Object,System.Collections.IEqualityComparer) : Boolean
+member Ranvier.TimedOptions`1 Equals(Ranvier.TimedOptions`1<!0>) : Boolean
+member Ranvier.TimedOptions`1 Equals(Ranvier.TimedOptions`1<!0>,System.Collections.IEqualityComparer) : Boolean
+member Ranvier.TimedOptions`1 GetHashCode() : Int32
+member Ranvier.TimedOptions`1 GetHashCode(System.Collections.IEqualityComparer) : Int32
+member Ranvier.TimedOptions`1 get_Clock() : Ranvier.TimedClock
+member Ranvier.TimedOptions`1 get_Comparer() : Microsoft.FSharp.Core.FSharpOption`1<System.Collections.Generic.IEqualityComparer`1<!0>>
+member Ranvier.TimedTimer .ctor() : Void
+member Ranvier.TimedTimer Arm(System.TimeSpan) : Void
+member Ranvier.TimedTimer Disarm() : Void
+member Ranvier.TimedTimer Dispose() : Void
+member Ranvier.Timed`1 Dispose() : Void
+member Ranvier.Timed`1 get_ErrorOrigin() : Ranvier.INode
+member Ranvier.Timed`1 get_Graph() : Ranvier.Graph
+member Ranvier.Timed`1 get_Peek() : !0
+member Ranvier.Timed`1 get_Runs() : Int32
+member Ranvier.Timed`1 get_Status() : Ranvier.Status
+member Ranvier.Timed`1 get_TryValue() : Ranvier.Reading`1<!0>
+member Ranvier.Timed`1 get_Value() : !0
+type Ranvier.TimedClock : System.Object
+type Ranvier.TimedClockModule : System.Object
+type Ranvier.TimedCombinators : System.Object
+type Ranvier.TimedOptions : System.Object
+type Ranvier.TimedOptions`1 : System.Object
+type Ranvier.TimedOptions`1 implements System.Collections.IStructuralEquatable
+type Ranvier.TimedOptions`1 implements System.IEquatable`1<Ranvier.TimedOptions`1<!0>>
+type Ranvier.TimedTimer : System.Object
+type Ranvier.TimedTimer implements System.IDisposable
+type Ranvier.Timed`1 : System.Object
+type Ranvier.Timed`1 implements Ranvier.IComputation
+type Ranvier.Timed`1 implements Ranvier.INode
+type Ranvier.Timed`1 implements Ranvier.IOwned
+type Ranvier.Timed`1 implements Ranvier.IScheduled
+type Ranvier.Timed`1 implements Ranvier.IScopeHost
+type Ranvier.Timed`1 implements Ranvier.ISource
+type Ranvier.Timed`1 implements System.IDisposable

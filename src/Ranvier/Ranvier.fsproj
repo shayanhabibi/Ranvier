@@ -51,11 +51,13 @@
         <Compile Include="Types.fs" />
         <Compile Include="PlatformDispatcher.fs" />
         <Compile Include="Platform.fs" />
+        <Compile Include="TimedClock.fs" />
         <Compile Include="Positional.fs" />
         <Compile Include="TraceEvents.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="TraceSite.fs" Condition="'$(RanvierTrace)' == 'true'" />
         <Compile Include="Trace.fs" />
         <Compile Include="Core.fs" />
+        <Compile Include="Timed.fs" />
         <Compile Include="Deltas.fs" />
         <Compile Include="ValueReaders.fs" />
         <Compile Include="Projections.fs" />
