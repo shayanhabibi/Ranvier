@@ -15,7 +15,7 @@
         <Description Condition="'$(RanvierTrace)' == 'true'">The traced build of Ranvier.Elmish: the model-view-update bridge for Ranvier. Depends on Ranvier.Traced.</Description>
         <PackageTags>reactive;reactivity;signals;elmish;mvu;fine-grained;fsharp</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <Version>0.1.0-preview.3</Version>
+        <Version>0.1.0-preview.4</Version>
         <AssemblyVersion>0.0.0.0</AssemblyVersion>
     </PropertyGroup>
 
