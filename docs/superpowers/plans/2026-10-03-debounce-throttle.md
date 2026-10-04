@@ -12,11 +12,11 @@
 
 Implementation is available on `feat/debounce-throttle`, based on `506c8d29c57e29d92cdce7164d89886a6d0b5618`. The task lists below preserve the original execution requirements; this status records what was actually delivered and what remains outstanding.
 
-## Execution status (2026-10-03)
+## Execution status (updated 2026-10-04)
 
 Tasks 1–5 are implemented: portable clocks, all four timed modes, causal tracing and recorded timing/schema 2, C# factories, shared Fable tests and Windows NativeAOT smoke. Timed tests live together in `tests/Ranvier.Tests/Timed.fs`; the manual clock has its own `TimedTestClock.fs` rather than enlarging general test support. Clock and node slices were combined into a green implementation commit. Counter scenarios exercise the timed trace path; existing sample dumps remain unchanged.
 
-Task 6 has allocation/counter baselines and 30 BenchmarkDotNet Short cases, plus a deterministic JavaScript policy harness. Production retains lazy deadline extension. Native timer policy throughput, separate callback/dispatch costs, construction/equal-write measurements and real deadline latency distributions remain unmeasured. Required elevated retired-instruction measurements are blocked by this host's non-elevated Windows process. See [performance evidence](../../.ai/debounce-throttle-performance.md) for measured results and their limits.
+Task 6 has allocation/counter baselines and 30 BenchmarkDotNet Short cases, plus a deterministic JavaScript policy harness. The [878f294 counter report](../../.ai/benchmarks/counters/878f294.md) now supplies five hardware-counter runs for both .NET and Fable/Node, including retired instructions, cycles and branch mispredictions; hardware collection is no longer blocked. Production retains lazy deadline extension. Native timer policy throughput, separate callback/dispatch costs, construction/equal-write measurements and real deadline latency distributions remain unmeasured. The supplied HEAD report alone does not establish a matched merge-base retired-instruction regression verdict. See [performance evidence](../../.ai/debounce-throttle-performance.md) for measured results and their limits.
 
 Task 7 includes the timing guide, schema documentation, full traced/untraced .NET and C# tests, actual Fable runs, format/XML/comment checks, packed API comparison and AOT smoke. New API additions are explicitly enumerated; existing signatures are retained. Review found and fixed per-clock origin normalization and admission-failure history attribution, including a regression with an equal capture after the winning input. The final trace verifier retains pre-existing projection lint and stale legacy API-baseline failures rather than waiving them. Performance acceptance remains pending the measurements above.
 
@@ -115,7 +115,7 @@ Files: add `bench/Ranvier.Benchmarks/Timed.fs` and its compile item; edit `bench
 - [ ] Report allocations, backend arms, callbacks, posts, admissions, throughput, and latency distribution. State runtime/version/environment and distinguish deterministic simulated deadlines from real timer latency.
 - [ ] Run existing non-timed counters against the baseline. Require unchanged allocations; investigate reproducible retired-instruction changes around 5% or more, and retain the stricter merge-base IL check.
 - [ ] Select the production strategy based on evidence. If changing the proposed lazy strategy, preserve the semantics and rerun affected timing/race tests. Record runtime-specific tradeoffs and expiry allocations candidly.
-- [ ] Run both allocated-bytes and elevated retired-instruction measurements. `-NoPmc` is useful during development but cannot satisfy the final performance gate.
+- [x] Run both allocated-bytes and elevated retired-instruction measurements. Completed for .NET and Fable/Node in the five-run `878f294` counter report; matched baseline regression acceptance is a separate check above.
 
 ## Task 7: Document behavior and run final gates
 

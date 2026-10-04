@@ -3,7 +3,7 @@
 Date: 2026-10-03
 Branch: `feat/debounce-throttle`
 Baseline: `506c8d29c57e29d92cdce7164d89886a6d0b5618`
-Status: implemented on the feature branch; performance acceptance pending elevated hardware counters and native timer measurements. See the [execution status](../plans/2026-10-03-debounce-throttle.md) and [performance evidence](../../.ai/debounce-throttle-performance.md).
+Status: implemented on the feature branch; hardware counters collected for .NET and Fable/Node at `878f294`. Native timer measurements and matched baseline hardware-counter regression acceptance remain outstanding. See the [execution status](../plans/2026-10-03-debounce-throttle.md) and [performance evidence](../../.ai/debounce-throttle-performance.md).
 
 This design supersedes the deferred proposal in [the earlier design](../../.ai/designs/debounce-throttle.md). Its evidence is collected in [the prior-art research](../../.ai/debounce-throttle-prior-art.md). The implementation sequence is in [the plan](../plans/2026-10-03-debounce-throttle.md).
 

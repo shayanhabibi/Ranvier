@@ -16,7 +16,7 @@ dotnet run --project bench/Ranvier.Benchmarks -c Release -- --filter "*Memo*"
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --short --filter "*"
 
 # By category: Signal, Memo, Effect, Suspension, Lifetime, Projection,
-# Commands, Model, Editable, Probe.
+# Commands, Model, Editable, Probe, Timed, TimedPolicy.
 dotnet run --project bench/Ranvier.Benchmarks -c Release -- --anyCategories Memo
 
 # Regression sentinels. Run on every engine change.
@@ -45,6 +45,8 @@ comparable with it.
 | `BoundaryBenchmarks` | Re-running a body and catching its throw, against a clean boundary. |
 | `SettleBenchmarks` | Settling on the graph's own thread, taking the inline path. |
 | `FlightBenchmarks` | What does a flight cost under each `FlightPolicy` (`Policy`: `CancelPrevious`, `KeepLatest`, `Queue`, `FinishCurrent`), settled on launch and with `Writes` (1, 10) changes arriving during a flight? |
+| `TimedBenchmarks` | Changed capture, equal writes, construction, and capture plus admission for debounce and three throttle modes at 1 / 64 / 4096 nodes. See [timing evidence](../debounce-throttle-performance.md) for measured cases and limits. |
+| `DeadlinePolicyBenchmarks` | How do per-input rearm and lazy deadline extension compare for deterministic counting-timer bursts? Native timer latency is outside this benchmark. |
 | `FailureBenchmarks` | What does the error channel add to a recomputation: a body that throws a fresh exception, against one that succeeds? |
 | `FailureChainBenchmarks` | What does a failure cost per reader, through `Depth` (1, 4, 16) memos that each read the one before? |
 | `ConstructionBenchmarks`, `ScopeBenchmarks` | Mount and unmount: construction, disposal, and a scope with children. `CreateAndDisposeSeededMemo`: what does the seeded `Memo` constructor add? |
@@ -59,6 +61,8 @@ comparable with it.
 | `DerivedValueComparison`, `ChainComparison`, `CutoffComparison` | The same work in FSharp.Data.Adaptive, R3, System.Reactive and by hand. |
 
 ## Regression sentinels
+
+The [878f294 counter report](counters/878f294.md) records five hardware-counter runs for .NET and Fable/Node, including all eight timed capture/admission scenarios. Its [JSON](counters/878f294.json) retains retired instructions, cycles, branch misses, allocations and graph counters; the report links the corresponding plots.
 
 `MemoBenchmarks.Recompute` and `ChainBenchmarks.WriteThenReadTail` carry the
 `Sentinel` category. Run them, interleaved against the parent commit, on every

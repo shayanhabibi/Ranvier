@@ -1,6 +1,6 @@
 # Debounce and throttle performance evidence
 
-Measured on 2026-10-03 on Windows 11, AMD Ryzen 9 9900X (12 cores, 24 logical processors), .NET SDK 10.0.401 and .NET runtime 10.0.12. These are implementation measurements, not a claim that one policy is universally fastest.
+BenchmarkDotNet measurements were collected on 2026-10-03 on Windows 11, AMD Ryzen 9 9900X (12 cores, 24 logical processors), .NET SDK 10.0.401 and .NET runtime 10.0.12. Hardware-counter results for `878f294` were collected on 2026-10-04 with .NET 10.0.12 and Node.js v26.7.0. These are implementation measurements, not a claim that one policy is universally fastest.
 
 ## Selected policy
 
@@ -30,8 +30,21 @@ Allocation and graph counters were run three times with `counters.ps1 -NoPmc` at
 
 The trace verifier separately compares existing untraced method bodies against the merge-base and compares the feature assembly against a same-feature build with timed trace hooks removed. These checks protect existing paths and trace erasure independently of benchmark timing. Packed API verification permits only the explicit 52-member addition manifest, with no existing signature removals.
 
-## Outstanding performance acceptance
+## Hardware-counter results at 878f294
 
-The required retired-instruction measurement is blocked on this host: ETW/PMC collection requires an elevated administrator process. Unrestricted filesystem permissions do not provide Windows elevation. `-NoPmc` does not satisfy this gate. Run the full verifier and `counters.ps1 -Repeat 5` from an elevated suitable host before declaring performance acceptance.
+The [counter report](benchmarks/counters/878f294.md) and [raw JSON](benchmarks/counters/878f294.json) record five runs using per-context-switch PMC counters: `InstructionRetired`, `TotalCycles` and `BranchMispredictions`. Hardware-counter collection is complete for both .NET and Fable/Node; the earlier non-elevated collection blocker is resolved. The .NET calibration reports no divergences. Library counters were collected in a separate `RanvierCounters` build, with tracing disabled.
+
+Each timed operation covers 64 nodes, with N = 1,000. Figures use `(m(2N) - m(N)) / N`; the following are median retired instructions per operation, not per node:
+
+- .NET capture: debounce 37,545.85; leading throttle 33,743.87; trailing throttle 37,547.36; combined throttle 37,650.90.
+- .NET capture plus admission: debounce 108,254.02; leading throttle 68,535.59; trailing throttle 108,537.85; combined throttle 109,069.37.
+- Fable/Node main-thread capture: debounce 54,240.50; leading throttle 47,710.23; trailing throttle 51,569.22; combined throttle 52,517.92.
+- Fable/Node main-thread capture plus admission: debounce 171,118.50; leading throttle 101,654.11; trailing throttle 169,840.16; combined throttle 174,251.17.
+
+The .NET report confirms zero allocated bytes for capture in all modes and for leading admission. Timer-backed admission allocates 1,536 bytes per 64-node operation, matching the earlier 24 bytes/node result. All capture cases record 64 memo recomputations and one flush. Admission cases record 64 effect runs; leading admission uses one flush, timer-backed admission 65. Node heap deltas can be negative or include GC in the region, so they do not establish exact allocation counts.
+
+The worker disables .NET tiered compilation, tiered PGO, ReadyToRun and server GC; Node uses `--expose-gc --single-threaded`. These settings differ from the BenchmarkDotNet job above. The report includes cycles, branch misses, spreads and .NET/Node plots; compare instruction counts only with matching scale and environment. This HEAD report establishes collection and measured costs, not by itself a matched merge-base retired-instruction regression verdict or a rerun of the full trace verifier.
+
+## Remaining measurement scope
 
 Native timer rearm versus lazy-extension throughput, separate callback/owner-dispatch costs, contention and real deadline latency distributions remain unmeasured. The simulation results must not be presented as those measurements. No timing wheel or shared timer scheduler is justified by the evidence currently collected.
