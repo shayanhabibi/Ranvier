@@ -303,30 +303,68 @@ StateDial ()
 
 ## Watch the graph think
 
-A traced build records writes, marks, runs and flights. Node creation sites are available on .NET; labels identify nodes on both targets. This is the example from the top of the page, running on the real engine compiled to JavaScript with tracing on. Press a button and follow the event along the edges; hover a node for its state, click it for why it last ran. [How to read a map](guide/signal-maps.md#reading-a-map).
+A cart changes faster than its shipping service can answer. Watch debounce hold a request until the edits stop, trailing throttle refresh a preview at its fixed deadline, and a superseded quote drop. Switch to pickup and the total stops reading shipping: that edge disappears.
+
+This runs the real engine compiled to JavaScript with tracing on. Start with **Rapid cart edits**, then advance the example clock by **20 ms** and **80 ms**. The preview moves first; shipping waits for quiet. Fail the quote, switch to pickup, then retry delivery and settle it. Hover a node for its state; click it for why it last ran. **Play**, **Step** and the scrub bar replay your recorded events. [How to read a map](guide/signal-maps.md#reading-a-map).
 
 ```fsharp map timeline
-let price = createAsyncSource<int> ()
-let total = createMemo (fun _ -> price.Value * 3)
+let graph = Graph.Current
+let clock = MapClock()
+let options = { Clock = clock; Comparer = None }
+let interval = System.TimeSpan.FromMilliseconds 100.
+let desk = Desk<int>()
+let qty = createSignal 1
+let pickup = createSignal false
+let subtotal = createMemo (fun _ -> 4 * qty.Value)
+let admitted = debounceWith options interval (fun () -> subtotal.Value) graph
+let preview = throttleLastWith options interval (fun () -> subtotal.Value) graph
+let shipping = createAsync (fun _ _ -> desk.Quote admitted.Value)
+let total =
+    createMemo (fun _ ->
+        subtotal.Value + (if pickup.Value then 0 else shipping.Value))
 
 let view =
     createBoundary
         (fun _ -> "Loading…")
-        (fun ex _ -> "Unavailable: " + ex.Message)
+        (fun _ _ -> "Quote offline")
         (fun () -> sprintf "Total %d" total.Value)
 
-createEffect (fun () -> printfn "%s" view.Value)
-
-let offline = exn "feed offline"
+createEffect (fun () -> printfn "%s / preview %d" view.Value preview.Value)
 
 controls [
-    button "Settle 4" (fun () -> price.Settle 4)
-    button "Fail" (fun () -> price.Fail offline)
-    button "Settle 5" (fun () -> price.Settle 5)
+    button "Rapid cart edits" (fun () ->
+        qty.Value <- 2
+        clock.Advance 40.
+        qty.Value <- 3
+        clock.Advance 40.
+        qty.Value <- 4)
+    |> describe "Three captures. Both timed outputs still publish 4; shipping has one request."
+    |> expect "captures do not start shipping requests" (fun () -> admitted.Peek = 4 && preview.Peek = 4 && shipping.Runs = 1)
+    button "Advance 20 ms" (fun () -> clock.Advance 20.)
+    |> describe "At 100 ms the preview publishes 16. Debounce's quiet period ends at 180 ms."
+    |> expect "throttle moves before debounce" (fun () -> preview.Peek = 16 && admitted.Peek = 4 && shipping.Runs = 1)
+    button "Advance 80 ms" (fun () -> clock.Advance 80.)
+    |> describe "Debounce admits 16. A new shipping flight supersedes the initial quote."
+    |> expect "one new request follows the burst" (fun () -> admitted.Peek = 16 && shipping.Runs = 2 && desk.Pending = 1)
+    button "Fail quote" (fun () -> desk.Fail "service offline")
+    |> describe "The boundary turns the shipping failure into a visible fallback."
+    |> expect "failure reaches the boundary" (fun () -> view.Peek = "Quote offline")
+    toggleSignal "Pickup" pickup [ true ]
+    |> describe "Pickup skips shipping. The dependency edge disappears and the total recovers."
+    |> expect "pickup ignores the failed quote" (fun () -> view.Peek = "Total 16")
+    button "Retry delivery" (fun () ->
+        pickup.Value <- false
+        qty.Value <- 5
+        clock.Advance 100.)
+    |> describe "Delivery reads shipping again. A changed cart starts a fresh quote after quiet."
+    |> expect "delivery waits for the new quote" (fun () -> not pickup.Peek && admitted.Peek = 20 && view.Peek = "Loading…" && desk.Pending = 1)
+    button "Settle quote" (fun () -> desk.Settle 5)
+    |> describe "The latest shipping quote settles. The boundary publishes the delivered total."
+    |> expect "delivery recovers" (fun () -> view.Peek = "Total 25" && preview.Peek = 20)
 ]
 ```
 
-<p class="rv-map-edit"><a href="/Ranvier/guide/signal-maps/#edit-a-map">Edit this map in your browser</a></p>
+<p class="rv-map-edit"><a href="/Ranvier/guide/timing/">Explore debounce and throttle</a> · <a href="/Ranvier/guide/signal-maps/#edit-a-map">Build your own map in the browser</a></p>
 
 <div class="rv-trace">
 <p class="rv-trace__lead">The same log answers questions a call stack cannot. An untraced build compiles it out, IL for IL.</p>

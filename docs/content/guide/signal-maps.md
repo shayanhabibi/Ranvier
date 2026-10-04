@@ -485,8 +485,8 @@ module Thermo =
 ## Edit a map
 
 This map runs in your browser: change the code and press **Run** to compile it again and redraw the
-graph. It is the example from the [home page](../index.md#watch-the-graph-think). Try adding a memo
-or a button.
+graph. Start with this small boundary example, then try the timed values and conditional reads
+from the [home page's cart](../index.md#watch-the-graph-think). Try adding a memo or a button.
 
 ```fsharp live
 open Ranvier
