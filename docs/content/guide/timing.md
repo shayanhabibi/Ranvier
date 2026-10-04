@@ -27,7 +27,10 @@ let query, admitted =
         query, admitted)
 ```
 
-Capture runs eagerly in a pure scope. Put expensive work downstream of `admitted.Value`.
+:::warning Capture runs eagerly
+Debounce and throttle delay publication, not evaluation of the capture callback. Put expensive work downstream of the timed value.
+:::
+
 The node tracks conditional dependencies on each capture, even while its publication is held.
 An equal capture leaves the deadline unchanged; an equal admitted value does not notify readers.
 
@@ -77,3 +80,69 @@ Debounce extends an armed deadline without rescheduling the backend on every inp
 throttle arms once per window; leading throttle creates no timer. Warmed primitive captures
 allocate zero managed bytes in the tested .NET path. Cross-thread wake/dispatch and construction
 have separate costs.
+
+## Watch admission on the signal map
+
+These replays use a manual clock so each recorded control step has a deterministic result.
+The value above a timed node is published output. Its captured input and timing window are separate;
+a timing window does not draw an async flight ring. **Advance time** moves this example's clock,
+not wall-clock time. Timeline **Speed** changes playback animation only.
+
+### Debounce waits for quiet
+
+Press **Play** or **Step** to follow the recorded controls: capture 1 at 0 ms, capture 2 at 50 ms, then reach 100 ms.
+The output is still 0 because the second capture extended its deadline to 150 ms.
+
+```fsharp map replay
+let graph = Graph.Current
+let clock = MapClock()
+let input = createSignal 0
+let admitted =
+    debounceWith { Clock = clock; Comparer = None }
+        (System.TimeSpan.FromMilliseconds 100.) (fun () -> input.Value) graph
+createEffect (fun () -> printfn "admitted %d" admitted.Value)
+
+controls [
+    button "Capture 1" (fun () -> input.Value <- 1)
+    |> expect "initial publication is held" (fun () -> admitted.Peek = 0)
+    button "50 ms, capture 2" (fun () -> clock.Advance 50.; input.Value <- 2)
+    |> expect "latest capture is held" (fun () -> admitted.Peek = 0)
+    button "Advance time to 100 ms" (fun () -> clock.Advance 50.)
+    |> expect "extended deadline has not expired" (fun () -> admitted.Peek = 0)
+    button "Advance time to 150 ms" (fun () -> clock.Advance 50.)
+    |> expect "latest capture publishes" (fun () -> admitted.Peek = 2)
+]
+```
+
+### Compare the three throttle modes
+
+Leading throttle publishes 1 and discards 2 during its cooldown. Trailing throttle holds its
+initial value until the fixed deadline, then publishes 2. Combined throttle publishes 1 immediately
+and 2 at the deadline; that trailing admission starts its next cooldown.
+
+```fsharp map replay
+let graph = Graph.Current
+let clock = MapClock()
+let input = createSignal 0
+let options = { Clock = clock; Comparer = None }
+let interval = System.TimeSpan.FromMilliseconds 100.
+let first = throttleFirstWith options interval (fun () -> input.Value) graph
+let last = throttleLastWith options interval (fun () -> input.Value) graph
+let both = throttleWith options interval (fun () -> input.Value) graph
+createEffect (fun () -> printfn "%d / %d / %d" first.Value last.Value both.Value)
+
+controls [
+    button "Capture 1" (fun () -> input.Value <- 1)
+    |> expect "leading modes publish immediately" (fun () -> (first.Peek, last.Peek, both.Peek) = (1, 0, 1))
+    button "50 ms, capture 2" (fun () -> clock.Advance 50.; input.Value <- 2)
+    |> expect "trailing modes hold the candidate" (fun () -> (first.Peek, last.Peek, both.Peek) = (1, 0, 1))
+    button "Advance time to 100 ms" (fun () -> clock.Advance 50.)
+    |> expect "trailing modes publish the latest capture" (fun () -> (first.Peek, last.Peek, both.Peek) = (1, 2, 2))
+    button "Capture 3 at 100 ms" (fun () -> input.Value <- 3)
+    |> expect "combined mode starts a new cooldown" (fun () -> (first.Peek, last.Peek, both.Peek) = (3, 2, 2))
+    button "Advance time to 200 ms" (fun () -> clock.Advance 100.)
+    |> expect "next trailing admissions publish" (fun () -> (first.Peek, last.Peek, both.Peek) = (3, 3, 3))
+]
+```
+
+See [Signal maps](signal-maps.md) for the map marks, controls and replay diagnostics.

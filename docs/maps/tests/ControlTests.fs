@@ -22,6 +22,51 @@ let tests =
     testList
         "Controls"
         [
+            test "manual map time advances replaced waits in deadline order" {
+                let clock = MapClock ()
+                let values = ResizeArray<int>()
+                use first = clock.CreateTimer (System.Action (fun () -> values.Add 1))
+                use second = clock.CreateTimer (System.Action (fun () -> values.Add 2))
+                first.Arm (System.TimeSpan.FromMilliseconds 100.)
+                first.Arm (System.TimeSpan.FromMilliseconds 50.)
+                second.Arm (System.TimeSpan.FromMilliseconds 50.)
+                clock.Advance 49.
+                Expect.isEmpty values "never fire early"
+                clock.Advance 1.
+                Expect.sequenceEqual values [ 1; 2 ] "equal deadlines follow creation order"
+                first.Arm (System.TimeSpan.FromMilliseconds 10.)
+                first.Disarm ()
+                second.Arm (System.TimeSpan.FromMilliseconds 10.)
+                second.Dispose ()
+                clock.Advance 100.
+                Expect.sequenceEqual values [ 1; 2 ] "cancelled timers stay silent"
+                Expect.throws (fun () -> clock.Advance -1.) "time cannot go backwards"
+            }
+
+            test "manual map clock rejects nested advancement and recovers after callback failure" {
+                let clock = MapClock ()
+                let mutable rejected = false
+
+                use timer =
+                    clock.CreateTimer (
+                        System.Action (fun () ->
+                            try
+                                clock.Advance 100.
+                            with :? System.InvalidOperationException ->
+                                rejected <- true)
+                    )
+
+                timer.Arm (System.TimeSpan.FromMilliseconds 10.)
+                clock.Advance 20.
+                Expect.isTrue rejected "callbacks cannot move the clock past the outer target"
+                Expect.equal clock.NowMilliseconds 20. "time stays monotonic"
+                use failing = clock.CreateTimer (System.Action (fun () -> failwith "callback"))
+                failing.Arm (System.TimeSpan.FromMilliseconds 10.)
+                Expect.throws (fun () -> clock.Advance 20.) "callback failure propagates"
+                clock.Advance 5.
+                Expect.equal clock.NowMilliseconds 35. "failed advancement releases its guard"
+            }
+
             test "a button has one silent step that runs its action" {
                 let mutable pressed = 0
                 let c = button "Add" (fun () -> pressed <- pressed + 1)

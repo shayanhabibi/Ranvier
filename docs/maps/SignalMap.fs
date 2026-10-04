@@ -67,6 +67,7 @@ type private NodeView =
         Shape: Element
         Name: Element
         Value: Element
+        Timing: Element
         mutable At: float * float
     }
 
@@ -103,12 +104,14 @@ module private Look =
         | TraceNodeKind.AsyncSource -> "async source"
         | TraceNodeKind.Boundary -> "boundary"
         | TraceNodeKind.Projection -> "projection"
+        | TraceNodeKind.Timed -> "timed"
         | _ -> "node"
 
     let shapeOf (kind: TraceNodeKind) =
         match kind with
         | TraceNodeKind.Signal -> "signal"
         | TraceNodeKind.Effect -> "effect"
+        | TraceNodeKind.Timed -> "timed"
         | TraceNodeKind.AsyncMemo
         | TraceNodeKind.AsyncSource -> "async"
         | _ -> "memo"
@@ -318,6 +321,19 @@ module SignalMapComponent =
                     match shown.Errors.TryFind n.Id with
                     | Some e -> "error: " + e
                     | None -> ()
+                    match shown.Timing.TryFind n.Id with
+                    | Some state ->
+                        state.Mode
+
+                        "captured: "
+                        + (shown.Captured.TryFind n.Id
+                           |> Option.defaultValue "uninitialized")
+
+                        if state.WindowOpen then
+                            $"window open ({state.RemainingMilliseconds:g} ms at recorded event)"
+                        else
+                            "window closed"
+                    | None -> ()
                 ]
 
             String.Join (" · ", parts)
@@ -397,6 +413,8 @@ module SignalMapComponent =
 
             let name = Dom.svg "text" "rv-map-node__name"
             let value = Dom.svg "text" "rv-map-node__value"
+            let timing = Dom.svg "text" "rv-map-node__timing"
+            Dom.attrs timing [ "y", "51"; "text-anchor", "middle" ]
 
             match at with
             | Row _ ->
@@ -406,7 +424,7 @@ module SignalMapComponent =
                 Dom.attrs name [ "y", "36"; "text-anchor", "middle" ]
                 Dom.attrs value [ "y", "-26"; "text-anchor", "middle" ]
 
-            for e in [ ring; body; name; value ] do
+            for e in [ ring; body; name; value; timing ] do
                 group.appendChild e |> ignore
 
             let id = n.Id
@@ -436,6 +454,7 @@ module SignalMapComponent =
                 Shape = body
                 Name = name
                 Value = value
+                Timing = timing
                 At = 0.0, 0.0
             }
 
@@ -757,6 +776,20 @@ module SignalMapComponent =
                     n.Value
                     |> Option.map badge
                     |> Option.defaultValue ""
+
+                let timing = scene.Timing.TryFind id
+
+                view.Timing.textContent <-
+                    match timing with
+                    | Some state when state.WindowOpen ->
+                        "◷ captured "
+                        + (scene.Captured.TryFind id
+                           |> Option.map badge
+                           |> Option.defaultValue "")
+                    | Some state -> state.Mode
+                    | None -> ""
+
+                Dom.toggle view.Group "is-timing" (timing |> Option.exists _.WindowOpen)
 
                 Dom.toggle view.Group "is-running" (n.Status = TraceNodeStatus.Running)
                 Dom.toggle view.Group "is-pending" (MapModel.pending scene id)

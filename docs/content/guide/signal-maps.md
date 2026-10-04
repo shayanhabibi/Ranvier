@@ -49,6 +49,7 @@ read it. The value above a node is its latest value.
 | Solid circle | Signal |
 | Dashed circle | Async source or async memo |
 | Rounded rectangle | Memo, boundary or projection |
+| Thick rounded rectangle | Debounce or throttle |
 | Diamond | Effect |
 
 | Look | State |
@@ -58,12 +59,19 @@ read it. The value above a node is its latest value.
 | Spinning ring | A flight is in progress |
 | Dotted outline, dimmed value | Waiting on a pending source |
 | Red outline and value | Failed; the value is the error |
+| Dashed thick outline, clock caption | A timed admission window is open; the value above stays published output |
 
 A dot travelling an edge is a mark: the source tells its observer it may be stale. A bright dot means
 the source's value moved. A ring that fades is a dropped flight.
 
 Hover or focus a node for its path, state, value and run count. Click it for the cause chain of its
 last run, as `Trace.why` renders it. The log beneath the buttons lists the latest events.
+
+Timed nodes show captures, window changes, suppression, cancellation and publication in the log.
+Their caption shows the captured input while a window is open; hover or focus for the mode and
+remaining time recorded at that event. Pending capture can retain a ready or failed publication,
+so it does not automatically dim the published value. Timing windows use their own mark and never
+spin an async flight ring. Try the [debounce and throttle maps](timing.md#watch-admission-on-the-signal-map).
 
 ## Timelines and replays
 
@@ -156,6 +164,12 @@ controls [
 A `map` fence holds plain Ranvier code and ends with `controls`. The page shows the code as written.
 The compiled copy labels each top-level `let x = create…` binding with its name and runs the code
 against a fresh traced graph.
+
+Bindings returned by `debounce`, `throttleFirst`, `throttleLast`, `throttle` and their `With`
+factories also receive their names. Their final graph argument can use `Graph.Current` inside a
+map fence. `MapClock()` supplies a manual clock for deterministic examples: a control calling
+`clock.Advance milliseconds` runs due callbacks in deadline order. It replaces wall-clock waits
+for replay; playback speed does not change these example deadlines.
 
 Top-level projection aggregates also receive their binding's name: `Projection.sumBy`, `countBy`,
 `exists`, `forall`, `fold` and `foldGroup`, called directly or at the end of a pipeline. For example:

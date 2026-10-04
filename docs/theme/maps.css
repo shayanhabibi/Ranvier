@@ -40,6 +40,10 @@
   transform-box: fill-box; transform-origin: center;
   transition: fill .2s ease-out, stroke .2s ease-out, opacity .2s ease-out; }
 .rv-map-node--memo .rv-map-node__shape { stroke: var(--rv-violet); }
+.rv-map-node--timed .rv-map-node__shape { stroke: var(--rv-violet); stroke-width: 2.5; }
+.rv-map-node__timing { fill: var(--nacara-text-muted); font-size: 8px; }
+.rv-map-node.is-timing .rv-map-node__shape { stroke-dasharray: 6 2; }
+.rv-map-node.is-timing .rv-map-node__timing { fill: var(--rv-violet); }
 .rv-map-node--async .rv-map-node__shape { stroke: var(--rv-pending); stroke-dasharray: 4 3; }
 .rv-map-node--effect .rv-map-node__shape { stroke: var(--rv-accent-text); }
 .rv-map-node__flight {
