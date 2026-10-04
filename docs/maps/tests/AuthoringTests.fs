@@ -48,6 +48,101 @@ let tests =
     testList
         "MapFence"
         [
+            test "code starts open by default and can start collapsed" {
+                for flags, opened in [ [], true; [ "code=open" ], true; [ "code=collapsed" ], false ] do
+                    match MapFlags.parse flags with
+                    | Ok options ->
+                        Expect.equal options.CodeOpen opened "initial disclosure state"
+                        Expect.equal options.CodeMaxHeight None "height is unrestricted by default"
+                    | Error problem -> failtest problem
+
+                for flag in [ "code="; "code=hidden" ] do
+                    Expect.isError (MapFlags.parse [ flag ]) "reject unsupported disclosure states"
+            }
+
+            test "code height accepts positive CSS lengths and rejects unsafe or indefinite values" {
+                for height in [ "320px"; "24rem"; "18.5em"; "60vh"; ".5rem" ] do
+                    match MapFlags.parse [ "code-max-height=" + height ] with
+                    | Ok options -> Expect.equal options.CodeMaxHeight (Some height) "retain the requested cap"
+                    | Error problem -> failtest problem
+
+                for height in
+                    [
+                        ""
+                        "0px"
+                        "-1rem"
+                        "24"
+                        "50%"
+                        "auto"
+                        "NaNpx"
+                        "1e3px"
+                        "24rem;display:none"
+                        "1px\"onclick=evil"
+                    ] do
+                    Expect.isError (MapFlags.parse [ "code-max-height=" + height ]) "reject invalid CSS lengths"
+            }
+
+            test "map code disclosure preserves the code, mount and surrounding content" {
+                let code =
+                    "<figure class=\"nacara-code\" data-source=\"&lt;x&gt;\"><pre>let x = 1</pre></figure>"
+
+                let mount =
+                    "<div class=\"partas-solid\" data-partas-page=\"p1\" data-partas-cell=\"c1\"></div>"
+
+                let html =
+                    "before<div class=\"partas-solid-card partas-solid-card--map\">"
+                    + code
+                    + mount
+                    + "</div>after"
+
+                let options =
+                    MapFlags.parse [ "code=collapsed"; "code-max-height=24rem" ]
+                    |> Result.defaultWith failwith
+
+                let lookup page cell =
+                    if page = "p1" && cell = "c1" then Some options else None
+
+                let output = MapCode.rewrite lookup html
+                Expect.stringContains output "<details class=\"rv-map-code\">" "collapsed disclosure"
+                Expect.stringContains output "<summary>Example code</summary>" "native keyboard-accessible control"
+                Expect.stringContains output "max-height:24rem" "requested cap"
+                Expect.stringContains output "tabindex=\"0\"" "scroll area is keyboard accessible"
+                Expect.stringContains output code "preserve source and highlighted lines"
+                Expect.stringContains output ("</details>" + mount) "map stays outside the disclosure"
+                Expect.stringStarts output "before" "preserve preceding content"
+                Expect.stringEnds output "after" "preserve following content"
+                Expect.equal (MapCode.rewrite lookup output) output "rewriting is idempotent"
+                Expect.equal (MapCode.rewrite (fun _ _ -> None) html) html "unregistered cells stay unchanged"
+
+                let opened = MapFlags.parse [] |> Result.defaultWith failwith
+                let output = MapCode.rewrite (fun _ _ -> Some opened) html
+                Expect.stringContains output "<details class=\"rv-map-code\" open>" "open by default"
+                Expect.isFalse (output.Contains "max-height:") "unrestricted height"
+            }
+
+            test "code-only cards cannot consume the next map's mount" {
+                let start = "<div class=\"partas-solid-card partas-solid-card--map\">"
+                let figure = "<figure class=\"nacara-code\"><pre>rv-map-code</pre></figure>"
+
+                let mount =
+                    "<div data-partas-cell=\"c2\" class=\"partas-solid\" data-partas-page=\"p1\"></div>"
+
+                let codeOnly = start + figure + "</div>"
+                let options = MapFlags.parse [] |> Result.defaultWith failwith
+                let html = codeOnly + start + figure + mount + "</div>"
+                let output = MapCode.rewrite (fun _ _ -> Some options) html
+                Expect.stringStarts output codeOnly "preserve a code-only card"
+                Expect.stringContains output ("<div class=\"rv-map-code__body\">" + figure) "source text cannot disable folding"
+
+                let tabs =
+                    "<nacara-tabs><figure class=\"nacara-code\"><pre>F#</pre></figure><figure class=\"nacara-code\"><pre>JSX</pre></figure></nacara-tabs>"
+
+                let output =
+                    MapCode.rewrite (fun _ _ -> Some options) (start + tabs + mount + "</div>")
+
+                Expect.stringContains output (tabs + "</div></details>" + mount) "preserve tabs together and keep the map visible"
+            }
+
             test "a label follows the whole of a multi-line binding" {
                 let code, _, bindings = scenario cart
                 let lines = code.Split '\n'

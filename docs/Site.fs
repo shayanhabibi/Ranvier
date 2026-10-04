@@ -235,6 +235,7 @@ let site =
     )
     |> LightningCss.register
     |> Esbuild.register
+    |> Maps.register
     |> Nuglify.minifyHtml
     |> Versions.register versions
     |> Theme.register theme

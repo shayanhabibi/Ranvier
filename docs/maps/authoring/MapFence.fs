@@ -16,9 +16,13 @@ type MapFlags =
         Groups: string
         /// <summary>The initial playback multiplier, from 0.25 to 4; 1 is normal speed.</summary>
         Speed: float
+        /// <summary>Whether the example code disclosure starts open; defaults to true.</summary>
+        CodeOpen: bool
+        /// <summary>An optional positive CSS length in px, rem, em or vh that caps the scrollable code area.</summary>
+        CodeMaxHeight: string option
     }
 
-    /// <summary>The flags of a fence, or the problem with its policy, grouping or speed.</summary>
+    /// <summary>The flags of a fence, or the problem with an option's value.</summary>
     static member parse(flags: string list) : Result<MapFlags, string> =
         let replay = List.contains "replay" flags
 
@@ -55,8 +59,39 @@ type MapFlags =
                 | true, value when value >= 0.25 && value <= 4.0 -> Ok value
                 | _ -> Error $"{flag}: speed must be a number from 0.25 to 4; 1 is normal speed."
 
-        match policy, groups, speed with
-        | Ok policy, Ok groups, Ok speed ->
+        let codeOpen =
+            match
+                flags
+                |> List.tryFind (fun flag -> flag.StartsWith "code=")
+            with
+            | None
+            | Some "code=open" -> Ok true
+            | Some "code=collapsed" -> Ok false
+            | Some flag -> Error $"{flag}: code must be open or collapsed."
+
+        let codeMaxHeight =
+            match
+                flags
+                |> List.tryFind (fun flag -> flag.StartsWith "code-max-height=")
+            with
+            | None -> Ok None
+            | Some flag ->
+                let value = flag.Substring "code-max-height=".Length
+
+                let matched =
+                    Regex.Match (value, @"\A(?<number>(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+))(?:px|rem|em|vh)\z")
+
+                match Double.TryParse (matched.Groups["number"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture) with
+                | true, number when
+                    matched.Success
+                    && number > 0.
+                    && Double.IsFinite number
+                    ->
+                    Ok (Some value)
+                | _ -> Error $"{flag}: code-max-height must be a positive length in px, rem, em or vh."
+
+        match policy, groups, speed, codeOpen, codeMaxHeight with
+        | Ok policy, Ok groups, Ok speed, Ok codeOpen, Ok codeMaxHeight ->
             Ok
                 {
                     Timeline = replay || List.contains "timeline" flags
@@ -64,10 +99,14 @@ type MapFlags =
                     Policy = policy
                     Groups = groups
                     Speed = speed
+                    CodeOpen = codeOpen
+                    CodeMaxHeight = codeMaxHeight
                 }
-        | Error e, _, _
-        | _, Error e, _
-        | _, _, Error e -> Error e
+        | Error e, _, _, _, _
+        | _, Error e, _, _, _
+        | _, _, Error e, _, _
+        | _, _, _, Error e, _
+        | _, _, _, _, Error e -> Error e
 
 /// <summary>A run of generated lines and the fence line it came from.</summary>
 /// <remarks>

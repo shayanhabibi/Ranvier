@@ -93,7 +93,7 @@ not wall-clock time. Timeline **Speed** changes playback animation only.
 Press **Play** or **Step** to follow the recorded controls: capture 1 at 0 ms, capture 2 at 50 ms, then reach 100 ms.
 The output is still 0 because the second capture extended its deadline to 150 ms.
 
-```fsharp map replay
+```fsharp map replay code=open code-max-height=24rem
 let graph = Graph.Current
 let clock = MapClock()
 let input = createSignal 0

@@ -17,6 +17,10 @@ the [trace log](tracing.md).
 Maps appear throughout these docs beneath the examples they draw. This page explains how to read one
 and how to write one.
 
+Use **Example code** to expand or collapse a map's code. The graph and its controls stay visible.
+Authors can choose the initial state and cap the code area's height; taller code scrolls, including
+any F#/JSX tabs. These disclosures work with keyboard controls and with JavaScript disabled.
+
 ## Reading a map
 
 Press **Add tea**, then **Settle quote**. A cart's subtotal feeds a shipping quote, which the buttons
@@ -192,6 +196,8 @@ a callback or by a custom helper, use `Trace.named "name" (fun () -> …)` expli
 | `speed=` | Initial playback multiplier from `0.25` to `4`, such as `speed=0.5`; defaults to `1`. Readers can change it with **Speed**. |
 | `policy=` | The graph's flight policy: `cancel-previous` (default), `keep-latest`, `queue` or `finish-current`. |
 | `groups=` | How collections draw: `expand` (default), a box with a row per key, or `collapse`, one node. |
+| `code=` | The code disclosure's initial state: `open` (default) or `collapsed`. The map stays visible in either state. |
+| `code-max-height=` | Optional positive length in `px`, `rem`, `em` or `vh`, such as `code-max-height=24rem`. Taller code scrolls; omitted means unrestricted height. |
 | `id=`, `show=` | As on `solid` fences. |
 
 :::

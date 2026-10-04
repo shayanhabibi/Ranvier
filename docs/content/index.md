@@ -307,7 +307,7 @@ A cart changes faster than its shipping service can answer. Watch debounce hold 
 
 This runs the real engine compiled to JavaScript with tracing on. Start with **Rapid cart edits**, then advance the example clock by **20 ms** and **80 ms**. The preview moves first; shipping waits for quiet. Fail the quote, switch to pickup, then retry delivery and settle it. Hover a node for its state; click it for why it last ran. **Play**, **Step** and the scrub bar replay your recorded events. [How to read a map](guide/signal-maps.md#reading-a-map).
 
-```fsharp map timeline
+```fsharp map timeline code=collapsed code-max-height=28rem
 let graph = Graph.Current
 let clock = MapClock()
 let options = { Clock = clock; Comparer = None }

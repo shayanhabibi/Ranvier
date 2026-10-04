@@ -8,6 +8,16 @@
 .partas-solid-card--map > .nacara-code,
 .partas-solid-card--map > nacara-tabs { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
 .partas-solid-card--map > .partas-solid { border-top: 1px solid var(--nacara-border); }
+.partas-solid-card--map > .rv-map-code {
+  margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.rv-map-code > summary {
+  padding: .625rem 1rem; color: var(--rv-text); font-weight: 500; cursor: pointer; }
+.rv-map-code > summary:focus-visible { outline: 2px solid var(--rv-contour); outline-offset: -3px; }
+.rv-map-code[open] > summary { border-bottom: 1px solid var(--nacara-border); }
+.rv-map-code__body { overflow-y: auto; min-width: 0; }
+.rv-map-code__body:focus-visible { outline: 2px solid var(--rv-contour); outline-offset: -3px; }
+.rv-map-code__body > .nacara-code,
+.rv-map-code__body > nacara-tabs { margin: 0; border: 0; border-radius: 0; box-shadow: none; }
 
 .nacara-code__line.rv-map-line--run {
   background: color-mix(in oklab, var(--rv-contour) 14%, transparent);
