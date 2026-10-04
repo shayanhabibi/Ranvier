@@ -870,6 +870,20 @@ let private scenario name unit ops (engines: (string * (int -> Prepared)) list) 
 /// </summary>
 let all (scale: int) : Case list =
     [
+        for mode in [ "debounce"; "first"; "last"; "both" ] do
+            yield!
+                scenario
+                    ("timed-capture-" + mode)
+                    "capture a changed input in 64 timed nodes"
+                    (1000 * scale)
+                    [ "Ranvier", workload (Workloads.timed mode false) ]
+
+            yield!
+                scenario
+                    ("timed-admit-" + mode)
+                    "capture and admit in 64 timed nodes"
+                    (1000 * scale)
+                    [ "Ranvier", workload (Workloads.timed mode true) ]
         yield!
             scenario
                 "create"

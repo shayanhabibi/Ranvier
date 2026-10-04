@@ -46,6 +46,36 @@ module Trace =
     let events (graph: Graph) : TraceEvent[] =
         ((box graph) :?> ITraced).TraceLog.Events
 
+    /// <summary>The live timing gate of a timed node in this graph, or None for another node or graph.</summary>
+    let timing (graph: Graph) (node: INode) : TraceTiming option =
+        let exists =
+            events graph
+            |> Array.exists (fun e ->
+                e.Kind = TraceEventKind.NodeNew
+                && e.Arg = int TraceNodeKind.Timed
+                && e.Node = node.Id)
+
+        if not exists then
+            None
+        else
+#if FABLE_COMPILER
+            let isTimed = Platform.hasMember node "Timing"
+
+            if isTimed then
+                let timed = node :?> ITimedTrace
+
+                if obj.ReferenceEquals (timed.TimingGraph, graph) then
+                    Some timed.Timing
+                else
+                    None
+            else
+                None
+#else
+            match node with
+            | :? ITimedTrace as timed when obj.ReferenceEquals (timed.TimingGraph, graph) -> Some timed.Timing
+            | _ -> None
+#endif
+
     /// <summary>The creation record of <c>node</c> in <c>graph</c>'s log.</summary>
     /// <exception cref="T:System.ArgumentException"><c>graph</c>'s log holds no <c>NodeNew</c> for <c>node</c>.</exception>
     let origin (graph: Graph) (node: INode) : TraceOrigin =
@@ -267,7 +297,7 @@ module Trace =
                 )
             )
 
-    /// <summary>The JSONL dump of <c>graph</c>'s log, schema 1.</summary>
+    /// <summary>The JSONL dump of <c>graph</c>'s log: schema 2 with timed nodes, otherwise schema 1.</summary>
     /// <exception cref="T:System.InvalidOperationException">
     /// Called off the graph's thread, or while a flush, a discharge or a run is in progress. A <c>batch</c> is allowed.
     /// </exception>
@@ -276,7 +306,7 @@ module Trace =
         TraceModel.dumpText "net" null TraceModel.emptySnapshot (events graph)
 
 #if !FABLE_COMPILER
-    /// <summary>Writes the JSONL dump of <c>graph</c>'s log, schema 1, to <c>path</c>, and returns the full path.</summary>
+    /// <summary>Writes the JSONL dump of <c>graph</c>'s log to <c>path</c>, and returns the full path.</summary>
     /// <remarks>Absent from a Fable build.</remarks>
     /// <exception cref="T:System.InvalidOperationException">As for <c>dumpText</c>.</exception>
     let dump (graph: Graph) (path: string) : string =

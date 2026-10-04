@@ -87,6 +87,7 @@ Dispatchers move work from other threads onto the graph thread.
 - [Roots and owners](roots.md), [Cleanup](cleanup.md), [Untrack](untrack.md) and [Batch](batch.md): lifetime and tracking controls.
 - [Editable values](editable.md) and [Drafts](drafts.md): local edits over upstream state.
 - [Async and pending](async-and-pending.md): in-flight values, async memos, boundaries, and threading.
+- [Debounce and throttle](timing.md): control admission before downstream or async work starts.
 - [Testing async state](testing.md): deterministic tests that decide when each flight lands.
 - [Blazor Server](blazor-server.md): one graph per circuit, with `ThreadAffinity.Serialised`.
 - [Collections](collections.fsx): projections, editable keyed sources, change readers, lookups and collection views.

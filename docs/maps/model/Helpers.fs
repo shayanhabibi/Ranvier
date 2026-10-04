@@ -5,6 +5,87 @@ open System
 open System.Threading.Tasks
 open Ranvier
 
+/// <summary>A manual monotonic clock for map controls and deterministic replay.</summary>
+/// <remarks>Advance time on the graph owner; callbacks run in deadline and creation order without wall-clock waits.</remarks>
+type MapClock() =
+    inherit TimedClock()
+    let timers = ResizeArray<Action * float ref>()
+    let mutable now = 0.
+    let mutable advancing = false
+
+    override _.NowMilliseconds = now
+
+    override _.CreateTimer(callback) =
+        if isNull callback then
+            nullArg (nameof callback)
+
+        let due = ref infinity
+        let mutable disposed = false
+        let entry = callback, due
+        timers.Add entry
+
+        { new TimedTimer() with
+            member _.Arm delay =
+                if disposed then
+                    raise (ObjectDisposedException (nameof TimedTimer))
+
+                if delay < TimeSpan.Zero then
+                    invalidArg (nameof delay) "A wait cannot be negative."
+
+                due.Value <- now + delay.TotalMilliseconds
+
+            member _.Disarm() =
+                due.Value <- infinity
+
+            member _.Dispose() =
+                if not disposed then
+                    disposed <- true
+                    due.Value <- infinity
+                    timers.Remove entry |> ignore
+        }
+
+    /// <summary>Advances by a finite nonnegative number of milliseconds, running due callbacks along the way.</summary>
+    /// <exception cref="T:System.InvalidOperationException">Called from a callback during an existing advance.</exception>
+    member _.Advance(milliseconds: float) =
+        if advancing then
+            invalidOp "Map time cannot be advanced from a clock callback."
+
+        if
+            milliseconds < 0.
+            || Double.IsNaN milliseconds
+            || Double.IsInfinity milliseconds
+        then
+            invalidArg (nameof milliseconds) "Advance by a finite nonnegative duration."
+
+        advancing <- true
+
+        try
+            let target = now + milliseconds
+            let mutable running = true
+
+            while running do
+                let mutable earliest = infinity
+                let mutable next = -1
+
+                for i in 0 .. timers.Count - 1 do
+                    let _, due = timers[i]
+
+                    if due.Value < earliest then
+                        earliest <- due.Value
+                        next <- i
+
+                if next < 0 || earliest > target then
+                    running <- false
+                else
+                    now <- earliest
+                    let callback, due = timers[next]
+                    due.Value <- infinity
+                    callback.Invoke ()
+
+            now <- target
+        finally
+            advancing <- false
+
 /// <summary>The widget a live map renders for a control, and the action its value is written through.</summary>
 type Widget =
     | Button of press: (unit -> unit)

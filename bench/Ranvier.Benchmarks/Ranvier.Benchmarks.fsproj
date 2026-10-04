@@ -15,6 +15,7 @@
     <ItemGroup>
         <Compile Include="Config.fs" />
         <Compile Include="Signals.fs" />
+        <Compile Include="Timed.fs" />
         <Compile Include="Memos.fs" />
         <Compile Include="Effects.fs" />
         <Compile Include="Suspension.fs" />

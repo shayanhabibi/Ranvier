@@ -105,7 +105,10 @@ module MapFence =
 
     // Lookups and editable values are labelled during creation.
     let private node =
-        Regex (@"^create(?!Effect\b|Root\b|Lookup\b|Selector\b|Editable\b|Draft\b)\w*\b", RegexOptions.Compiled)
+        Regex (
+            @"^(?:create(?!Effect\b|Root\b|Lookup\b|Selector\b|Editable\b|Draft\b)\w*|debounce(?:With)?|throttle(?:First|Last)?(?:With)?)\b",
+            RegexOptions.Compiled
+        )
 
     let private named =
         Regex (@"^create(?:Lookup|Selector|Editable|Draft)\b", RegexOptions.Compiled)

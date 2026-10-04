@@ -55,6 +55,24 @@ let main _ =
     raises<InvalidOperationException> "a duplicate int key" "The projection produced the key 1 twice" (fun () -> dup.Keys |> ignore)
 
     let counter = Signal (g, 0)
+
+    use quiet =
+        Reactive.Debounce (TimeSpan.Zero, Func<int>(fun () -> counter.Value), null, null)
+
+    use first =
+        Reactive.ThrottleFirst (TimeSpan.Zero, Func<int>(fun () -> counter.Value), null, null)
+
+    use last =
+        Reactive.ThrottleLast (TimeSpan.Zero, Func<int>(fun () -> counter.Value), null, null)
+
+    use both =
+        Reactive.Throttle (TimeSpan.Zero, Func<int>(fun () -> counter.Value), null, null)
+
+    counter.Value <- 2
+    equals "debounce publishes a zero-delay input" "2" (string quiet.Value)
+    equals "leading throttle publishes a zero-delay input" "2" (string first.Value)
+    equals "trailing throttle publishes a zero-delay input" "2" (string last.Value)
+    equals "combined throttle publishes a zero-delay input" "2" (string both.Value)
     let mutable offThread: exn = null
 
     let writer =

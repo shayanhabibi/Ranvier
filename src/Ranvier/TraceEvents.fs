@@ -99,6 +99,18 @@ type TraceEventKind =
     /// <c>Cause</c>: the <c>FlightStart</c>, or 0.
     /// </summary>
     | FlightDrop = 44
+    /// <summary>A captured input. Arg is its Status byte; Cause is its capture RunStart or prior capture for an admission failure.</summary>
+    | TimedCaptured = 50
+    /// <summary>A window opened or extended. Arg is the admission mode; Payload is the configured duration in milliseconds.</summary>
+    | TimedWindow = 51
+    /// <summary>A suppressed value. Arg is 1 for equal capture, 2 for equal publication, 3 for leading cooldown.</summary>
+    | TimedSuppressed = 52
+    /// <summary>A pending candidate was cancelled before admission.</summary>
+    | TimedCancelled = 53
+    /// <summary>A publication. Arg is its Status byte; Flag marks movement; Cause is its winning capture.</summary>
+    | TimedPublished = 54
+    /// <summary>A captured/published timing snapshot with offsets from this clock's first timed node in the graph.</summary>
+    | TimedState = 55
 
 /// <summary>The node type a <c>NodeNew</c> event records.</summary>
 type TraceNodeKind =
@@ -112,6 +124,39 @@ type TraceNodeKind =
     | ProjectionBeacon = 8
     | RowWatch = 9
     | LookupCell = 10
+    | Timed = 11
+
+/// <summary>The captured and published state of a timed node at the query or recorded event.</summary>
+type TraceTiming =
+    {
+        /// <summary>The debounce or throttle factory name.</summary>
+        Mode: string
+        /// <summary>The latest capture's status.</summary>
+        CapturedStatus: Status
+        /// <summary>The status exposed to tracked readers.</summary>
+        PublishedStatus: Status
+        /// <summary>True while a candidate or leading cooldown holds the timing gate open.</summary>
+        WindowOpen: bool
+        /// <summary>Milliseconds until the deadline, clamped to zero.</summary>
+        RemainingMilliseconds: float
+        /// <summary>The candidate's captured event, or the published state's capture when no candidate is held.</summary>
+        WinningCapture: int
+    }
+
+/// <summary>A recorded timing state and its offset from this clock's first timed node in the graph.</summary>
+type internal TraceTimedState =
+    {
+        Clock: int
+        AtMilliseconds: float
+        Timing: TraceTiming
+    }
+
+/// <summary>A timed node's live diagnostic state and graph identity.</summary>
+type internal ITimedTrace =
+    /// <summary>The node's timing gate and capture/publication states.</summary>
+    abstract Timing: TraceTiming
+    /// <summary>The graph instance that owns this state.</summary>
+    abstract TimingGraph: obj
 
 /// <summary>How a run ended, in <c>RunEnd.Arg</c>.</summary>
 type RunStatus =
@@ -173,6 +218,12 @@ module internal TraceNames =
         | TraceEventKind.Settle -> "Settle"
         | TraceEventKind.Fail -> "Fail"
         | TraceEventKind.FlightDrop -> "FlightDrop"
+        | TraceEventKind.TimedCaptured -> "TimedCaptured"
+        | TraceEventKind.TimedWindow -> "TimedWindow"
+        | TraceEventKind.TimedSuppressed -> "TimedSuppressed"
+        | TraceEventKind.TimedCancelled -> "TimedCancelled"
+        | TraceEventKind.TimedPublished -> "TimedPublished"
+        | TraceEventKind.TimedState -> "TimedState"
         | other -> string (int other)
 #else
         string value
@@ -191,6 +242,7 @@ module internal TraceNames =
         | TraceNodeKind.ProjectionBeacon -> "ProjectionBeacon"
         | TraceNodeKind.RowWatch -> "RowWatch"
         | TraceNodeKind.LookupCell -> "LookupCell"
+        | TraceNodeKind.Timed -> "Timed"
         | other -> string (int other)
 #else
         string value

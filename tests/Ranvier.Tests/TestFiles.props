@@ -42,6 +42,8 @@
         <Compile Include="$(MSBuildThisFileDirectory)MapSemantics.fs" Link="MapSemantics.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Lenses.fs" Link="Lenses.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Combinators.fs" Link="Combinators.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)TimedTestClock.fs" Link="TimedTestClock.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Timed.fs" Link="Timed.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)PreviousValues.fs" Link="PreviousValues.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Texts.fs" Link="Texts.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)FailureOrigins.fs" Link="FailureOrigins.fs" />

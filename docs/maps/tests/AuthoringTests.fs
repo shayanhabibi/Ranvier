@@ -139,6 +139,27 @@ let tests =
                 Expect.isEmpty bindings "only supported node results receive labels"
             }
 
+            test "timed factories receive labels and retain graph arguments" {
+                for factory in
+                    [
+                        "debounce"
+                        "debounceWith options"
+                        "throttleFirst"
+                        "throttleFirstWith options"
+                        "throttleLast"
+                        "throttleLastWith options"
+                        "throttle"
+                        "throttleWith options"
+                    ] do
+                    let code, _, bindings =
+                        scenario (
+                            $"let admitted =\n    {factory} (System.TimeSpan.FromMilliseconds 100.) (fun () -> input.Value) graph'\ncontrols []"
+                        )
+
+                    Expect.contains bindings ("admitted", 1, 2) "timed node receives its binding name"
+                    Expect.stringContains code "(fun () -> input.Value) graph'" "graph argument remains explicit"
+            }
+
             test "only the final outer pipeline stage determines the label" {
                 let _, _, bindings =
                     scenario

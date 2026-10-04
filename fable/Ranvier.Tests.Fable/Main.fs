@@ -76,6 +76,15 @@ let all =
                     Ranvier.Tests.Combinators.foldTests
                 ]
             testList "PreviousValues.fs" [ Ranvier.Tests.PreviousValues.tests; Ranvier.Tests.PreviousValues.asyncTests ]
+            testList
+                "Timed.fs"
+                [
+                    Ranvier.Tests.Timed.clockTests
+                    Ranvier.Tests.Timed.debounceTests
+                    Ranvier.Tests.Timed.throttleTests
+                    Ranvier.Tests.Timed.edgeTests
+                    Ranvier.Tests.Timed.traceTests
+                ]
             testList "Texts.fs" [ Ranvier.Tests.Texts.tests ]
             testList "FailureOrigins.fs" [ Ranvier.Tests.FailureOrigins.tests ]
             testList "Editables.fs" [ Ranvier.Tests.Editables.tests ]

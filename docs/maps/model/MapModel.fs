@@ -59,6 +59,10 @@ type Scene =
         Flights: Map<int, int>
         /// <summary>The pending source each suspended reader waits on.</summary>
         Waiting: Map<int, int>
+        /// <summary>The last recorded timing gate state of each timed node.</summary>
+        Timing: Map<int, TraceTiming>
+        /// <summary>The latest captured input text, independent of the published value.</summary>
+        Captured: Map<int, string>
         /// <summary>The error text of each node whose last flight failed.</summary>
         Errors: Map<int, string>
         Parts: Map<int, Part>
@@ -87,6 +91,8 @@ module MapModel =
             Snapshot = TraceModel.emptySnapshot
             Flights = Map.empty
             Waiting = Map.empty
+            Timing = Map.empty
+            Captured = Map.empty
             Errors = Map.empty
             Parts = Map.empty
             Scopes = Map.empty
@@ -189,6 +195,7 @@ module MapModel =
             | TraceNodeKind.AsyncMemo -> "async memo"
             | TraceNodeKind.Boundary -> "boundary"
             | TraceNodeKind.Projection -> "projection"
+            | TraceNodeKind.Timed -> "timed"
             | _ -> "#" + string node
         | None -> "#" + string node
 
@@ -294,7 +301,18 @@ module MapModel =
         | TraceEventKind.FlightDrop -> Drop node
         | TraceEventKind.Settle -> Settled node
         | TraceEventKind.Fail -> Failed node
+        | TraceEventKind.Suspend when
+            scene.Snapshot.Nodes.TryFind e.Node
+            |> Option.exists (fun n -> n.Kind = TraceNodeKind.Timed)
+            ->
+            Quiet
         | TraceEventKind.Suspend -> Waits (node, other)
+        | TraceEventKind.TimedCaptured
+        | TraceEventKind.TimedWindow
+        | TraceEventKind.TimedSuppressed
+        | TraceEventKind.TimedCancelled -> Said
+        | TraceEventKind.TimedPublished when e.Arg = int (byte Status.Error) -> Failed node
+        | TraceEventKind.TimedPublished -> Said
         | _ -> Quiet
 
     let private logOf (scene: Scene) (e: TraceEvent) =
@@ -314,6 +332,23 @@ module MapModel =
         | TraceEventKind.Settle -> $"settle %s{node} = %s{payload e}"
         | TraceEventKind.Fail -> $"fail %s{node}: %s{payload e}"
         | TraceEventKind.Suspend -> $"%s{node} waits on %s{name e.Other}"
+        | TraceEventKind.TimedCaptured when e.Arg = int (byte Status.Pending) -> $"capture %s{node} pending"
+        | TraceEventKind.TimedCaptured when e.Arg = int (byte Status.Error) -> $"capture %s{node} failed: %s{payload e}"
+        | TraceEventKind.TimedCaptured -> $"capture %s{node} = %s{payload e}"
+        | TraceEventKind.TimedWindow ->
+            let action = if e.Flag = 1 then "updated" else "opened"
+            $"%s{node} window %s{action}"
+        | TraceEventKind.TimedSuppressed ->
+            let reason =
+                if e.Arg = 1 then "equal capture"
+                elif e.Arg = 2 then "equal publication"
+                else "leading cooldown"
+
+            $"suppress %s{node} (%s{reason})"
+        | TraceEventKind.TimedCancelled -> $"cancel %s{node} window"
+        | TraceEventKind.TimedPublished when e.Arg = int (byte Status.Pending) -> $"publish %s{node} pending"
+        | TraceEventKind.TimedPublished when e.Arg = int (byte Status.Error) -> $"publish %s{node} failed: %s{payload e}"
+        | TraceEventKind.TimedPublished -> $"publish %s{node} = %s{payload e}"
         | TraceEventKind.NodeNew -> $"new %s{node}"
         | TraceEventKind.Part when e.Flag = 1 -> $"%s{name e.Other}[%s{payload e}] opens"
         | TraceEventKind.Part -> $"%s{node} joins %s{name e.Other}"
@@ -339,7 +374,44 @@ module MapModel =
         { scene with Flights = flights }
 
     let private advance (scene: Scene) (e: TraceEvent) =
+        let timed =
+            scene.Snapshot.Nodes.TryFind e.Node
+            |> Option.exists (fun n -> n.Kind = TraceNodeKind.Timed)
+
         match e.Kind with
+        | TraceEventKind.TimedState ->
+            match scene.Snapshot.Nodes.TryFind e.Node, TraceModel.timing [| e |] e.Node with
+            | Some { Status = TraceNodeStatus.Disposed }, _ -> scene
+            | _, Some state ->
+                { scene with
+                    Timing = scene.Timing.Add (e.Node, state)
+                }
+            | _ -> scene
+        | TraceEventKind.TimedCaptured ->
+            let text =
+                if e.Arg = int (byte Status.Pending) then
+                    "pending"
+                else
+                    payload e
+
+            { scene with
+                Captured = scene.Captured.Add (e.Node, text)
+            }
+        | TraceEventKind.TimedPublished ->
+            let errors =
+                if e.Arg = int (byte Status.Error) then
+                    scene.Errors.Add (e.Node, payload e)
+                else
+                    scene.Errors.Remove e.Node
+
+            { scene with Errors = errors }
+        | TraceEventKind.Dispose ->
+            { scene with
+                Timing = scene.Timing.Remove e.Node
+                Captured = scene.Captured.Remove e.Node
+            }
+        | TraceEventKind.Suspend when timed -> scene
+        | TraceEventKind.RunEnd when timed -> scene
         | TraceEventKind.FlightStart ->
             { scene with
                 Flights = scene.Flights.Add (e.Node, e.Arg)
@@ -435,7 +507,10 @@ module MapModel =
                         }
                     | _ -> scene
 
-                let held = placeholder events i
+                let held =
+                    (before.Snapshot.Nodes.TryFind e.Node
+                     |> Option.exists (fun n -> n.Kind <> TraceNodeKind.Timed))
+                    && placeholder events i
 
                 let snapshot =
                     if held then
@@ -466,7 +541,7 @@ module MapModel =
 
     /// <summary>
     /// True while the node, a node drawn as it, anything in its box, or a member of its row has a flight in
-    /// progress or waits on a pending source.
+    /// progress, waits on a pending source, or publishes a pending timed value.
     /// </summary>
     let pending (scene: Scene) (node: int) : bool =
         let covers id =
@@ -474,7 +549,19 @@ module MapModel =
             || laidOutAs scene id = node
             || placeOf scene id = Member (laidOutAs scene id, node)
 
-        Seq.append (Map.keys scene.Flights) (Map.keys scene.Waiting)
+        let timedPending =
+            scene.Snapshot.Nodes
+            |> Map.toSeq
+            |> Seq.choose (fun (id, n) ->
+                if
+                    n.Kind = TraceNodeKind.Timed
+                    && n.Status = TraceNodeStatus.Ended RunStatus.Pending
+                then
+                    Some id
+                else
+                    None)
+
+        Seq.append (Seq.append (Map.keys scene.Flights) (Map.keys scene.Waiting)) timedPending
         |> Seq.exists covers
 
     /// <summary>The scene after the frame at <c>index</c>; <c>scene</c> itself for an index before the first.</summary>

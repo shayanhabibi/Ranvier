@@ -68,6 +68,12 @@ type internal TraceLog(locked: bool) =
 
     // Node id to the `Settle` or `Fail` seq its next `Moved` takes as cause.
     let settles = Dictionary<int, int>()
+    let timedCaptures = Dictionary<int, struct (int * int)>()
+    let timedPublications = Dictionary<int, int>()
+    let timedWinners = Dictionary<int, int>()
+
+    let timedOrigins =
+        Dictionary<TimedClock, struct (int * float)>(HashIdentity.Reference)
 
     // The seq of the latest `Mark`.
     let mutable lastMark = 0
@@ -126,6 +132,46 @@ type internal TraceLog(locked: bool) =
         match map.TryGetValue key with
         | true, value -> value
         | _ -> 0
+
+    /// <summary>The latest timed capture's event and run number, or zeros before capture.</summary>
+    member _.TimedCapture(id) =
+        sync (fun () ->
+            match timedCaptures.TryGetValue id with
+            | true, value -> value
+            | _ -> struct (0, 0))
+
+    /// <summary>Associates a timed capture event with its real source-evaluation run.</summary>
+    member _.NoteTimedCapture(id, seq, run) =
+        sync (fun () -> timedCaptures[id] <- struct (seq, run))
+
+    /// <summary>The latest timed publication event, or zero.</summary>
+    member _.TimedPublication(id) =
+        sync (fun () ->
+            match timedPublications.TryGetValue id with
+            | true, value -> value
+            | _ -> 0)
+
+    /// <summary>Records the event that the next timed movement cites.</summary>
+    member _.NoteTimedPublication(id, seq) =
+        sync (fun () -> timedPublications[id] <- seq)
+
+    /// <summary>The published state's winning capture, or zero.</summary>
+    member _.TimedWinner(id) =
+        sync (fun () -> lookup timedWinners id)
+
+    /// <summary>Retains a publication's capture while later leading inputs are discarded.</summary>
+    member _.NoteTimedWinner(id, capture) =
+        sync (fun () -> timedWinners[id] <- capture)
+
+    /// <summary>The clock's stable timebase id and offset since its first timed node joined this log.</summary>
+    member _.TimedTime(clock: TimedClock, now: float) =
+        sync (fun () ->
+            match timedOrigins.TryGetValue clock with
+            | true, struct (id, origin) -> struct (id, now - origin)
+            | _ ->
+                let id = timedOrigins.Count + 1
+                timedOrigins[clock] <- struct (id, now)
+                struct (id, 0.))
 
     /// <summary>Records one event and returns its <c>Seq</c>.</summary>
     /// <exception cref="T:System.InvalidOperationException">The graph's clock is at <c>Int32.MaxValue</c>.</exception>
@@ -988,6 +1034,84 @@ type internal Tracer =
             log.NoteMoved id
 
         log.PushCause seq
+#else
+        ()
+#endif
+
+    [<Conditional("RANVIER_TRACE")>]
+    static member TimedNew(graph: obj, id: int, owner: obj, clock: TimedClock) =
+#if RANVIER_TRACE
+        Tracer.Node (graph, id, TraceNodeKind.Timed, owner)
+
+        (Tracer.LogOf graph).TimedTime(clock, clock.NowMilliseconds)
+        |> ignore
+#else
+        ()
+#endif
+
+    [<Conditional("RANVIER_TRACE")>]
+    static member TimedEvent(graph: obj, id: int, kind: int, arg: int, flag: int, payload: obj) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let struct (capture, capturedRun) = log.TimedCapture id
+        let run = log.OpenRun id
+        let cause = if kind = 50 && run <> 0 then run else capture
+        let seq = log.Append (enum<TraceEventKind> kind, id, 0, arg, flag, cause, payload)
+
+        if kind = 50 then
+            log.NoteTimedCapture (id, seq, (if run <> 0 then log.RunCount id else capturedRun))
+
+        if kind = 54 then
+            log.NoteTimedPublication (id, seq)
+            log.NoteTimedWinner (id, cause)
+#else
+        ()
+#endif
+
+    /// <summary>Records a timed event only when its trace-only condition holds.</summary>
+    [<Conditional("RANVIER_TRACE")>]
+    static member TimedEventIf(graph: obj, id: int, enabled: bool, kind: int, arg: int, flag: int, payload: obj) =
+#if RANVIER_TRACE
+        if enabled then
+            Tracer.TimedEvent (graph, id, kind, arg, flag, payload)
+#else
+        ()
+#endif
+
+    [<Conditional("RANVIER_TRACE")>]
+    static member TimedMoved(graph: obj, id: int, payload: obj) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let struct (_, run) = log.TimedCapture id
+
+        let seq =
+            log.Append (TraceEventKind.Moved, id, 0, run, 0, log.TimedPublication id, payload)
+
+        if log.OpenRun id <> 0 then
+            log.NoteMoved id
+
+        log.PushCause seq
+#else
+        ()
+#endif
+
+    [<Conditional("RANVIER_TRACE")>]
+    static member TimedState(graph: obj, id: int, clock: TimedClock, node: obj) =
+#if RANVIER_TRACE
+        let log = Tracer.LogOf graph
+        let struct (timebase, now) = log.TimedTime (clock, clock.NowMilliseconds)
+
+        let state =
+            {
+                Clock = timebase
+                AtMilliseconds = now
+                Timing = (node :?> ITimedTrace).Timing
+            }
+
+        let struct (capture, _) = log.TimedCapture id
+
+        log.Append (TraceEventKind.TimedState, id, 0, 0, 0, capture, state)
+        |> ignore
 #else
         ()
 #endif

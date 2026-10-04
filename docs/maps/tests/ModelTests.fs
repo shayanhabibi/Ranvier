@@ -109,6 +109,118 @@ let tests =
     testList
         "MapModel"
         [
+            test "timed names and admission events are readable" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let input = createSignal 0
+                let output = debounce System.TimeSpan.Zero (fun () -> input.Value) graph
+                input.Value <- 2
+                let scene = sceneOf graph
+                let id = (output :> INode).Id
+                Expect.equal (MapModel.name scene id) "timed" "distinct unlabelled kind"
+                let frames = MapModel.frames MapModel.start (Trace.events graph)
+
+                Expect.isTrue
+                    (frames
+                     |> Array.exists (fun f -> f.Log = "capture timed = 2" && f.Cue = Said))
+                    "capture logs before publication"
+
+                Expect.isTrue
+                    (frames
+                     |> Array.exists (fun f -> f.Log = "publish timed = 2"))
+                    "publication is explicit"
+            }
+
+            test "timed replay preserves published state through pending capture and cancellation" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let clock = MapClock ()
+                let ready = createAsyncSource<int>()
+                ready.Settle 0
+                let source = createSignal ready
+
+                let output =
+                    debounceWith { Clock = clock; Comparer = None } (System.TimeSpan.FromMilliseconds 100.) (fun () -> source.Value.Value) graph
+
+                let id = (output :> INode).Id
+                ready.Settle 2
+                let held = sceneOf graph
+                Expect.equal held.Snapshot.Nodes[id].Value (Some "0") "capturing does not publish"
+                Expect.equal held.Captured[id] "2" "captured input is separate"
+                Expect.isTrue held.Timing[id].WindowOpen "candidate is held"
+                Expect.isFalse (MapModel.pending held id) "a timer is not an async flight"
+                clock.Advance 100.
+                source.Value <- createAsyncSource<int>()
+                let frames = MapModel.frames MapModel.start (Trace.events graph)
+                let scene = (Array.last frames).After
+                Expect.equal scene.Snapshot.Nodes[id].Value (Some "2") "pending capture retains admission"
+                Expect.equal scene.Captured[id] "pending" "pending is a capture state"
+                Expect.isFalse (MapModel.pending scene id) "published ready state is not dimmed"
+                Expect.isFalse (scene.Errors.ContainsKey id) "no published error"
+                Expect.isFalse scene.Timing[id].WindowOpen "pending cancels timing"
+
+                Expect.isTrue
+                    (frames
+                     |> Array.exists (fun f -> f.Cue = Surge (id, []) && f.Event.Payload = box 2))
+                    "admission survives later pending run"
+
+                let replay = TraceModel.parseDump (Trace.dumpText graph)
+
+                let replayed =
+                    MapModel.frames MapModel.start replay.Events
+                    |> Array.last
+
+                Expect.equal replayed.After.Timing scene.Timing "schema 2 timing survives replay"
+                output.Dispose ()
+                let disposed = sceneOf graph
+                Expect.isFalse (disposed.Timing.ContainsKey id) "disposal clears timing diagnostics"
+            }
+
+            test "timed failure remains visible during a later pending capture" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let source = createSignal (createAsyncSource<int>())
+                source.Peek.Fail (System.Exception "offline")
+                let output = debounce System.TimeSpan.Zero (fun () -> source.Value.Value) graph
+                let id = (output :> INode).Id
+                source.Value <- createAsyncSource<int>()
+                let scene = sceneOf graph
+                Expect.isFalse (scene.Errors.ContainsKey id) "pending replaces failure before any readiness"
+                source.Peek.Settle 1
+                source.Peek.Fail (System.Exception "offline")
+                source.Value <- createAsyncSource<int>()
+                let held = sceneOf graph
+                Expect.isTrue (held.Errors.ContainsKey id) "pending capture retains published failure after readiness"
+                Expect.isFalse (MapModel.pending held id) "failure is not an async flight"
+            }
+
+            test "initial timed pending publication is pending until its first ready value" {
+                use graph = new Graph ()
+                use _ = graph.Activate ()
+                let source = createAsyncSource<int>()
+                let output = debounce System.TimeSpan.Zero (fun () -> source.Value) graph
+                let id = (output :> INode).Id
+                let pendingFrames = MapModel.frames MapModel.start (Trace.events graph)
+
+                let published =
+                    pendingFrames
+                    |> Array.find (fun f ->
+                        f.Event.Kind = TraceEventKind.TimedPublished
+                        && f.Event.Node = id)
+
+                Expect.isTrue (MapModel.pending published.After id) "pending at publication frame, before timing snapshot"
+                source.Settle 3
+                let frames = MapModel.frames MapModel.start (Trace.events graph)
+
+                let ready =
+                    frames
+                    |> Array.findBack (fun f ->
+                        f.Event.Kind = TraceEventKind.TimedPublished
+                        && f.Event.Node = id)
+
+                Expect.isFalse (MapModel.pending ready.After id) "first ready publication immediately clears pending"
+            }
+
             test "a said frame logs its text and keeps the scene" {
                 let c = cart ()
                 let scene = sceneOf c.Graph
