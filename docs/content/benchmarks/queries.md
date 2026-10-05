@@ -27,19 +27,19 @@ describe the separately compiled Release measurement process.
 
 | Previews | Hand-written mean | Query mean | Hand-written allocation | Query allocation |
 | --- | ---: | ---: | ---: | ---: |
-| 10 | 0.118 µs | 0.538 µs | 728 B | 2,584 B |
-| 1,000 | 5.048 µs | 5.578 µs | 32,408 B | 34,264 B |
-| 10,000 | 59.175 µs | 58.485 µs | 320,408 B | 322,264 B |
+| 10 | 0.114 µs | 0.591 µs | 728 B | 2,704 B |
+| 1,000 | 5.136 µs | 5.822 µs | 32,408 B | 34,384 B |
+| 10,000 | 56.777 µs | 57.362 µs | 320,408 B | 322,384 B |
 
-For these three-query commits, Query allocates **1,856 extra bytes per save**
-at every tested size. At 10 previews it costs **0.420 µs extra** (4.55 times the
-minimal update's time); at 1,000 it costs **0.531 µs extra** (about 11%).
+For these three-query commits, Query allocates **1,976 extra bytes per save**
+at every tested size. At 10 previews it costs **0.476 µs extra** (5.16 times the
+minimal update's time); at 1,000 it costs **0.687 µs extra** (about 13%).
 At 10,000 the 99.9% confidence intervals overlap: hand-written
-58.024–60.327 µs, Query 57.329–59.642 µs. The slightly lower Query mean is not
-evidence of a speedup. List reconstruction dominates both paths at that size.
+55.674–57.879 µs, Query 56.230–58.493 µs. List reconstruction dominates both
+paths at that size; the run does not establish a timing difference there.
 
 The practical tradeoff is sub-microsecond additional local work in the two smaller
-cases and about 1.8 KiB of temporary allocation, in exchange for staged atomic
+cases and about 1.9 KiB of temporary allocation, in exchange for staged atomic
 publication into shared entries and retirement of superseded query requests.
 Request sharing, lifecycle management, and selective notification are additional
 services whose benefits are covered by behavior tests, rather than timed here.
@@ -56,8 +56,9 @@ The run measures `Commit` reconciliation with already-loaded entries. It exclude
 network IO, initial acquisition, lease disposal, the `Mutate` task/FIFO wrapper,
 and rendering. There are no reactive subscribers. It uses the untraced .NET 10
 build, default graph equality and thread affinity, and an immediate dispatcher.
-Editing the first preview allows structural equality to find the changed field
-early; an equal result or an edit later in the list can require more comparison.
+The default graph policy compares record references, so this run does not include
+structural comparison of the preview list. A custom structural equality policy
+would add comparison work, depending on the data and the location of a change.
 Appending a new word is not measured here.
 
 This is a minimal hand-written baseline, rather than an implementation of request

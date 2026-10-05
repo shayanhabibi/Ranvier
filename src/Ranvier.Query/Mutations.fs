@@ -31,6 +31,7 @@ module QueryMutationExtensions =
     type QueryClient with
         /// <summary>Queues one remote write, then publishes its edits before the next write starts.</summary>
         /// <remarks>A reconciliation failure retains the saved receipt and invalidates cached queries. No write is retried.</remarks>
+        /// <returns>A task with a mutation outcome; client disposal cancels the task instead of returning an outcome.</returns>
         member client.Mutate(input: 'Input, execute: 'Input -> CancellationToken -> Task<'Result>, reconcile: 'Result -> QueryEdit list) =
             let graph = client.Graph
             let result = TaskCompletionSource<MutationOutcome<'Result>>()

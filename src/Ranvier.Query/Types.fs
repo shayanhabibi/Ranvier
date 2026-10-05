@@ -1,6 +1,46 @@
 namespace Ranvier.Query
 
 open System.Collections.Generic
+open System.Threading.Tasks
+open Fable.Core
+
+/// <summary>Portable completion-source cancellation.</summary>
+module internal QueryTask =
+    /// <summary>Cancels a completion source using the target runtime's operation.</summary>
+    [<Emit("$0.SetCancelled()")>]
+    let cancel (source: TaskCompletionSource<'T>) =
+        source.SetCanceled ()
+
+/// <summary>A detachable load waiter that settles once and releases its lease callbacks.</summary>
+type internal QueryAwaiter<'T>(completed: QueryAwaiter<'T> -> unit) as this =
+    let source = TaskCompletionSource<'T>()
+    let mutable terminal = false
+    let mutable release = completed
+
+    member private _.Finish(deliver: unit -> unit) =
+        if not terminal then
+            terminal <- true
+            let callback = release
+            release <- ignore
+            callback this
+            deliver ()
+
+    /// <summary>The load result, delivered after graph publication.</summary>
+    member _.Task = source.Task
+    /// <summary>Whether this waiter has already detached.</summary>
+    member _.IsCompleted = terminal
+
+    /// <summary>Publishes an accepted result to this waiter.</summary>
+    member this.Settle(value: 'T) =
+        this.Finish (fun () -> source.SetResult value)
+
+    /// <summary>Faults this waiter with a request failure.</summary>
+    member this.Fail(error: exn) =
+        this.Finish (fun () -> source.SetException error)
+
+    /// <summary>Cancels this waiter without cancelling the shared request.</summary>
+    member this.Cancel() =
+        this.Finish (fun () -> QueryTask.cancel source)
 
 /// <summary>A staged entry whose validation precedes all publication.</summary>
 type internal IQueryDraft =

@@ -86,7 +86,13 @@ let theme =
                         Menu.page "guide/collection-views.fsx"
                         Menu.page "guide/aggregates.fsx"
                     ]
-                Menu.section "Recipes" [ Menu.page "guide/forms.md"; Menu.page "guide/queries.md" ]
+                Menu.section
+                    "Recipes"
+                    [
+                        Menu.page "guide/forms.md"
+                        Menu.page "guide/queries.md"
+                        Menu.page "guide/query-navigation.md"
+                    ]
                 Menu.section
                     "Reference"
                     [

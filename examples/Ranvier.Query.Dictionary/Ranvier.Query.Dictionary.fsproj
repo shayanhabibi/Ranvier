@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Navigation.fs" />
+    <ProjectReference Include="../../src/Ranvier.Query/Ranvier.Query.fsproj" />
+  </ItemGroup>
+</Project>

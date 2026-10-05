@@ -78,3 +78,52 @@ networking, acquisition, mutation queue/tasks, and rendering.
 
 The docs menu now includes the query recipe, generated Query API, and the new
 query benchmark page. Release tests were rerun: 1007 passed on each .NET target.
+
+## Follow-up: query ergonomics
+
+The ergonomics review's five concerns are addressed:
+
+- Explicit `AcquireOwned(key, pageOwner)` decouples retained navigation pages from
+  temporary view owners. `Acquire(key)` keeps its existing signature. An overloaded
+  `Acquire(key, owner)` was rejected because it breaks existing unit-key `Acquire ()`
+  calls in F#; the named method avoids that source incompatibility.
+- `EnsureAsync` and `RefreshAsync` return accepted values after graph publication.
+  Detachable waiters fault on loading failure and cancel on retirement or disposal.
+  Disposing one lease does not cancel another lease's waiter or shared request.
+- XML docs and guides describe edit factories as deferred descriptions, including
+  their loaded, pending-without-data, and absent-entry behavior.
+- Mutation docs and the command adapter distinguish client-disposal task cancellation
+  from the three mutation outcomes. Reconciliation failure retains the saved receipt;
+  cache repair must not repeat a successful write.
+- `Define(loader)` supplies default key equality, and `SetIfLoaded(key, value)`
+  describes replacement without a redundant updater lambda.
+
+The compiled dictionary example covers independent drafts, partial loading, Back,
+Home, adding words, and a save finishing after its editor closes. Tests compile its
+actual source. The Fable report now resolves linked sources through their Include
+paths. The docs menu includes the new navigation guide and generated API methods.
+No existing public signature or core graph source changed.
+
+Fresh verification on 2026-10-05:
+
+- Release untraced: 1020 passed on each .NET target. Traced Release and Debug:
+  1099 passed and six existing skips on each target.
+- All 13 new ergonomics/navigation cases passed in all four Fable combinations.
+  Full report gate passed: untraced inline 839/857, promise 795/857; traced inline
+  918/940, promise 869/940. Existing core differences remain documented.
+- Fresh package consumers passed for both variants with FSharp.Core 8.0.100.
+- NativeAOT publication and executable passed, including awaitable loading,
+  explicit ownership disposal, mutation, and shared reconciliation checks.
+- The standalone example built without warnings. Documentation built 126 pages;
+  generated navigation menu and new API methods were checked. Inherited docs
+  dependency, minification, and external-link warnings remain.
+- FCS reports the Query project clean and confirms the additive public methods.
+  XML audit returned zero findings; Fantomas and whitespace checks passed.
+- The owned SageFs session was stopped; the user's daemon remains running.
+
+All six full benchmark cases were rerun on the changed implementation. Query adds
+0.476 and 0.687 microseconds at 10 and 1000 previews, and 1976 allocated bytes at
+every tested size. At 10000 previews, confidence intervals overlap. Guides and raw
+reports now reflect this run. The scope excludes awaiting, network IO, acquisition,
+mutation queue/tasks, and rendering. The equality-policy description was corrected:
+default record comparison uses identity, not structural list equality.

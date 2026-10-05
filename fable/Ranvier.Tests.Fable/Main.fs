@@ -94,6 +94,8 @@ let all =
             testList "QueryReconciliation.fs" [ Ranvier.Tests.QueryReconciliation.tests ]
             testList "QueryMutations.fs" [ Ranvier.Tests.QueryMutations.tests ]
             testList "QueryDictionary.fs" [ Ranvier.Tests.QueryDictionary.tests ]
+            testList "QueryErgonomics.fs" [ Ranvier.Tests.QueryErgonomics.tests ]
+            testList "QueryNavigationTests.fs" [ Ranvier.Tests.QueryNavigationTests.tests ]
         ]
 
 Mocha.runTests all |> ignore

@@ -65,7 +65,9 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | QueryReconciliation.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
 | QueryMutations.fs | 7 | 7 | 7 | 7 | 7 | 7 | 0 | 0 |
 | QueryDictionary.fs | 2 | 2 | 2 | 2 | 2 | 2 | 0 | 0 |
-| **Total** | 844 | 826 | 782 | 927 | 905 | 856 | 87 | 1 |
+| QueryErgonomics.fs | 10 | 10 | 10 | 10 | 10 | 10 | 0 | 0 |
+| QueryNavigationTests.fs | 3 | 3 | 3 | 3 | 3 | 3 | 0 | 0 |
+| **Total** | 857 | 839 | 795 | 940 | 918 | 869 | 87 | 1 |
 
 ## Tests.fs
 
@@ -1556,5 +1558,32 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 
 - save reconciles retained pages without loading unvisited dictionary data
 - paged membership is invalidated only for loaded matching pages
+
+</details>
+
+## QueryErgonomics.fs
+
+<details><summary>10 passed in every build and delivery that runs them</summary>
+
+- default keys share requests and replacement is an edit
+- explicit page owner survives a temporary view owner
+- awaiters join the current request and see published data
+- refresh supersedes and cancels older waiters
+- disposing one lease cancels only its own waiters
+- refresh failure faults the waiter and retains accepted data
+- reconciliation cancels pending awaiters after publishing replacement
+- invalidation cancels pending awaiters without fetching
+- client disposal cancels outstanding load waiters
+- client disposal during publication cancels the load result
+
+</details>
+
+## QueryNavigationTests.fs
+
+<details><summary>3 passed in every build and delivery that runs them</summary>
+
+- Back disposes the editor while its client-owned save reconciles retained pages
+- adding a word stores the saved draft without fetching full detail
+- Home cancels the old load and ignores messages for removed pages
 
 </details>

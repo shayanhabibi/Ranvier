@@ -113,14 +113,19 @@ let main _ =
     use client = new QueryClient (g)
 
     let numbers =
-        client.Define (EqualityComparer<int>.Default, fun key _ -> System.Threading.Tasks.Task.FromResult key)
+        client.Define (fun (key: int) _ -> System.Threading.Tasks.Task.FromResult key)
 
     use query = numbers.Acquire 7
     use shared = numbers.Acquire 7
     equals "query value" "7" (string query.Value)
+    equals "awaited query value" "7" (string (query.EnsureAsync().Result))
+    use pageOwner = new Owner ()
+    let owned = numbers.AcquireOwned (7, pageOwner)
+    pageOwner.Dispose ()
+    raises<ObjectDisposedException> "owned lease disposal" "Cannot access a disposed object." (fun () -> owned.Value |> ignore)
 
     let saved =
-        client.Mutate (10, (fun value _ -> System.Threading.Tasks.Task.FromResult value), fun value -> [ numbers.UpdateIfLoaded (7, fun _ -> value) ])
+        client.Mutate (10, (fun value _ -> System.Threading.Tasks.Task.FromResult value), fun value -> [ numbers.SetIfLoaded (7, value) ])
 
     report "mutation applied" (saved.Result = MutationOutcome.Applied 10) "unexpected mutation outcome"
     equals "shared query reconciliation" "10" (string shared.Value)

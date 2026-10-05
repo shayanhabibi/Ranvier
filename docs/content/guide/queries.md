@@ -13,7 +13,6 @@ over Ranvier's existing graph. Results remain ordinary immutable records.
 
 ```fsharp
 open Ranvier.Query
-open System.Collections.Generic
 
 type WordPreview = { Id: int; Def1: string; Def2: string }
 type SectionPreview = { Id: int; Name: string }
@@ -30,9 +29,9 @@ type Page =
 type MainModel = { History: Page list }
 
 let client = new QueryClient(graph)
-let index = client.Define(EqualityComparer<unit>.Default, loadIndex)
-let sections = client.Define(EqualityComparer<int>.Default, loadSection)
-let words = client.Define(EqualityComparer<int>.Default, loadWord)
+let index = client.Define(loadIndex)
+let sections = client.Define(loadSection)
+let words = client.Define(loadWord)
 ```
 
 The loaders have shape `key -> CancellationToken -> Task<record>`. `Define` performs
@@ -48,7 +47,7 @@ let reconcile (saved: Saved) = [
         { old with TotalWordCount = saved.TotalWordCount })
     sections.UpdateIfLoaded(saved.SectionId, fun old ->
         { old with Words = upsertById (toPreview saved.Word) old.Words })
-    words.UpdateIfLoaded(saved.Word.Id, fun _ -> saved.Word)
+    words.SetIfLoaded(saved.Word.Id, saved.Word)
 ]
 
 let save draft = client.Mutate(draft, saveWord, reconcile)
@@ -77,6 +76,10 @@ let reconcilePaged saved = [
 
 ## Loading and ownership
 
+For a complete, compiled Elmish-style model and update function, see
+[Dictionary navigation](query-navigation.md). It includes independent editor drafts,
+Back, Home, adding words, and a save completing after its editor closes.
+
 Invalidation retains existing data and performs no IO. On Back, call the returning
 lease's `Ensure()` to load missing or stale data. `Ensure` joins an existing request;
 `Refresh()` supersedes it. Reads never start IO. `Value` participates in native
@@ -86,15 +89,32 @@ wake `State` consumers without waking `Value` consumers. Internally, an async so
 provides initial-load suspension; it does not replace the identity and reconciliation
 layer.
 
+`EnsureAsync(): Task<T>` joins or starts the same load as `Ensure`, and returns the
+accepted record after publication. A fresh cached value completes immediately.
+`RefreshAsync(): Task<T>` starts a replacement request. Loading failure faults the
+task. Superseding or retiring that request cancels its waiters; disposal of a lease
+cancels only that lease's waiters. A commit that replaces pending data also retires
+the request, so its waiting task cancels even though `Value` now holds the replacement.
+Use these tasks to send loading results back as Elmish messages. Start operations
+on the graph thread; await them without blocking the UI or dispatcher with `.Result`.
+
 Keep leases for hidden pages in History. Dispose the removed page's leases on Back;
 the final lease release evicts that query and requests cancellation. Acquiring under
-a Ranvier owner also registers automatic cleanup. Construct the client under the
+a Ranvier owner also registers automatic cleanup. For explicit page lifetime, use
+`family.AcquireOwned(key, pageOwner)` and keep that owner in History. Dispose it
+when removing the page. A temporary view owner must not own a retained page's lease.
+`Acquire(key)` remains convenient when the current reactive owner has the desired
+lifetime. `Define(loader)` uses default key equality; its comparer overload supports
+custom key equality. Construct the client under the
 application owner, and dispose it on Home/logout before creating a fresh session.
 The client owns saves, so closing an editor does not cancel its in-flight save.
 The traced build also retains published values in diagnostic history; eviction does
 not erase that history.
 Client disposal cancels queued callers and requests remote cancellation; a server
 may already have applied the write. Late results cannot change the new session.
+Cancellation from client disposal cancels the `Mutate` task rather than returning
+a `MutationOutcome`. Catch `OperationCanceledException` in the command adapter;
+the closed session should not receive another message.
 
 An Elmish program can own the client as an application service and send the result
 of `save` back as a message. Handle all three outcomes:
@@ -112,12 +132,19 @@ Repeated edits compose in order. Callbacks must return immutable values and must
 not reenter client operations. All client/lease operations follow the graph's thread
 contract; async completions return through `Graph.Dispatch`.
 
+`UpdateIfLoaded`, `SetIfLoaded`, `Invalidate`, and `InvalidateWhere` return deferred
+`QueryEdit` descriptions. Creating one changes nothing; pass it to `Commit`, or
+return it from the reconciliation callback of `Mutate`. A patch changes an existing
+entry with accepted data. An existing entry without accepted data has its pending
+request retired and becomes stale. An absent key remains absent. Invalidation
+marks matching existing entries stale, retaining any accepted data, without IO.
+
 ## Performance and measurement
 
 The [local reconciliation benchmark](../benchmarks/queries.md) compares this
 three-page workflow with a hand-written update on the same machine. At 10 and
-1,000 previews, a three-query `Commit` adds about **0.42–0.53 µs per save** and
-**1,856 bytes of temporary allocation**. At 10,000 previews, timings overlap and
+1,000 previews, a three-query `Commit` adds about **0.48–0.69 µs per save** and
+**1,976 bytes of temporary allocation**. At 10,000 previews, timings overlap and
 list reconstruction dominates. These untraced .NET figures exclude fetching,
 acquisition, the `Mutate` task/FIFO wrapper, and rendering.
 

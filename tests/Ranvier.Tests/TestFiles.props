@@ -55,5 +55,8 @@
         <Compile Include="$(MSBuildThisFileDirectory)QueryReconciliation.fs" Link="QueryReconciliation.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)QueryMutations.fs" Link="QueryMutations.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)QueryDictionary.fs" Link="QueryDictionary.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryErgonomics.fs" Link="QueryErgonomics.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)../../examples/Ranvier.Query.Dictionary/Navigation.fs" Link="QueryNavigation.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryNavigationTests.fs" Link="QueryNavigationTests.fs" />
     </ItemGroup>
 </Project>

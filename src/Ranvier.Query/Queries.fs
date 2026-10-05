@@ -12,12 +12,21 @@ type QueryLease<'T> internal (entry: QueryEntry<'T>, guard: unit -> unit, dispos
     let mutable disposed = false
     let mutable held = Some entry
     let mutable releaseLease = release
+    let waiters = ResizeArray<QueryAwaiter<'T>>()
 
     let check () =
         guard ()
 
         if disposed then
             raise (ObjectDisposedException "QueryLease")
+
+    let awaitCurrent () =
+        let waiter = held.Value.Await (fun current -> waiters.Remove current |> ignore)
+
+        if not waiter.IsCompleted then
+            waiters.Add waiter
+
+        waiter.Task
 
     /// <summary>A tracked cached value; initial loading suspends and an initial failure throws.</summary>
     member _.Value =
@@ -39,6 +48,20 @@ type QueryLease<'T> internal (entry: QueryEntry<'T>, guard: unit -> unit, dispos
         check ()
         held.Value.Refresh ()
 
+    /// <summary>Loads missing or stale data and awaits graph publication, joining an existing request.</summary>
+    /// <remarks>The task faults on fetch failure and cancels on supersession, reconciliation, or lease/client disposal.</remarks>
+    member _.EnsureAsync() =
+        check ()
+        held.Value.Ensure ()
+        awaitCurrent ()
+
+    /// <summary>Supersedes the current request and awaits the replacement's graph publication.</summary>
+    /// <remarks>Failure faults the task while retaining cached data. Retirement or disposal cancels the task.</remarks>
+    member _.RefreshAsync() =
+        check ()
+        held.Value.Refresh ()
+        awaitCurrent ()
+
     /// <summary>Releases this lease once. Further reads throw.</summary>
     member _.Dispose() =
         if not disposed then
@@ -48,6 +71,11 @@ type QueryLease<'T> internal (entry: QueryEntry<'T>, guard: unit -> unit, dispos
             held <- None
             releaseLease <- ignore
             finish ()
+            let pending = waiters.ToArray ()
+            waiters.Clear ()
+
+            for waiter in pending do
+                waiter.Cancel ()
 
     interface IDisposable with
         member this.Dispose() =
@@ -82,8 +110,7 @@ type QueryFamily<'Key, 'T>
     let entries =
         Dictionary<QueryKey<'Key>, QueryEntry<'T> * int ref>(QueryKeyComparer keyComparer)
 
-    /// <summary>Acquires page ownership and loads missing or stale data, sharing matching requests.</summary>
-    member _.Acquire(key: 'Key) =
+    let acquire key register =
         guard ()
         let wrapped = { Value = key }
 
@@ -105,11 +132,37 @@ type QueryFamily<'Key, 'T>
                 entry.Dispose ()
 
         let lease = new QueryLease<'T> (entry, guard, disposeGuard, release)
-        graph.OnCleanup (fun () -> lease.Dispose ())
+
+        try
+            register (fun () -> lease.Dispose ())
+        with error ->
+            lease.Dispose ()
+            raise error
+
         entry.Ensure ()
         lease
 
+    /// <summary>Acquires a shared query and starts missing or stale loading.</summary>
+    /// <remarks>The current Ranvier owner releases this lease. Acquire once per page and retain it while the page is in History.</remarks>
+    member _.Acquire(key: 'Key) =
+        acquire key graph.OnCleanup
+
+    /// <summary>Acquires a shared query whose lease belongs to the explicit page owner.</summary>
+    /// <remarks>The owner must be alive; dispose it when navigation removes the page. The surrounding view's owner is not used.</remarks>
+    member _.AcquireOwned(key: 'Key, owner: Owner) =
+        guard ()
+
+        if obj.ReferenceEquals (owner, null) then
+            nullArg "owner"
+
+        if owner.IsDisposed then
+            raise (ObjectDisposedException "owner")
+
+        acquire key (fun cleanup -> owner.OnCleanup (Action cleanup))
+
     /// <summary>Updates an existing loaded record. An existing empty entry is retired and invalidated.</summary>
+    /// <returns>An edit description for <c>Commit</c> or mutation reconciliation; creating it performs no write.</returns>
+    /// <remarks>A loaded entry is patched, a pending empty entry is invalidated, and an absent entry remains absent.</remarks>
     member _.UpdateIfLoaded(key: 'Key, updater: 'T -> 'T) =
         describeGuard ()
 
@@ -121,7 +174,14 @@ type QueryFamily<'Key, 'T>
                 | _ -> ()
         )
 
+    /// <summary>Describes replacement of an existing loaded record.</summary>
+    /// <returns>An edit for <c>Commit</c> or mutation reconciliation.</returns>
+    /// <remarks>A pending empty entry is retired and invalidated; an absent entry remains absent.</remarks>
+    member this.SetIfLoaded(key: 'Key, value: 'T) =
+        this.UpdateIfLoaded (key, fun _ -> value)
+
     /// <summary>Marks an existing key stale and retires its request without fetching.</summary>
+    /// <returns>An edit description; pass it to <c>Commit</c> or return it from mutation reconciliation to execute it.</returns>
     member _.Invalidate(key: 'Key) =
         describeGuard ()
 
@@ -134,6 +194,7 @@ type QueryFamily<'Key, 'T>
         )
 
     /// <summary>Invalidates matching existing keys; the predicate is evaluated during staging.</summary>
+    /// <returns>An edit description; creating it neither invalidates entries nor starts IO.</returns>
     member _.InvalidateWhere(predicate: 'Key -> bool) =
         describeGuard ()
 
@@ -258,6 +319,11 @@ type QueryClient(graph: Graph) as this =
         families.Add (fun () -> family.Close ())
         invalidations.Add family.InvalidateAll
         family
+
+    /// <summary>Defines a typed query without IO, using the default equality comparer for its keys.</summary>
+    /// <remarks>Define once per client; use the comparer overload for a custom key identity policy.</remarks>
+    member this.Define(fetch: 'Key -> CancellationToken -> Task<'T>) =
+        this.Define (EqualityComparer<'Key>.Default, fetch)
 
     /// <summary>Validates and publishes all edits atomically. Updaters must return immutable values.</summary>
     member _.Commit(edits: QueryEdit list) =
