@@ -3,8 +3,6 @@ title: Queries and mutations
 order: 24
 ---
 
-# Queries and mutations
-
 `Ranvier.Query` keeps **visited remote data** consistent across pages. Results stay
 ordinary records; History and unsaved drafts stay in your Elmish model.
 
