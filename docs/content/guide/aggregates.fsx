@@ -69,7 +69,7 @@ Change one row's estimate, then remove another row. The total updates its contri
 and the count changes only when membership changes.
 
 *)
-(*** map replay show=output ***)
+(*** map replay code=collapsed ***)
 let estimates = createSignal [ 1, 3; 2, 5; 3, 2 ]
 let estimateRows = createProjection fst snd (fun () -> estimates.Value)
 let estimateTotal = estimateRows |> Projection.sumBy id

@@ -156,7 +156,7 @@ the token; cancellation does not guarantee that work or external side effects st
 Compare this queued replay with the default-policy map below. Three flights start; the
 newest answer waits until both older answers can be applied in order.
 
-```fsharp map replay show=output policy=queue
+```fsharp map replay code=collapsed policy=queue
 let desk = Desk<int>(queued = true)
 let page = createSignal 1
 let result = createAsync (fun _ _ -> desk.Quote page.Value)
@@ -280,7 +280,7 @@ Try the default policy in the map. `Desk` keeps each request pending until you a
 - Press **Answer** to settle the newest flight, or **Fail** to fail it.
 - Use the timeline to step through the events.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let desk = Desk<string>()
 let userId = createSignal 1
 let profile = createAsync (fun _ _ -> desk.Quote userId.Value)

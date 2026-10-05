@@ -231,7 +231,7 @@ Write the map as ordinary F# after a literate annotation. Its functions and prop
 completion, tooltips and compiler diagnostics:
 
 ```fsharp
-(*** map replay speed=0.5 show=output ***)
+(*** map replay speed=0.5 code=collapsed ***)
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
 createEffect (fun () -> doubled.Value |> ignore)
@@ -282,7 +282,7 @@ The helpers in scope:
 Change the fields, then press **Load another order**. The button changes all four signals and their
 widgets follow. **Reset** rebuilds the graph and restores the initial fields.
 
-```fsharp map timeline show=output
+```fsharp map timeline code=collapsed
 let qty = createSignal 1
 let price = createSignal 4.5
 let name = createSignal "Tea"
@@ -334,7 +334,7 @@ Use `expect` to check the state after an action. `dotnet fsi build.fsx -- docs` 
 expectations under Fable and Node.js; a failed check stops the build and reports the page, fence line, control
 and your message. Replays also report failures in the map itself.
 
-```fsharp map replay speed=0.5 show=output
+```fsharp map replay speed=0.5 code=collapsed
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
 createEffect (fun () -> doubled.Value |> ignore)

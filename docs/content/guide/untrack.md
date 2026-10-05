@@ -10,7 +10,7 @@ Unlike `Peek`, an untracked read of `memo.Value` refreshes a stale memo.
 Change **Ignored**, then **Tracked**. Only the tracked signal has an edge to the effect, so
 only its write runs the effect again. That run still reads the current ignored value.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let tracked = createSignal 0
 let ignored = createSignal 0
 let mutable effectRuns = 0

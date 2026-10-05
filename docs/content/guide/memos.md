@@ -14,7 +14,7 @@ see [Untrack](untrack.md).
 Writes leave this unobserved memo stale. **Peek** prints its stored value; **Read** refreshes it.
 Watch the memo's run count as you step through the replay.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
 doubled.Value |> ignore
@@ -90,7 +90,7 @@ a.Value <- 3
 
 :::tip Visualise the tests above
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let value = createSignal 1
 let plusOne = createMemo (fun _ -> value.Value + 1)
 let timesTen = createMemo (fun _ -> value.Value * 10)
@@ -202,7 +202,7 @@ or before an unobserved memo is read, contribute only their final values.
 Compare a single write with two writes in a batch. The total adds `10`, then adds only the
 batch's final `2`.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let amount = createSignal 5
 let total = createMemo (fun previous -> ValueOption.defaultValue 0 previous + amount.Value)
 createEffect (fun () -> printfn "total = %d" total.Value)
@@ -368,7 +368,7 @@ so `label` and the effect do not run again.
 
 In the map, an equal write stops at `count`. A write that keeps the parity re-runs `isEven`, which recomputes to the same value and stops there. A write that flips the parity reaches the effect.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 2
 let isEven = createMemo (fun _ -> count.Value % 2 = 0)
 let label = createMemo (fun _ -> if isEven.Value then "even" else "odd")
@@ -438,7 +438,7 @@ stored `"b"` and restores the dependency on `first`.
 
 Toggle the branch to move the effect's edge between `first` and `second`. A write to the source off the branch wakes nothing.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let useFirst = createSignal true
 let first = createSignal "a"
 let second = createSignal "x"

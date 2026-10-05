@@ -53,7 +53,7 @@ the two states. A key left out keeps its stale value. An extra key costs one rec
 Change the apple count while the pear reader stays quiet. The lookup's `affected` function
 names only the key whose count changed.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let stock = createSignal (Map [ "apples", 3; "pears", 0 ])
 let changedKeys (previous: Map<string, int>) (next: Map<string, int>) =
     Seq.append previous.Keys next.Keys

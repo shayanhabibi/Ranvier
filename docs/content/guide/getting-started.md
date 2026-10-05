@@ -32,7 +32,7 @@ graph.Run (fun () ->
     doubled)
 ```
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
 

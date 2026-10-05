@@ -136,7 +136,7 @@ Every factory uses the active graph. Call factories inside `graph.Run`, or while
 The map runs the same engine behaviour as the C# example. Set the count to `2` and watch
 the derived value update before the effect prints it.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 1
 let doubled = createMemo (fun _ -> count.Value * 2)
 createEffect (fun () -> printfn "doubled %d" doubled.Value)

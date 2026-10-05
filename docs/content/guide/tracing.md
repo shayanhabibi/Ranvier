@@ -295,7 +295,7 @@ Trace.snapshot graph |> Trace.render graph |> printfn "%s"
 
 A `map replay` fence draws a log like this one. The page runs the example and presses each button once; Play, Step and the scrubber move through its events.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let lines = createSignal [ 4; 6 ]
 let discount = createSignal 0
 let subtotal = createMemo (fun _ -> List.sum lines.Value)

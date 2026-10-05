@@ -8,7 +8,7 @@ effect runs again.
 Use effects to connect reactive state to external work, such as logging, subscriptions or UI updates.
 Use a [memo](memos.md) when you need a derived value that other computations can read.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 0
 let mutable messages = []
 createEffect (fun () ->
