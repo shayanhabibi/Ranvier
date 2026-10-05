@@ -89,6 +89,13 @@ let all =
             testList "FailureOrigins.fs" [ Ranvier.Tests.FailureOrigins.tests ]
             testList "Editables.fs" [ Ranvier.Tests.Editables.tests ]
             testList "MvuBridge.fs" [ Ranvier.Tests.MvuBridge.tests ]
+            testList "QueryComposition.fs" [ Ranvier.Tests.QueryComposition.tests ]
+            testList "Queries.fs" [ Ranvier.Tests.Queries.tests ]
+            testList "QueryReconciliation.fs" [ Ranvier.Tests.QueryReconciliation.tests ]
+            testList "QueryMutations.fs" [ Ranvier.Tests.QueryMutations.tests ]
+            testList "QueryDictionary.fs" [ Ranvier.Tests.QueryDictionary.tests ]
+            testList "QueryErgonomics.fs" [ Ranvier.Tests.QueryErgonomics.tests ]
+            testList "QueryNavigationTests.fs" [ Ranvier.Tests.QueryNavigationTests.tests ]
         ]
 
 Mocha.runTests all |> ignore

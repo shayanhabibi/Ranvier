@@ -6,6 +6,7 @@ open System.Threading
 open Ranvier
 open Ranvier.CSharp
 open Ranvier.Elmish
+open Ranvier.Query
 
 let mutable private failures = 0
 
@@ -108,6 +109,39 @@ let main _ =
     let doubled = app.Select (fun model -> model * 2)
     app.Dispatch 3
     equals "an Mvu selector reads the dispatched model" "6" (string doubled.Value)
+
+    use client = new QueryClient (g)
+
+    let numbers =
+        client.Define (fun (key: int) _ -> System.Threading.Tasks.Task.FromResult key)
+
+    use query = numbers.Acquire 7
+    use shared = numbers.Acquire 7
+    equals "query value" "7" (string query.Value)
+    equals "awaited query value" "7" (string (query.EnsureAsync().Result))
+    use pageOwner = new Owner ()
+    let owned = numbers.AcquireOwned (7, pageOwner)
+    pageOwner.Dispose ()
+    raises<ObjectDisposedException> "owned lease disposal" "Cannot access a disposed object." (fun () -> owned.Value |> ignore)
+
+    let saved =
+        client.Mutate (10, (fun value _ -> System.Threading.Tasks.Task.FromResult value), fun value -> [ numbers.SetIfLoaded (7, value) ])
+
+    report "mutation applied" (saved.Result = MutationOutcome.Applied 10) "unexpected mutation outcome"
+    equals "shared query reconciliation" "10" (string shared.Value)
+
+    let failed =
+        client.Mutate ((), (fun () _ -> raise (InvalidOperationException "offline"): System.Threading.Tasks.Task<int>), fun _ -> [])
+
+    report
+        "mutation failure"
+        (match failed.Result with
+         | MutationOutcome.RequestFailed _ -> true
+         | _ -> false)
+        "unexpected failure outcome"
+
+    query.Dispose ()
+    equals "remaining query lease" "10" (string shared.Value)
 
     if failures = 0 then
         Console.WriteLine "all checks passed"

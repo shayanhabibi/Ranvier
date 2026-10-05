@@ -97,6 +97,7 @@ Dispatchers move work from other threads onto the graph thread.
 - [Signal maps](signal-maps.md): how to read the live graph maps beneath the examples, and how to write one.
 - [Troubleshooting](troubleshooting.md): each exception message and common symptom, with its cause and fix.
 - [Migrating from Elmish](elmish.md): an MVU model read through selector memos, one view at a time.
+- [Queries and mutations](queries.md): shared remote queries, page leases and atomic reconciliation of partial data.
 - [C#](csharp.md): C# factories, XAML bindings and reactive commands.
 
 ## Status

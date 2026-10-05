@@ -5,7 +5,7 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const root = join(import.meta.dirname, "..", "..");
 const suite = join(root, "tests", "Ranvier.Tests");
@@ -66,14 +66,18 @@ function run(build, mode) {
 }
 
 // The files of the suite in compile order.
-const files = [...readFileSync(join(suite, "TestFiles.props"), "utf8").matchAll(/Link="([^"]+)"/g)].map(m => m[1]);
+const sources = new Map(
+    [...readFileSync(join(suite, "TestFiles.props"), "utf8")
+        .matchAll(/<Compile Include="\$\(MSBuildThisFileDirectory\)([^"]+)" Link="([^"]+)"/g)]
+        .map(m => [m[2], resolve(suite, m[1])]));
+const files = [...sources.keys()];
 
 // Tests compiled out under Fable: each `#if !FABLE_COMPILER` block that opens with a `// .NET only: <reason>` line.
 // A block holding no test and sitting inside one excludes part of that test; a block of helpers is skipped.
 const declaration = /^\s*(?:<\| )?(?:test|testCase|testCaseAsync)\s+\$?"([^"]+)"/;
 
 function exclusions(file) {
-    const lines = readFileSync(join(suite, file), "utf8").split(/\r?\n/);
+    const lines = readFileSync(sources.get(file), "utf8").split(/\r?\n/);
     const found = [];
     let enclosing = null;
     for (let i = 0; i < lines.length; i++) {

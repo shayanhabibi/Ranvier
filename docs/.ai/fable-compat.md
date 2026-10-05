@@ -60,7 +60,14 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | FailureOrigins.fs | 16 | 16 | 15 | 16 | 16 | 15 | 2 | 0 |
 | Editables.fs | 17 | 17 | 17 | 17 | 17 | 17 | 1 | 0 |
 | MvuBridge.fs | 7 | 7 | 7 | 7 | 7 | 7 | 1 | 0 |
-| **Total** | 815 | 797 | 753 | 898 | 876 | 827 | 87 | 1 |
+| QueryComposition.fs | 2 | 2 | 2 | 2 | 2 | 2 | 0 | 0 |
+| Queries.fs | 12 | 12 | 12 | 12 | 12 | 12 | 0 | 0 |
+| QueryReconciliation.fs | 6 | 6 | 6 | 6 | 6 | 6 | 0 | 0 |
+| QueryMutations.fs | 7 | 7 | 7 | 7 | 7 | 7 | 0 | 0 |
+| QueryDictionary.fs | 2 | 2 | 2 | 2 | 2 | 2 | 0 | 0 |
+| QueryErgonomics.fs | 10 | 10 | 10 | 10 | 10 | 10 | 0 | 0 |
+| QueryNavigationTests.fs | 3 | 3 | 3 | 3 | 3 | 3 | 0 | 0 |
+| **Total** | 857 | 839 | 795 | 940 | 918 | 869 | 87 | 1 |
 
 ## Tests.fs
 
@@ -1487,5 +1494,96 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - commands run after the write, with Dispatch
 - initial commands run before withCmd returns
 - a dispatch from an effect leaves the effect unsubscribed from the model
+
+</details>
+
+## QueryComposition.fs
+
+<details><summary>2 passed in every build and delivery that runs them</summary>
+
+- initial query value suspends and settles through a boundary
+- failed initial query can explicitly retry
+
+</details>
+
+## Queries.fs
+
+<details><summary>12 passed in every build and delivery that runs them</summary>
+
+- one hundred definitions perform no IO
+- comparer refresh reentry retires the completion being compared
+- same family key shares a request and independent leases
+- unit keys and custom equality deduplicate
+- families and clients isolate identical keys
+- client disposal cancels requests and lease disposal remains idempotent
+- page owner disposal releases just its lease
+- refresh ignores retired success and failure
+- refresh retains data and only wakes state readers
+- evicted pending entry cannot affect reacquired key
+- synchronous throws and null query tasks are request failures
+- cancellation reentry cannot give two requests the same generation
+
+</details>
+
+## QueryReconciliation.fs
+
+<details><summary>6 passed in every build and delivery that runs them</summary>
+
+- equal patches retire requests and failed commits preserve requests
+- throwing data comparisons happen before any publication
+- staging failure is atomic and repeated edits compose
+- empty pending entry retires while absent key stays absent
+- predicate failure and foreign edits leave all entries untouched
+- invalidation keeps data and waits for explicit demand
+
+</details>
+
+## QueryMutations.fs
+
+<details><summary>7 passed in every build and delivery that runs them</summary>
+
+- outcome continuation joins the existing client FIFO
+- closing editor leaves client save alive and Home isolates a new session
+- reconciliation reentry fails locally and queue continues
+- heterogeneous writes serialize through reconciliation
+- remote success with failed reconciliation retains receipt and invalidates
+- failed request skips reconciliation and allows next write
+- client disposal cancels callers and never starts queued requests
+
+</details>
+
+## QueryDictionary.fs
+
+<details><summary>2 passed in every build and delivery that runs them</summary>
+
+- save reconciles retained pages without loading unvisited dictionary data
+- paged membership is invalidated only for loaded matching pages
+
+</details>
+
+## QueryErgonomics.fs
+
+<details><summary>10 passed in every build and delivery that runs them</summary>
+
+- default keys share requests and replacement is an edit
+- explicit page owner survives a temporary view owner
+- awaiters join the current request and see published data
+- refresh supersedes and cancels older waiters
+- disposing one lease cancels only its own waiters
+- refresh failure faults the waiter and retains accepted data
+- reconciliation cancels pending awaiters after publishing replacement
+- invalidation cancels pending awaiters without fetching
+- client disposal cancels outstanding load waiters
+- client disposal during publication cancels the load result
+
+</details>
+
+## QueryNavigationTests.fs
+
+<details><summary>3 passed in every build and delivery that runs them</summary>
+
+- Back disposes the editor while its client-owned save reconciles retained pages
+- adding a word stores the saved draft without fetching full detail
+- Home cancels the old load and ignores messages for removed pages
 
 </details>

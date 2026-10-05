@@ -24,12 +24,14 @@
         <ProjectReference Include="../../src/Ranvier/Ranvier.fsproj" />
         <ProjectReference Include="../../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
         <ProjectReference Include="../../src/Ranvier.Elmish/Ranvier.Elmish.fsproj" />
+        <ProjectReference Include="../../src/Ranvier.Query/Ranvier.Query.fsproj" />
     </ItemGroup>
 
     <ItemGroup>
         <TrimmerRootAssembly Include="Ranvier" />
         <TrimmerRootAssembly Include="Ranvier.CSharp" />
         <TrimmerRootAssembly Include="Ranvier.Elmish" />
+        <TrimmerRootAssembly Include="Ranvier.Query" />
     </ItemGroup>
 
 </Project>
