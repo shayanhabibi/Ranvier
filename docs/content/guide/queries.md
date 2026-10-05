@@ -9,6 +9,8 @@ order: 24
 adds query identity, page ownership, request retirement, and mutation reconciliation
 over Ranvier's existing graph. Results remain ordinary immutable records.
 
+## Dictionary workflow
+
 ```fsharp
 open Ranvier.Query
 open System.Collections.Generic
@@ -73,6 +75,8 @@ let reconcilePaged saved = [
 ]
 ```
 
+## Loading and ownership
+
 Invalidation retains existing data and performs no IO. On Back, call the returning
 lease's `Ensure()` to load missing or stale data. `Ensure` joins an existing request;
 `Refresh()` supersedes it. Reads never start IO. `Value` participates in native
@@ -107,6 +111,60 @@ updater, predicate, and data comparison before publishing in one graph batch.
 Repeated edits compose in order. Callbacks must return immutable values and must
 not reenter client operations. All client/lease operations follow the graph's thread
 contract; async completions return through `Graph.Dispatch`.
+
+## Performance and measurement
+
+There are no published `Ranvier.Query` timing or allocation measurements yet. The
+existing primitive benchmarks do not measure the complete query layer. Its tests
+verify behavior such as request sharing and notification isolation; passing those
+tests does not establish a speedup over Elmish.
+
+The implementation's costs are:
+
+- A keyed cache lookup uses a dictionary: expected constant lookup work, plus the
+  key's hashing and equality costs. Acquiring a lease allocates ownership state;
+  creating a new entry also creates reactive and request state.
+- A successful patch stages the described edits, compares each affected result,
+  then publishes the affected entries in one batch. Updaters and result equality
+  can dominate this work. Scanning or rebuilding a list of `n` previews remains
+  linear in `n`; replacing a cached record does not make its fields incremental.
+- `InvalidateWhere` scans the existing entries in that family. It does not scan
+  the remote dictionary or fetch matching data. Recovery after reconciliation
+  failure invalidates the client's existing entries.
+- Cache data is retained while leases exist. Shared keys share an entry; releasing
+  its final lease evicts it. Trace history can retain values independently.
+- Remote writes run in one client-wide FIFO, including their reconciliation.
+  This preserves ordering but limits concurrent write throughput.
+
+A package benchmark should measure time per operation, allocated bytes, retained
+memory after release, request count, and downstream computation/render count.
+Useful cases are cached reads; acquire/release for shared and distinct keys;
+one-word saves against increasing preview-list sizes and cached-page counts;
+metadata-only refresh; and predicate invalidation. Compare identical payloads,
+update rules, equality policies, graph dispatch, and UI observations. Separate
+local reconciliation from network latency, and report traced and untraced results
+separately. Until that comparison exists, no numeric performance advantage is claimed.
+
+## Comparison with Elmish
+
+In the original independent-page model, `Saved` must find the affected pages and
+patch each copy, or mark them dirty and reload on Back. A direct history scan grows
+with the navigation stack; the list patch still grows with the preview list. The
+query layer addresses loaded entries by key and lets pages acquiring the same key
+observe the same accepted result. It owns sharing, request retirement, disposal,
+and publication, so those rules are implemented once.
+
+An Elmish model with a shared keyed cache can achieve the same lookup and data
+sharing costs. It may use fewer allocations because it does not need this layer's
+leases, reactive nodes, staging objects, and task bookkeeping. Ranvier.Query does
+not replace Elmish: History and editor drafts can remain Elmish models while the
+client manages fetched data.
+
+Reactive consumers of unrelated entries are not notified by a targeted save.
+This can reduce downstream work compared with broad subscriptions to a whole
+model, but Elmish selectors, equality checks, and UI memoization can also avoid
+unnecessary rendering. Consumers of the changed whole record still reevaluate;
+a selector exposing one field still runs to determine whether that field changed.
 
 This API centralizes cache consistency. It still requires the application to describe
 how a saved result affects each query shape. Whole-record selectors still evaluate
