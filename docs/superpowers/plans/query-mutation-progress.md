@@ -60,3 +60,21 @@ user changes remain untouched. No merge, push, deployment, or publication occurr
 - Application membership, projection, and ordering rules remain explicit. Record
   and list reconstruction remains; normalization, retries, expiry, and automatic
   refetch are outside this release.
+
+## Follow-up: local reconciliation measurement
+
+On 2026-10-05 the user requested a measured comparison with a hand-written update.
+Added `QueryReconciliationBenchmarks` using the original three-page record model,
+the same list patch, and four setup equivalence checks. A SageFs probe first
+confirmed identical accepted records and unchanged initial data. Its session was
+stopped after the probe; the user's daemon remains running.
+
+All six full BenchmarkDotNet cases passed. For 10 and 1,000 previews, Query adds
+0.420 and 0.531 microseconds respectively. All sizes add 1,856 allocated bytes per
+three-query commit. At 10,000 previews the timing intervals overlap; no speedup
+is inferred. Raw reports, configuration, scope limits, and reproduction command
+are documented in `docs/content/benchmarks/queries.md`. The benchmark excludes
+networking, acquisition, mutation queue/tasks, and rendering.
+
+The docs menu now includes the query recipe, generated Query API, and the new
+query benchmark page. Release tests were rerun: 1007 passed on each .NET target.

@@ -25,6 +25,7 @@
         <Compile Include="Comparisons.fs" />
         <Compile Include="Commands.fs" />
         <Compile Include="Models.fs" />
+        <Compile Include="Queries.fs" />
         <Compile Include="Probe.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
@@ -39,6 +40,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
         <ProjectReference Include="..\..\src\Ranvier.Elmish\Ranvier.Elmish.fsproj" />
+        <ProjectReference Include="..\..\src\Ranvier.Query\Ranvier.Query.fsproj" />
         <ProjectReference Include="..\..\src\Ranvier.CSharp\Ranvier.CSharp.fsproj" />
     </ItemGroup>
 

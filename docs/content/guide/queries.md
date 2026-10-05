@@ -114,10 +114,17 @@ contract; async completions return through `Graph.Dispatch`.
 
 ## Performance and measurement
 
-There are no published `Ranvier.Query` timing or allocation measurements yet. The
-existing primitive benchmarks do not measure the complete query layer. Its tests
-verify behavior such as request sharing and notification isolation; passing those
-tests does not establish a speedup over Elmish.
+The [local reconciliation benchmark](../benchmarks/queries.md) compares this
+three-page workflow with a hand-written update on the same machine. At 10 and
+1,000 previews, a three-query `Commit` adds about **0.42–0.53 µs per save** and
+**1,856 bytes of temporary allocation**. At 10,000 previews, timings overlap and
+list reconstruction dominates. These untraced .NET figures exclude fetching,
+acquisition, the `Mutate` task/FIFO wrapper, and rendering.
+
+That cost buys staged atomic publication, shared cached values, and retirement of
+superseded requests. The package also centralizes request sharing, cancellation,
+and page ownership. Those services avoid duplicating lifecycle logic throughout
+the application; the benchmark does not establish an application-wide speedup.
 
 The implementation's costs are:
 
@@ -136,14 +143,12 @@ The implementation's costs are:
 - Remote writes run in one client-wide FIFO, including their reconciliation.
   This preserves ordering but limits concurrent write throughput.
 
-A package benchmark should measure time per operation, allocated bytes, retained
-memory after release, request count, and downstream computation/render count.
-Useful cases are cached reads; acquire/release for shared and distinct keys;
-one-word saves against increasing preview-list sizes and cached-page counts;
-metadata-only refresh; and predicate invalidation. Compare identical payloads,
-update rules, equality policies, graph dispatch, and UI observations. Separate
-local reconciliation from network latency, and report traced and untraced results
-separately. Until that comparison exists, no numeric performance advantage is claimed.
+The benchmark measures time and allocated bytes for one-word edits against
+increasing preview-list sizes. Further measurements should cover retained memory
+after release, request count, downstream computation/render count, cached reads,
+shared-key acquisition, metadata-only refresh, and predicate invalidation. Compare
+identical payloads, update rules, equality policies, dispatch, and UI observations;
+separate local work from network latency and traced from untraced results.
 
 ## Comparison with Elmish
 
