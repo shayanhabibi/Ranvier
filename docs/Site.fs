@@ -8,7 +8,7 @@ open Partas.Nacara.Theme
 
 let versions = [ SiteVersion.root "1.0" ]
 
-/// The public API of the Ranvier, Ranvier.CSharp and Ranvier.Elmish assemblies, built beside the site.
+/// <summary>The public API of the assemblies built beside the site.</summary>
 let apiOptions =
     let beside =
         System.Reflection.Assembly.GetExecutingAssembly().Location
@@ -19,7 +19,8 @@ let apiOptions =
         Title = "API reference"
         Sources =
             [
-                for name in [ "Ranvier"; "Ranvier.CSharp"; "Ranvier.Elmish" ] -> FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
+                for name in [ "Ranvier"; "Ranvier.CSharp"; "Ranvier.Elmish"; "Ranvier.Query" ] ->
+                    FSharpApiSource.create (Path.Combine (beside, $"%s{name}.dll"))
             ]
     }
 
@@ -85,7 +86,7 @@ let theme =
                         Menu.page "guide/collection-views.fsx"
                         Menu.page "guide/aggregates.fsx"
                     ]
-                Menu.section "Recipes" [ Menu.page "guide/forms.md" ]
+                Menu.section "Recipes" [ Menu.page "guide/forms.md"; Menu.page "guide/queries.md" ]
                 Menu.section
                     "Reference"
                     [

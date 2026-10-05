@@ -22,7 +22,7 @@ New-Item -ItemType Directory -Path $feed, $consumer | Out-Null
 try {
     foreach ($traced in @($false, $true)) {
         $references = @()
-        foreach ($name in @('Ranvier', 'Ranvier.Elmish', 'Ranvier.CSharp')) {
+        foreach ($name in @('Ranvier', 'Ranvier.Elmish', 'Ranvier.CSharp', 'Ranvier.Query')) {
             $project = Join-Path $repo "src/$name/$name.fsproj"
             Invoke-DotNet pack $project -c Release "-p:RanvierTrace=$($traced.ToString().ToLowerInvariant())" -o $feed
             $id = if ($traced) { "$name.Traced" } else { $name }
@@ -59,6 +59,7 @@ try {
 using Microsoft.FSharp.Core;
 using Ranvier;
 using Ranvier.Elmish;
+using Ranvier.Query;
 
 using var graph = new Graph();
 using var scope = graph.Activate();
@@ -66,6 +67,11 @@ var app = MvuModule.create(0, FuncConvert.FromFunc<int, int, int>((message, mode
 var count = app.Select(FuncConvert.FromFunc<int, int>(model => model));
 app.Dispatch(2);
 if (app.Model != 2 || count.Value != 2) throw new System.Exception("MVU dispatch or selector failed");
+using var client = new QueryClient(graph);
+var numbers = client.Define(System.Collections.Generic.EqualityComparer<int>.Default,
+    FuncConvert.FromFunc<int, System.Threading.CancellationToken, System.Threading.Tasks.Task<int>>((key, token) => System.Threading.Tasks.Task.FromResult(key)));
+using var query = numbers.Acquire(7);
+if (query.Value != 7) throw new System.Exception("Query package failed");
 System.Console.WriteLine("Package consumer runs with FSharp.Core 8.0.100");
 '@ | Set-Content -LiteralPath (Join-Path $consumer 'Program.cs')
         Invoke-DotNet restore (Join-Path $consumer 'Consumer.csproj') --configfile (Join-Path $consumer 'NuGet.Config')

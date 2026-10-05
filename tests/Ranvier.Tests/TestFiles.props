@@ -49,5 +49,11 @@
         <Compile Include="$(MSBuildThisFileDirectory)FailureOrigins.fs" Link="FailureOrigins.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Editables.fs" Link="Editables.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)MvuBridge.fs" Link="MvuBridge.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QuerySupport.fs" Link="QuerySupport.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryComposition.fs" Link="QueryComposition.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Queries.fs" Link="Queries.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryReconciliation.fs" Link="QueryReconciliation.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryMutations.fs" Link="QueryMutations.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)QueryDictionary.fs" Link="QueryDictionary.fs" />
     </ItemGroup>
 </Project>

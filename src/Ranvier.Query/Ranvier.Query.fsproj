@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Tailcalls>false</Tailcalls>
+    <RootNamespace>Ranvier.Query</RootNamespace>
+    <AssemblyName>Ranvier.Query</AssemblyName>
+    <PackageId>Ranvier.Query</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Query.Traced</PackageId>
+    <Title>Ranvier.Query</Title>
+    <Description>Typed reactive queries and mutation reconciliation for partially loaded application data.</Description>
+    <PackageTags>reactive;queries;cache;fsharp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Version>0.1.0-preview.1</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <RanvierAotClean>true</RanvierAotClean>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Types.fs" />
+    <Compile Include="Entry.fs" />
+    <Compile Include="Queries.fs" />
+    <Compile Include="Mutations.fs" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <ProjectReference Include="../Ranvier/Ranvier.fsproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>

@@ -22,6 +22,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Ranvier\Ranvier.fsproj" />
         <ProjectReference Include="..\..\src\Ranvier.Elmish\Ranvier.Elmish.fsproj" />
+        <ProjectReference Include="..\..\src\Ranvier.Query\Ranvier.Query.fsproj" />
         <PackageReference Include="Fable.Core" Version="5.3.0" />
         <PackageReference Include="Fable.Mocha" Version="2.17.0" />
     </ItemGroup>
