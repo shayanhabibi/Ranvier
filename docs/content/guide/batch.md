@@ -52,7 +52,7 @@ before `batch` returns its result to the caller.
 
 In the map, two separate writes run the effect twice. The same two writes in a batch run it once.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let a = createSignal 0
 let b = createSignal 0
 let sum = createMemo (fun _ -> a.Value + b.Value)

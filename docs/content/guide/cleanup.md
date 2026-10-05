@@ -10,7 +10,7 @@ it runs **before the next run** and **on disposal**.
 In this replay, changing the user releases the old subscription before creating the next.
 Disposing the root releases the final subscription.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let user = createSignal "Ada"
 let mutable released = []
 let owner =

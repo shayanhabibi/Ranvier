@@ -67,7 +67,7 @@ their checks. This differs from an equal [signal write](signals.fsx#equality), w
 The source below is already settled when the observers are created. Settle the same value again
 to see the memo re-run and the effect check its dependency without running its body.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let sourceGraph = Graph.Current
 let source = createAsyncSource<int> ()
 source.Settle 10

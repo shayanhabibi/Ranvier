@@ -69,7 +69,7 @@ until the outermost batch ends; an unobserved memo refreshes only when read.
 A `Signal` that does not change its value will not mark downstream observers:
 
 *)
-(*** map replay show=output ***)
+(*** map replay code=collapsed ***)
 let equalityGraph = Graph.Current
 let equalityCount = createSignal 2
 let equalityEven = createMemo (fun _ -> equalityCount.Value % 2 = 0)

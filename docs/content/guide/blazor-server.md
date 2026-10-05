@@ -139,7 +139,7 @@ Call `addCart builder.Services` at startup to register the services.
 This map illustrates the component's dependencies and loading state. Add items while the
 shipping quote is pending, then answer it. The circuit's threading rules are covered below.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let desk = Desk<decimal>()
 let lines = createSignal [ 9.99m ]
 let total = createMemo (fun _ -> List.sum lines.Value)

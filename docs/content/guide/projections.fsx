@@ -138,7 +138,7 @@ and `an unchanged survivor is skipped`
 Rename one item, then reverse the collection. The row reader responds to its title change;
 the key reader responds to the new order.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let items = createSignal [ 1, "Write"; 2, "Review"; 3, "Publish" ]
 let titles = createProjection fst snd (fun () -> items.Value)
 createEffect (fun () -> printfn "row 2 = %s" (titles.Get 2))

@@ -142,7 +142,7 @@ waiting, (view.TryValue, view.IsWaiting)
 
 In the map, the effect reads `view` and runs with the fallback while `data` is pending. **Settle** runs the body again with the value; **Fail** passes the failure through the boundary to the effect.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let data = createAsyncSource<string> ()
 let view = createSuspense (fun _ -> "loading") (fun () -> "loaded " + data.Value)
 createEffect (fun () -> printfn "%s" view.Value)
@@ -169,7 +169,7 @@ the body read changes and the re-run succeeds. A pending body passes through as 
 Enter an invalid integer, then a valid one. The boundary displays its recovery value and
 later returns to the parsed value without rebuilding the graph.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let input = createSignal "42"
 let parsed = createMemo (fun _ -> int input.Value)
 let view = createErrorBoundary (fun _ _ -> -1) (fun () -> parsed.Value)

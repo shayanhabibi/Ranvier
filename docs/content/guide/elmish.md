@@ -69,7 +69,7 @@ graph.Run (fun () ->
 This map isolates selector behaviour: incrementing changes the count, while renaming changes
 the model but leaves the count effect alone.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let model = createSignal {| Count = 0; Name = "Ada" |}
 let count = createMemo (fun _ -> model.Value.Count)
 let mutable effectRuns = 0

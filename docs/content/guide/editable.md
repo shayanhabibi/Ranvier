@@ -44,7 +44,7 @@ equality policy. This follows Solid 2.0's writable memo behaviour.
 Edit both fields to `3`, then publish an upstream `5`. The editable follows the new seed;
 the draft keeps `3` until reset.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let upstream = createSignal 1
 let editable = createEditable (fun _ -> upstream.Value)
 let draft = createDraft (fun _ -> upstream.Value)

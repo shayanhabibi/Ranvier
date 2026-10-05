@@ -18,7 +18,7 @@ enclosing effect, owning memo or boundary.
 In this replay, disposing the root removes its effect's dependency. The signal remains available,
 but later writes no longer run that effect.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let count = createSignal 0
 let mutable runs = 0
 let owner =

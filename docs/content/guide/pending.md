@@ -44,7 +44,7 @@ settles.
 Settle the source, fail it, then settle it again. The state travels through the memo;
 the boundary supplies a display value for the effect.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let price = createAsyncSource<int> ()
 let total = createMemo (fun _ -> price.Value * 3)
 let view = createBoundary (fun _ -> "Loading") (fun ex _ -> "Error: " + ex.Message) (fun () -> sprintf "Total %d" total.Value)

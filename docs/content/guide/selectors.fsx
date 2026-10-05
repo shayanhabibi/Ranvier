@@ -46,7 +46,7 @@ Pinned by `createSelector reports membership and wakes only the two ends` and
 Move the selection from 1 to 2. Only those two membership values change; the reader for
 key 3 stays quiet.
 
-```fsharp map replay show=output
+```fsharp map replay code=collapsed
 let selected = createSignal 1
 let isSelected = createSelector (fun () -> selected.Value)
 let first = createMemo (fun _ -> isSelected.Get 1)
