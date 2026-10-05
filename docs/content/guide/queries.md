@@ -5,44 +5,89 @@ order: 24
 
 # Queries and mutations
 
-`Ranvier.Query` is a separate preview package for partially loaded remote data. It
-adds query identity, page ownership, request retirement, and mutation reconciliation
-over Ranvier's existing graph. Results remain ordinary immutable records.
-
-## Dictionary workflow
+`Ranvier.Query` keeps **visited remote data** consistent across pages. Results stay
+ordinary records; History and unsaved drafts stay in your Elmish model.
 
 ```fsharp
-open Ranvier.Query
-
-type WordPreview = { Id: int; Def1: string; Def2: string }
-type SectionPreview = { Id: int; Name: string }
-type Section = { Id: int; Name: string; Words: WordPreview list }
-type Word = { Id: int; Def1: string; Def2: string; OtherFields: Map<string,string> }
-type Index = { TotalWordCount: int; Sections: SectionPreview list }
-type Saved = { Word: Word; SectionId: int; TotalWordCount: int }
-
-type Page =
-    | DictionaryIndex of QueryLease<Index>
-    | Section of QueryLease<Section>
-    | WordEdit of Word // independent, unsaved draft
-
-type MainModel = { History: Page list }
-
 let client = new QueryClient(graph)
 let index = client.Define(loadIndex)
 let sections = client.Define(loadSection)
 let words = client.Define(loadWord)
+
+let page = sections.AcquireOwned(sectionId, pageOwner)
+let loading = page.EnsureAsync()
 ```
 
-The loaders have shape `key -> CancellationToken -> Task<record>`. `Define` performs
-no IO. Opening Home calls `index.Acquire ()`; opening a section calls
-`sections.Acquire sectionId`; opening an existing editor acquires only that word's
-details and copies the accepted record into a draft. The index loads summaries,
-each visited section loads previews, and each visited editor loads one full word.
-Neither previews nor details require per-field signals.
+Loaders: `key -> CancellationToken -> Task<record>`. Define families once per client;
+acquire once per page. Only acquired keys load. Same key, same accepted record/request.
+Reads never start IO.
+
+## Loading without losing cached data
+
+**Play** the refresh sequence. These maps use existing signal-map primitives as
+query macros: `fetch` represents a request, `cached` an accepted record, and `page`
+a consumer. They illustrate query behavior rather than exposing its internal graph.
+
+```fsharp map replay code=collapsed code-max-height=24rem
+let desk = Desk<string>()
+let demand = createSignal 0
+let fetch = createAsync (fun _ _ -> desk.Quote demand.Value)
+let cached = createSignal "No data"
+let outcome =
+    createBoundary
+        (fun _ -> None)
+        (fun error _ -> Some (Result.Error error.Message))
+        (fun () -> Some (Result.Ok fetch.Value))
+let publish =
+    createEffect (fun () ->
+        match outcome.Value with
+        | Some (Result.Ok value) -> cached.Value <- value
+        | _ -> ())
+let page =
+    createMemo (fun _ ->
+        let value = cached.Value
+        match outcome.Value with
+        | None -> value + " (loading)"
+        | Some (Result.Error error) -> value + " (" + error + ")"
+        | Some (Result.Ok _) -> value)
+createEffect (fun () -> printfn "%s" page.Value)
+
+controls [
+    button "Answer initial load" (fun () -> desk.Settle "Tea")
+    |> describe "The accepted record becomes available to the page."
+    |> expect "initial value published" (fun () -> cached.Peek = "Tea" && page.Peek = "Tea")
+    button "Refresh" (fun () -> demand.Value <- demand.Peek + 1)
+    |> describe "Refresh starts a request; the accepted Tea record remains visible."
+    |> expect "refresh retains data" (fun () -> cached.Peek = "Tea" && desk.Pending = 1)
+    button "Refresh again" (fun () -> demand.Value <- demand.Peek + 1)
+    |> describe "The replacement request retires the older flight."
+    |> expect "one current request" (fun () -> desk.Pending = 1 && fetch.Runs = 3)
+    button "Fail refresh" (fun () -> desk.Fail "offline")
+    |> describe "Failure is metadata: the page still has Tea."
+    |> expect "failure retains data" (fun () -> cached.Peek = "Tea" && page.Peek.Contains "offline")
+    button "Retry and answer" (fun () ->
+        demand.Value <- demand.Peek + 1
+        desk.Settle "Coffee")
+    |> describe "Explicit demand retries; only the new response publishes."
+    |> expect "retry publishes" (fun () -> cached.Peek = "Coffee" && page.Peek = "Coffee")
+]
+```
+
+- `Value`: tracked record; initial loading suspends, initial failure throws.
+- `State`: tracked `{ Data; FetchStatus; Error; IsStale }`, including during loading.
+  Metadata changes leave `Value` consumers quiet.
+- `Ensure[Async]`: load missing/stale data or join the request; fresh data needs no IO.
+- `Refresh[Async]`: replace the request; keep accepted data on refresh/failure.
+- Async variants return `Task<T>` **after publication**. Failure faults it;
+  request retirement or lease/client disposal cancels it. Disposing one shared
+  lease cancels only its own waiters.
+
+## Save once, reconcile loaded queries
+
+The server returns the saved word, section ID, and authoritative total count:
 
 ```fsharp
-let reconcile (saved: Saved) = [
+let reconcile saved = [
     index.UpdateIfLoaded((), fun old ->
         { old with TotalWordCount = saved.TotalWordCount })
     sections.UpdateIfLoaded(saved.SectionId, fun old ->
@@ -50,156 +95,87 @@ let reconcile (saved: Saved) = [
     words.SetIfLoaded(saved.Word.Id, saved.Word)
 ]
 
-let save draft = client.Mutate(draft, saveWord, reconcile)
+let pending = client.Mutate(draft, saveWord, reconcile)
 ```
 
-`saveWord` returns the server's authoritative total and saved word. `upsertById`
-replaces a matching preview or appends a new one; that policy assumes a complete
-section preview list with insertion ordering. The editor accepts the returned word
-into its draft. The retained section and index already reflect the save when Back
-returns to them. Reconciliation does not inspect navigation history, fetch unvisited
-entities, or create absent cache entries. If a targeted existing query is still
-loading, its old response is retired and the query becomes stale instead.
+In this macro, each cache node summarizes a whole query record; `commit` represents
+staged, batched publication. Edit Tea, then add Coffee: the unvisited Coffee detail
+stays absent. Arrows show tracked reads; the commit's writes flash the cache nodes.
 
-For sorted, filtered, or paginated previews, define the complete request key and
-invalidate matching cached pages instead of guessing list membership:
+```fsharp map replay code=collapsed code-max-height=24rem
+let indexQuery = createSignal 1
+let sectionQuery = createSignal [(42, "Tea")]
+let wordQuery = createSignal "Tea"
+let saved = createAsyncSource<int * string * int> ()
+let commit =
+    createEffect (fun () ->
+        let id, definition, total = saved.Value
+        let old = sectionQuery.Peek
+        let previews =
+            if old |> List.exists (fun (key, _) -> key = id) then
+                old |> List.map (fun (key, value) -> key, (if key = id then definition else value))
+            else old @ [(id, definition)]
+        batch (fun () ->
+            indexQuery.Value <- total
+            sectionQuery.Value <- previews
+            if id = 42 then wordQuery.Value <- definition))
+let indexPage = createMemo (fun _ -> sprintf "%d words" indexQuery.Value)
+let sectionPage = createMemo (fun _ -> sectionQuery.Value |> List.map snd |> String.concat ", ")
+let wordPage = createMemo (fun _ -> wordQuery.Value)
+createEffect (fun () -> printfn "%s / %s / %s" indexPage.Value sectionPage.Value wordPage.Value)
 
-```fsharp
-type SectionKey = { SectionId: int; Page: int; Filter: string }
-// Include ordering and any other request parameters in the key as well.
-let reconcilePaged saved = [
-    pages.InvalidateWhere(fun key -> key.SectionId = saved.SectionId)
-    index.UpdateIfLoaded((), fun old ->
-        { old with TotalWordCount = saved.TotalWordCount })
+controls [
+    button "Edit Tea: server acknowledges" (fun () -> saved.Settle (42, "Green tea", 1))
+    |> describe "One receipt patches the loaded section and detail; the total stays unchanged."
+    |> expect "edit reconciles" (fun () -> sectionQuery.Peek = [(42, "Green tea")] && wordQuery.Peek = "Green tea")
+    button "Add Coffee: server acknowledges" (fun () -> saved.Settle (99, "Coffee", 2))
+    |> describe "The index and section update. No Coffee detail query is created."
+    |> expect "addition reconciles" (fun () ->
+        indexQuery.Peek = 2 && sectionQuery.Peek = [42, "Green tea"; 99, "Coffee"] && wordQuery.Peek = "Green tea")
 ]
 ```
 
-## Loading and ownership
+**Edit factories are deferred.** `UpdateIfLoaded`, `SetIfLoaded`, `Invalidate`, and
+`InvalidateWhere` return `QueryEdit`; apply through `Commit` or `Mutate` reconciliation.
 
-For a complete, compiled Elmish-style model and update function, see
-[Dictionary navigation](query-navigation.md). It includes independent editor drafts,
-Back, Home, adding words, and a save completing after its editor closes.
+- Accepted data: patch it and retire any superseded request.
+- Existing entry without data: retire its request and mark stale.
+- Absent key: stay absent. Invalidation retains data and starts no IO.
 
-Invalidation retains existing data and performs no IO. On Back, call the returning
-lease's `Ensure()` to load missing or stale data. `Ensure` joins an existing request;
-`Refresh()` supersedes it. Reads never start IO. `Value` participates in native
-pending/error boundaries during the initial load; `State` always returns a snapshot.
-Refresh and refresh failure keep the last accepted `Value`. Metadata-only changes
-wake `State` consumers without waking `Value` consumers. Internally, an async source
-provides initial-load suspension; it does not replace the identity and reconciliation
-layer.
+`upsertById` assumes a complete preview list. For filtered, sorted, or paginated
+results, include every request parameter in the key and invalidate matching entries:
 
-`EnsureAsync(): Task<T>` joins or starts the same load as `Ensure`, and returns the
-accepted record after publication. A fresh cached value completes immediately.
-`RefreshAsync(): Task<T>` starts a replacement request. Loading failure faults the
-task. Superseding or retiring that request cancels its waiters; disposal of a lease
-cancels only that lease's waiters. A commit that replaces pending data also retires
-the request, so its waiting task cancels even though `Value` now holds the replacement.
-Use these tasks to send loading results back as Elmish messages. Start operations
-on the graph thread; await them without blocking the UI or dispatcher with `.Result`.
+```fsharp
+pages.InvalidateWhere(fun key -> key.SectionId = saved.SectionId)
+```
 
-Keep leases for hidden pages in History. Dispose the removed page's leases on Back;
-the final lease release evicts that query and requests cancellation. Acquiring under
-a Ranvier owner also registers automatic cleanup. For explicit page lifetime, use
-`family.AcquireOwned(key, pageOwner)` and keep that owner in History. Dispose it
-when removing the page. A temporary view owner must not own a retained page's lease.
-`Acquire(key)` remains convenient when the current reactive owner has the desired
-lifetime. `Define(loader)` uses default key equality; its comparer overload supports
-custom key equality. Construct the client under the
-application owner, and dispose it on Home/logout before creating a fresh session.
-The client owns saves, so closing an editor does not cancel its in-flight save.
-The traced build also retains published values in diagnostic history; eviction does
-not erase that history.
-Client disposal cancels queued callers and requests remote cancellation; a server
-may already have applied the write. Late results cannot change the new session.
-Cancellation from client disposal cancels the `Mutate` task rather than returning
-a `MutationOutcome`. Catch `OperationCanceledException` in the command adapter;
-the closed session should not receive another message.
+## Outcomes and contracts
 
-An Elmish program can own the client as an application service and send the result
-of `save` back as a message. Handle all three outcomes:
+- `Applied saved`: accept the saved draft.
+- `RequestFailed error`: show the error; no reconciliation or automatic retry.
+- `ReconciliationFailed(saved, error)`: retain the receipt and refresh stale queries.
+  **The server saved it—do not repeat the write to repair the cache.**
+- Client disposal cancels the `Mutate` task: catch `OperationCanceledException`;
+  the server may already have written. Old replies cannot update a new session.
 
-- `Applied saved`: remote success and local publication completed.
-- `RequestFailed error`: reconciliation was skipped; no automatic retry occurs.
-- `ReconciliationFailed(saved, error)`: the server succeeded, but local staging
-  failed. Keep the receipt, show the local failure, and explicitly refresh stale
-  queries. Do not resubmit the saved write merely to repair the cache.
+Writes use one client-wide FIFO. Commit validates before publishing in one batch;
+repeated edits compose in order. Updaters must return immutable values and must not
+reenter the client. Call operations on the graph thread; completions use
+`Graph.Dispatch`. Await without blocking the dispatcher with `.Result`.
 
-The client serializes remote writes through reconciliation, including different
-result types. `Commit` also accepts an explicit list of edits. It validates every
-updater, predicate, and data comparison before publishing in one graph batch.
-Repeated edits compose in order. Callbacks must return immutable values and must
-not reenter client operations. All client/lease operations follow the graph's thread
-contract; async completions return through `Graph.Dispatch`.
+## View, ownership, and cost
 
-`UpdateIfLoaded`, `SetIfLoaded`, `Invalidate`, and `InvalidateWhere` return deferred
-`QueryEdit` descriptions. Creating one changes nothing; pass it to `Commit`, or
-return it from the reconciliation callback of `Mutate`. A patch changes an existing
-entry with accepted data. An existing entry without accepted data has its pending
-request retired and becomes stale. An absent key remains absent. Invalidation
-marks matching existing entries stale, retaining any accepted data, without IO.
+[Dictionary navigation](query-navigation.md) shows the **view consuming the model**,
+page owners, independent drafts, Back/Home, and a save completing after Back.
+Use `Acquire` for ambient ownership or `AcquireOwned` for explicit page ownership;
+final release evicts the entry. Trace history can retain published values.
 
-## Performance and measurement
+[Measured local cost](../benchmarks/queries.md): **0.48–0.69 µs and 1,976 extra bytes**
+per three-query commit at 10/1,000 previews, for atomic publication and request
+retirement. At 10,000 previews, timing intervals overlap. IO, acquisition, mutation
+tasks/queue, and rendering are excluded.
 
-The [local reconciliation benchmark](../benchmarks/queries.md) compares this
-three-page workflow with a hand-written update on the same machine. At 10 and
-1,000 previews, a three-query `Commit` adds about **0.48–0.69 µs per save** and
-**1,976 bytes of temporary allocation**. At 10,000 previews, timings overlap and
-list reconstruction dominates. These untraced .NET figures exclude fetching,
-acquisition, the `Mutate` task/FIFO wrapper, and rendering.
-
-That cost buys staged atomic publication, shared cached values, and retirement of
-superseded requests. The package also centralizes request sharing, cancellation,
-and page ownership. Those services avoid duplicating lifecycle logic throughout
-the application; the benchmark does not establish an application-wide speedup.
-
-The implementation's costs are:
-
-- A keyed cache lookup uses a dictionary: expected constant lookup work, plus the
-  key's hashing and equality costs. Acquiring a lease allocates ownership state;
-  creating a new entry also creates reactive and request state.
-- A successful patch stages the described edits, compares each affected result,
-  then publishes the affected entries in one batch. Updaters and result equality
-  can dominate this work. Scanning or rebuilding a list of `n` previews remains
-  linear in `n`; replacing a cached record does not make its fields incremental.
-- `InvalidateWhere` scans the existing entries in that family. It does not scan
-  the remote dictionary or fetch matching data. Recovery after reconciliation
-  failure invalidates the client's existing entries.
-- Cache data is retained while leases exist. Shared keys share an entry; releasing
-  its final lease evicts it. Trace history can retain values independently.
-- Remote writes run in one client-wide FIFO, including their reconciliation.
-  This preserves ordering but limits concurrent write throughput.
-
-The benchmark measures time and allocated bytes for one-word edits against
-increasing preview-list sizes. Further measurements should cover retained memory
-after release, request count, downstream computation/render count, cached reads,
-shared-key acquisition, metadata-only refresh, and predicate invalidation. Compare
-identical payloads, update rules, equality policies, dispatch, and UI observations;
-separate local work from network latency and traced from untraced results.
-
-## Comparison with Elmish
-
-In the original independent-page model, `Saved` must find the affected pages and
-patch each copy, or mark them dirty and reload on Back. A direct history scan grows
-with the navigation stack; the list patch still grows with the preview list. The
-query layer addresses loaded entries by key and lets pages acquiring the same key
-observe the same accepted result. It owns sharing, request retirement, disposal,
-and publication, so those rules are implemented once.
-
-An Elmish model with a shared keyed cache can achieve the same lookup and data
-sharing costs. It may use fewer allocations because it does not need this layer's
-leases, reactive nodes, staging objects, and task bookkeeping. Ranvier.Query does
-not replace Elmish: History and editor drafts can remain Elmish models while the
-client manages fetched data.
-
-Reactive consumers of unrelated entries are not notified by a targeted save.
-This can reduce downstream work compared with broad subscriptions to a whole
-model, but Elmish selectors, equality checks, and UI memoization can also avoid
-unnecessary rendering. Consumers of the changed whole record still reevaluate;
-a selector exposing one field still runs to determine whether that field changed.
-
-This API centralizes cache consistency. It still requires the application to describe
-how a saved result affects each query shape. Whole-record selectors still evaluate
-when their record source changes, and list updates still reconstruct lists. Use a
-memo with an explicit comparer to cut off unchanged projections, or keyed incremental
-collections where collection computation itself needs finer granularity.
+A shared Elmish cache can provide the same data sharing with less bookkeeping.
+Query centralizes that lifecycle; it does not make record fields or list patches
+incremental. Changed-record selectors still run; list rebuilding and family-wide
+predicate invalidation remain linear.
