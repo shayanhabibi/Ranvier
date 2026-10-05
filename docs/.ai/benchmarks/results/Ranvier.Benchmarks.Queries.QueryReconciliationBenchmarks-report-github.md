@@ -6,7 +6,7 @@ AMD Ryzen 9 9900X 4.40GHz, 1 CPU, 24 logical and 12 physical cores
   [Host]          : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4 DEBUG
   UnrollFactor=16 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
 
-Job=UnrollFactor=16  UnrollFactor=16  Categories=Query  
+Job=UnrollFactor=16  UnrollFactor=16  Categories=Query
 
 ```
 | Method            | Previews | Mean        | Error       | StdDev      | Op/s        | Ratio        | RatioSD | Gen0    | Gen1   | Allocated | Alloc Ratio |
