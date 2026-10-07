@@ -11,7 +11,8 @@ Max Paige asked:
 
 **Both can manage the state behind a desktop app.** Your UI framework creates windows and controls; the reactive library maintains the values they display.
 
-- **Already using Adaptive?** A counter or derived property is little reason to switch.
+- **Already using Adaptive?** Familiar APIs are a reason to stay; better performance on your workload can be a reason to switch.
+- **Performance-sensitive app?** Compare the same state updates and UI consumers in both libraries, including latency and allocations.
 - **Considering Ranvier?** Look at its disposable owners, UI-thread graph, binding adapters and propagating pending/failure states.
 - **Building collection-heavy views?** Compare Adaptive's established set/list/map operators with Ranvier's keyed collection paths.
 
@@ -382,6 +383,21 @@ controls [
 
 The difference is how you express the dependency. Adaptive also supports dynamic branches; its [tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) demonstrates them.
 
+## Performance can justify a switch
+
+You may prefer Adaptive's APIs and still choose Ranvier if it performs better on the work your app does. The reverse is equally valid: compare the workload, then choose the engine.
+
+Useful desktop measurements include:
+
+- **Input latency:** time from a keystroke or click to the displayed result.
+- **Update cost:** time spent propagating changes and evaluating derived values.
+- **Allocations and GC:** memory churn during repeated edits or refreshes.
+- **UI work:** notifications, changed rows and redraws per update.
+
+Keep the inputs, derived calculations and displayed output equivalent. Test realistic sizes and update patterns, including single-field edits, batches and collection changes.
+
+A counter teaches the API; a benchmark must exercise the path you are choosing between. Ranvier's [benchmarks](../benchmarks/index.md) document its measured scenarios; use a comparison of your own workload to establish a switching benefit.
+
 ## Lists: compare the actual collection path
 
 Use Adaptive collections when you want collection deltas:
@@ -556,6 +572,7 @@ Try this progression in your own app:
 ## Which would I choose for Max's app?
 
 - **Existing Adaptive/Aardvark stack:** keep its integration advantage unless a specific workflow hurts.
+- **Measured performance bottleneck:** switch if the other engine improves the latency, throughput or allocations that matter to your app.
 - **Incremental collection transformations:** investigate Adaptive's operators first.
 - **Owned consumers, XAML adapters and propagating async state:** try Ranvier in one real screen.
 - **A small form with little derived work:** ordinary MVVM may already be enough.
