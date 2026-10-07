@@ -30,6 +30,7 @@ let theme =
             [
                 NavbarSection ("Guide", "guide", "/guide/")
                 NavbarSection ("Concepts", "concepts", "/concepts/")
+                NavbarSection ("Blog", "blog", "/blog/")
                 NavbarSection ("Benchmarks", "benchmarks", "/benchmarks/")
                 NavbarSection ("Fable", "fable", "/fable/")
                 NavbarDivider
@@ -136,6 +137,16 @@ let theme =
                 Menu.section "Ranvier.Query" [ Menu.page "benchmarks/queries.md" ]
             ]
         >> Theme.menu "fable" [ Menu.section "Fable" [ Menu.page "fable/index.md" ] ]
+        >> Theme.menu
+            "blog"
+            [
+                Menu.section
+                    "Blog"
+                    [
+                        Menu.page "blog/index.md"
+                        Menu.page "blog/desktop-adaptive.md"
+                    ]
+            ]
         >> Theme.navbarEnd
             [
                 NavbarIcon ("GitHub", "https://github.com/shayanhabibi/Ranvier", Icons.github)

@@ -35,6 +35,9 @@ API includes an F# core and a delegate-based C# facade. Evaluate it with that in
 
 ### FSharp.Data.Adaptive
 
+For a desktop-first walkthrough with code comparisons, read
+[Ranvier or Adaptive for a desktop app?](../blog/desktop-adaptive.md).
+
 A mature F# incremental computation library, used by the Aardvark platform. Its adaptive collections
 (`aset`, `alist`, `amap`) pass deltas from one stage to the next and provide an established family of
 incremental operators. Its adaptive APIs and `let!` expose the inputs in code; the engine registers and

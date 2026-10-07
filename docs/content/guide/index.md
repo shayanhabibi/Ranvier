@@ -82,6 +82,7 @@ Dispatchers move work from other threads onto the graph thread.
 
 - [Installation](installation.md): preview packages, supported targets and Native AOT.
 - [Getting started](getting-started.md): a short walkthrough of a reactive graph.
+- [Ranvier or Adaptive for a desktop app?](../blog/desktop-adaptive.md): a blog walkthrough with a complete F# window and comparisons of state, bindings, collections, async work and lifetime.
 - [Graphs](graph.fsx), [Signals](signals.fsx), [Memos](memos.md) and [Effects](effects.md): the core primitives.
 - [Equality](equality.md): graph defaults and typed comparers for individual nodes.
 - [Roots and owners](roots.md), [Cleanup](cleanup.md), [Untrack](untrack.md) and [Batch](batch.md): lifetime and tracking controls.
