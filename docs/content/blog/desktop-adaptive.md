@@ -1,45 +1,128 @@
 ---
 title: Ranvier or Adaptive for a desktop app?
-description: A desktop-first comparison of Ranvier and FSharp.Data.Adaptive, with a runnable F# window and practical state, binding, collection and async workflows.
+description: A desktop-first comparison of Ranvier and FSharp.Data.Adaptive, with a runnable F# window and live signal maps.
 ---
 
 ## “When would I use this instead of FSharp.Data.Adaptive?”
 
-Max Paige asked a useful question about Ranvier:
+Max Paige asked:
 
 > That Ranvier project looks interesting but I am trying to figure out when or how I would use it vs. FSharp.Data.Adaptive. Especially when my use case is a desktop app, maybe that's where my confusion stems from.
 
-**Both can be the state engine of a desktop app.** Your UI framework still creates windows,
-lays out controls and handles input. The reactive library maintains the values those controls
-display. Choosing Windows rather than a browser does not, by itself, pick one library.
+**Both can manage the state behind a desktop app.** Your UI framework creates windows and controls; the reactive library maintains the values they display.
 
-If you already use Adaptive successfully, a counter or a derived property is little reason to
-switch. Look at Ranvier when you want its combination of tracked ordinary reads, effects owned
-by disposable scopes, a graph tied to your UI thread, and loading/failure propagation through
-derived computations. Look at Adaptive when its established adaptive collection operators or
-an existing Adaptive-based UI/rendering stack solve your problem well.
+- **Already using Adaptive?** A counter or derived property is little reason to switch.
+- **Considering Ranvier?** Look at its disposable owners, UI-thread graph, binding adapters and propagating pending/failure states.
+- **Building collection-heavy views?** Compare Adaptive's established set/list/map operators with Ranvier's keyed collection paths.
 
 :::info Preview
-Ranvier is pre-release; its APIs may change. This article describes the APIs on `master`,
-not an experimental UI framework. It makes no comparative performance claim.
+Ranvier is pre-release; its APIs may change. This article describes `master` and makes no comparative performance claim.
 :::
 
-Let's make that choice concrete, starting with the part that is often missing from a reactive
-library introduction: **how does a value actually reach a desktop control?**
+## What connects state to a desktop control?
 
-## There are three pieces in either app
+A button and a label displaying twice the click count need three pieces:
 
-Imagine a button and a label displaying twice the click count:
-
-1. **State:** a changeable count and a derived doubled count.
+1. **State:** a writable count and a derived doubled count.
 2. **Consumer:** an effect, callback or binding adapter that reads the result.
-3. **Desktop host:** controls, event handlers, UI scheduling and disposal when the window closes.
+3. **Host:** controls, event handlers, UI scheduling and exit cleanup.
 
-Adaptive calls the first two values `cval<int>` and `aval<int>`. Ranvier calls them a signal and
-a memo. Both cache derived results and maintain dynamic dependencies. Neither core library
-turns an integer into a window on its own.
+Adaptive calls the values `cval<int>` and `aval<int>`; Ranvier calls them a signal and a memo. Both cache derived results and track dynamic dependencies.
 
-### The same calculation in Adaptive
+## First, what are graphs, activation and roots?
+
+### A graph is your state engine
+
+A `Graph` holds reactive nodes, schedules their effects and controls thread affinity. For a simple desktop app, create one on the GUI thread and keep it alive until exit.
+
+Adaptive's examples construct `cval` and `aval` directly, without an explicit graph object. Ranvier makes the engine's configuration and top-level lifetime explicit.
+
+### Activate it once in your GUI setup
+
+The `create*` functions use `Graph.Current`. Creating a graph does not select it; `graph.Activate()` selects it and returns a disposable activation handle.
+
+```fsharp
+open Ranvier
+
+use graph = new Graph ()
+use active = graph.Activate ()
+
+let count = createSignal 0
+let doubled = createMemo (fun _ -> count.Value * 2)
+createEffect (fun () -> printfn "doubled = %d" doubled.Value)
+
+count.Value <- 1
+```
+
+This prints `0`, then `2`. In a desktop entry point, keep these `use` bindings in the scope containing the GUI message loop, as the complete example below does.
+
+There are two separate handles:
+
+- **Dispose `active`:** restore the previously active graph; existing nodes stay alive.
+- **Dispose `graph`:** release its owned computations and run their cleanups.
+
+A `use` binding inside a short setup callback ends when that callback returns. Store the graph for later exit disposal, or put the GUI message loop inside its enclosing `use` scope.
+
+### A root is an ownership scope inside a graph
+
+Each graph already has a `graph.Root` owner. You do **not** need `createRoot` just to start an app.
+
+Use `createRoot` for something that ends before the graph does: a tab, panel or window sharing application state. Dispose its returned owner when that UI is removed.
+
+```fsharp
+let panelOwner =
+    createRoot (fun owner ->
+        createEffect (fun () -> printfn "panel count = %d" count.Value)
+        owner)
+
+panelOwner.Dispose ()
+count.Value <- 2
+```
+
+The panel's effect stops; the outer `count` signal remains available. A root groups lifetimes within the same graph—it does not create another scheduler or UI thread.
+
+**Watch it:** write once, dispose the panel, then write again. The effect disappears and stays silent on the second write.
+
+```fsharp map replay code=collapsed
+let count = createSignal 0
+let mutable runs = 0
+let panelOwner =
+    createRoot (fun owner ->
+        createEffect (fun () ->
+            runs <- runs + 1
+            printfn "panel count = %d" count.Value)
+        owner)
+
+controls [
+    button "Write 1" (fun () -> count.Value <- 1)
+    |> describe "The live panel effect reads the new count."
+    |> expect "the live panel responds" (fun () -> runs = 2)
+    button "Close panel" (fun () -> panelOwner.Dispose ())
+    |> describe "Disposing the owner removes its effect."
+    |> expect "closing does not rerun the effect" (fun () -> runs = 2)
+    button "Write 2" (fun () -> count.Value <- 2)
+    |> describe "The signal changes; the closed panel stays silent."
+    |> expect "the disposed effect stays silent" (fun () -> runs = 2 && count.Peek = 2)
+]
+```
+
+Signal maps draw **dependencies**, not the owner tree. See [Graphs](../guide/graph.fsx), [Roots and owners](../guide/roots.md) and [Cleanup](../guide/cleanup.md) for the complete contracts.
+
+### Then what is graph.Run()?
+
+`graph.Run` is a short activation scope. It activates the graph for a callback and restores the previous activation when the callback returns.
+
+```fsharp
+graph.Run (fun () ->
+    let count = createSignal 0
+    createEffect (fun () -> printfn "%d" count.Value))
+```
+
+It does not start an application loop, create a new root or dispose the nodes afterward. Use it for isolated setup; use `Activate()` when a longer scope reads more naturally.
+
+## The same calculation in both libraries
+
+### Adaptive
 
 ```fsharp
 open FSharp.Data.Adaptive
@@ -52,46 +135,35 @@ transact (fun () -> count.Value <- 1)
 let after = AVal.force doubled
 ```
 
-`before` is `0`; `after` is `2`. `AVal.force` pulls the current result. It does not install a
-UI subscription. Adaptive pushes invalidation and pulls evaluation when a consumer asks for a
-value; its [official tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) walks through
-this model.
+`before` is `0`; `after` is `2`. `AVal.force` pulls the result without installing a UI subscription.
 
-### The same calculation in Ranvier
+Adaptive pushes invalidation and pulls evaluation on demand. Its [official tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) explains that model.
 
-```fsharp
-open Ranvier
+### Ranvier
 
-use graph = new Graph ()
+The earlier `Activate()` example uses an effect to consume `doubled`. Here is its dependency graph: change the count and watch the memo and effect respond.
 
-let before, after =
-    graph.Run (fun () ->
-        let count = createSignal 0
-        let doubled = createMemo (fun _ -> count.Value * 2)
-        let before = doubled.Value
-        count.Value <- 1
-        before, doubled.Value)
+```fsharp map replay code=open
+let count = createSignal 0
+let doubled = createMemo (fun _ -> count.Value * 2)
+createEffect (fun () -> printfn "doubled = %d" doubled.Value)
+
+controls [
+    sliderSignal "Count" (0, 5) count [ 1; 3 ]
+    |> describe "The count write refreshes doubled and its effect."
+    |> expect "doubled follows count" (fun () -> doubled.Peek = count.Peek * 2)
+]
 ```
 
-Again, the results are `0` and `2`. The memo's function reads `count.Value`; that read establishes
-the dependency. A memo computes on demand, and an effect supplies demand when connected to a UI.
-
-Each comparison below is independent. Ranvier fragments using `create*` run inside `graph.Run`
-unless the fragment includes its own graph setup. Adaptive fragments open `FSharp.Data.Adaptive`.
+The docs' map host creates and activates a graph for each map. Plain Ranvier fragments below assume your graph is active; Adaptive fragments open `FSharp.Data.Adaptive`.
 
 ## How would I start a desktop app with Ranvier?
 
-Start with your UI framework, then put Ranvier behind one small interaction. You can write F#
-against controls directly, or use the `Ranvier.CSharp` binding adapters for an MVVM/XAML app.
-You do not need a Ranvier-specific application template.
+Start with your UI framework and add one reactive interaction. You can use F# controls directly or the `Ranvier.CSharp` adapters for MVVM/XAML.
 
-Here is a complete **Windows-only F# WinForms counter**. WinForms keeps the example small enough
-to show the entire connection, including lifetime and startup. For Avalonia or WPF, the same
-state/effect design applies, with that framework's controls and lifecycle events.
+This complete **Windows-only WinForms counter** keeps the graph active throughout the GUI loop. Avalonia and WPF use the same lifetime pattern with their own startup and dispatcher APIs.
 
 ### Create the project
-
-With a .NET SDK installed, run:
 
 ```shell
 dotnet new console -lang F# -n RanvierDesktop
@@ -99,7 +171,7 @@ cd RanvierDesktop
 dotnet add package Ranvier --prerelease
 ```
 
-In `RanvierDesktop.fsproj`, change the generated property group to:
+Change the generated property group in `RanvierDesktop.fsproj`:
 
 ```xml
 <PropertyGroup>
@@ -109,13 +181,13 @@ In `RanvierDesktop.fsproj`, change the generated property group to:
 </PropertyGroup>
 ```
 
-Keep the generated `Compile Include="Program.fs"` and the package reference added by the command.
-Ranvier supports .NET 8; this Windows target enables the WinForms desktop APIs.
+Keep the generated `Compile Include="Program.fs"` and package reference. The Windows target enables WinForms; Ranvier supports .NET 8.
 
 ### Replace Program.fs
 
 ```fsharp
 open System
+open System.Threading
 open System.Windows.Forms
 open Ranvier
 
@@ -130,42 +202,40 @@ let main _ =
     window.Controls.Add label
     window.Controls.Add increment
 
-    window.Shown.Add (fun _ ->
-        let graph = new Graph ()
-        window.FormClosed.Add (fun _ -> graph.Dispose ())
+    use uiContext = new WindowsFormsSynchronizationContext ()
+    SynchronizationContext.SetSynchronizationContext uiContext
 
-        graph.Run (fun () ->
-            let count = createSignal 0
-            let doubled = createMemo (fun _ -> count.Value * 2)
+    use graph = new Graph ()
+    use active = graph.Activate ()
 
-            createEffect (fun () ->
-                label.Text <- sprintf "Count: %d; doubled: %d" count.Value doubled.Value)
+    let count = createSignal 0
+    let doubled = createMemo (fun _ -> count.Value * 2)
+    createEffect (fun () ->
+        label.Text <- sprintf "Count: %d; doubled: %d" count.Value doubled.Value)
 
-            let clicks =
-                increment.Click.Subscribe (fun _ -> count.Value <- count.Value + 1)
-            onCleanup (fun () -> clicks.Dispose ())))
+    let clicks =
+        increment.Click.Subscribe (fun _ -> count.Value <- count.Value + 1)
+    onCleanup (fun () -> clicks.Dispose ())
 
     Application.Run window
     0
 ```
 
-Run `dotnet run`. The label initially displays `Count: 0; doubled: 0`. Each click changes the
-signal; the effect reads consistent current values and updates the existing label. Closing
-the window disposes the graph and its click subscription.
+Run `dotnet run`. The label starts at `Count: 0; doubled: 0` and updates on each click.
 
-The graph is created in `Shown`, on the UI thread after the desktop host is running. WinForms
-normally installs a `WindowsFormsSynchronizationContext`; Ranvier captures the current context
-at graph construction. The host's message loop comes from
-[`Application.Run`](https://learn.microsoft.com/dotnet/api/system.windows.forms.application.run).
-Do not create the graph on a worker thread and then attach it to controls.
+The lifecycle is:
 
-`graph.Run` activates the graph while factories create nodes. Returning from it does **not**
-dispose those nodes. Conversely, a `use graph` inside the `Shown` callback would dispose it as
-soon as that callback returned. Tie disposal to the window's lifetime instead.
+1. Construct controls and establish the GUI synchronization context.
+2. Construct the graph on that thread and activate it.
+3. Create state, effects and event subscriptions.
+4. Run the GUI loop with [`Application.Run`](https://learn.microsoft.com/dotnet/api/system.windows.forms.application.run).
+5. On exit, leave the `use` scope: restore activation, dispose the graph and clean up subscriptions.
 
-### What would the Adaptive wiring look like?
+WinForms normally installs its synchronization context automatically; this example sets it explicitly before constructing the graph. Other GUI hosts should establish their own context or dispatcher before graph construction.
 
-Inside the same window's `Shown` handler, replace the graph setup with:
+### The Adaptive version
+
+In the same entry point, replace the graph/state/subscription block with:
 
 ```fsharp
 let count = cval 0
@@ -173,36 +243,21 @@ let doubled = count |> AVal.map (fun n -> n * 2)
 let caption =
     AVal.map2 (fun n d -> sprintf "Count: %d; doubled: %d" n d) count doubled
 
-let subscription = caption.AddCallback (fun text -> label.Text <- text)
-let clicks =
+use subscription = caption.AddCallback (fun text -> label.Text <- text)
+use clicks =
     increment.Click.Subscribe (fun _ ->
         transact (fun () -> count.Value <- count.Value + 1))
-
-window.FormClosed.Add (fun _ ->
-    clicks.Dispose ()
-    subscription.Dispose ())
 ```
 
-Install `FSharp.Data.Adaptive` and replace `open Ranvier` with `open FSharp.Data.Adaptive` for
-this version. `AddCallback` delivers the initial value and later evaluated values, and returns
-a disposable subscription. It is an Adaptive API, not a XAML binding adapter.
+Install `FSharp.Data.Adaptive` and replace `open Ranvier` with `open FSharp.Data.Adaptive`. Keep `Application.Run window` inside the subscriptions' `use` scope.
 
-Here, registration and every transaction happen on the UI thread. If transactions later come
-from workers, marshal the UI update through your desktop dispatcher. Adaptive's callback API
-does not automatically choose a WinForms, WPF or Avalonia dispatcher. See its
-[callback implementation](https://github.com/fsprojects/FSharp.Data.Adaptive/blob/master/src/FSharp.Data.Adaptive/EvaluationCallbackExtensions.fs).
+`AddCallback` delivers the initial value, then later evaluated values. Its disposable handle stops the subscription; it does not select a desktop dispatcher ([implementation](https://github.com/fsprojects/FSharp.Data.Adaptive/blob/master/src/FSharp.Data.Adaptive/EvaluationCallbackExtensions.fs)).
 
-For this counter, either choice is reasonable. Ranvier gives the subscription a graph-owned
-cleanup scope. Adaptive gives you a subscription to dispose explicitly. The surrounding window
-is still the same window.
+Both counters register and update on the UI thread. For worker updates, your Adaptive UI adapter must marshal control notifications; Ranvier supplies graph dispatch.
 
-## “But my desktop app uses MVVM and XAML”
+## “My app uses MVVM and XAML”
 
-Then your consumer is usually a property-notification adapter. A plain signal or `aval` is not,
-by itself, a view-model property that a XAML binding will observe.
-
-Ranvier's `Ranvier.CSharp` package includes `ReactiveObject`, writable/computed bindings,
-`ICommand` support and an observable collection adapter. For example:
+A signal or `aval` needs an adapter to become an observable view-model property. `Ranvier.CSharp` supplies `ReactiveObject`, writable/computed bindings, commands and collection adapters.
 
 ```csharp
 using Ranvier;
@@ -226,7 +281,7 @@ public sealed class CounterViewModel : ReactiveObject
 }
 ```
 
-For a WPF view whose `DataContext` is that instance:
+Set a WPF view's `DataContext` to that instance:
 
 ```xml
 <StackPanel>
@@ -236,21 +291,15 @@ For a WPF view whose `DataContext` is that instance:
 </StackPanel>
 ```
 
-Install `Ranvier.CSharp --prerelease`. Create the graph and view model on the UI thread once
-the framework's synchronization context is installed, set `DataContext`, and dispose the view
-model and graph when the window closes. The graph may instead be application-owned if multiple
-windows share state; closing one window then disposes its view model, not the shared graph.
-The [C# guide](../guide/csharp.md#binding-to-xaml) covers the full binding contract, loading, errors and commands.
+Install `Ranvier.CSharp --prerelease` and create the graph/view model on the GUI thread. Dispose the view model when its window closes, and the graph when its owning window or application exits.
 
-With Adaptive, use the adapter supplied by your chosen UI stack, or implement a small
-`INotifyPropertyChanged` bridge around callbacks. For an existing Avalonia/Adaptive stack,
-[Navs.Avalonia's guide](https://angelmunoz.github.io/Navs/Navs-Avalonia.html#Adaptive-Data) demonstrates views,
-shared state and binding helpers. Its helpers belong to Navs; they are not all built into
-FSharp.Data.Adaptive. Follow the integration you already use before writing a competing bridge.
+For Adaptive, use your UI stack's adapter or bridge callbacks to `INotifyPropertyChanged`. [Navs.Avalonia](https://angelmunoz.github.io/Navs/Navs-Avalonia.html#Adaptive-Data) demonstrates desktop views and shared state; its binding helpers belong to Navs.
 
-## A settings form: derive state, then commit related edits together
+See the [C# binding guide](../guide/csharp.md#binding-to-xaml) for loading, errors and commands.
 
-Suppose quantity and unit price determine a total. In Adaptive:
+## Forms: update related fields together
+
+In Adaptive, quantity and price feed an adaptive total:
 
 ```fsharp
 let quantity = cval 2
@@ -264,36 +313,34 @@ transact (fun () ->
 AVal.force total
 ```
 
-In Ranvier:
+In Ranvier, batch a Reset button's writes so its effect sees the final combination. This map uses integer prices to keep the arithmetic easy to follow.
 
-```fsharp
+```fsharp map replay code=open
 let quantity = createSignal 2
-let unitPrice = createSignal 12m
-let total = createMemo (fun _ -> decimal quantity.Value * unitPrice.Value)
+let unitPrice = createSignal 12
+let total = createMemo (fun _ -> quantity.Value * unitPrice.Value)
+let mutable paints = 0
+createEffect (fun () ->
+    paints <- paints + 1
+    printfn "total = %d" total.Value)
 
-batch (fun () ->
-    quantity.Value <- 3
-    unitPrice.Value <- 10m)
-
-total.Value
+controls [
+    button "Reset both fields" (fun () ->
+        batch (fun () ->
+            quantity.Value <- 3
+            unitPrice.Value <- 10))
+    |> describe "Two writes publish total 30 with one additional paint."
+    |> expect "the reset paints once" (fun () -> total.Peek = 30 && paints = 2)
+]
 ```
 
-Both yield `30m`. A desktop Reset button can update several fields in one transaction or batch,
-so consumers need not paint each intermediate write. These are related update-grouping tools,
-not interchangeable database transactions: Ranvier's batch does not roll back writes when the
-callback throws. See [Batch](../guide/batch.md) and Adaptive's
-[transactions documentation](https://fsprojects.github.io/FSharp.Data.Adaptive/).
+Both results are `30`. Ranvier's batch groups updates but does not roll back writes if the callback throws; see [Batch](../guide/batch.md).
 
-For a frequently edited form, put independently changing fields in separate changeable values
-or signals. Replacing a whole record and selecting every field can make many selectors recompute
-to discover that their result stayed equal. Ranvier's [Forms](../guide/forms.md) and
-[Elmish bridge](../guide/elmish.md) explain both approaches; you can keep an existing `update` function
-and adopt fine-grained consumers gradually.
+For frequently edited forms, separate independently changing fields. [Forms](../guide/forms.md) and the [Elmish bridge](../guide/elmish.md) cover field signals and gradual adoption around an existing `update` function.
 
-## Conditional panels: both libraries track changing dependencies
+## Conditional panels: both track changing dependencies
 
-“Only read the detailed title while the details panel is open” is possible in both libraries.
-Adaptive expresses the choice with `AVal.bind` or its `adaptive` computation expression:
+Adaptive can select an input with `AVal.bind`:
 
 ```fsharp
 let showDetails = cval false
@@ -305,26 +352,39 @@ let heading =
         else AVal.constant "Details hidden")
 ```
 
-Ranvier uses the reads made by the memo's current branch:
+Ranvier tracks the reads made by the current branch. Replay the controls and watch the `title` edge appear when the panel opens.
 
-```fsharp
+```fsharp map replay code=open
 let showDetails = createSignal false
 let title = createSignal "Order details"
+let mutable headingRuns = 0
 let heading =
     createMemo (fun _ ->
-        if showDetails.Value then title.Value
-        else "Details hidden")
+        headingRuns <- headingRuns + 1
+        if showDetails.Value then title.Value else "Details hidden")
+createEffect (fun () -> printfn "%s" heading.Value)
+
+controls [
+    button "Rename while hidden" (fun () -> title.Value <- "Shipping")
+    |> describe "The hidden heading does not read title."
+    |> expect "hidden title edits do no heading work" (fun () -> headingRuns = 1)
+    button "Open details" (fun () -> showDetails.Value <- true)
+    |> describe "The visible branch starts tracking title."
+    |> expect "opening reads the current title" (fun () -> heading.Peek = "Shipping")
+    button "Rename while visible" (fun () -> title.Value <- "Payment")
+    |> describe "Now title changes update the heading."
+    |> expect "visible title edits propagate" (fun () -> heading.Peek = "Payment")
+    button "Hide details" (fun () -> showDetails.Value <- false)
+    |> describe "The title dependency is removed again."
+    |> expect "closing restores the hidden heading" (fun () -> heading.Peek = "Details hidden")
+]
 ```
 
-While hidden, changing `title` is not a dependency of the chosen heading calculation. Opening
-the panel makes it one; closing the panel removes it again. The distinction is the programming
-surface, not “Adaptive has static dependencies and Ranvier has dynamic ones.” Adaptive's
-[dynamic dependencies tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) explicitly
-demonstrates conditional dependency changes.
+The difference is how you express the dependency. Adaptive also supports dynamic branches; its [tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) demonstrates them.
 
-## A large desktop list: compare the collection path, not just scalar values
+## Lists: compare the actual collection path
 
-For Adaptive, choose an adaptive collection when you want collection deltas:
+Use Adaptive collections when you want collection deltas:
 
 ```fsharp
 let numbers = cset [ 1; 2; 3 ]
@@ -334,13 +394,9 @@ let captions = visible |> ASet.map (fun n -> sprintf "Row %d" n)
 transact (fun () -> numbers.Add 4 |> ignore)
 ```
 
-An `aset` is a set: it is not the ordered row model for every grid. Adaptive also supplies
-`alist` and `amap`. Choose the shape and operators your UI needs. Its tutorial explains why an
-adaptive collection differs from putting a whole immutable collection inside a `cval`.
-A reader or UI adapter consumes changes; merely defining `captions` does not update a control.
-See the [repository and collection documentation](https://github.com/fsprojects/FSharp.Data.Adaptive).
+Choose `aset`, `alist` or `amap` for your data's shape. A reader or UI adapter consumes changes; defining `captions` alone does not update a control ([collection documentation](https://github.com/fsprojects/FSharp.Data.Adaptive)).
 
-Ranvier's editable keyed sources also provide a direct edit path. From C# inside an active graph:
+Ranvier has editable keyed sources; from C# inside an active graph:
 
 ```csharp
 using static Ranvier.CSharp.Reactive;
@@ -355,23 +411,19 @@ var titles = items.Rows.Select(item => item.Title);
 items.AddOrUpdate((2, "Retest"));
 ```
 
-The edit changes the existing row with key `2`, keeping its position. For a desktop list, use
-`AsObservableCollection` to bridge a projection to `ObservableCollection`, or consume change
-readers in a custom adapter. Dispose the adapter/readers with the view. The
-[C# collection guide](../guide/csharp.md#editable-keyed-collections) and
-[reader guide](../guide/projections.fsx#reading-changes) explain resets, positional changes and ownership.
+Key `2` keeps its position while its row changes. Use `AsObservableCollection` for desktop binding, or consume change readers in a custom adapter; dispose them with the view.
 
-Adaptive has a broader established family of incremental set, map and list operators. Ranvier
-has keyed rows, delta readers and adapters, but some filter/group membership paths scan keys,
-changed sort ranks use a full sort, and membership changes copy ordered keys. A delta-producing
-API does not make every operation proportional to the number of changed rows. Compare your
-actual edit/filter/sort/aggregate workload; the [ecosystem page](../concepts/ecosystem.md)
-records Ranvier's current collection costs.
+The trade-offs depend on your operators:
 
-## A search panel: where Ranvier's pending channel changes the workflow
+- **Adaptive:** an established, broader family of incremental set/list/map operations.
+- **Ranvier:** keyed rows, delta readers and ownership, with some membership paths still scanning keys and changed sort ranks using a full sort.
+- **Either:** measure your edit/filter/sort/aggregate workload; deltas do not make every operation proportional to changed rows.
 
-A desktop app often needs “loading”, “loaded” and “failed” states. With Adaptive, one useful
-application model is an explicit union:
+See [collection bindings](../guide/csharp.md#editable-keyed-collections), [reader contracts](../guide/projections.fsx#reading-changes) and [current costs](../concepts/ecosystem.md). The [collection maps](../guide/signal-maps.md#collections) show per-row propagation.
+
+## Loading: explicit state or a propagating pending channel?
+
+With Adaptive, a useful application model is an explicit union:
 
 ```fsharp
 type LoadState<'T> =
@@ -389,35 +441,38 @@ let greeting =
 transact (fun () -> user.Value <- Loaded "Ada")
 ```
 
-Your request workflow publishes `Loading`, then the success or failure. For type-ahead search,
-the application or integration also decides cancellation and which result wins when requests
-overlap. This is a useful explicit design, especially when loading is domain state that you
-want to save, inspect or handle in `update`. Adaptive's core tutorial does not document a
-built-in pending channel that propagates through ordinary dependent value reads.
+Your workflow publishes loading, success and failure, and chooses cancellation/result ordering. This is useful when loading is domain state you want to inspect or handle in `update`.
 
-In Ranvier, pending can travel through computations that just read their inputs:
+Ranvier lets pending/failure travel through computations that read ordinary values. The boundary chooses display text while `greeting` remains a simple calculation.
 
-```fsharp
+```fsharp map replay code=open
 let user = createAsyncSource<string> ()
 let greeting = createMemo (fun _ -> "Hello, " + user.Value)
 let panel =
     createBoundary
-        (fun _ -> "Loading profile…")
-        (fun error _ -> "Could not load: " + error.Message)
+        (fun _ -> "Loading…")
+        (fun error _ -> error.Message)
         (fun () -> greeting.Value)
-
 createEffect (fun () -> printfn "%s" panel.Value)
-user.Settle "Ada"
+
+controls [
+    button "Load Ada" (fun () -> user.Settle "Ada")
+    |> describe "Settling the source wakes greeting and replaces the fallback."
+    |> expect "the loaded greeting is visible" (fun () -> panel.Peek = "Hello, Ada")
+    button "Fail" (fun () -> user.Fail (exn "offline"))
+    |> describe "Failure reaches the boundary through greeting."
+    |> expect "the error is displayed" (fun () -> panel.Peek = "offline")
+    button "Recover with Grace" (fun () -> user.Settle "Grace")
+    |> describe "A new value recovers without rebuilding the graph."
+    |> expect "the panel recovers" (fun () -> panel.Peek = "Hello, Grace")
+]
 ```
 
-The effect first prints `Loading profile…`, then `Hello, Ada`. Replace `printfn` with the
-label assignment from the desktop example. `greeting` contains no loading match; its read
-suspends until `user` settles. The boundary converts pending/failure into display text.
-`user.Fail (Exception "offline")` exercises the error path; a later settle can recover.
+Adaptive's core guide does not document this built-in propagating pending channel. You can still use an explicit union in Ranvier when it better represents your domain.
 
-For a request driven by a changing signal, use an async memo instead of manually settling a
-source. Assuming your service supplies
-`fetchName : int -> System.Threading.CancellationToken -> System.Threading.Tasks.Task<string>`:
+### Requests driven by selection
+
+For a real service, replace the manual source with `createAsync`. Assume `fetchName` has type `int -> System.Threading.CancellationToken -> System.Threading.Tasks.Task<string>`:
 
 ```fsharp
 let selectedId = createSignal 1
@@ -428,94 +483,81 @@ let name =
 let greeting = createMemo (fun _ -> "Hello, " + name.Value)
 let panel =
     createBoundary
-        (fun _ -> "Loading profile…")
-        (fun error _ -> "Could not load: " + error.Message)
+        (fun _ -> "Loading…")
+        (fun error _ -> error.Message)
         (fun () -> greeting.Value)
-
 createEffect (fun () -> printfn "%s" panel.Value)
-selectedId.Value <- 2
 ```
 
-The effect supplies demand. A new selection makes the observed request run again. The default
-`CancelPrevious` policy requests cancellation of the old flight and discards its superseded
-result; your I/O must cooperate with the token to stop work. Read reactive request inputs before
-the first suspending `await`. Create the async memo outside the boundary, because a boundary
-replaces nodes created in its body on each run. See [Async memos](../guide/async-memos.md) and
-[Boundaries](../guide/boundaries.md).
+Changing `selectedId` starts a new observed request. The default `CancelPrevious` policy requests cancellation and drops superseded results; your I/O must cooperate with the token.
 
-This is a reason to consider Ranvier beyond the counter: several intermediate computations can
-remain ordinary value computations while a consumer decides how to display waiting or errors.
-You can still model an explicit union in Ranvier when that better represents your application.
+Watch that workflow with `Desk`, the maps' controllable service:
 
-## Background work and window lifetime are part of the design
+```fsharp map replay code=collapsed
+let desk = Desk<string>()
+let selectedId = createSignal 1
+let name = createAsync (fun _ _ -> desk.Quote selectedId.Value)
+let greeting = createMemo (fun _ -> "Hello, " + name.Value)
+let panel =
+    createBoundary
+        (fun _ -> "Loading…")
+        (fun error _ -> error.Message)
+        (fun () -> greeting.Value)
+createEffect (fun () -> printfn "%s" panel.Value)
 
-For Ranvier, keep UI mutations on the graph's thread. Dispatch a worker's publication:
+controls [
+    button "Select 2, then 3" (fun () ->
+        selectedId.Value <- 2
+        selectedId.Value <- 3)
+    |> describe "Each selection supersedes the previous pending flight."
+    |> expect "only the latest request remains" (fun () -> desk.Pending = 1)
+    button "Answer latest: Grace" (fun () -> desk.Settle "Grace")
+    |> describe "The latest answer flows through greeting to the panel."
+    |> expect "the latest result is visible" (fun () -> panel.Peek = "Hello, Grace")
+]
+```
+
+- Read reactive request inputs before the first suspending `await`.
+- Create async nodes outside the boundary; nodes created inside its body are replaced on rerun.
+- See [Async memos](../guide/async-memos.md) and [Boundaries](../guide/boundaries.md) for flight policies and fallback choices.
+
+## Background work and multiple windows
+
+Publish a worker result on the Ranvier graph's thread:
 
 ```fsharp
 graph.Dispatch (fun () -> count.Value <- 42)
 ```
 
-This assumes `count` is the signal retained from your window setup. With a captured UI
-`SynchronizationContext`, queued work drains there. Without a context, the graph uses a manual
-dispatcher and the owning thread must call `graph.Pump ()`. Do not disable affinity to bypass
-a wrong-thread error; fix the host/dispatch connection. See [Threading and dispatch](../guide/threading.md).
+With a captured GUI synchronization context, queued work drains there. Without a context or configured dispatcher, the owning thread must call `graph.Pump()`; see [Threading](../guide/threading.md).
 
-For Adaptive, update changeable data inside `transact`, and make your UI adapter schedule
-control notifications on the UI thread. Its transaction mechanism is not a desktop dispatcher.
+For Adaptive, write inside `transact` and marshal control notifications through your UI adapter. A transaction is not a desktop dispatcher.
 
-For either library, decide who owns the state and who owns its consumers:
+Choose lifetimes explicitly:
 
-- **One window:** a Ranvier graph can live for that window; dispose it on close. Keep and dispose
-  Adaptive callback/reader subscriptions on close.
-- **Several windows sharing state:** keep the state alive at application scope and give each
-  window its own consumer lifetime. In Ranvier, use a `createRoot` owner for a panel's effects
-  and dispose that owner when the panel is removed.
-- **Tabs created and removed repeatedly:** release subscriptions, readers and UI resources each
-  time. Ranvier's `onCleanup` attaches resource disposal to an owner; with Adaptive, keep the
-  integration's disposable handles alongside the tab.
+- **One window:** keep its graph active through the GUI loop and dispose it on exit.
+- **Shared application state:** keep one application-owned graph; give each removable view a root owner or binding scope.
+- **Tabs and panels:** dispose their owners, subscriptions and readers when removed.
 
-Owners make cleanup composable; they do not decide when a desktop tab closes. That event still
-comes from the UI host. See [Roots and owners](../guide/roots.md) and [Cleanup](../guide/cleanup.md).
+## What to learn from Adaptive's guides
 
-## What to borrow from Adaptive's getting-started material
+Adaptive's [official tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/) teaches inputs, derivation, transactions, reads, collections and dynamic branches. [Navs.Avalonia's examples](https://angelmunoz.github.io/Navs/Navs-Avalonia.html#Adaptive-Data) add the desktop host and binding layer.
 
-Adaptive does have a substantial [official getting-started tutorial](https://fsprojects.github.io/FSharp.Data.Adaptive/),
-not just an API reference. It starts with a small mutable input, derives a result, evaluates it,
-changes the input in a transaction and evaluates again. It then adds collection changes and
-dynamic branches. That progression is worth following when learning either engine.
+Try this progression in your own app:
 
-For desktop practice, read that tutorial alongside
-[Navs.Avalonia's examples](https://angelmunoz.github.io/Navs/Navs-Avalonia.html#Adaptive-Data). They show the
-missing host layer: construct a view, keep state at the right scope, bind it, and handle user
-input. Treat Navs helpers as integration APIs, rather than copying their names into a bare
-Adaptive project.
+1. Bind one derived label and check its initial value.
+2. Update it from a UI event.
+3. Reset related fields together.
+4. Toggle a conditional panel and inspect its dependencies.
+5. Edit one keyed row and check identity/order.
+6. Supersede a slow request and check which result wins.
+7. Close a panel and check that its old consumers stop.
 
-Try the same progression in your own app:
+## Which would I choose for Max's app?
 
-1. Bind one derived label and verify its initial value.
-2. Change an input from a UI event and observe the label update.
-3. Reset two fields together and check that the UI shows the final combination.
-4. Toggle a conditional panel and inspect which dependencies remain active.
-5. Edit one keyed row and check both identity and order in the list.
-6. Complete a slow request after a newer one and verify your chosen result policy.
-7. Close and reopen the panel; check that the old consumers no longer run.
+- **Existing Adaptive/Aardvark stack:** keep its integration advantage unless a specific workflow hurts.
+- **Incremental collection transformations:** investigate Adaptive's operators first.
+- **Owned consumers, XAML adapters and propagating async state:** try Ranvier in one real screen.
+- **A small form with little derived work:** ordinary MVVM may already be enough.
 
-Those exercises reveal more about the fit than translating a single counter.
-
-## So which would I choose for Max's desktop app?
-
-For an app already built around Adaptive bindings or Aardvark, keep that advantage unless a
-specific workflow is painful. For an app whose main challenge is incremental set/list/map
-transformation, investigate Adaptive's collection operators first.
-
-For an MVVM app where you want graph-owned consumers, property/command adapters and async
-dependencies whose loading/failure states propagate to a view boundary, try Ranvier in one
-screen. Start with the window above or the [XAML binding guide](../guide/csharp.md#binding-to-xaml), then
-add one real async operation and a realistic list before adopting it across the application.
-
-For a small form with a few properties and no expensive derived work, ordinary MVVM may already
-be sufficient. Ranvier and Adaptive are tools for maintaining dependent state; a desktop app
-does not require either one merely because it has buttons.
-
-The useful question is: **which library makes this screen's state, consumers, async policy and
-lifetime easiest to express and verify?** Desktop is the host. Those workflows determine the fit.
+For Ranvier, start with one GUI-thread graph, activate it during setup, and dispose it at exit. Add child roots when views need shorter lifetimes, then test a real async operation and list before expanding adoption.

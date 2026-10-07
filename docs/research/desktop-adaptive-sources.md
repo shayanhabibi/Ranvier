@@ -8,7 +8,9 @@ against the source-built .NET 8 Ranvier library and FSharp.Data.Adaptive 1.2.26.
 and keyed-collection example were also compiled. Verification supplied the declared service
 function for the async request fragment. The GUI was not launched interactively, and the XAML
 fragment was not built as a separate WPF app. The docs pipeline passed, including internal
-link/anchor checks and all 34 existing signal-map scenarios. It emitted existing package,
+link/anchor checks and all 40 signal-map scenarios, including six in the revised article. The
+desktop starter now keeps a GUI-thread graph active with `Activate()` through `Application.Run`,
+and releases it at exit. The article's prose paragraphs have at most three sentences. It emitted existing package,
 Fable and external-link warnings. This verification applies to the article, not every research
 sketch below or the Navs integration examples.
 
