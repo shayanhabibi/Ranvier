@@ -140,12 +140,7 @@ let theme =
         >> Theme.menu
             "blog"
             [
-                Menu.section
-                    "Blog"
-                    [
-                        Menu.page "blog/index.md"
-                        Menu.page "blog/desktop-adaptive.md"
-                    ]
+                Menu.section "Blog" [ Menu.page "blog/index.md"; Menu.page "blog/desktop-adaptive.md" ]
             ]
         >> Theme.navbarEnd
             [
