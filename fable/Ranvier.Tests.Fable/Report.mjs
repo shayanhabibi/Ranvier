@@ -9,12 +9,12 @@ import { join, resolve } from "node:path";
 
 const root = join(import.meta.dirname, "..", "..");
 const suite = join(root, "tests", "Ranvier.Tests");
-const output = join(root, "docs", ".ai", "fable-compat.md");
+const output = process.argv[4] ?? join(root, "docs", ".ai", "fable-compat.md");
 
 // The compiled builds: Release, and Release with the trace log compiled in.
 const builds = [
-    { name: "untraced", dir: "dist/tests" },
-    { name: "traced", dir: "dist/tests-traced" },
+    { name: "untraced", entry: process.argv[2] ?? "dist/tests/Main.fs.js" },
+    { name: "traced", entry: process.argv[3] ?? "dist/tests-traced/Main.fs.js" },
 ];
 const deliveries = ["inline", "promise"];
 
@@ -58,7 +58,7 @@ function run(build, mode) {
     const file = join(mkdtempSync(join(tmpdir(), "ranvier-fable-")), `${build.name}-${mode}.json`);
     const mocha = spawnSync(
         process.execPath,
-        [join(root, "node_modules", "mocha", "bin", "mocha.js"), `${build.dir}/Main.fs.js`, "--timeout", "10000",
+        [join(root, "node_modules", "mocha", "bin", "mocha.js"), build.entry, "--timeout", "10000",
          "--reporter", "fable/Ranvier.Tests.Fable/Reporter.cjs", "--reporter-option", `output=${file}`],
         { cwd: root, env: { ...process.env, RANVIER_FABLE_DELIVERY: mode }, stdio: "inherit" });
     if (mocha.error) throw mocha.error;

@@ -3,5 +3,11 @@
 
     <PropertyGroup>
         <FSharpCoreImplicitPackageVersion>8.0.100</FSharpCoreImplicitPackageVersion>
+        <FablePackageType>library</FablePackageType>
     </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Fable.Package.SDK" Version="1.4.1" PrivateAssets="all"
+                          IncludeAssets="runtime;build;native;contentfiles;analyzers;buildtransitive" />
+    </ItemGroup>
 </Project>
