@@ -1,0 +1,21 @@
+<Project>
+    <Import Project="../Directory.Build.targets" />
+    <PropertyGroup>
+        <PackageTags>$(PackageTags);fable-javascript;fable-dotnet</PackageTags>
+    </PropertyGroup>
+    <Target Name="CreateStandaloneFableProject" AfterTargets="CreateFablePackageFiles"
+            Condition="'$(FablePackageType)' == 'library'">
+        <ItemGroup>
+            <_FableSource Include="@(_PackageFiles)"
+                          Condition="'%(Extension)' == '.fs' or '%(Extension)' == '.fsi'" />
+        </ItemGroup>
+        <MakeDir Directories="$(IntermediateOutputPath)fable" />
+        <WriteLinesToFile File="$(IntermediateOutputPath)fable/$(MSBuildProjectFile)" Overwrite="true"
+                          Lines="&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;;  &lt;PropertyGroup&gt;;    &lt;TargetFramework&gt;netstandard2.1&lt;/TargetFramework&gt;;  &lt;/PropertyGroup&gt;;  &lt;ItemGroup&gt;;@(_FableSource-&gt;'    &lt;Compile Include=&quot;%(Identity)&quot; /&gt;');  &lt;/ItemGroup&gt;;&lt;/Project&gt;" />
+        <ItemGroup>
+            <_PackageFiles Remove="$(MSBuildProjectFullPath)" />
+            <_PackageFiles Include="$(IntermediateOutputPath)fable/$(MSBuildProjectFile)"
+                           Pack="true" PackagePath="fable/" BuildAction="None" />
+        </ItemGroup>
+    </Target>
+</Project>

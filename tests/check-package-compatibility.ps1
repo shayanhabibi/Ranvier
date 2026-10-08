@@ -1,3 +1,5 @@
+param([switch]$CheckFable)
+
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 $temp = Join-Path ([IO.Path]::GetTempPath()) ('ranvier-packages-' + [guid]::NewGuid().ToString('N'))
@@ -20,6 +22,7 @@ New-Item -ItemType Directory -Path $feed, $consumer | Out-Null
 </configuration>
 "@ | Set-Content -LiteralPath (Join-Path $consumer 'NuGet.Config')
 try {
+    $fableEntries = @()
     foreach ($traced in @($false, $true)) {
         $references = @()
         foreach ($name in @('Ranvier', 'Ranvier.Elmish', 'Ranvier.CSharp', 'Ranvier.Query')) {
@@ -30,9 +33,23 @@ try {
             $package = Join-Path $feed "$id.$version.nupkg"
             $archive = [IO.Compression.ZipFile]::OpenRead($package)
             try {
+                $sourceProject = $archive.GetEntry("fable/$name.fsproj")
+                if (-not $sourceProject) { throw "$id is missing its Fable source project" }
+                $sourceReader = [IO.StreamReader]::new($sourceProject.Open())
+                try { $fableProject = [xml]$sourceReader.ReadToEnd() } finally { $sourceReader.Dispose() }
+                $sources = $fableProject.SelectNodes("//Compile")
+                if ($sources.Count -eq 0) { throw "$id has no Fable sources" }
+                foreach ($source in $sources) {
+                    if ($source.Condition) { throw "$id has a conditional Fable source: $($source.Include)" }
+                    $sourcePath = 'fable/' + $source.Include.Replace('\', '/')
+                    if (-not $archive.GetEntry($sourcePath)) { throw "$id is missing $sourcePath" }
+                }
                 $entry = $archive.Entries | Where-Object { $_.Name.EndsWith('.nuspec') }
                 $reader = [IO.StreamReader]::new($entry.Open())
                 try { $nuspec = [xml]$reader.ReadToEnd() } finally { $reader.Dispose() }
+                if ($nuspec.SelectNodes("//*[local-name()='dependency' and @id='Fable.Package.SDK']").Count -ne 0) {
+                    throw "$id must not depend on the Fable packaging SDK at runtime"
+                }
                 $dependencies = $nuspec.SelectNodes("//*[local-name()='dependency' and @id='FSharp.Core']")
                 if ($dependencies.Count -ne 3) { throw "$id must declare FSharp.Core for all three targets" }
                 foreach ($dependency in $dependencies) {
@@ -76,6 +93,40 @@ System.Console.WriteLine("Package consumer runs with FSharp.Core 8.0.100");
 '@ | Set-Content -LiteralPath (Join-Path $consumer 'Program.cs')
         Invoke-DotNet restore (Join-Path $consumer 'Consumer.csproj') --configfile (Join-Path $consumer 'NuGet.Config')
         Invoke-DotNet run --project (Join-Path $consumer 'Consumer.csproj') -c Release --no-restore
+        if ($CheckFable) {
+            $fableDirectory = Join-Path $repo 'fable/Ranvier.Tests.Fable'
+            $fableConsumer = Join-Path $consumer 'FableConsumer.fsproj'
+            $fableXml = [xml](Get-Content -LiteralPath (Join-Path $fableDirectory 'Ranvier.Tests.Fable.fsproj') -Raw)
+            foreach ($item in $fableXml.SelectNodes('//Compile | //Import')) {
+                $attribute = if ($item.Name -eq 'Import') { 'Project' } else { 'Include' }
+                $item.SetAttribute($attribute, [IO.Path]::GetFullPath((Join-Path $fableDirectory $item.GetAttribute($attribute).Replace('\', '/'))))
+            }
+            foreach ($reference in @($fableXml.SelectNodes('//ProjectReference'))) {
+                $name = [IO.Path]::GetFileNameWithoutExtension($reference.Include.Replace('\', '/'))
+                $replacement = $fableXml.CreateElement('PackageReference')
+                $replacement.SetAttribute('Include', $(if ($traced) { "$name.Traced" } else { $name }))
+                $version = ([xml](Get-Content -LiteralPath (Join-Path $repo "src/$name/$name.fsproj") -Raw)).Project.PropertyGroup.Version | Where-Object { $_ }
+                $replacement.SetAttribute('Version', $version)
+                $reference.ParentNode.ReplaceChild($replacement, $reference) | Out-Null
+            }
+            $packagesPath = $fableXml.CreateElement('RestorePackagesPath')
+            $packagesPath.InnerText = Join-Path $temp 'packages'
+            $fableXml.Project.PropertyGroup.AppendChild($packagesPath) | Out-Null
+            $fableXml.Save($fableConsumer)
+            Invoke-DotNet restore $fableConsumer --configfile (Join-Path $consumer 'NuGet.Config')
+            $output = Join-Path $consumer $(if ($traced) { 'fable-traced' } else { 'fable' })
+            $fableArgs = @('fable', $fableConsumer, '-e', '.fs.js', '-o', $output, '-c', 'Release')
+            if ($traced) { $fableArgs += @('--define', 'RANVIER_TRACE') }
+            Invoke-DotNet @fableArgs
+            '{"type":"module"}' | Set-Content -LiteralPath (Join-Path $output 'package.json')
+            $entryPoints = @(Get-ChildItem -LiteralPath $output -Recurse -Filter 'Main.fs.js')
+            if ($entryPoints.Count -ne 1) { throw 'Expected one Fable test entry point' }
+            $fableEntries += $entryPoints[0].FullName
+        }
+    }
+    if ($CheckFable) {
+        & node (Join-Path $repo 'fable/Ranvier.Tests.Fable/Report.mjs') @fableEntries (Join-Path $temp 'fable-compat.md')
+        if ($LASTEXITCODE -ne 0) { throw 'Fable package consumer compatibility check failed' }
     }
 } finally {
     $resolved = [IO.Path]::GetFullPath($temp)

@@ -91,3 +91,6 @@ jobs:
           RanvierTrace: 'true'
       - name: Run the tests and report
         run: node fable/Ranvier.Tests.Fable/Report.mjs
+      - name: Check Fable package consumers
+        shell: pwsh
+        run: ./tests/check-package-compatibility.ps1 -CheckFable
