@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="850" height="680" viewBox="0 0 850 680" role="img" aria-label="Second-run median milliseconds; each workload uses its own scale">
+<rect width="850" height="680" fill="#fafafa"/>
+<g font-family="Arial,sans-serif" fill="#202020">
+<text x="25" y="32" font-size="20">Ranvier / Ripple: second-run medians</text>
+<text x="25" y="57" font-size="13">Milliseconds for whole workload · separate scale per row · lower is faster</text>
+<text x="25" y="88" font-size="14">mount-50x1000</text>
+<text x="25" y="111" font-size="12">Ranvier</text>
+<rect x="95" y="97" width="548.42" height="18" rx="2" fill="#2671b9"/>
+<text x="653.42" y="111" font-size="12">33.0 ms</text>
+<text x="25" y="135" font-size="12">Ripple</text>
+<rect x="95" y="121" width="580.00" height="18" rx="2" fill="#c47722"/>
+<text x="685.00" y="135" font-size="12">34.9 ms</text>
+<text x="25" y="180" font-size="14">dispose-50x1000</text>
+<text x="25" y="203" font-size="12">Ranvier</text>
+<rect x="95" y="189" width="580.00" height="18" rx="2" fill="#2671b9"/>
+<text x="685.00" y="203" font-size="12">2.2 ms</text>
+<text x="25" y="227" font-size="12">Ripple</text>
+<rect x="95" y="213" width="448.18" height="18" rx="2" fill="#c47722"/>
+<text x="553.18" y="227" font-size="12">1.7 ms</text>
+<text x="25" y="272" font-size="14">sparse-100000</text>
+<text x="25" y="295" font-size="12">Ranvier</text>
+<rect x="95" y="281" width="545.20" height="18" rx="2" fill="#2671b9"/>
+<text x="650.20" y="295" font-size="12">14.1 ms</text>
+<text x="25" y="319" font-size="12">Ripple</text>
+<rect x="95" y="305" width="580.00" height="18" rx="2" fill="#c47722"/>
+<text x="685.00" y="319" font-size="12">15.0 ms</text>
+<text x="25" y="364" font-size="14">batch-2000x100</text>
+<text x="25" y="387" font-size="12">Ranvier</text>
+<rect x="95" y="373" width="549.96" height="18" rx="2" fill="#2671b9"/>
+<text x="654.96" y="387" font-size="12">23.8 ms</text>
+<text x="25" y="411" font-size="12">Ripple</text>
+<rect x="95" y="397" width="580.00" height="18" rx="2" fill="#c47722"/>
+<text x="685.00" y="411" font-size="12">25.1 ms</text>
+<text x="25" y="456" font-size="14">diamond-100000</text>
+<text x="25" y="479" font-size="12">Ranvier</text>
+<rect x="95" y="465" width="418.68" height="18" rx="2" fill="#2671b9"/>
+<text x="523.68" y="479" font-size="12">10.9 ms</text>
+<text x="25" y="503" font-size="12">Ripple</text>
+<rect x="95" y="489" width="580.00" height="18" rx="2" fill="#c47722"/>
+<text x="685.00" y="503" font-size="12">15.1 ms</text>
+<text x="25" y="548" font-size="14">async-20000</text>
+<text x="25" y="571" font-size="12">Ranvier</text>
+<rect x="95" y="557" width="580.00" height="18" rx="2" fill="#2671b9"/>
+<text x="685.00" y="571" font-size="12">13.6 ms</text>
+<text x="25" y="595" font-size="12">Ripple</text>
+<rect x="95" y="581" width="562.94" height="18" rx="2" fill="#c47722"/>
+<text x="667.94" y="595" font-size="12">13.2 ms</text>
+<text x="25" y="660" font-size="12">Exploratory measurements; disposal quantization and mount tail variation limit rankings.</text>
+</g></svg>
