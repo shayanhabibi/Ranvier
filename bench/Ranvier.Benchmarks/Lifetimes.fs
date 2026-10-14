@@ -141,3 +141,102 @@ type ScopeBenchmarks() =
 
         for memo in memos do
             memo.Dispose ()
+
+/// <summary>
+/// Removal from one wide observer list: <c>Nodes</c> effects on one source, torn
+/// down with their root or one at a time in creation order. Root disposal
+/// removes the newest observer first; creation order removes the oldest first.
+/// </summary>
+/// <remarks>
+/// Divide by <c>Nodes</c> for the cost per node. Above 8 observers the list keeps
+/// a position index, so 64 and 1024 include its maintenance.
+/// </remarks>
+[<MemoryDiagnoser; BenchmarkCategory("Lifetime", "ObserverRemoval")>]
+type ObserverRemovalBenchmarks() =
+    let graph = new Graph ()
+    let source = Signal (graph, 1)
+
+    [<Params(8, 64, 1024)>]
+    member val Nodes = 8 with get, set
+
+    [<Benchmark>]
+    member this.DisposeRoot() =
+        let owner =
+            graph.CreateRoot (fun owner ->
+                for _ in 1 .. this.Nodes do
+                    new Effect (graph, (fun () -> source.Value |> ignore))
+                    |> ignore
+
+                owner)
+
+        owner.Dispose ()
+
+    [<Benchmark>]
+    member this.DisposeInCreationOrder() =
+        let effects =
+            Array.init this.Nodes (fun _ -> new Effect (graph, (fun () -> source.Value |> ignore)))
+
+        for effect in effects do
+            effect.Dispose ()
+
+/// <summary>
+/// Dynamic dependencies on a wide source: <c>Nodes</c> effects read <c>wide</c> only
+/// while both the shared gate and their own gate are open, so closing a gate
+/// drops the edge and reopening it links the effect again.
+/// </summary>
+/// <remarks>
+/// Setup relinks every other effect once, so <c>WriteWide</c> notifies a list
+/// that has seen removals from its middle.
+/// </remarks>
+[<MemoryDiagnoser; BenchmarkCategory("Lifetime", "ObserverRemoval")>]
+type ObserverChurnBenchmarks() =
+    let graph = new Graph ()
+    let wide = Signal (graph, 0)
+    let all = Signal (graph, true)
+    let mutable gates: Signal<bool>[] = Array.empty
+    let mutable next = 0
+    let mutable counter = 0
+    let mutable sink = 0
+
+    [<Params(8, 64, 1024)>]
+    member val Nodes = 8 with get, set
+
+    [<GlobalSetup>]
+    member this.Setup() =
+        gates <- Array.init this.Nodes (fun _ -> Signal (graph, true))
+
+        for gate in gates do
+            new Effect (
+                graph,
+                fun () ->
+                    if all.Value && gate.Value then
+                        sink <- sink + wide.Value
+            )
+            |> ignore
+
+        for i in 0..2 .. this.Nodes - 1 do
+            gates[i].Value <- false
+            gates[i].Value <- true
+
+    /// <summary>
+    /// Every effect drops its edge to <c>wide</c>, then every effect links it again.
+    /// </summary>
+    [<Benchmark>]
+    member _.RelinkAll() =
+        all.Value <- false
+        all.Value <- true
+
+    /// <summary>
+    /// One effect drops its edge and links it again, cycling through the effects.
+    /// </summary>
+    [<Benchmark>]
+    member this.RelinkOne() =
+        let gate = gates[next]
+        next <- (next + 1) % this.Nodes
+        gate.Value <- false
+        gate.Value <- true
+
+    [<Benchmark>]
+    member _.WriteWide() =
+        counter <- counter + 1
+        wide.Value <- counter

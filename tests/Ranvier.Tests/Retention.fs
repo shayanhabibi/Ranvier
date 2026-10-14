@@ -175,6 +175,26 @@ let tests =
             }
 #endif
 
+#if !FABLE_COMPILER
+            // .NET only: JavaScript exposes no forced collection.
+            test "a wide source with live readers does not pin dead ones" {
+                let g = new Graph ()
+                let s = Signal (g, 1)
+                let refs = ResizeArray<WeakReference>()
+
+                let live = [ for _ in 1..20 -> new Effect (g, (fun () -> s.Value |> ignore)) ]
+
+                for _ in 1..200 do
+                    let e = new Effect (g, (fun () -> s.Value |> ignore))
+                    e.Dispose ()
+                    refs.Add (WeakReference e)
+
+                Expect.isLessThan (aliveOf refs) 20 "removal from an indexed observer list must release the reader"
+                Expect.equal s.ObserverCount 20 "and the live readers are all still linked"
+                GC.KeepAlive live
+            }
+#endif
+
             test "live children are still torn down with their owner" {
                 let g = new Graph ()
                 let s = Signal (g, 1)

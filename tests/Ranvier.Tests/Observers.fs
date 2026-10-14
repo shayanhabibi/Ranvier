@@ -278,3 +278,160 @@ let sourceTests =
                 Expect.equal m.Value 102 "a write to a still wakes the memo"
             }
         ]
+
+/// <summary>
+/// A computation that counts its dirty marks and runs <c>OnDirty</c> on each one.
+/// </summary>
+type private Probe(id: int) =
+    member val Dirty = 0 with get, set
+    member val OnDirty: unit -> unit = ignore with get, set
+
+    interface INode with
+        member _.Id = id
+        member _.Status = Status.None
+
+    interface IComputation with
+        member this.MarkDirty() =
+            this.Dirty <- this.Dirty + 1
+            this.OnDirty ()
+
+        member _.MarkCheck() = ()
+        member _.AddSource _ = ()
+
+let private probesOn (set: ObserverSet) width =
+    let probes = Array.init width Probe
+
+    for p in probes do
+        set.Add p
+
+    probes
+
+/// <summary>
+/// The observer list driven directly, so removal can happen from inside a
+/// notification walk and in orders the graph does not produce on its own.
+/// </summary>
+[<Tests>]
+let observerSetTests =
+    testList
+        "ObserverSet"
+        [
+            for width in [ 3; 8; 9; 20; 100 ] do
+                test $"removal during notification among {width} skips no survivor" {
+                    let set = ObserverSet ()
+                    let probes = probesOn set width
+                    let first = probes[width - 1]
+
+                    // Visited first: removes itself, every unvisited even probe,
+                    // so more than half the list leaves mid-walk.
+                    first.OnDirty <-
+                        fun () ->
+                            set.Remove first
+
+                            for i in 0..2 .. width - 2 do
+                                set.Remove probes[i]
+
+                    set.NotifyDirty ()
+
+                    for i in 0 .. width - 2 do
+                        if i % 2 = 0 then
+                            Expect.equal probes[i].Dirty 0 $"removed probe {i} is not marked"
+                        else
+                            Expect.isGreaterThan probes[i].Dirty 0 $"surviving probe {i} is marked"
+
+                    Expect.equal first.Dirty 1 "the remover is marked once"
+                    Expect.equal set.Count ((width - 1) / 2) "only the odd probes remain"
+                }
+
+                test $"an observer added during notification among {width} is not marked" {
+                    let set = ObserverSet ()
+                    let probes = probesOn set width
+                    let late = Probe 1000
+                    probes[width - 1].OnDirty <- fun () -> set.Add late
+
+                    set.NotifyDirty ()
+
+                    Expect.equal late.Dirty 0 "added behind the walk"
+
+                    for p in probes do
+                        Expect.equal p.Dirty 1 "every original observer marked once"
+                }
+
+                test $"the count of {width} is exact after removals in any order" {
+                    let set = ObserverSet ()
+                    let probes = probesOn set width
+                    // 7 is coprime with every width, so this removes each probe once, out of order.
+                    let order = Array.init width (fun k -> (k * 7 + 3) % width)
+                    let removed = Array.create width false
+
+                    for step in 0 .. width - 1 do
+                        let i = order[step]
+                        set.Remove probes[i]
+                        set.Remove probes[i]
+                        removed[i] <- true
+
+                        Expect.equal set.Count (width - step - 1) "one fewer per removal, however often repeated"
+
+                        for q in probes do
+                            q.Dirty <- 0
+
+                        set.NotifyDirty ()
+
+                        for j in 0 .. width - 1 do
+                            Expect.equal probes[j].Dirty (if removed[j] then 0 else 1) "exactly the survivors are marked"
+                }
+
+                test $"an observer re-added after removal among {width} is counted and marked once" {
+                    let set = ObserverSet ()
+                    let probes = probesOn set width
+
+                    for round in 1..3 do
+                        for i in 0..2 .. width - 1 do
+                            set.Remove probes[i]
+
+                        for i in 0..2 .. width - 1 do
+                            set.Add probes[i]
+                            set.Add probes[i]
+
+                        Expect.equal set.Count width $"every probe once after round {round}"
+
+                    set.Remove probes[width / 2]
+                    set.Add probes[width / 2]
+                    set.Add probes[width / 2]
+
+                    for p in probes do
+                        p.Dirty <- 0
+
+                    set.NotifyDirty ()
+
+                    for p in probes do
+                        Expect.equal p.Dirty 1 "marked once"
+                }
+
+            test "a wide list survives repeated relinking through the graph" {
+                let g = new Graph ()
+                let wide = Signal (g, 0)
+                let gates = Array.init 40 (fun _ -> Signal (g, true))
+                let runs = Array.zeroCreate 40
+
+                for i in 0..39 do
+                    new Effect (
+                        g,
+                        fun () ->
+                            if gates[i].Value then
+                                runs[i] <- runs[i] + wide.Value
+                    )
+                    |> ignore
+
+                for round in 1..5 do
+                    for i in 0..39 do
+                        if (i + round) % 3 = 0 then
+                            gates[i].Value <- false
+                            gates[i].Value <- true
+
+                Expect.equal wide.ObserverCount 40 "every effect linked once"
+
+                Array.fill runs 0 40 0
+                wide.Value <- 1
+                Expect.sequenceEqual runs (Array.create 40 1) "every effect ran once on the write"
+            }
+        ]

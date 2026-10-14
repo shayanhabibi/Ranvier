@@ -37,7 +37,13 @@ let all =
             testList "Retention.fs" [ Ranvier.Tests.Retention.tests ]
             testList "Tracing.fs" [ Ranvier.Tests.Tracing.tests ]
             testList "TraceModelTests.fs" [ Ranvier.Tests.TraceModelTests.tests ]
-            testList "Observers.fs" [ Ranvier.Tests.Observers.tests; Ranvier.Tests.Observers.sourceTests ]
+            testList
+                "Observers.fs"
+                [
+                    Ranvier.Tests.Observers.tests
+                    Ranvier.Tests.Observers.sourceTests
+                    Ranvier.Tests.Observers.observerSetTests
+                ]
             testList "Api.fs" [ Ranvier.Tests.Api.tests ]
             testList "FanOut.fs" [ Ranvier.Tests.FanOut.tests ]
             testList "Reentrancy.fs" [ Ranvier.Tests.Reentrancy.tests ]
