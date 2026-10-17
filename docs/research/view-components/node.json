@@ -1,0 +1,367 @@
+﻿{
+  "node": "v26.7.0",
+  "v8": "14.6.202.34-node.28",
+  "count": 100000,
+  "results": [
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": false,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.95192,
+        160.08024,
+        159.98856,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": false,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.95584,
+        160.07936,
+        159.99416,
+        160.00824,
+        160.01056,
+        160.01344,
+        160.0072
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": false,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.95504,
+        160.11192,
+        159.9692,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": true,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.95104,
+        160.07952,
+        159.98912,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": true,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.93432,
+        160.11232,
+        159.96896,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": false,
+      "helper": true,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.9484,
+        160.07912,
+        159.99712,
+        160.00824,
+        160.01056,
+        160.01344,
+        160.0072
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": false,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.96336,
+        160.07672,
+        159.97744,
+        160.0104,
+        160.08056,
+        159.97648,
+        160.0284
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": false,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.9724,
+        160.01352,
+        160.08496,
+        159.97256,
+        160.01208,
+        160.08872,
+        159.97136
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": false,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.93128,
+        160.11272,
+        159.97,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": true,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.94592,
+        160.08088,
+        159.99504,
+        160.00904,
+        160.01136,
+        160.01424,
+        160.008
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": true,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.938,
+        160.08536,
+        159.98992,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "tree",
+      "reactive": true,
+      "helper": true,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.90232,
+        160.07896,
+        159.99792,
+        160.00904,
+        160.01136,
+        160.01424,
+        160.008
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": false,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.94,
+        160.0864,
+        160.05392,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": false,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.94304,
+        160.08336,
+        160.05392,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": false,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.94272,
+        160.08368,
+        160.0944,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": true,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.94632,
+        160.08384,
+        160.0528,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": true,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.94304,
+        160.08352,
+        160.094,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": false,
+      "helper": true,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.94304,
+        160.08352,
+        160.0528,
+        160.00792,
+        160.01024,
+        160.01312,
+        160.00688
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": false,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.95192,
+        160.08416,
+        160.0952,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": false,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.94832,
+        160.08416,
+        160.0952,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": false,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.94304,
+        160.08416,
+        160.05472,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": true,
+      "run": 0,
+      "bytesPerDefinition": [
+        159.94304,
+        160.08464,
+        160.0948,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": true,
+      "run": 1,
+      "bytesPerDefinition": [
+        159.95192,
+        160.08432,
+        160.0536,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    },
+    {
+      "representation": "program",
+      "reactive": true,
+      "helper": true,
+      "run": 2,
+      "bytesPerDefinition": [
+        159.948,
+        160.08464,
+        160.0948,
+        160.00872,
+        160.01104,
+        160.01392,
+        160.00768
+      ]
+    }
+  ]
+}

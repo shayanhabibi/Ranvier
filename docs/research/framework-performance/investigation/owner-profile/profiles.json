@@ -1,0 +1,1185 @@
+{
+  "measuredAt": "2026-10-13T05:42:36.050Z",
+  "chromium": "153.0.8010.12",
+  "sourceMap": "index-C_9r4XmA.js.map",
+  "configuration": "production unminified diagnostic bundle; sampling enabled only for CPU profiles",
+  "results": [
+    {
+      "mode": "ranvier",
+      "phase": "mount",
+      "width": 128,
+      "timingsUs": [
+        1506.8750008940697,
+        871.2499961256981,
+        960.6250002980232,
+        972.0312505960464,
+        1003.2812505960464,
+        898.4375,
+        931.8749979138374
+      ],
+      "operations": {
+        "createDocumentFragment": 1,
+        "createComment": 2,
+        "appendChild": 514,
+        "claim": 3,
+        "createElement": 385,
+        "insertBefore": 2,
+        "addEventListener": 128,
+        "createTextNode": 128
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 363.95500016212463,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 749.064
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 79.963
+        },
+        {
+          "functionName": "(anonymous):4526",
+          "ms": 44.723
+        },
+        {
+          "functionName": "uncurry2:286",
+          "ms": 21.775
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 21.474
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 20.852
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 14.228
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 12.714
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 11.102
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 8.37
+        },
+        {
+          "functionName": "equals$1:212",
+          "ms": 7.553
+        },
+        {
+          "functionName": "Ranvier.View.Foundation.Representation.Backend.ElementZ4C49CC3F:5568",
+          "ms": 7.52
+        },
+        {
+          "functionName": "ObserverSet__Add_7E1B59FA:2662",
+          "ms": 7.117
+        },
+        {
+          "functionName": "Equals:355",
+          "ms": 5.558
+        },
+        {
+          "functionName": "(anonymous):5589",
+          "ms": 5.511
+        },
+        {
+          "functionName": "(anonymous):5896",
+          "ms": 4.993
+        },
+        {
+          "functionName": "Events_onClick:4530",
+          "ms": 4.962
+        },
+        {
+          "functionName": "ensureSetup:5414",
+          "ms": 4.951
+        },
+        {
+          "functionName": "Graph_get_Current:3351",
+          "ms": 4.242
+        },
+        {
+          "functionName": "mountCore$1:5386",
+          "ms": 4.061
+        },
+        {
+          "functionName": "Api_untrack:4229",
+          "ms": 3.997
+        },
+        {
+          "functionName": "applyModifiers:5427",
+          "ms": 3.976
+        },
+        {
+          "functionName": "(anonymous):1632",
+          "ms": 3.851
+        },
+        {
+          "functionName": "FSharpRef$1:425",
+          "ms": 3.377
+        },
+        {
+          "functionName": "Enumerator$1:88",
+          "ms": 3.024
+        }
+      ]
+    },
+    {
+      "mode": "ranvier",
+      "phase": "dispose",
+      "width": 128,
+      "timingsUs": [
+        201.8750011920929,
+        201.7187550663948,
+        178.90624701976776,
+        191.87499582767487,
+        192.6562488079071,
+        185.31250208616257,
+        175.46875029802322
+      ],
+      "operations": {
+        "removeEventListener": 128,
+        "remove": 3,
+        "unclaim": 6
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 121.0550000667572,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 129.726
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 67.792
+        },
+        {
+          "functionName": "ObserverSet__Remove_7E1B59FA:2687",
+          "ms": 25.704
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 10.088
+        },
+        {
+          "functionName": "Owner__DisposeScope:3075",
+          "ms": 9.578
+        },
+        {
+          "functionName": "OwnedRange__Release:5271",
+          "ms": 2.47
+        },
+        {
+          "functionName": "(anonymous):3055",
+          "ms": 2.244
+        },
+        {
+          "functionName": "SourceList__Clear_7E1B59FA:2845",
+          "ms": 1.772
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 1.742
+        },
+        {
+          "functionName": "clear$1:279",
+          "ms": 1.484
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "mount",
+      "width": 128,
+      "timingsUs": [
+        994.375005364418,
+        335.15624701976776,
+        381.7187547683716,
+        353.74999791383743,
+        314.53124433755875,
+        380.4687485098839,
+        321.7187449336052
+      ],
+      "operations": {
+        "addEventListener": 2,
+        "cloneNode": 129,
+        "insertBefore": 128,
+        "appendChild": 1
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 124.0550000667572,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 608.554
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 28.185
+        },
+        {
+          "functionName": "(anonymous):11438",
+          "ms": 27.983
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 21.727
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 9.767
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 8.375
+        },
+        {
+          "functionName": "insertExpression:11300",
+          "ms": 7.709
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 6.004
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 5.872
+        },
+        {
+          "functionName": "recompute:10010",
+          "ms": 4.792
+        },
+        {
+          "functionName": "untrack:10414",
+          "ms": 4.081
+        },
+        {
+          "functionName": "effect$1:10724",
+          "ms": 2.488
+        },
+        {
+          "functionName": "createEffectNode:10290",
+          "ms": 2.174
+        },
+        {
+          "functionName": "link:9557",
+          "ms": 1.994
+        },
+        {
+          "functionName": "(anonymous):11453",
+          "ms": 1.509
+        },
+        {
+          "functionName": "insert:11187",
+          "ms": 1.502
+        },
+        {
+          "functionName": "setAttribute:11171",
+          "ms": 1.021
+        },
+        {
+          "functionName": "read:10514",
+          "ms": 0.998
+        },
+        {
+          "functionName": "Row$1.effect.e.e:11431",
+          "ms": 0.988
+        },
+        {
+          "functionName": "inheritId:9376",
+          "ms": 0.586
+        },
+        {
+          "functionName": "accessor.$s.options:11218",
+          "ms": 0.556
+        },
+        {
+          "functionName": "effect:10967",
+          "ms": 0.526
+        },
+        {
+          "functionName": "enqueue:9019",
+          "ms": 0.517
+        },
+        {
+          "functionName": "runEffect:10747",
+          "ms": 0.499
+        },
+        {
+          "functionName": "statusNotifierOf:10344",
+          "ms": 0.499
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "dispose",
+      "width": 128,
+      "timingsUs": [
+        32.499998807907104,
+        37.968747317790985,
+        26.874996721744537,
+        39.21875357627869,
+        45.781247317790985,
+        30.781254172325134,
+        27.96875685453415
+      ],
+      "operations": {
+        "removeEventListener": 2
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 66.47000002861023,
+      "hotspots": [
+        {
+          "functionName": "dispose:11472",
+          "ms": 62.951
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 34.303
+        },
+        {
+          "functionName": "unlinkSubs:9488",
+          "ms": 3.542
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 0.745
+        }
+      ]
+    },
+    {
+      "mode": "ripple",
+      "phase": "mount",
+      "width": 128,
+      "timingsUs": [
+        555.4687455296516,
+        582.03125,
+        485.7812523841858,
+        487.187497317791,
+        435.1562485098839,
+        559.3749955296516,
+        430.9375062584877
+      ],
+      "operations": {
+        "createElement": 385,
+        "createTextNode": 128,
+        "addEventListener": 128,
+        "appendChild": 513
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 203.18499994277954,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 647.498
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 42.69
+        },
+        {
+          "functionName": "(anonymous):8370",
+          "ms": 40.632
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 32.032
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 21.702
+        },
+        {
+          "functionName": "Base_applyItems:8296",
+          "ms": 13.338
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 8.655
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 8.143
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 7.475
+        },
+        {
+          "functionName": "FSharpRef:6656",
+          "ms": 4.995
+        },
+        {
+          "functionName": "value:6692",
+          "ms": 3.544
+        },
+        {
+          "functionName": "(anonymous):8329",
+          "ms": 3.248
+        },
+        {
+          "functionName": "Base_createElement:8313",
+          "ms": 2.811
+        },
+        {
+          "functionName": "(anonymous):8417",
+          "ms": 2.528
+        },
+        {
+          "functionName": "Effect:7682",
+          "ms": 2.507
+        },
+        {
+          "functionName": "createTextNode:0",
+          "ms": 2.484
+        },
+        {
+          "functionName": "ScopeModule_onCleanup:7356",
+          "ms": 2.007
+        },
+        {
+          "functionName": "ScopeModule_root:7376",
+          "ms": 1.988
+        },
+        {
+          "functionName": "some:6696",
+          "ms": 1.877
+        },
+        {
+          "functionName": "(anonymous):8522",
+          "ms": 1.48
+        },
+        {
+          "functionName": "(anonymous):8534",
+          "ms": 1.34
+        },
+        {
+          "functionName": "FSharpList:8028",
+          "ms": 1.008
+        },
+        {
+          "functionName": "addObserver:7044",
+          "ms": 1.007
+        },
+        {
+          "functionName": "(anonymous):24880",
+          "ms": 1.004
+        },
+        {
+          "functionName": "Html_text_5106B011:8412",
+          "ms": 0.99
+        }
+      ]
+    },
+    {
+      "mode": "ripple",
+      "phase": "dispose",
+      "width": 128,
+      "timingsUs": [
+        54.53125387430191,
+        39.21874612569809,
+        58.74999612569809,
+        51.71874910593033,
+        54.375000298023224,
+        52.34374850988388,
+        43.12500357627869
+      ],
+      "operations": {
+        "removeChild": 1
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 69.5699999332428,
+      "hotspots": [
+        {
+          "functionName": "removeChild:0",
+          "ms": 66.407
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 64.798
+        },
+        {
+          "functionName": "run:24941",
+          "ms": 1.508
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 1.035
+        },
+        {
+          "functionName": "ReactiveNode__set_Disposed_Z1FBCCD16:6782",
+          "ms": 0.494
+        },
+        {
+          "functionName": "disposeSafe:6366",
+          "ms": 0.491
+        },
+        {
+          "functionName": "(anonymous):8538",
+          "ms": 0.491
+        },
+        {
+          "functionName": "Dispose:8456",
+          "ms": 0.359
+        }
+      ]
+    },
+    {
+      "mode": "react",
+      "phase": "mount",
+      "width": 128,
+      "timingsUs": [
+        794.2187562584877,
+        774.531252682209,
+        654.0625020861626,
+        660.0000038743019,
+        852.0312532782555,
+        671.875,
+        2449.3750035762787
+      ],
+      "operations": {
+        "addEventListener": 270,
+        "createElement": 385,
+        "appendChild": 385
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 259.960000038147,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 684.934
+        },
+        {
+          "functionName": "set value:0",
+          "ms": 41.549
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 31.532
+        },
+        {
+          "functionName": "completeWork:17264",
+          "ms": 23.816
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 20.341
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 19.271
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 18.358
+        },
+        {
+          "functionName": "completeUnitOfWork:19624",
+          "ms": 16.223
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 12.892
+        },
+        {
+          "functionName": "setProp:20489",
+          "ms": 12.63
+        },
+        {
+          "functionName": "trackValueOnNode:13140",
+          "ms": 11.173
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 9.918
+        },
+        {
+          "functionName": "getClosestInstanceFromNode:13009",
+          "ms": 7.834
+        },
+        {
+          "functionName": "getEventTarget:13395",
+          "ms": 6.78
+        },
+        {
+          "functionName": "setTextContent:13271",
+          "ms": 6.194
+        },
+        {
+          "functionName": "exports.createElement:11768",
+          "ms": 6.052
+        },
+        {
+          "functionName": "initInput:13203",
+          "ms": 4.488
+        },
+        {
+          "functionName": "isCheckable:13136",
+          "ms": 4.165
+        },
+        {
+          "functionName": "renderRootSync:19428",
+          "ms": 3.323
+        },
+        {
+          "functionName": "setInitialProperties:20723",
+          "ms": 3.267
+        },
+        {
+          "functionName": "updateFunctionComponent:16653",
+          "ms": 2.501
+        },
+        {
+          "functionName": "beginWork:17075",
+          "ms": 2.439
+        },
+        {
+          "functionName": "listenToNonDelegatedEvent:20178",
+          "ms": 2.198
+        },
+        {
+          "functionName": "Row:22894",
+          "ms": 2.037
+        },
+        {
+          "functionName": "getOwnerDocumentFromRootContainer:21073",
+          "ms": 2.022
+        }
+      ]
+    },
+    {
+      "mode": "react",
+      "phase": "dispose",
+      "width": 128,
+      "timingsUs": [
+        88.28124403953552,
+        106.24999552965164,
+        97.50000387430191,
+        88.28125149011612,
+        277.34375,
+        125.46875327825546,
+        90.46874940395355
+      ],
+      "operations": {
+        "removeChild": 1
+      },
+      "profiledRoots": 256,
+      "profiledRunMs": 91.1100001335144,
+      "hotspots": [
+        {
+          "functionName": "removeChild:0",
+          "ms": 65.601
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 47.25
+        },
+        {
+          "functionName": "commitPassiveUnmountEffectsInsideOfDeletedTree_begin:19115",
+          "ms": 17.768
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 3.534
+        },
+        {
+          "functionName": "recursivelyTraverseDeletionEffects:18280",
+          "ms": 2.531
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 1.356
+        },
+        {
+          "functionName": "pushHostContainer:12589",
+          "ms": 0.633
+        },
+        {
+          "functionName": "commitDeletionEffectsOnFiber:18283",
+          "ms": 0.503
+        },
+        {
+          "functionName": "performWorkUntilDeadline:11963",
+          "ms": 0.487
+        },
+        {
+          "functionName": "enqueueUpdate:15012",
+          "ms": 0.476
+        }
+      ]
+    }
+  ],
+  "probes": [
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.6462500020861626
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.8106250017881393
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.9156249985098839
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.6423437520861626
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.7754687517881393
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.8607812449336052
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 3,
+      "ms": 1.100312501192093
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.8187500014901161
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.9917187541723251
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 4,
+      "ms": 1.0114062428474426
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.955937497317791
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.7626562491059303
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.9954687505960464
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.9231249988079071
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.7229687497019768
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.735468752682209
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.8100000023841858
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.8496875017881393
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.6581249982118607
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 9,
+      "ms": 1.0410937517881393
+    },
+    {
+      "probe": "claims-disabled",
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.8456250056624413
+    },
+    {
+      "probe": "baseline",
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.6357812508940697
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.16999999433755875
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.19874999672174454
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.18953125178813934
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.12328124791383743
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.15031249821186066
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 1,
+      "ms": 2.5996875017881393
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.19921875
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.21578124910593033
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.20093750208616257
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.21062500029802322
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.1693749949336052
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.15625
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.2134374976158142
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.23531249910593033
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.19703125208616257
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.20468749850988388
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.21578124910593033
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.2770312502980232
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.23390625417232513
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.1720312535762787
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.17484375089406967
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.17625000327825546
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.16843749582767487
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.17359375208616257
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.16906249523162842
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.20890624821186066
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.21374999731779099
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.20781249552965164
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.21781250089406967
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.18593750149011612
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.19234374910593033
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.23874999582767487
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.22578124701976776
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.22156249731779099
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.21718750149011612
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.22468750178813934
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.21937499940395355
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.22749999910593033
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.1887499988079071
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.19968750327825546
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.19343750178813934
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.17359374463558197
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.19203124940395355
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.2395312488079071
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.21906249970197678
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.18640625476837158
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.19343750178813934
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.2212499976158142
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.2615625038743019
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.16796875
+    },
+    {
+      "probe": "baseline",
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.20093750208616257
+    },
+    {
+      "probe": "root-removal-only",
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.24640624970197678
+    },
+    {
+      "probe": "detach-first",
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.276249997317791
+    },
+    {
+      "probe": "remove-disabled",
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.22578124701976776
+    },
+    {
+      "probe": "unclaim-disabled",
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.20140624791383743
+    }
+  ]
+}

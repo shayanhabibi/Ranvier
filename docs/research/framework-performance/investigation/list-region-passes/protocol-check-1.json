@@ -1,0 +1,94 @@
+{
+ "dist": "generated-keyed-dist",
+ "n": 40,
+ "rows": [
+  {
+   "op": "remove1k",
+   "mode": "ranvier",
+   "gcMs": 0.33500000834465027,
+   "noGcMs": 0.2150000035762787,
+   "loopMs": 0.07499998807907104,
+   "idleBetweenMs": 0.07999998331069946,
+   "idleBeforeOpMs": 0.15000000596046448,
+   "sampleLoopMs": 0.06000000238418579,
+   "preparedPerEvaluateMs": 0.06000000238418579
+  },
+  {
+   "op": "remove1k",
+   "mode": "solid",
+   "gcMs": 0.09000000357627869,
+   "noGcMs": 0.06000000238418579,
+   "loopMs": 0.029999971389770508,
+   "idleBetweenMs": 0.030000001192092896,
+   "idleBeforeOpMs": 0.07000002264976501,
+   "sampleLoopMs": 0.025000005960464478,
+   "preparedPerEvaluateMs": 0.025000005960464478
+  },
+  {
+   "op": "swap1k",
+   "mode": "ranvier",
+   "gcMs": 0.320000022649765,
+   "noGcMs": 0.21000000834465027,
+   "loopMs": 0.09000000357627869,
+   "idleBetweenMs": 0.08500000834465027,
+   "idleBeforeOpMs": 0.1550000011920929,
+   "sampleLoopMs": 0.07499998807907104,
+   "preparedPerEvaluateMs": 0.08500000834465027
+  },
+  {
+   "op": "swap1k",
+   "mode": "solid",
+   "gcMs": 0.11499997973442078,
+   "noGcMs": 0.06499999761581421,
+   "loopMs": 0.04500001668930054,
+   "idleBetweenMs": 0.050000011920928955,
+   "idleBeforeOpMs": 0.09000000357627869,
+   "sampleLoopMs": 0.04499998688697815,
+   "preparedPerEvaluateMs": 0.04999998211860657
+  },
+  {
+   "op": "clear1k",
+   "mode": "ranvier",
+   "gcMs": 1.0650000274181366,
+   "noGcMs": 0.6149999797344208,
+   "loopMs": 0.3850000202655792,
+   "idleBetweenMs": 0.42000001668930054,
+   "idleBeforeOpMs": 1.7300000190734863,
+   "sampleLoopMs": 0.3449999988079071,
+   "preparedPerEvaluateMs": 0.33000001311302185
+  },
+  {
+   "op": "clear1k",
+   "mode": "solid",
+   "gcMs": 0.5900000035762787,
+   "noGcMs": 0.48499998450279236,
+   "loopMs": 0.26500001549720764,
+   "idleBetweenMs": 0.2600000202655792,
+   "idleBeforeOpMs": 0.6899999976158142,
+   "sampleLoopMs": 0.2549999952316284,
+   "preparedPerEvaluateMs": 0.27000001072883606
+  },
+  {
+   "op": "remove10k",
+   "mode": "ranvier",
+   "gcMs": 3.25,
+   "noGcMs": 1.0250000059604645,
+   "loopMs": 0.6850000023841858,
+   "idleBetweenMs": 0.6300000250339508,
+   "idleBeforeOpMs": 2.030000001192093,
+   "sampleLoopMs": 0.6899999976158142,
+   "preparedPerEvaluateMs": 0.75
+  },
+  {
+   "op": "remove10k",
+   "mode": "solid",
+   "gcMs": 0.8149999976158142,
+   "noGcMs": 0.320000022649765,
+   "loopMs": 0.24500000476837158,
+   "idleBetweenMs": 0.28999999165534973,
+   "idleBeforeOpMs": 0.45000001788139343,
+   "sampleLoopMs": 0.2150000035762787,
+   "preparedPerEvaluateMs": 0.2600000202655792
+  }
+ ]
+}

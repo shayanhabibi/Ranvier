@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RestoreAdditionalProjectSources>https://nuget.cloudsmith.io/shayanhabibi/xantham/v3/index.json;https://api.nuget.org/v3/index.json</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Xantham.Fable.Core.TS" Version="[0.2.1]" GeneratePathProperty="true" />
+    <PackageReference Include="Xantham.TypeScript.Wire" Version="[0.3.0]" />
+    <PackageReference Include="Fantomas.Core" Version="[7.0.5]" />
+    <Compile Include="Program.fs" />
+    <Content Include="$(PkgXantham_Fable_Core_TS)/xantham/catalogue.json" Link="xantham/catalogue.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(PkgXantham_Fable_Core_TS)/xantham/declarations.json.br" Link="xantham/declarations.json.br" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

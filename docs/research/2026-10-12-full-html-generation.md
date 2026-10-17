@@ -1,0 +1,15 @@
+# HTML generation expansion
+
+Generation covers all 112 entries in the pinned TypeScript HTML tag map. Published catalogue, binding assembly and compiler/Wire pins remain unchanged. The generator verifies declaration identity, inheritance, native representation and readonly facts, preserves native generic event types and records unsupported property/event shapes in [coverage metadata](../../experiments/Ranvier.View.Foundation/Generated/Html.coverage.json).
+
+Shared inherited helpers live under `Html.Properties.<native declaring type>` with native subtype constraints. Common typed listeners live under `Html.Events`. Tag modules retain their native-declared properties, element-specific events and original five-tag compatibility helpers. Factoring inherited helpers reduced the first broad output from 6.8 MB to approximately 520 KB. Local compilation went from roughly 74 seconds for .NET / 110 seconds for Fable to 8 / 14 seconds. These are acceptance-run observations, not a controlled rendering benchmark or promised performance budget.
+
+Getters support primitives, options, named native references and closed native generics. Writable primitive/optional primitive setters use the existing binding path. Native-object equality/ownership and unsupported arrays/callbacks/unmapped aliases and unions are explicit omissions, with no obj fallback. DOM-overwriting setters and srcdoc are excluded; files remains getter-only. DOM methods, SVG and portable property/attribute metadata remain separate work.
+
+Runtime changes cover named tag validation, void elements and template content. Void constructors accept no children, and interpreters agree on their rendering. Templates mount into their associated DocumentFragment. These distinctions follow the [HTML syntax model](https://html.spec.whatwg.org/multipage/syntax.html); legacy param retains void compatibility. HTML snapshots reject raw-text/context-sensitive names without explicit policy. Initial line feeds in pre/textarea/listing survive empty output and bindings; numeric carriage-return references prevent parser normalization.
+
+Foundation's playground panel now uses generated constructors/listeners and array row snapshots. Existing browser scenarios still verify add/reverse identity, pending/error/recovery, disposal, focus and scheduling.
+
+Acceptance passes 180 Node cases and 18 Chromium tests, positive generated compilation and nine negative examples, deterministic code/coverage generation, corrupt-payload rejection, Release compilation, scoped FCS and XML checks, and the portable .NET representation executable. Production bundle is 82.19 kB JavaScript / 23.03 kB gzip with generated helpers used by Foundation. No new renderer throughput experiment was run.
+
+One fresh review found iframe/noscript serialization and initial-newline roundtrip gaps. Both were fixed and verified against actual DOM parsing; follow-up review found no remaining substantive issues. No core Ranvier or descendant error/reveal change is included.

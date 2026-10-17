@@ -1,0 +1,145 @@
+{
+  "node": "v26.7.0",
+  "target": "es2022",
+  "work": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-output-audit-tKieLR",
+  "results": [
+    {
+      "label": "before",
+      "scenario": "signals",
+      "bytes": 46248,
+      "gzipBytes": 11256,
+      "modules": {
+        "Api.fs.js": 24864,
+        "Bindings.fs.js": 5947,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60203,
+        "Core.fs.js": 134234,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 10089,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107071,
+        "Timed.fs.js": 16252,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    },
+    {
+      "label": "before",
+      "scenario": "collections",
+      "bytes": 111629,
+      "gzipBytes": 25720,
+      "modules": {
+        "Api.fs.js": 24864,
+        "Bindings.fs.js": 5947,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60203,
+        "Core.fs.js": 134234,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 10089,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107071,
+        "Timed.fs.js": 16252,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    },
+    {
+      "label": "before",
+      "scenario": "async",
+      "bytes": 58170,
+      "gzipBytes": 14013,
+      "modules": {
+        "Api.fs.js": 24864,
+        "Bindings.fs.js": 5947,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60203,
+        "Core.fs.js": 134234,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 10089,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107071,
+        "Timed.fs.js": 16252,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    },
+    {
+      "label": "after",
+      "scenario": "signals",
+      "bytes": 42035,
+      "gzipBytes": 10335,
+      "modules": {
+        "Api.fs.js": 24753,
+        "Bindings.fs.js": 5833,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60096,
+        "Core.fs.js": 126083,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 9700,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107058,
+        "Timed.fs.js": 16142,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    },
+    {
+      "label": "after",
+      "scenario": "collections",
+      "bytes": 107526,
+      "gzipBytes": 24804,
+      "modules": {
+        "Api.fs.js": 24753,
+        "Bindings.fs.js": 5833,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60096,
+        "Core.fs.js": 126083,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 9700,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107058,
+        "Timed.fs.js": 16142,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    },
+    {
+      "label": "after",
+      "scenario": "async",
+      "bytes": 51907,
+      "gzipBytes": 12619,
+      "modules": {
+        "Api.fs.js": 24753,
+        "Bindings.fs.js": 5833,
+        "Collections.fs.js": 9082,
+        "Combinators.fs.js": 60096,
+        "Core.fs.js": 126083,
+        "Deltas.fs.js": 11695,
+        "Platform.fs.js": 9700,
+        "Positional.fs.js": 5349,
+        "Projections.fs.js": 107058,
+        "Timed.fs.js": 16142,
+        "TimedClock.fs.js": 4842,
+        "Trace.fs.js": 10751,
+        "TraceApi.fs.js": 501,
+        "Types.fs.js": 11519,
+        "ValueReaders.fs.js": 14507
+      }
+    }
+  ]
+}

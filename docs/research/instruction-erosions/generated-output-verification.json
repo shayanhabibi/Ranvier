@@ -1,0 +1,167 @@
+[
+  {
+    "name": "dotnet-suite",
+    "command": [
+      "dotnet",
+      "fsi",
+      "build.fsx",
+      "--",
+      "test",
+      "--quick",
+      "--configuration",
+      "Release"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 34.28772839999874,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-dotnet-suite.log"
+  },
+  {
+    "name": "fable-suite-build",
+    "command": [
+      "dotnet",
+      "fable",
+      "fable/Ranvier.Tests.Fable",
+      "-e",
+      ".fs.js",
+      "-o",
+      "dist/tests",
+      "-c",
+      "Release",
+      "--noCache"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 25.795135199994547,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-fable-suite-build.log"
+  },
+  {
+    "name": "fable-traced-suite-build",
+    "command": [
+      "dotnet",
+      "fable",
+      "fable/Ranvier.Tests.Fable",
+      "-e",
+      ".fs.js",
+      "-o",
+      "dist/tests-traced",
+      "-c",
+      "Release",
+      "--noCache"
+    ],
+    "traced": true,
+    "exitCode": 0,
+    "seconds": 28.389200500008883,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-fable-traced-suite-build.log"
+  },
+  {
+    "name": "fable-suite",
+    "command": [
+      "node",
+      "fable/Ranvier.Tests.Fable/Report.mjs",
+      "dist/tests/Main.fs.js",
+      "dist/tests-traced/Main.fs.js",
+      "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\fable-compat-after.md"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 9.691540800005896,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-fable-suite.log"
+  },
+  {
+    "name": "playground-suite",
+    "command": [
+      "npm",
+      "--prefix",
+      "examples/Fable.Ranvier.Playground",
+      "test"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 98.63701779997791,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-playground-suite.log"
+  },
+  {
+    "name": "fable-counter-build",
+    "command": [
+      "dotnet",
+      "fable",
+      "fable/Ranvier.Counters",
+      "-e",
+      ".fs.js",
+      "-o",
+      "fable/Ranvier.Counters/output/plain",
+      "--noCache",
+      "--configuration",
+      "Release"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 10.481310300005134,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-fable-counter-build.log"
+  },
+  {
+    "name": "comment-hygiene",
+    "command": [
+      "pwsh",
+      "-NoProfile",
+      "-File",
+      "scripts/vendor/comment-hygiene/review-comments.ps1",
+      "-Path",
+      "src/Ranvier/Core.fs",
+      "-Check"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 1.5788361000013538,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-comment-hygiene.log"
+  },
+  {
+    "name": "xml-doc-audit",
+    "command": [
+      "dotnet",
+      "fsi",
+      ".claude/skills/fsharp-xml-docs/scripts/audit.fsx",
+      "--compiler",
+      "src/Ranvier/Core.fs"
+    ],
+    "traced": false,
+    "exitCode": 0,
+    "seconds": 2.5130101999966428,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-xml-doc-audit.log"
+  },
+  {
+    "name": "format",
+    "command": [
+      "dotnet",
+      "fantomas",
+      "src/Ranvier/Core.fs",
+      "--check"
+    ],
+    "traced": false,
+    "exitCode": 1,
+    "seconds": 1.232471399998758,
+    "log": "C:\\Users\\shaya\\AppData\\Local\\Temp\\ranvier-erosion-investigation\\verify-format.log"
+  },
+  {
+    "name": "final-format-all-changed",
+    "exitCode": 0,
+    "command": [
+      "rtk",
+      "proxy",
+      "dotnet",
+      "fantomas",
+      "src/Ranvier/Core.fs",
+      "src/Ranvier/Platform.fs",
+      "experiments/Ranvier.View.Foundation/Mounting.fs",
+      "experiments/Ranvier.View.Foundation/Scheduling.fs",
+      "--check"
+    ],
+    "note": "Supersedes earlier Fantomas fragment merge failure; directives moved above XML blocks, executable code unchanged."
+  },
+  {
+    "name": "foundation-dotnet-fresh-baseline-and-candidate",
+    "exitCode": 0,
+    "note": "Both Release builds succeeded with zero warnings/errors; all 16312 method bodies match."
+  }
+]

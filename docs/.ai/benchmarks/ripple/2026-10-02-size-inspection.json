@@ -1,0 +1,926 @@
+[
+  {
+    "library": "ranvier",
+    "symbol": "all",
+    "minifiedBytes": 75324,
+    "gzipLevel9Bytes": 17690,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 7887
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 4267
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 771
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Collections.js",
+        "renderedLength": 249
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 282
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 1738
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1922
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 1379
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 422
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+        "renderedLength": 2522
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 4375
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6624
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/AsyncBuilder.js",
+        "renderedLength": 3671
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Task.js",
+        "renderedLength": 142
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Types.js",
+        "renderedLength": 3936
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MapUtil.js",
+        "renderedLength": 480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MutableSet.js",
+        "renderedLength": 4369
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Platform.js",
+        "renderedLength": 2141
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Async.js",
+        "renderedLength": 392
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Core.js",
+        "renderedLength": 63487
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Positional.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Deltas.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Projections.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Api.js",
+        "renderedLength": 1351
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Mount.js",
+        "renderedLength": 870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Dom.js",
+        "renderedLength": 1599
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Range.js",
+        "renderedLength": 832
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 1054
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RanvierCase.js",
+        "renderedLength": 6956
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ranvier-all.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ranvier",
+    "symbol": "createGraph",
+    "minifiedBytes": 48236,
+    "gzipLevel9Bytes": 11831,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 7516
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 4267
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 771
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Collections.js",
+        "renderedLength": 249
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 282
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 1738
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1629
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 358
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+        "renderedLength": 1480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6622
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Task.js",
+        "renderedLength": 142
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Types.js",
+        "renderedLength": 3936
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MapUtil.js",
+        "renderedLength": 480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MutableSet.js",
+        "renderedLength": 4369
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Platform.js",
+        "renderedLength": 413
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Core.js",
+        "renderedLength": 40920
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Positional.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Deltas.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Projections.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Api.js",
+        "renderedLength": 632
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Mount.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Dom.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 261
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RanvierCase.js",
+        "renderedLength": 991
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ranvier-createGraph.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ranvier",
+    "symbol": "createDashboard",
+    "minifiedBytes": 53866,
+    "gzipLevel9Bytes": 13141,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 7516
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 4267
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 771
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Collections.js",
+        "renderedLength": 249
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 282
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 1738
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1922
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 1379
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 358
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+        "renderedLength": 1480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 4375
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6622
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Task.js",
+        "renderedLength": 142
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Types.js",
+        "renderedLength": 3936
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MapUtil.js",
+        "renderedLength": 480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MutableSet.js",
+        "renderedLength": 4369
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Platform.js",
+        "renderedLength": 413
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Core.js",
+        "renderedLength": 42130
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Positional.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Deltas.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Projections.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Api.js",
+        "renderedLength": 810
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Mount.js",
+        "renderedLength": 870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Dom.js",
+        "renderedLength": 908
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Range.js",
+        "renderedLength": 832
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 206
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RanvierCase.js",
+        "renderedLength": 1251
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ranvier-createDashboard.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ranvier",
+    "symbol": "createAsyncView",
+    "minifiedBytes": 62853,
+    "gzipLevel9Bytes": 15331,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 7764
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 4267
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 771
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Collections.js",
+        "renderedLength": 249
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 282
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 1738
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1922
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 422
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+        "renderedLength": 2522
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 4132
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6624
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/AsyncBuilder.js",
+        "renderedLength": 3671
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Task.js",
+        "renderedLength": 142
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Types.js",
+        "renderedLength": 3936
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MapUtil.js",
+        "renderedLength": 480
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/MutableSet.js",
+        "renderedLength": 4369
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Platform.js",
+        "renderedLength": 2085
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Async.js",
+        "renderedLength": 392
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Core.js",
+        "renderedLength": 50851
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Positional.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Deltas.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Projections.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Ranvier/Api.js",
+        "renderedLength": 726
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Mount.js",
+        "renderedLength": 870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/src/Fable.Ranvier/Dom.js",
+        "renderedLength": 908
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 248
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RanvierCase.js",
+        "renderedLength": 1234
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ranvier-createAsyncView.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ripple",
+    "symbol": "all",
+    "minifiedBytes": 34764,
+    "gzipLevel9Bytes": 8811,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 6929
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 3950
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 769
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 229
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 166
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1172
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 255
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 894
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/ReactiveNode.fs.js",
+        "renderedLength": 2374
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Graph.fs.js",
+        "renderedLength": 5817
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scope.fs.js",
+        "renderedLength": 3808
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Tracking.fs.js",
+        "renderedLength": 2870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scheduler.fs.js",
+        "renderedLength": 2153
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Types.fs.js",
+        "renderedLength": 1737
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Api.fs.js",
+        "renderedLength": 937
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6168
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 5527
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Base.fs.js",
+        "renderedLength": 1353
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Html.fs.js",
+        "renderedLength": 1152
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Range.js",
+        "renderedLength": 828
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 1054
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Attributes.fs.js",
+        "renderedLength": 582
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Events.fs.js",
+        "renderedLength": 158
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RippleCase.js",
+        "renderedLength": 6003
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ripple-all.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ripple",
+    "symbol": "createGraph",
+    "minifiedBytes": 19442,
+    "gzipLevel9Bytes": 5242,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 5787
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 3950
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 690
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 477
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/ReactiveNode.fs.js",
+        "renderedLength": 2374
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Graph.fs.js",
+        "renderedLength": 5817
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scope.fs.js",
+        "renderedLength": 3808
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Tracking.fs.js",
+        "renderedLength": 2870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scheduler.fs.js",
+        "renderedLength": 2153
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Types.fs.js",
+        "renderedLength": 1737
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Api.fs.js",
+        "renderedLength": 828
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Base.fs.js",
+        "renderedLength": 239
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Html.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 261
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Attributes.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Events.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RippleCase.js",
+        "renderedLength": 1090
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ripple-createGraph.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ripple",
+    "symbol": "createDashboard",
+    "minifiedBytes": 30561,
+    "gzipLevel9Bytes": 7760,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 6929
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 3950
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 769
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Native.js",
+        "renderedLength": 301
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 229
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/String.js",
+        "renderedLength": 166
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/System.js",
+        "renderedLength": 1172
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+        "renderedLength": 255
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 894
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/ReactiveNode.fs.js",
+        "renderedLength": 2374
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Graph.fs.js",
+        "renderedLength": 5817
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scope.fs.js",
+        "renderedLength": 3808
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Tracking.fs.js",
+        "renderedLength": 2870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scheduler.fs.js",
+        "renderedLength": 2153
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Types.fs.js",
+        "renderedLength": 1737
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Api.fs.js",
+        "renderedLength": 828
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Seq.js",
+        "renderedLength": 6168
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 5527
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Base.fs.js",
+        "renderedLength": 801
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Html.fs.js",
+        "renderedLength": 821
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Range.js",
+        "renderedLength": 828
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 206
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Attributes.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Events.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RippleCase.js",
+        "renderedLength": 1343
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ripple-createDashboard.js",
+        "renderedLength": 0
+      }
+    ]
+  },
+  {
+    "library": "ripple",
+    "symbol": "createAsyncView",
+    "minifiedBytes": 24106,
+    "gzipLevel9Bytes": 6392,
+    "modules": [
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Util.js",
+        "renderedLength": 6795
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Types.js",
+        "renderedLength": 3950
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Option.js",
+        "renderedLength": 690
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Double.js",
+        "renderedLength": 128
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Global.js",
+        "renderedLength": 129
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/Array.js",
+        "renderedLength": 477
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/ReactiveNode.fs.js",
+        "renderedLength": 2374
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Graph.fs.js",
+        "renderedLength": 5817
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scope.fs.js",
+        "renderedLength": 3808
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Tracking.fs.js",
+        "renderedLength": 2870
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Internal/Scheduler.fs.js",
+        "renderedLength": 1935
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Types.fs.js",
+        "renderedLength": 1737
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.1.0.0-beta.6/Api.fs.js",
+        "renderedLength": 466
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/fable-library-js.5.18.0/List.js",
+        "renderedLength": 4645
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Base.fs.js",
+        "renderedLength": 801
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Html.fs.js",
+        "renderedLength": 744
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/Contracts.js",
+        "renderedLength": 248
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Attributes.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/fable_modules/Fable.Ripple.Dom.1.0.0-beta.7/Events.fs.js",
+        "renderedLength": 0
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/generated/RippleCase.js",
+        "renderedLength": 1611
+      },
+      {
+        "id": ".superpowers/ripple-comparison/probe/size-ripple-createAsyncView.js",
+        "renderedLength": 0
+      }
+    ]
+  }
+]

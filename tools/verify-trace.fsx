@@ -22,22 +22,31 @@ open System.Text.RegularExpressions
 
 let args = fsi.CommandLineArgs |> Array.skip 1 |> Set.ofArray
 let lintOnly = args.Contains "--lint"
-let runCounters = not lintOnly && not (args.Contains "--no-counters")
+
+let runCounters =
+    not lintOnly
+    && not (args.Contains "--no-counters")
+
 let runFable = not lintOnly && not (args.Contains "--no-fable")
 
 let root = Path.GetFullPath (Path.Combine (__SOURCE_DIRECTORY__, ".."))
 let src = Path.Combine (root, "src", "Ranvier")
-let spec = Path.Combine (root, "docs", ".ai", "superpowers", "specs", "2026-09-27-graph-provenance-design.md")
+
+let spec =
+    Path.Combine (root, "docs", ".ai", "superpowers", "specs", "2026-09-27-graph-provenance-design.md")
+
 let baselineFile = Path.Combine (root, "docs", ".ai", "public-api-baseline.txt")
 
-let work = Path.Combine (Path.GetTempPath (), $"partas-verify-trace-%d{Environment.ProcessId}")
+let work =
+    Path.Combine (Path.GetTempPath (), $"partas-verify-trace-%d{Environment.ProcessId}")
 
 // ---------------------------------------------------------------------------------------------------------------
 // Reporting
 
-let failures = ResizeArray<string> ()
+let failures = ResizeArray<string>()
 
-let pass (name: string) (detail: string) = printfn $"PASS  %s{name}%s{detail}"
+let pass (name: string) (detail: string) =
+    printfn $"PASS  %s{name}%s{detail}"
 
 let fail (name: string) (lines: string seq) =
     let lines = List.ofSeq lines
@@ -51,23 +60,34 @@ let fail (name: string) (lines: string seq) =
         printfn $"        ... %d{lines.Length - 40} more"
 
 let check (name: string) (violations: string list) (detail: string) =
-    if List.isEmpty violations then pass name detail else fail name violations
+    if List.isEmpty violations then
+        pass name detail
+    else
+        fail name violations
 
 // ---------------------------------------------------------------------------------------------------------------
 // Processes
 
 /// <summary>Runs a process with <c>RanvierTrace</c> and <c>RanvierCounters</c> removed from its environment, plus <c>env</c>.</summary>
 let run (dir: string) (env: (string * string) list) (file: string) (arguments: string list) : int * string =
-    let info = ProcessStartInfo (file, arguments, WorkingDirectory = dir, RedirectStandardOutput = true, RedirectStandardError = true)
+    let info =
+        ProcessStartInfo (file, arguments, WorkingDirectory = dir, RedirectStandardOutput = true, RedirectStandardError = true)
+
     info.Environment.Remove "RanvierTrace" |> ignore
-    info.Environment.Remove "RanvierCounters" |> ignore
+
+    info.Environment.Remove "RanvierCounters"
+    |> ignore
 
     for (k, v) in env do
         info.Environment[k] <- v
 
     use p = new Process (StartInfo = info)
     let output = Text.StringBuilder ()
-    let append (e: DataReceivedEventArgs) = if not (isNull e.Data) then lock output (fun () -> output.AppendLine e.Data |> ignore)
+
+    let append (e: DataReceivedEventArgs) =
+        if not (isNull e.Data) then
+            lock output (fun () -> output.AppendLine e.Data |> ignore)
+
     p.OutputDataReceived.Add append
     p.ErrorDataReceived.Add append
     p.Start () |> ignore
@@ -85,13 +105,18 @@ let runChecked dir env file arguments =
 
     output
 
-let git arguments = (runChecked root [] "git" arguments).Trim ()
+let git arguments =
+    (runChecked root [] "git" arguments).Trim()
 
 // ---------------------------------------------------------------------------------------------------------------
 // Metadata
 
 let opcodes =
-    typeof<OpCodes>.GetFields (Reflection.BindingFlags.Public ||| Reflection.BindingFlags.Static)
+    typeof<OpCodes>
+        .GetFields(
+            Reflection.BindingFlags.Public
+            ||| Reflection.BindingFlags.Static
+        )
     |> Array.map (fun f -> f.GetValue null :?> OpCode)
     |> Array.map (fun o -> int (uint16 o.Value), o)
     |> dict
@@ -117,7 +142,8 @@ type SigText(md: MetadataReader) =
 
             let prefix =
                 if t.ResolutionScope.Kind = HandleKind.TypeReference then
-                    name (EntityHandle.op_Explicit t.ResolutionScope) + "+"
+                    name (EntityHandle.op_Explicit t.ResolutionScope)
+                    + "+"
                 else
                     let ns = md.GetString t.Namespace
                     if ns = "" then "" else ns + "."
@@ -129,22 +155,36 @@ type SigText(md: MetadataReader) =
 
     interface ISimpleTypeProvider<string> with
         member _.GetPrimitiveType(c: PrimitiveTypeCode) = string c
-        member _.GetTypeFromDefinition(_, h, _) = name (TypeDefinitionHandle.op_Implicit h)
-        member _.GetTypeFromReference(_, h, _) = name (TypeReferenceHandle.op_Implicit h)
+
+        member _.GetTypeFromDefinition(_, h, _) =
+            name (TypeDefinitionHandle.op_Implicit h)
+
+        member _.GetTypeFromReference(_, h, _) =
+            name (TypeReferenceHandle.op_Implicit h)
 
     interface ISZArrayTypeProvider<string> with
         member _.GetSZArrayType e = e + "[]"
 
     interface IConstructedTypeProvider<string> with
-        member _.GetArrayType(e, s) = e + "[" + String (',', s.Rank - 1) + "]"
+        member _.GetArrayType(e, s) =
+            e + "[" + String (',', s.Rank - 1) + "]"
+
         member _.GetByReferenceType e = e + "&"
-        member _.GetGenericInstantiation(g, a) = g + "<" + String.Join (",", a) + ">"
+
+        member _.GetGenericInstantiation(g, a) =
+            g + "<" + String.Join (",", a) + ">"
+
         member _.GetPointerType e = e + "*"
 
     interface ISignatureTypeProvider<string, unit> with
-        member this.GetTypeFromSpecification(r, c, h, _) = (r.GetTypeSpecification h).DecodeSignature (this, c)
+        member this.GetTypeFromSpecification(r, c, h, _) =
+            (r.GetTypeSpecification h).DecodeSignature(this, c)
+
         member _.GetGenericTypeParameter(_, i) = $"!%d{i}"
-        member _.GetGenericMethodParameter(_, i) = $"!!%d{i}"
+
+        member _.GetGenericMethodParameter(_, i) =
+            $"!!%d{i}"
+
         member _.GetFunctionPointerType _ = "fnptr"
         member _.GetModifiedType(_, u, _) = u
         member _.GetPinnedType e = e
@@ -162,7 +202,7 @@ type Assembly(dll: string) =
 
     member _.TypeText(h: EntityHandle) =
         if h.Kind = HandleKind.TypeSpecification then
-            (md.GetTypeSpecification (TypeSpecificationHandle.op_Explicit h)).DecodeSignature (sigs, ())
+            (md.GetTypeSpecification (TypeSpecificationHandle.op_Explicit h)).DecodeSignature(sigs, ())
         else
             names.Name h
 
@@ -170,16 +210,29 @@ type Assembly(dll: string) =
         match h.Kind with
         | HandleKind.MethodDefinition ->
             let m = md.GetMethodDefinition (MethodDefinitionHandle.op_Explicit h)
-            names.Name (TypeDefinitionHandle.op_Implicit (m.GetDeclaringType ())) + "::" + md.GetString m.Name
+
+            names.Name (TypeDefinitionHandle.op_Implicit (m.GetDeclaringType ()))
+            + "::"
+            + md.GetString m.Name
         | HandleKind.MemberReference ->
             let m = md.GetMemberReference (MemberReferenceHandle.op_Explicit h)
-            this.TypeText m.Parent + "::" + md.GetString m.Name
+
+            this.TypeText m.Parent
+            + "::"
+            + md.GetString m.Name
         | HandleKind.MethodSpecification ->
             let s = md.GetMethodSpecification (MethodSpecificationHandle.op_Explicit h)
-            this.Token s.Method + "<" + String.Join (",", s.DecodeSignature (sigs, ())) + ">"
+
+            this.Token s.Method
+            + "<"
+            + String.Join (",", s.DecodeSignature (sigs, ()))
+            + ">"
         | HandleKind.FieldDefinition ->
             let f = md.GetFieldDefinition (FieldDefinitionHandle.op_Explicit h)
-            names.Name (TypeDefinitionHandle.op_Implicit (f.GetDeclaringType ())) + "::" + md.GetString f.Name
+
+            names.Name (TypeDefinitionHandle.op_Implicit (f.GetDeclaringType ()))
+            + "::"
+            + md.GetString f.Name
         | HandleKind.TypeSpecification
         | HandleKind.TypeDefinition
         | HandleKind.TypeReference -> this.TypeText h
@@ -195,11 +248,17 @@ type Assembly(dll: string) =
                 let caller = this.Token (MethodDefinitionHandle.op_Implicit h)
 
                 if m.RelativeVirtualAddress <> 0 then
-                    let mutable il = (pe.GetMethodBody m.RelativeVirtualAddress).GetILReader ()
+                    let mutable il = (pe.GetMethodBody m.RelativeVirtualAddress).GetILReader()
 
                     while il.RemainingBytes > 0 do
                         let first = int (il.ReadByte ())
-                        let code = if first = 0xFE then 0xFE00 ||| int (il.ReadByte ()) else first
+
+                        let code =
+                            if first = 0xFE then
+                                0xFE00 ||| int (il.ReadByte ())
+                            else
+                                first
+
                         let o = opcodes[code]
 
                         let operand =
@@ -209,7 +268,9 @@ type Assembly(dll: string) =
                             | OperandType.InlineType
                             | OperandType.InlineTok -> this.Token (MetadataTokens.EntityHandle (il.ReadInt32 ()))
                             | OperandType.InlineString ->
-                                "\"" + md.GetUserString (MetadataTokens.UserStringHandle (il.ReadInt32 () &&& 0xFFFFFF)) + "\""
+                                "\""
+                                + md.GetUserString (MetadataTokens.UserStringHandle (il.ReadInt32 () &&& 0xFFFFFF))
+                                + "\""
                             | OperandType.InlineNone -> ""
                             | OperandType.ShortInlineBrTarget
                             | OperandType.ShortInlineI
@@ -226,7 +287,7 @@ type Assembly(dll: string) =
     /// <summary>The <c>AssemblyMetadata</c> key/value pairs.</summary>
     member _.AssemblyMetadata() =
         [
-            for h in md.GetAssemblyDefinition().GetCustomAttributes () do
+            for h in md.GetAssemblyDefinition().GetCustomAttributes() do
                 let a = md.GetCustomAttribute h
 
                 let ctorType =
@@ -250,7 +311,20 @@ type Assembly(dll: string) =
 // ---------------------------------------------------------------------------------------------------------------
 // Gate 1: IL scan
 
-let tracedTypes = set [ "Tracer"; "TraceLog"; "TraceEvent"; "TraceEventKind"; "TraceNodeKind"; "TraceModel"; "ITraced"; "TraceTiming"; "TraceTimedState"; "ITimedTrace" ]
+let tracedTypes =
+    set
+        [
+            "Tracer"
+            "TraceLog"
+            "TraceEvent"
+            "TraceEventKind"
+            "TraceNodeKind"
+            "TraceModel"
+            "ITraced"
+            "TraceTiming"
+            "TraceTimedState"
+            "ITimedTrace"
+        ]
 
 let private simpleName (qualified: string) =
     let t = qualified.Split("::").[0].Split('<').[0]
@@ -267,13 +341,21 @@ let ilScan (dll: string) : string list =
     [
         for h in md.TypeDefinitions do
             let n = md.GetString (md.GetTypeDefinition h).Name
-            if tracedTypes.Contains n then yield $"type %s{n}"
+
+            if tracedTypes.Contains n then
+                yield $"type %s{n}"
         for h in md.TypeReferences do
             let n = md.GetString (md.GetTypeReference h).Name
-            if tracedTypes.Contains n then yield $"typeref %s{n}"
+
+            if tracedTypes.Contains n then
+                yield $"typeref %s{n}"
         for (caller, o, operand) in a.Instructions () do
             if
-                (o = OpCodes.Call || o = OpCodes.Callvirt || o = OpCodes.Newobj || o = OpCodes.Ldftn || o = OpCodes.Ldvirtftn)
+                (o = OpCodes.Call
+                 || o = OpCodes.Callvirt
+                 || o = OpCodes.Newobj
+                 || o = OpCodes.Ldftn
+                 || o = OpCodes.Ldvirtftn)
                 && tracedTypes.Contains (simpleName operand)
                 && not (tracedTypes.Contains (simpleName caller))
             then
@@ -292,7 +374,10 @@ let publicSurface (dll: string) : string list =
     let md = a.Metadata
 
     let rec visible (t: TypeDefinition) =
-        match t.Attributes &&& Reflection.TypeAttributes.VisibilityMask with
+        match
+            t.Attributes
+            &&& Reflection.TypeAttributes.VisibilityMask
+        with
         | Reflection.TypeAttributes.Public -> true
         | Reflection.TypeAttributes.NestedPublic
         | Reflection.TypeAttributes.NestedFamily
@@ -325,17 +410,25 @@ let publicSurface (dll: string) : string list =
                         let s = m.DecodeSignature (a.Signatures, ())
                         let isStatic = m.Attributes.HasFlag Reflection.MethodAttributes.Static
                         let st = if isStatic then "static " else ""
-                        let gen = if s.GenericParameterCount > 0 then $"<%d{s.GenericParameterCount}>" else ""
+
+                        let gen =
+                            if s.GenericParameterCount > 0 then
+                                $"<%d{s.GenericParameterCount}>"
+                            else
+                                ""
+
                         let ps = String.Join (',', s.ParameterTypes)
                         yield $"member %s{tn} %s{st}%s{md.GetString m.Name}%s{gen}(%s{ps}) : %s{s.ReturnType}"
 
                 for fh in t.GetFields () do
                     let f = md.GetFieldDefinition fh
 
-                    match f.Attributes &&& Reflection.FieldAttributes.FieldAccessMask with
+                    match
+                        f.Attributes
+                        &&& Reflection.FieldAttributes.FieldAccessMask
+                    with
                     | Reflection.FieldAttributes.Public
-                    | Reflection.FieldAttributes.Family ->
-                        yield $"field %s{tn} %s{md.GetString f.Name} : %s{f.DecodeSignature (a.Signatures, ())}"
+                    | Reflection.FieldAttributes.Family -> yield $"field %s{tn} %s{md.GetString f.Name} : %s{f.DecodeSignature (a.Signatures, ())}"
                     | _ -> ()
     ]
     |> List.sort
@@ -375,7 +468,8 @@ let stripComment (line: string) =
     let i = line.IndexOf "//"
     if i >= 0 then line.Substring (0, i) else line
 
-let hookShape = Regex @"^\s*(do\s+)?Tracer\.[A-Z]\w*\s*(\(.*\)|[a-z_]\w*(\s+[a-z_]\w*)*)\s*$"
+let hookShape =
+    Regex @"^\s*(do\s+)?Tracer\.[A-Z]\w*\s*(\(.*\)|[a-z_]\w*(\s+[a-z_]\w*)*)\s*$"
 
 let forbiddenInArgs =
     [
@@ -396,7 +490,16 @@ let forbiddenInArgs =
     ]
     |> List.map Regex
 
-let engineFiles = [ "Core.fs"; "Projections.fs"; "Combinators.fs"; "Api.fs"; "Timed.fs"; "TimedClock.fs"; "Bindings.fs" ]
+let engineFiles =
+    [
+        "Core.fs"
+        "Projections.fs"
+        "Combinators.fs"
+        "Api.fs"
+        "Timed.fs"
+        "TimedClock.fs"
+        "Bindings.fs"
+    ]
 
 let declarationStart =
     Regex @"^(let|val|member|abstract|default|override|interface|static member|static val|new|\[<)\b"
@@ -409,10 +512,14 @@ let appendixA () =
     let text = File.ReadAllText spec
     let start = text.IndexOf "## Appendix A"
 
-    text.Substring(start).Split ('\n')
+    text.Substring(start).Split('\n')
     |> Array.choose (fun l ->
         let m = Regex.Match (l, @"^\|\s*`([^`]+\.fs)`\s*\|\s*`([^`]+)`\s*\|")
-        if m.Success then Some (m.Groups[1].Value, m.Groups[2].Value) else None)
+
+        if m.Success then
+            Some (m.Groups[1].Value, m.Groups[2].Value)
+        else
+            None)
     |> set
 
 /// <summary>Hook-site violations in the engine files, and the (file, type) of each <c>#if RANVIER_TRACE</c> block.</summary>
@@ -429,7 +536,10 @@ let lintEngine () : string list * Set<string * string> =
             let line = lines[i]
             let header = typeHeader.Match line
 
-            if header.Success && not (line.TrimStart().StartsWith "//") then
+            if
+                header.Success
+                && not (line.TrimStart().StartsWith "//")
+            then
                 enclosing <- header.Groups[5].Value
 
             if line.Trim () = "#if RANVIER_TRACE" then
@@ -437,22 +547,32 @@ let lintEngine () : string list * Set<string * string> =
                 let body = ResizeArray ()
                 i <- i + 1
 
-                while i < lines.Length && not (lines[i].Trim().StartsWith "#e") do
+                while i < lines.Length
+                      && not (lines[i].Trim().StartsWith "#e") do
                     body.Add (i + 1, lines[i])
                     i <- i + 1
 
-                if i < lines.Length && lines[i].Trim () = "#else" then
+                if i < lines.Length && lines[i].Trim() = "#else" then
                     violations.Add $"%s{file}:%d{i + 1}: a #if RANVIER_TRACE block in an engine file has an #else"
 
-                let code = body |> Seq.filter (fun (_, l) -> (stripComment l).Trim () <> "") |> Seq.toList
+                let code =
+                    body
+                    |> Seq.filter (fun (_, l) -> (stripComment l).Trim() <> "")
+                    |> Seq.toList
 
                 match code with
                 | [] -> violations.Add $"%s{file}: an empty #if RANVIER_TRACE block in %s{enclosing}"
                 | _ ->
-                    let indent = code |> List.map (fun (_, l) -> l.Length - l.TrimStart().Length) |> List.min
+                    let indent =
+                        code
+                        |> List.map (fun (_, l) -> l.Length - l.TrimStart().Length)
+                        |> List.min
 
                     for (n, l) in code do
-                        if l.Length - l.TrimStart().Length = indent && not (declarationStart.IsMatch (l.Trim ())) then
+                        if
+                            l.Length - l.TrimStart().Length = indent
+                            && not (declarationStart.IsMatch (l.Trim ()))
+                        then
                             violations.Add $"%s{file}:%d{n}: a #if RANVIER_TRACE block holds a statement: %s{l.Trim ()}"
             else
                 let code = stripComment line
@@ -481,7 +601,11 @@ let lintTraceFiles () : string list =
         Regex @"(Dictionary|HashSet|ConditionalWeakTable)\s*<\s*(INode|ISource|IComputation|IScheduled|Owner|Graph|ITraced|obj)\b"
 
     let formatting = Regex @"\bsprintf\b|\$""|String\.Format|%A|\.ToString\s*\("
-    let forbidden = forbiddenInArgs |> List.filter (fun r -> string r <> @"\bnew\s")
+
+    let forbidden =
+        forbiddenInArgs
+        |> List.filter (fun r -> string r <> @"\bnew\s")
+
     let runStatus = Regex @"\bRunStatus\.Error\b|^\s*\|\s*Error\s*=\s*\d+\s*$"
 
     [
@@ -494,8 +618,10 @@ let lintTraceFiles () : string list =
                 let code = stripComment lines[n]
                 let trimmed = code.Trim ()
 
-                if trimmed.StartsWith "#if" then depth <- depth + 1
-                elif trimmed = "#endif" then depth <- depth - 1
+                if trimmed.StartsWith "#if" then
+                    depth <- depth + 1
+                elif trimmed = "#endif" then
+                    depth <- depth - 1
 
                 if keyed.IsMatch code then
                     yield $"%s{file}:%d{n + 1}: a table keyed by engine objects: %s{trimmed}"
@@ -518,7 +644,7 @@ let lintTraceFiles () : string list =
                             yield $"%s{file}:%d{n + 1}: an untraced Tracer member that is not a Conditional hook: %s{trimmed}"
 
                         if conditional then
-                            let next = if n + 1 < lines.Length then lines[n + 1].Trim () else ""
+                            let next = if n + 1 < lines.Length then lines[n + 1].Trim() else ""
 
                             if next <> "#if RANVIER_TRACE" then
                                 yield $"%s{file}:%d{n + 1}: a hook body must open with #if RANVIER_TRACE: %s{trimmed}"
@@ -537,15 +663,36 @@ let fableScan (outDir: string) : string list =
         for file in Directory.EnumerateFiles (outDir, "*.js", SearchOption.AllDirectories) do
             let name = Path.GetFileName file
 
-            if name <> "Trace.fs.js" && not (file.Contains "fable_modules") then
+            if
+                name <> "Trace.fs.js"
+                && not (file.Contains "fable_modules")
+            then
                 let text = File.ReadAllText file
 
-                if traceImport.IsMatch text || text.Contains "Tracer_" then
+                if
+                    traceImport.IsMatch text
+                    || text.Contains "Tracer_"
+                then
                     yield Path.GetRelativePath (outDir, file)
     ]
 
 let fable (project: string) (outDir: string) (env: (string * string) list) (extra: string list) =
-    runChecked root env "dotnet" ([ "fable"; project; "-e"; ".fs.js"; "-o"; outDir; "--noCache"; "--configuration"; "Release" ] @ extra)
+    runChecked
+        root
+        env
+        "dotnet"
+        ([
+            "fable"
+            project
+            "-e"
+            ".fs.js"
+            "-o"
+            outDir
+            "--noCache"
+            "--configuration"
+            "Release"
+         ]
+         @ extra)
     |> ignore
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -573,44 +720,59 @@ let counterRows (json: string) : Map<string, CounterRow> * string =
         | _ -> "absent"
 
     let counters (e: JsonElement) =
-        [ for c in e.EnumerateArray () -> c.GetProperty("Name").GetString (), c.GetProperty("Value").GetDouble () ]
+        [
+            for c in e.EnumerateArray () -> c.GetProperty("Name").GetString(), c.GetProperty("Value").GetDouble()
+        ]
         |> Map.ofList
 
     let spreads =
         [
-            for s in r.GetProperty("Calibration").GetProperty("Spreads").EnumerateArray () do
-                if s.GetProperty("Engine").GetString () = "Ranvier" && s.GetProperty("Source").GetString () = "InstructionRetired" then
-                    let median = s.GetProperty("Median").GetDouble ()
-                    let spread = (s.GetProperty("Max").GetDouble () - s.GetProperty("Min").GetDouble ()) / max median 1.0
-                    yield s.GetProperty("Scenario").GetString (), spread
+            for s in r.GetProperty("Calibration").GetProperty("Spreads").EnumerateArray() do
+                if
+                    s.GetProperty("Engine").GetString() = "Ranvier"
+                    && s.GetProperty("Source").GetString() = "InstructionRetired"
+                then
+                    let median = s.GetProperty("Median").GetDouble()
+
+                    let spread =
+                        (s.GetProperty("Max").GetDouble()
+                         - s.GetProperty("Min").GetDouble())
+                        / max median 1.0
+
+                    yield s.GetProperty("Scenario").GetString(), spread
         ]
         |> Map.ofList
 
     let rows =
         [
-            for row in r.GetProperty("Rows").EnumerateArray () do
-                if row.GetProperty("Engine").GetString () = "Ranvier" then
-                    let scenario = row.GetProperty("Scenario").GetString ()
+            for row in r.GetProperty("Rows").EnumerateArray() do
+                if row.GetProperty("Engine").GetString() = "Ranvier" then
+                    let scenario = row.GetProperty("Scenario").GetString()
 
                     let instructions =
-                        [ for p in row.GetProperty("Pmc").EnumerateArray () -> p.GetProperty("Name").GetString (), p.GetProperty("Value").GetDouble () ]
+                        [
+                            for p in row.GetProperty("Pmc").EnumerateArray() -> p.GetProperty("Name").GetString(), p.GetProperty("Value").GetDouble()
+                        ]
                         |> List.tryFind (fun (n, _) -> n = "InstructionRetired")
                         |> Option.map snd
 
                     yield
                         {
                             Key = "net/" + scenario
-                            Bytes = row.GetProperty("BytesPerOp").GetDouble ()
-                            Objects = row.GetProperty("ObjectsPerOp").GetDouble ()
+                            Bytes = row.GetProperty("BytesPerOp").GetDouble()
+                            Objects = row.GetProperty("ObjectsPerOp").GetDouble()
                             Counters = counters (row.GetProperty "Counters")
                             Instructions = instructions
-                            Spread = spreads |> Map.tryFind scenario |> Option.defaultValue 0.0
+                            Spread =
+                                spreads
+                                |> Map.tryFind scenario
+                                |> Option.defaultValue 0.0
                         }
 
             match r.TryGetProperty "Fable" with
             | true, f when f.ValueKind = JsonValueKind.Object ->
-                for row in f.GetProperty("Rows").EnumerateArray () do
-                    if row.GetProperty("Engine").GetString () = "Ranvier" then
+                for row in f.GetProperty("Rows").EnumerateArray() do
+                    if row.GetProperty("Engine").GetString() = "Ranvier" then
                         let objects =
                             match row.GetProperty "ObjectsPerOp" with
                             | o when o.ValueKind = JsonValueKind.Number -> o.GetDouble ()
@@ -618,7 +780,7 @@ let counterRows (json: string) : Map<string, CounterRow> * string =
 
                         yield
                             {
-                                Key = "fable/" + row.GetProperty("Scenario").GetString ()
+                                Key = "fable/" + row.GetProperty("Scenario").GetString()
                                 Bytes = nan
                                 Objects = objects
                                 Counters = counters (row.GetProperty "Counters")
@@ -635,7 +797,8 @@ let counterRows (json: string) : Map<string, CounterRow> * string =
 /// <c>InstructionRetired</c> within max(0.5%, the scenario's calibration spread).
 /// </summary>
 let compareCounters (baseRows: Map<string, CounterRow>) (headRows: Map<string, CounterRow>) : string list =
-    let same (a: float) (b: float) = (Double.IsNaN a && Double.IsNaN b) || a = b
+    let same (a: float) (b: float) =
+        (Double.IsNaN a && Double.IsNaN b) || a = b
 
     [
         for KeyValue (key, h) in headRows do
@@ -678,7 +841,10 @@ let lint () =
         |> Seq.map (fun (f, t) -> $"%s{f}: a #if RANVIER_TRACE block in %s{t} is not listed in spec Appendix A")
         |> List.ofSeq
 
-    let pending = appendix - blocks |> Seq.map (fun (f, t) -> $"%s{f}/%s{t}") |> List.ofSeq
+    let pending =
+        appendix - blocks
+        |> Seq.map (fun (f, t) -> $"%s{f}/%s{t}")
+        |> List.ofSeq
 
     let detail =
         if pending.IsEmpty then
@@ -692,7 +858,22 @@ let lint () =
 let buildLibrary (traced: bool) =
     let out = Path.Combine (work, (if traced then "traced" else "untraced"))
 
-    runChecked root [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; $"-p:RanvierTrace=%b{traced}"; "-o"; out; "-warnaserror" ]
+    runChecked
+        root
+        []
+        "dotnet"
+        [
+            "build"
+            "src/Ranvier"
+            "-c"
+            "Release"
+            "-f"
+            "net10.0"
+            $"-p:RanvierTrace=%b{traced}"
+            "-o"
+            out
+            "-warnaserror"
+        ]
     |> ignore
 
     Path.Combine (out, "Ranvier.dll")
@@ -700,10 +881,16 @@ let buildLibrary (traced: bool) =
 let ilGate () =
     let untraced = buildLibrary false
     let traced = buildLibrary true
-    let residue = ilScan untraced |> List.filter (fun f -> not (permittedResidue.Contains f))
+
+    let residue =
+        ilScan untraced
+        |> List.filter (fun f -> not (permittedResidue.Contains f))
+
     check "gate 1: untraced IL references no trace type or hook" residue ""
 
-    let hooks = ilScan traced |> List.filter (fun f -> f.Contains "::")
+    let hooks =
+        ilScan traced
+        |> List.filter (fun f -> f.Contains "::")
 
     if hooks.IsEmpty then
         fail "gate 1: positive control, traced IL calls hooks" [ "the traced build reports no hook call" ]
@@ -717,9 +904,17 @@ let ilGate () =
     check
         "gate 1: assembly metadata matches the build"
         [
-            if metadata untraced |> List.exists (fun (k, _) -> k = "RanvierTrace") then
+            if
+                metadata untraced
+                |> List.exists (fun (k, _) -> k = "RanvierTrace")
+            then
                 yield "the untraced build carries AssemblyMetadata(RanvierTrace)"
-            if not (metadata traced |> List.contains ("RanvierTrace", "true")) then
+            if
+                not (
+                    metadata traced
+                    |> List.contains ("RanvierTrace", "true")
+                )
+            then
                 yield "the traced build lacks AssemblyMetadata(RanvierTrace, true)"
         ]
         ""
@@ -734,7 +929,9 @@ let methodBodies (dll: string) : Map<string, string list> =
     a.Instructions ()
     |> List.groupBy (fun (caller, _, _) -> closureLine.Replace (caller, "@"))
     |> List.map (fun (caller, body) ->
-        caller, body |> List.map (fun (_, o, operand) -> o.Name + " " + closureLine.Replace (operand, "@")))
+        caller,
+        body
+        |> List.map (fun (_, o, operand) -> o.Name + " " + closureLine.Replace (operand, "@")))
     |> Map.ofList
 
 /// <summary>
@@ -745,12 +942,16 @@ let mergeBaseIlGate () =
     let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
     let baseTree = Path.Combine (work, "il-base")
     let out = Path.Combine (work, "il-base-out")
-    git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
+
+    git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ]
+    |> ignore
 
     try
-        runChecked baseTree [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; "-o"; out ] |> ignore
+        runChecked baseTree [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; "-o"; out ]
+        |> ignore
     finally
-        run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ] |> ignore
+        run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ]
+        |> ignore
 
     let baseBodies = methodBodies (Path.Combine (out, "Ranvier.dll"))
     let headBodies = methodBodies (Path.Combine (work, "untraced", "Ranvier.dll"))
@@ -772,15 +973,21 @@ let packGate () =
     runChecked root [] "dotnet" [ "pack"; "src/Ranvier"; "-c"; "Release"; "-p:RanvierTrace=false"; "-o"; out ]
     |> ignore
 
-    let nupkg = Directory.GetFiles (out, "Ranvier.*.nupkg") |> Array.exactlyOne
+    let nupkg =
+        Directory.GetFiles (out, "Ranvier.*.nupkg")
+        |> Array.exactlyOne
+
     let dll = Path.Combine (out, "packed", "Ranvier.dll")
-    Directory.CreateDirectory (Path.GetDirectoryName dll) |> ignore
+
+    Directory.CreateDirectory (Path.GetDirectoryName dll)
+    |> ignore
 
     do
         use zip = ZipFile.OpenRead nupkg
 
         let entry =
-            zip.Entries |> Seq.find (fun e -> e.FullName = "lib/net10.0/Ranvier.dll")
+            zip.Entries
+            |> Seq.find (fun e -> e.FullName = "lib/net10.0/Ranvier.dll")
 
         entry.ExtractToFile (dll, true)
 
@@ -788,32 +995,78 @@ let packGate () =
         use a = new Assembly (dll)
         a.AssemblyMetadata ()
 
-    let residue = ilScan dll |> List.filter (fun f -> not (permittedResidue.Contains f))
+    let residue =
+        ilScan dll
+        |> List.filter (fun f -> not (permittedResidue.Contains f))
 
     check
         "gate 1: packed DLL is untraced"
         [
-            if metadata |> List.exists (fun (k, _) -> k = "RanvierTrace") then
+            if
+                metadata
+                |> List.exists (fun (k, _) -> k = "RanvierTrace")
+            then
                 yield "the packed DLL carries AssemblyMetadata(RanvierTrace)"
             yield! residue
         ]
         ""
 
     let surface = publicSurface dll |> set
-    let baseline = File.ReadAllLines baselineFile |> Array.filter (fun l -> l <> "") |> set
-    let timedAdditions = File.ReadAllLines(Path.Combine(root, "docs", ".ai", "debounce-throttle-api-additions.txt")) |> Array.filter(fun l -> l <> "") |> set
-    let added = surface - baseline - permittedAdditions - timedAdditions |> Seq.map (fun l -> "added:   " + l)
-    let removed = baseline - surface |> Seq.map (fun l -> "removed: " + l)
+
+    let baseline =
+        File.ReadAllLines baselineFile
+        |> Array.filter (fun l -> l <> "")
+        |> set
+
+    let timedAdditions =
+        File.ReadAllLines (Path.Combine (root, "docs", ".ai", "debounce-throttle-api-additions.txt"))
+        |> Array.filter (fun l -> l <> "")
+        |> set
+
+    let added =
+        surface
+        - baseline
+        - permittedAdditions
+        - timedAdditions
+        |> Seq.map (fun l -> "added:   " + l)
+
+    let removed =
+        baseline - surface
+        |> Seq.map (fun l -> "removed: " + l)
+
     check "gate 1: packed public surface equals the baseline plus Trace.named and Trace.label" (List.ofSeq (Seq.append added removed)) ""
 
-    let mergeSurface = publicSurface(Path.Combine(work, "il-base-out", "Ranvier.dll")) |> set
-    check "gate 1: public API is additive against merge-base and every addition is in the baseline"
-        ([ for l in mergeSurface - surface -> "removed: " + l ] @ [ for l in surface - mergeSurface - baseline -> "unlisted addition: " + l ]) ""
+    let mergeSurface =
+        publicSurface (Path.Combine (work, "il-base-out", "Ranvier.dll"))
+        |> set
+
+    check
+        "gate 1: public API is additive against merge-base and every addition is in the baseline"
+        ([ for l in mergeSurface - surface -> "removed: " + l ]
+         @ [ for l in surface - mergeSurface - baseline -> "unlisted addition: " + l ])
+        ""
 
     let (debugCode, _) =
-        run root [] "dotnet" [ "pack"; "src/Ranvier"; "-c"; "Debug"; "-o"; Path.Combine (work, "pack-debug") ]
+        run
+            root
+            []
+            "dotnet"
+            [
+                "pack"
+                "src/Ranvier"
+                "-c"
+                "Debug"
+                "-o"
+                Path.Combine (work, "pack-debug")
+            ]
 
-    check "gate 1: a traced pack fails" [ if debugCode = 0 then yield "dotnet pack -c Debug succeeded" ] ""
+    check
+        "gate 1: a traced pack fails"
+        [
+            if debugCode = 0 then
+                yield "dotnet pack -c Debug succeeded"
+        ]
+        ""
 
 let sampleProject =
     """<Project Sdk="Microsoft.NET.Sdk">
@@ -853,16 +1106,19 @@ let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: s
     let project = Path.Combine (dir, moduleName + ".fsproj")
 
     let text =
-        sampleProject
-            .Replace("%SRC%", Path.Combine (src, "Ranvier.fsproj"))
-            .Replace("%DEFINE%", define)
-            .Replace ("%MODULE%", moduleName)
+        sampleProject.Replace("%SRC%", Path.Combine (src, "Ranvier.fsproj")).Replace("%DEFINE%", define).Replace("%MODULE%", moduleName)
 
     File.WriteAllText (project, text)
     File.Copy (Path.Combine (root, "samples", sample + ".fsx"), Path.Combine (dir, moduleName + ".fs"), true)
 
     let build (withCall: bool) (callerTrace: bool) =
-        let out = Path.Combine (work, key + (if withCall then "-with" else "-without") + (if callerTrace then "-traced" else ""))
+        let out =
+            Path.Combine (
+                work,
+                key
+                + (if withCall then "-with" else "-without")
+                + (if callerTrace then "-traced" else "")
+            )
 
         runChecked
             dir
@@ -892,25 +1148,43 @@ let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: s
         else
             let a = set without
             let b = set withCall
-            [ for l in a - b -> "without only: " + l ] @ [ for l in b - a -> "with only:    " + l ]
+
+            [ for l in a - b -> "without only: " + l ]
+            @ [ for l in b - a -> "with only:    " + l ]
 
     check $"gate 1: %s{call} sample IL equals the sample without it" diff ""
 
     match control with
     | Some name ->
-        let calls = build true true |> List.filter (fun l -> l.Contains ("::" + name))
+        let calls =
+            build true true
+            |> List.filter (fun l -> l.Contains ("::" + name))
 
-        check $"gate 1: positive control, %s{call} sample built with RANVIER_TRACE calls %s{name}" [ if calls.IsEmpty then yield "no call site" ] ""
+        check
+            $"gate 1: positive control, %s{call} sample built with RANVIER_TRACE calls %s{name}"
+            [
+                if calls.IsEmpty then
+                    yield "no call site"
+            ]
+            ""
     | None -> ()
 
     if runFable then
         let js (withCall: bool) (callerTrace: bool) =
-            let out = Path.Combine (work, key + (if withCall then "-js-with" else "-js-without") + (if callerTrace then "-traced" else ""))
+            let out =
+                Path.Combine (
+                    work,
+                    key
+                    + (if withCall then "-js-with" else "-js-without")
+                    + (if callerTrace then "-traced" else "")
+                )
 
             let defines =
                 [
-                    if withCall then yield! [ "--define"; define ]
-                    if callerTrace then yield! [ "--define"; "RANVIER_TRACE" ]
+                    if withCall then
+                        yield! [ "--define"; define ]
+                    if callerTrace then
+                        yield! [ "--define"; "RANVIER_TRACE" ]
                 ]
 
             fable project out (if callerTrace then [ ("RanvierTrace", "true") ] else []) defines
@@ -924,7 +1198,11 @@ let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: s
             [
                 if a <> b then
                     yield moduleName + ".fs.js differs:"
-                    yield! (b.Split '\n' |> Array.filter (fun l -> not (a.Contains l)) |> Array.map (fun l -> "with only: " + l.TrimEnd ()))
+
+                    yield!
+                        (b.Split '\n'
+                         |> Array.filter (fun l -> not (a.Contains l))
+                         |> Array.map (fun l -> "with only: " + l.TrimEnd ()))
             ]
             ""
 
@@ -932,11 +1210,16 @@ let zeroCostGate (call: string) (sample: string) (moduleName: string) (define: s
         | Some name ->
             check
                 $"gate 1: positive control, %s{call} sample JS built with RANVIER_TRACE calls %s{name}"
-                [ if not (Regex.IsMatch (js true true, "_" + name + @"(_\w+)?\(")) then yield "no call site" ]
+                [
+                    if not (Regex.IsMatch (js true true, "_" + name + @"(_\w+)?\(")) then
+                        yield "no call site"
+                ]
                 ""
         | None -> ()
 
-let namedGate = zeroCostGate "Trace.named" "named-zero-cost" "NamedZeroCost" "NAMED" None
+let namedGate =
+    zeroCostGate "Trace.named" "named-zero-cost" "NamedZeroCost" "NAMED" None
+
 /// <summary>Compares the feature's untraced IL with a source copy whose timed hook statements are replaced by unit.</summary>
 let timedHookGate () =
     let dir = Path.Combine (work, "timed-hook-free")
@@ -1010,7 +1293,8 @@ let timedHookGate () =
         ]
         ""
 
-let labelGate = zeroCostGate "Trace.label" "label-zero-cost" "LabelZeroCost" "LABEL" (Some "label")
+let labelGate =
+    zeroCostGate "Trace.label" "label-zero-cost" "LabelZeroCost" "LABEL" (Some "label")
 
 let fableGate () =
     let untraced = Path.Combine (work, "fable-untraced")
@@ -1065,12 +1349,29 @@ let reconcileGate () =
         root
         []
         "dotnet"
-        [ "build"; "bench/Ranvier.Counters"; "-c"; "Release"; "-p:RanvierCounters=true"; "-p:RanvierTrace=true"; "-o"; out ]
+        [
+            "build"
+            "bench/Ranvier.Counters"
+            "-c"
+            "Release"
+            "-p:RanvierCounters=true"
+            "-p:RanvierTrace=true"
+            "-o"
+            out
+        ]
     |> ignore
 
-    let code, output = run root [] "dotnet" [ Path.Combine (out, "Ranvier.Counters.dll"); "--reconcile" ]
-    let lines = output.Split ('\n', StringSplitOptions.RemoveEmptyEntries) |> Array.map (fun l -> l.TrimEnd ())
-    let cases = lines |> Array.filter (fun l -> l.StartsWith "PASS") |> Array.length
+    let code, output =
+        run root [] "dotnet" [ Path.Combine (out, "Ranvier.Counters.dll"); "--reconcile" ]
+
+    let lines =
+        output.Split ('\n', StringSplitOptions.RemoveEmptyEntries)
+        |> Array.map (fun l -> l.TrimEnd ())
+
+    let cases =
+        lines
+        |> Array.filter (fun l -> l.StartsWith "PASS")
+        |> Array.length
 
     if code = 0 then
         pass name $" (%d{cases} cases)"
@@ -1079,18 +1380,26 @@ let reconcileGate () =
 
 let countersGate () =
     if not (isElevated ()) then
-        fail "gate 1: counters, merge-base vs HEAD" [ "processor counters need an elevated shell; run again as administrator or pass --no-counters" ]
+        fail
+            "gate 1: counters, merge-base vs HEAD"
+            [
+                "processor counters need an elevated shell; run again as administrator or pass --no-counters"
+            ]
     else
         let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
         let baseTree = Path.Combine (work, "base")
-        git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
+
+        git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ]
+        |> ignore
 
         try
             let report (tree: string) (out: string) =
                 runChecked tree [] "pwsh" [ "-NoProfile"; "-File"; Path.Combine (tree, "counters.ps1"); "-Out"; out ]
                 |> ignore
 
-                Directory.GetFiles (out, "*.json") |> Array.exactlyOne |> counterRows
+                Directory.GetFiles (out, "*.json")
+                |> Array.exactlyOne
+                |> counterRows
 
             let baseRows, baseTrace = report baseTree (Path.Combine (work, "counters-base"))
             let headRows, headTrace = report root (Path.Combine (work, "counters-head"))
@@ -1106,7 +1415,8 @@ let countersGate () =
                 ]
                 $" (%d{headRows.Count} Ranvier rows; merge-base header RanvierTrace=%s{baseTrace})"
         finally
-            run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ] |> ignore
+            run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ]
+            |> ignore
 
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -1114,20 +1424,31 @@ let step (name: string) (f: unit -> unit) =
     try
         f ()
     with e ->
-        fail name [ yield! e.Message.Split '\n' |> Array.map (fun l -> l.TrimEnd ()) ]
+        fail
+            name
+            [
+                yield!
+                    e.Message.Split '\n'
+                    |> Array.map (fun l -> l.TrimEnd ())
+            ]
 
 Directory.CreateDirectory work |> ignore
 
 if args.Contains "--baseline" then
     let mergeBase = git [ "merge-base"; "HEAD"; "master" ]
     let baseTree = Path.Combine (work, "base")
-    git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ] |> ignore
+
+    git [ "worktree"; "add"; "--detach"; baseTree; mergeBase ]
+    |> ignore
+
     let out = Path.Combine (work, "baseline")
 
     try
-        runChecked baseTree [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; "-o"; out ] |> ignore
+        runChecked baseTree [] "dotnet" [ "build"; "src/Ranvier"; "-c"; "Release"; "-f"; "net10.0"; "-o"; out ]
+        |> ignore
     finally
-        run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ] |> ignore
+        run root [] "git" [ "worktree"; "remove"; "--force"; baseTree ]
+        |> ignore
 
     let surface = publicSurface (Path.Combine (out, "Ranvier.dll"))
     File.WriteAllText (baselineFile, String.Join ("\r\n", surface) + "\r\n")
@@ -1156,7 +1477,12 @@ if not lintOnly then
 
 if failures.Count = 0 then
     printfn "verify-trace: every check passed"
-    try Directory.Delete (work, true) with _ -> ()
+
+    try
+        Directory.Delete (work, true)
+    with _ ->
+        ()
+
     exit 0
 else
     printfn $"verify-trace: %d{failures.Count} check(s) failed; build outputs kept in %s{work}"

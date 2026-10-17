@@ -1,0 +1,1861 @@
+{
+  "map": "index-BFTJk03n.js.map",
+  "results": [
+    {
+      "mode": "ranvier",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 716.01
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 108.617
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:132 claim",
+          "ms": 42.654
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Generated/Html.js:3961 (anonymous)",
+          "ms": 40.817
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:582 uncurry2",
+          "ms": 31.284
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 28.871
+        },
+        {
+          "name": "(runtime):0 createElement",
+          "ms": 20.468
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 12.666
+        },
+        {
+          "name": "(runtime):0 insertBefore",
+          "ms": 10.508
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 10.091
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:689 applyToken",
+          "ms": 7.029
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js:169 FSharpRef$1",
+          "ms": 6.85
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:685 Ranvier.View.Foundation.Representation.Backend.ElementZ13155443",
+          "ms": 6.614
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 6.565
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Typed.js:120 element$1",
+          "ms": 6.344
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:771 (anonymous)",
+          "ms": 5.676
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+          "ms": 5.616
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:89 Enumerator$1",
+          "ms": 5.439
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:366 equals$1",
+          "ms": 5.34
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js:76 Equals",
+          "ms": 4.65
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Option.js:42 value$1",
+          "ms": 4.526
+        },
+        {
+          "name": "(runtime):0 createTextNode",
+          "ms": 3.867
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:354 validateAttribute",
+          "ms": 3.73
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/List.js:178 System.Collections.IEnumerator.MoveNext",
+          "ms": 3.566
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Seq.js:756 forAll",
+          "ms": 3.503
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:261 Program_run",
+          "ms": 3.278
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:407 Api_untrack",
+          "ms": 3.099
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:206 OwnedRange__AppendGenerated_Z4BE639A0",
+          "ms": 3.047
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:51 isDisposable$1",
+          "ms": 3.009
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/AuthoringPerfFixtures.js:23 (anonymous)",
+          "ms": 3.006
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 1215.288
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 716.01
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 377.042
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 377.042
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 376.421
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:10 (anonymous)",
+          "ms": 373.753
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:15 mount$3",
+          "ms": 372.773
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1126 mountWith",
+          "ms": 351.132
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1147 mount$4",
+          "ms": 351.132
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:604 mountCore",
+          "ms": 350.516
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:654 Ranvier_Graph__Graph_Run_FCFD9EF",
+          "ms": 335.878
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1192 Graph__RunRoot_Z6EC41034",
+          "ms": 334.889
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:454 Api_createRoot",
+          "ms": 334.889
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1083 (anonymous)",
+          "ms": 334.889
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1082 (anonymous)",
+          "ms": 334.889
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1873 Graph__RunUntracked_FCFD9EF",
+          "ms": 334.398
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:407 Api_untrack",
+          "ms": 334.398
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:261 Program_run",
+          "ms": 334.398
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:22 (anonymous)",
+          "ms": 334.398
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1090 (anonymous)",
+          "ms": 334.398
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:278 (anonymous)",
+          "ms": 333.909
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:685 Ranvier.View.Foundation.Representation.Backend.ElementZ13155443",
+          "ms": 332.938
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:268 (anonymous)",
+          "ms": 330.542
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:279 (anonymous)",
+          "ms": 330.542
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:296 (anonymous)",
+          "ms": 326.985
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1046 Ranvier.View.Foundation.Representation.Backend.Component41B8881A",
+          "ms": 326.48
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1053 (anonymous)",
+          "ms": 320.284
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1060 (anonymous)",
+          "ms": 315.777
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:297 (anonymous)",
+          "ms": 314.789
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:689 applyToken",
+          "ms": 119.084
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 918.284
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js",
+          "ms": 79.772
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 50.037
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Generated/Html.js",
+          "ms": 43.327
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js",
+          "ms": 31.013
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js",
+          "ms": 15.834
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Seq.js",
+          "ms": 13.836
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js",
+          "ms": 12.585
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/List.js",
+          "ms": 10.713
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Typed.js",
+          "ms": 10.576
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Option.js",
+          "ms": 6.107
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/AuthoringPerfFixtures.js",
+          "ms": 5.52
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js",
+          "ms": 4.602
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 3.648
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js",
+          "ms": 3.6
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js",
+          "ms": 3.518
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/String.js",
+          "ms": 1.328
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Types.js",
+          "ms": 0.5
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+          "ms": 0.488
+        }
+      ]
+    },
+    {
+      "mode": "ranvier",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 153.781
+        },
+        {
+          "name": "(runtime):0 remove",
+          "ms": 116.621
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:136 unclaim",
+          "ms": 25.165
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+          "ms": 19.201
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 7.034
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1057 (anonymous)",
+          "ms": 5.002
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:640 Owner__DisposeScope",
+          "ms": 4.158
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:366 equals$1",
+          "ms": 3.697
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:89 Enumerator$1",
+          "ms": 3.009
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:36 isEnumerable$1",
+          "ms": 2.537
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1617 Graph__Detached_Z12158FD7",
+          "ms": 2.359
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:606 (anonymous)",
+          "ms": 2.238
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:561 clear$1",
+          "ms": 2.047
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 1.736
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Typed.js:110 (anonymous)",
+          "ms": 1.653
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:573 Owner__Unlink_Z6ED9BB41",
+          "ms": 1.493
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:315 SourceList__Clear_7E1B59FA",
+          "ms": 1.479
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 1.088
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:82 Scope__Collect_2EC7C64B",
+          "ms": 1.013
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:185 ObserverSet__positionOf_7E1B59FA",
+          "ms": 1.01
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:678 Owner__Dispose",
+          "ms": 0.5
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:32 (anonymous)",
+          "ms": 0.497
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:439 OwnerLink__get_Prev",
+          "ms": 0.491
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 357.809
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:32 (anonymous)",
+          "ms": 201.204
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 201.204
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 201.204
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 201.204
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:366 equals$1",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:189 loop",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:185 indexOf",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:365 removeInPlace",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:53 Scope__RemoveChild_256ACE32",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:117 Scope__Release_Z11D86880",
+          "ms": 200.707
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:133 Scope__Dispose",
+          "ms": 200.707
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 153.781
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:606 (anonymous)",
+          "ms": 144.024
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:136 unclaim",
+          "ms": 141.786
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:432 OwnedRange__Release",
+          "ms": 141.786
+        },
+        {
+          "name": "(runtime):0 remove",
+          "ms": 116.621
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:98 Scope__Clean_Z11D86880",
+          "ms": 49.469
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1057 (anonymous)",
+          "ms": 36.704
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:678 Owner__Dispose",
+          "ms": 31.702
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1617 Graph__Detached_Z12158FD7",
+          "ms": 29.218
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:640 Owner__DisposeScope",
+          "ms": 26.859
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:315 SourceList__Clear_7E1B59FA",
+          "ms": 22.189
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2683 Effect__DetachSources",
+          "ms": 22.189
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2741 Effect__Dispose",
+          "ms": 22.189
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+          "ms": 20.71
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:338 SourceList__trimFrom",
+          "ms": 20.71
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2234 RemoveObserver",
+          "ms": 18.709
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Typed.js:110 (anonymous)",
+          "ms": 8.687
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 7.034
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 280.26
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js",
+          "ms": 32.405
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js",
+          "ms": 30.691
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 11.29
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Typed.js",
+          "ms": 1.653
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js",
+          "ms": 1.013
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js",
+          "ms": 0.497
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 646.971
+        },
+        {
+          "name": "(runtime):0 cloneNode",
+          "ms": 38.282
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:32 (anonymous)",
+          "ms": 27.677
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 22.566
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 12.051
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 6.468
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:533 insertExpression",
+          "ms": 5.599
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 5.416
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:13 (anonymous)",
+          "ms": 5.085
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:619 readSignal",
+          "ms": 4.243
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:737 createComputation",
+          "ms": 2.613
+        },
+        {
+          "name": "(runtime):0 insertBefore",
+          "ms": 2.555
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:685 updateComputation",
+          "ms": 2.182
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:1277 createComponent",
+          "ms": 1.531
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:235 setAttribute",
+          "ms": 1.522
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:218 createRenderEffect",
+          "ms": 1.494
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:46 (anonymous)",
+          "ms": 1.148
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:455 untrack",
+          "ms": 1.004
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:330 (anonymous)",
+          "ms": 0.992
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:11 Row$1",
+          "ms": 0.955
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:44 (anonymous)",
+          "ms": 0.878
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:211 fn",
+          "ms": 0.65
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:616 normalizeIncomingArray",
+          "ms": 0.52
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:835 completeUpdates",
+          "ms": 0.511
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:198 createSignal",
+          "ms": 0.509
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:701 runComputation",
+          "ms": 0.505
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:19 Row$1.createRenderEffect.e",
+          "ms": 0.504
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:327 insert",
+          "ms": 0.503
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:425 isHydrating",
+          "ms": 0.498
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:195 (anonymous)",
+          "ms": 0.497
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 795.929
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 646.971
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:819 runUpdates",
+          "ms": 114.341
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:177 createRoot$1",
+          "ms": 114.341
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:193 render",
+          "ms": 114.341
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:36 mount$1",
+          "ms": 114.341
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 114.341
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 114.341
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 114.341
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:195 (anonymous)",
+          "ms": 113.83
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:188 updateFn",
+          "ms": 113.83
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:327 insert",
+          "ms": 112.828
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:42 (anonymous)",
+          "ms": 106.865
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:38 (anonymous)",
+          "ms": 106.865
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:330 (anonymous)",
+          "ms": 106.36
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:701 runComputation",
+          "ms": 106.36
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:685 updateComputation",
+          "ms": 106.36
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:44 (anonymous)",
+          "ms": 103.285
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:46 (anonymous)",
+          "ms": 102.407
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:1277 createComponent",
+          "ms": 101.259
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:11 Row$1",
+          "ms": 98.724
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:13 (anonymous)",
+          "ms": 97.26
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:455 untrack",
+          "ms": 88.436
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:1287 (anonymous)",
+          "ms": 87.432
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:218 createRenderEffect",
+          "ms": 51.264
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:211 fn",
+          "ms": 38.932
+        },
+        {
+          "name": "(runtime):0 cloneNode",
+          "ms": 38.282
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:32 (anonymous)",
+          "ms": 28.169
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 22.566
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js:533 insertExpression",
+          "ms": 15.64
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 734.309
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx",
+          "ms": 36.247
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js",
+          "ms": 14.592
+        },
+        {
+          "name": "../../node_modules/solid-js/web/dist/web.js",
+          "ms": 10.781
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:58 dispose",
+          "ms": 59.617
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 41.478
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:946 cleanNode",
+          "ms": 4.629
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 0.737
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 0.492
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 106.953
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 64.738
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 64.738
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 64.738
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:58 dispose",
+          "ms": 64.246
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 41.478
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:946 cleanNode",
+          "ms": 4.629
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:188 (anonymous)",
+          "ms": 4.629
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:455 untrack",
+          "ms": 4.629
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 0.737
+        }
+      ],
+      "sources": [
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx",
+          "ms": 59.617
+        },
+        {
+          "name": "(runtime)",
+          "ms": 42.215
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js",
+          "ms": 4.629
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 0.492
+        }
+      ]
+    },
+    {
+      "mode": "ripple",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 632.853
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:344 (anonymous)",
+          "ms": 35.568
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 34.355
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 31.693
+        },
+        {
+          "name": "(runtime):0 createElement",
+          "ms": 16.91
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:158 Base_applyItems",
+          "ms": 11.996
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 10.885
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 9.717
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 9.165
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Types.js:169 FSharpRef",
+          "ms": 6.213
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:186 Base_createElement",
+          "ms": 4.662
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Option.js:42 value",
+          "ms": 4.379
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:44 (anonymous)",
+          "ms": 2.928
+        },
+        {
+          "name": "(runtime):0 createTextNode",
+          "ms": 2.652
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:245 ScopeModule_root",
+          "ms": 2.372
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Types.js:163 get contents",
+          "ms": 2.313
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/List.js:10 FSharpList",
+          "ms": 2.147
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Api.fs.js:109 Signal_autorun",
+          "ms": 1.711
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Tracking.fs.js:77 recompute",
+          "ms": 1.514
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Graph.fs.js:119 addObserver",
+          "ms": 1.506
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Types.fs.js:120 Effect",
+          "ms": 1.501
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:37 Html_text_5106B011",
+          "ms": 1.479
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Tracking.fs.js:18 track",
+          "ms": 1.474
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:23 (anonymous)",
+          "ms": 1.474
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js:500 (anonymous)",
+          "ms": 1.168
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Types.fs.js:70 Var$1__get_Value",
+          "ms": 1.012
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Attributes.fs.js:147 attr_disabled_Z31F02BA3",
+          "ms": 1.006
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:806 (anonymous)",
+          "ms": 1.003
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js:55 GetEnumerator",
+          "ms": 0.99
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:252 (anonymous)",
+          "ms": 0.985
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 846.882
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 632.853
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 168.789
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 168.789
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 168.789
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:10 (anonymous)",
+          "ms": 168.29
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:797 Html_mount",
+          "ms": 167.792
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:16 mount$2",
+          "ms": 167.792
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:245 ScopeModule_root",
+          "ms": 162.326
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Api.fs.js:158 Signal_root",
+          "ms": 162.326
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:806 (anonymous)",
+          "ms": 162.326
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:18 (anonymous)",
+          "ms": 161.323
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js:339 toList",
+          "ms": 152.814
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/List.js:490 ofSeq",
+          "ms": 152.306
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js:87 System.Collections.IEnumerator.MoveNext",
+          "ms": 151.316
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js:930 (anonymous)",
+          "ms": 151.303
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js:246 (anonymous)",
+          "ms": 150.815
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:20 (anonymous)",
+          "ms": 149.805
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:21 (anonymous)",
+          "ms": 146.921
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:186 Base_createElement",
+          "ms": 130.103
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:158 Base_applyItems",
+          "ms": 112.041
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Api.fs.js:109 Signal_autorun",
+          "ms": 60.278
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:522 Html_input_Z714D7FBE",
+          "ms": 51.622
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Tracking.fs.js:148 probe",
+          "ms": 49.334
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:337 (anonymous)",
+          "ms": 46.08
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:158 Html_div_Z714D7FBE",
+          "ms": 43.265
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js:344 (anonymous)",
+          "ms": 39.606
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 34.355
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 31.693
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:526 Html_button_Z714D7FBE",
+          "ms": 30.217
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 748.23
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Base.fs.js",
+          "ms": 55.232
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Types.js",
+          "ms": 8.526
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js",
+          "ms": 5.41
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Option.js",
+          "ms": 4.875
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Tracking.fs.js",
+          "ms": 3.987
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Types.fs.js",
+          "ms": 3.019
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/List.js",
+          "ms": 2.999
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js",
+          "ms": 2.372
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Api.fs.js",
+          "ms": 2.223
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Seq.js",
+          "ms": 1.999
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Graph.fs.js",
+          "ms": 1.506
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Attributes.fs.js",
+          "ms": 1.487
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js",
+          "ms": 1.474
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js",
+          "ms": 1.378
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 1.168
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 0.997
+        }
+      ]
+    },
+    {
+      "mode": "ripple",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "(runtime):0 removeChild",
+          "ms": 61.537
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 50.458
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:27 (anonymous)",
+          "ms": 1.194
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:101 ReactiveNode__set_Disposed_Z1FBCCD16",
+          "ms": 1.009
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 0.714
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:91 Scope__set_Disposed_Z1FBCCD16",
+          "ms": 0.649
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 0.505
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:139 Scope__TearDown",
+          "ms": 0.501
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:21 Dispose",
+          "ms": 0.498
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:91 ReactiveNode__get_Disposed",
+          "ms": 0.497
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 0.496
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:152 ReactiveNode__get_FirstSource",
+          "ms": 0.492
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js:561 clear",
+          "ms": 0.339
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 118.889
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 67.717
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 67.221
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 67.221
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.Dom.1.0.0-beta.9/Html.fs.js:811 Dispose",
+          "ms": 66.716
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js:54 disposeSafe",
+          "ms": 66.716
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:37 (anonymous)",
+          "ms": 66.716
+        },
+        {
+          "name": "(runtime):0 removeChild",
+          "ms": 61.537
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 50.458
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:21 Dispose",
+          "ms": 5.179
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:139 Scope__TearDown",
+          "ms": 4.681
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js:27 (anonymous)",
+          "ms": 1.194
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:101 ReactiveNode__set_Disposed_Z1FBCCD16",
+          "ms": 1.009
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 0.714
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js:91 Scope__set_Disposed_Z1FBCCD16",
+          "ms": 0.649
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:91 ReactiveNode__get_Disposed",
+          "ms": 0.497
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js:152 ReactiveNode__get_FirstSource",
+          "ms": 0.492
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js:561 clear",
+          "ms": 0.339
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 113.205
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/ReactiveNode.fs.js",
+          "ms": 1.998
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/Fable.Ripple.1.0.0-beta.8/Internal/Scope.fs.js",
+          "ms": 1.648
+        },
+        {
+          "name": "../../generated-ripple/RipplePerf.js",
+          "ms": 1.194
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 0.505
+        },
+        {
+          "name": "../../generated-ripple/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 0.339
+        }
+      ]
+    },
+    {
+      "mode": "react",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 666.426
+        },
+        {
+          "name": "(runtime):0 set value",
+          "ms": 46.234
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 28.13
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:8359 completeWork",
+          "ms": 25.197
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 21.055
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 19.994
+        },
+        {
+          "name": "(runtime):0 createElement",
+          "ms": 15.464
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1195 trackValueOnNode",
+          "ms": 12.83
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 setProp",
+          "ms": 10.918
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 10.878
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 10.681
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1588 getEventTarget",
+          "ms": 10.206
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12815 completeUnitOfWork",
+          "ms": 9.104
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1315 initInput",
+          "ms": 8.735
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1420 setTextContent",
+          "ms": 7.078
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1025 getClosestInstanceFromNode",
+          "ms": 6.984
+        },
+        {
+          "name": "../../node_modules/react/cjs/react.production.js:453 exports.createElement",
+          "ms": 5.328
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:14803 setInitialProperties",
+          "ms": 5.23
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:15438 getOwnerDocumentFromRootContainer",
+          "ms": 4.333
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:39 getNearestMountedFiber",
+          "ms": 3.795
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13803 listenToNonDelegatedEvent",
+          "ms": 2.84
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1187 isCheckable",
+          "ms": 2.577
+        },
+        {
+          "name": "../../benchmarks/frameworks/react.mjs:14 App",
+          "ms": 2.53
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:4078 reconcileChildFibersImpl",
+          "ms": 2.421
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12522 renderRootSync",
+          "ms": 2.167
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13843 addTrappedEventListener",
+          "ms": 2.045
+        },
+        {
+          "name": "../../benchmarks/frameworks/react.mjs:5 Row",
+          "ms": 1.999
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:3905 reconcileChildrenArray",
+          "ms": 1.503
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:6791 updateFunctionComponent",
+          "ms": 1.502
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1125 setValueForAttribute",
+          "ms": 1.493
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 965.86
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 666.426
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 238.082
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 238.082
+        },
+        {
+          "name": "../../benchmarks/frameworks/react.mjs:12 mount",
+          "ms": 237.594
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 237.594
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom.production.js:89 exports.flushSync",
+          "ms": 223.895
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13408 flushSyncWorkAcrossRoots_impl",
+          "ms": 223.402
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12402 flushSyncWork$1",
+          "ms": 223.402
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:16914 flushSyncWork",
+          "ms": 223.402
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12069 performWorkOnRoot",
+          "ms": 222.897
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13574 performSyncWorkOnRoot",
+          "ms": 222.897
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12522 renderRootSync",
+          "ms": 213.829
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12815 completeUnitOfWork",
+          "ms": 192.033
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:8359 completeWork",
+          "ms": 181.941
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:14803 setInitialProperties",
+          "ms": 120.597
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1315 initInput",
+          "ms": 71.826
+        },
+        {
+          "name": "(runtime):0 set value",
+          "ms": 46.234
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:14406 setProp",
+          "ms": 31.363
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 28.13
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:17873 dispatchDiscreteEvent",
+          "ms": 22.541
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:17907 dispatchEvent",
+          "ms": 22.04
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13843 addTrappedEventListener",
+          "ms": 22.039
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 21.055
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 19.994
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:7768 beginWork",
+          "ms": 19.983
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:17992 findInstanceBlockingEvent",
+          "ms": 19.494
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:1235 track",
+          "ms": 16.857
+        },
+        {
+          "name": "(runtime):0 createElement",
+          "ms": 15.464
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13827 (anonymous)",
+          "ms": 13.203
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 821.307
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js",
+          "ms": 133.839
+        },
+        {
+          "name": "../../node_modules/react/cjs/react.production.js",
+          "ms": 5.689
+        },
+        {
+          "name": "../../benchmarks/frameworks/react.mjs",
+          "ms": 5.025
+        }
+      ]
+    },
+    {
+      "mode": "react",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "(runtime):0 removeChild",
+          "ms": 76.477
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 48.882
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:11912 commitPassiveUnmountEffectsInsideOfDeletedTree_begin",
+          "ms": 10.43
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 4.029
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:10192 recursivelyTraverseDeletionEffects",
+          "ms": 3.111
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 1.511
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13408 flushSyncWorkAcrossRoots_impl",
+          "ms": 1.01
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:4296 enqueueUpdate",
+          "ms": 0.65
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13229 flushPassiveEffects",
+          "ms": 0.508
+        },
+        {
+          "name": "(runtime):0 queueMicrotask",
+          "ms": 0.504
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:4374 processUpdateQueue",
+          "ms": 0.498
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:11830 recursivelyTraversePassiveUnmountEffects",
+          "ms": 0.492
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 148.102
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:18500 ReactDOMHydrationRoot.unmount.ReactDOMRoot.unmount",
+          "ms": 93.68
+        },
+        {
+          "name": "../../benchmarks/frameworks/react.mjs:27 dispose",
+          "ms": 93.68
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:42 run",
+          "ms": 93.68
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 93.68
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 93.68
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13408 flushSyncWorkAcrossRoots_impl",
+          "ms": 92.526
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12402 flushSyncWork$1",
+          "ms": 92.526
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12069 performWorkOnRoot",
+          "ms": 91.516
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13574 performSyncWorkOnRoot",
+          "ms": 91.516
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12906 commitRoot",
+          "ms": 91.018
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12867 completeRoot",
+          "ms": 91.018
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12240 completeRootWhenReady",
+          "ms": 91.018
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:10201 commitDeletionEffectsOnFiber",
+          "ms": 79.588
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:10192 recursivelyTraverseDeletionEffects",
+          "ms": 79.588
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:10454 recursivelyTraverseMutationEffects",
+          "ms": 79.588
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:10497 commitMutationEffectsOnFiber",
+          "ms": 79.588
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:12986 flushMutationEffects",
+          "ms": 79.588
+        },
+        {
+          "name": "(runtime):0 removeChild",
+          "ms": 76.477
+        },
+        {
+          "name": "(runtime):0 (program)",
+          "ms": 48.882
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13229 flushPassiveEffects",
+          "ms": 11.43
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13221 flushPendingEffects",
+          "ms": 11.43
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:13134 flushSpawnedWork",
+          "ms": 11.43
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:11830 recursivelyTraversePassiveUnmountEffects",
+          "ms": 10.922
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:11849 commitPassiveUnmountOnFiber",
+          "ms": 10.922
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:11912 commitPassiveUnmountEffectsInsideOfDeletedTree_begin",
+          "ms": 10.43
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 4.029
+        },
+        {
+          "name": "(runtime):0 (idle)",
+          "ms": 1.511
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:17824 updateContainerImpl",
+          "ms": 1.154
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js:4296 enqueueUpdate",
+          "ms": 0.65
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 131.403
+        },
+        {
+          "name": "../../node_modules/react-dom/cjs/react-dom-client.production.js",
+          "ms": 16.699
+        }
+      ]
+    }
+  ]
+}

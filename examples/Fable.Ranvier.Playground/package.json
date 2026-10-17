@@ -1,0 +1,39 @@
+{
+  "name": "fable-ranvier-playground",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26.0.0"
+  },
+  "scripts": {
+    "compile": "dotnet fable Playground.fsproj --outDir generated --configuration Release",
+    "compile:tests": "dotnet fable tests/DomTests.fsproj --outDir generated-tests --configuration Release",
+    "dev": "npm run compile && concurrently --kill-others \"dotnet fable watch Playground.fsproj --outDir generated --configuration Release\" \"vite --host 127.0.0.1\"",
+    "dev:test": "concurrently --kill-others \"dotnet fable watch Playground.fsproj --outDir generated --configuration Release\" \"vite --host 127.0.0.1 --port 5178 --strictPort\"",
+    "build": "npm run compile && vite build",
+    "test:dom": "npm run compile:tests -- --define RANVIER_VIEW_COUNTERS && node --test tests/dom.test.mjs tests/scheduled.test.mjs tests/lifetime.test.mjs tests/representation.test.mjs tests/range.test.mjs tests/component.test.mjs tests/binding.test.mjs tests/mounting-investigation.test.mjs tests/delegation.test.mjs tests/template.test.mjs tests/template-catalogue.test.mjs",
+    "test:browser": "npm run compile:tests && npm run compile && playwright test",
+    "test": "npm run test:dom && npm run test:browser",
+    "bench:dom": "npm run compile:tests && node benchmarks/dom-scheduling.mjs",
+    "bench:view": "npm run compile:tests && node benchmarks/view-representation.mjs",
+    "bench:binding": "npm run compile:tests && node benchmarks/binding-minimal.mjs",
+    "bench:authoring": "node benchmarks/authoring-perf.mjs --build",
+    "bench:frameworks": "node benchmarks/frameworks/run.mjs --build",
+    "bench:frameworks:verify": "node benchmarks/frameworks/run.mjs --build --verify-only",
+    "bench:branch": "npm run compile:tests && node benchmarks/branch-snapshots.mjs",
+    "bench:snapshot:dotnet": "pwsh -NoProfile -File benchmarks/snapshot-dotnet.ps1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@jridgewell/trace-mapping": "0.3.31",
+    "@playwright/test": "1.63.0",
+    "@solidjs/compiler": "2.0.0-rc.14",
+    "@solidjs/web": "2.0.0-rc.14",
+    "concurrently": "10.0.5",
+    "jsdom": "30.1.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "solid-js": "2.0.0-rc.14",
+    "vite": "8.3.2"
+  }
+}

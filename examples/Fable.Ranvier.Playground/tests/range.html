@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><title>Owned range checks</title></head><body>
+<script type="module">
+import { allCases as cases } from "../generated-tests/RangeChecks.js";
+import { cases as bindings, microtaskFixture } from "../generated-tests/BindingChecks.js";
+import { cases as integration } from "../generated-tests/BindingIntegrationChecks.js";
+import { cases as generated } from "../generated-tests/GeneratedChecks.js";
+import { cases as attributes } from "../generated-tests/AttributeChecks.js";
+import { browserCases as templateBrowser } from "../generated-tests/TemplateChecks.js";
+window.rangeCases = [...cases, ...bindings, ...integration, ...generated, ...attributes];
+window.bindingMicrotaskFixture = microtaskFixture;
+window.templateBrowserCases = templateBrowser;
+</script>
+</body></html>

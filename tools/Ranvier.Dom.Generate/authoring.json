@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "attributes": [
+    { "group": "", "helper": "id", "name": "id" },
+    { "group": "", "helper": "class", "name": "className" },
+    { "group": "", "helper": "title", "name": "title" },
+    { "group": "", "helper": "ariaBusy", "name": "ariaBusy" },
+    { "group": "Button", "helper": "disabled", "name": "disabled" },
+    { "group": "Button", "helper": "type", "name": "type" },
+    { "group": "Input", "helper": "value", "name": "value" },
+    { "group": "Input", "helper": "checked", "name": "checked" },
+    { "group": "Input", "helper": "placeholder", "name": "placeholder" },
+    { "group": "Input", "helper": "type", "name": "type" }
+  ],
+  "properties": [
+    { "group": "Element", "native": "HTMLElement", "members": [ "title" ] },
+    { "group": "Input", "native": "HTMLInputElement", "members": [ "value", "checked" ] },
+    { "group": "Button", "native": "HTMLButtonElement", "members": [ "disabled" ] }
+  ]
+}

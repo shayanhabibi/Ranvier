@@ -1,0 +1,1346 @@
+{
+  "measuredAt": "2026-10-13T18:23:02.181Z",
+  "machine": "AMD Ryzen 9 9900X, one Chromium process per profile, production unminified bundle, CDP sampling interval 100 µs",
+  "workload": "one profiled run of 1024 independent 128-row mounts after 10 warm samples; busy time excludes (program), (idle) and (root) samples",
+  "note": "Self and inclusive times map each frame to the emitted Fable/npm JS through the bundle's source map; native DOM work is attributed to its JS caller in inclusive time and listed as (runtime) in self time.",
+  "profiles": {
+    "before": {
+      "commit": "5e69af2",
+      "modes": {
+        "ranvier-template": {
+          "busyMs": 1166.5,
+          "self": [
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 198.6,
+              "percent": 17
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 173.4,
+              "percent": 14.9
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+              "ms": 166,
+              "percent": 14.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:339 materialise",
+              "ms": 99,
+              "percent": 8.5
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 83.7,
+              "percent": 7.2
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 63.5,
+              "percent": 5.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:310 collect",
+              "ms": 50,
+              "percent": 4.3
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 47.4,
+              "percent": 4.1
+            },
+            {
+              "name": "src/Ranvier/Core.js:274 SourceList__Add_Z47AEE590",
+              "ms": 38.6,
+              "percent": 3.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:251 write",
+              "ms": 30.8,
+              "percent": 2.6
+            },
+            {
+              "name": "fable_modules/fable-library-js.5.18.0/Array.js:30 fill",
+              "ms": 24.1,
+              "percent": 2.1
+            },
+            {
+              "name": "src/Ranvier/Core.js:2733 Effect__RunBody",
+              "ms": 16.1,
+              "percent": 1.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:1395 Graph__RunFlush",
+              "ms": 10.8,
+              "percent": 0.9
+            },
+            {
+              "name": "src/Ranvier/Core.js:1119 Graph_get_Ambient",
+              "ms": 10.2,
+              "percent": 0.9
+            },
+            {
+              "name": "src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+              "ms": 9,
+              "percent": 0.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:628 mountCore$1",
+              "ms": 8.5,
+              "percent": 0.7
+            },
+            {
+              "name": "fable_modules/fable-library-js.5.18.0/Array.js:933 setItem$1",
+              "ms": 7.3,
+              "percent": 0.6
+            },
+            {
+              "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+              "ms": 5.5,
+              "percent": 0.5
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:401 (anonymous)",
+              "ms": 5.2,
+              "percent": 0.4
+            },
+            {
+              "name": "FrameworkPerf.js:112 view",
+              "ms": 4.8,
+              "percent": 0.4
+            },
+            {
+              "name": "FrameworkPerf.js:157 (anonymous)",
+              "ms": 4.7,
+              "percent": 0.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1321 Ranvier.View.Foundation.Representation.Backend.Template4D95A689",
+              "ms": 4.6,
+              "percent": 0.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:2592 Effect$1",
+              "ms": 4.6,
+              "percent": 0.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1339 (anonymous)",
+              "ms": 4.5,
+              "percent": 0.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:156 claim",
+              "ms": 4.1,
+              "percent": 0.3
+            }
+          ],
+          "inclusive": [
+            {
+              "name": "FrameworkPerf.js:154 mountTemplate",
+              "ms": 987,
+              "percent": 84.6
+            },
+            {
+              "name": "FrameworkPerf.js:106 mountCore",
+              "ms": 984.8,
+              "percent": 84.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1404 mountWith",
+              "ms": 978,
+              "percent": 83.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1425 mount$4",
+              "ms": 978,
+              "percent": 83.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:628 mountCore$1",
+              "ms": 976.2,
+              "percent": 83.7
+            },
+            {
+              "name": "src/Ranvier/Api.js:671 Ranvier_Graph__Graph_Run_FCFD9EF",
+              "ms": 868.7,
+              "percent": 74.5
+            },
+            {
+              "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+              "ms": 866.6,
+              "percent": 74.3
+            },
+            {
+              "name": "src/Ranvier/Api.js:471 Api_createRoot",
+              "ms": 866.6,
+              "percent": 74.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1353 (anonymous)",
+              "ms": 866.6,
+              "percent": 74.3
+            },
+            {
+              "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+              "ms": 866.1,
+              "percent": 74.3
+            },
+            {
+              "name": "src/Ranvier/Api.js:424 Api_untrack",
+              "ms": 866.1,
+              "percent": 74.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1354 (anonymous)",
+              "ms": 866.1,
+              "percent": 74.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1361 (anonymous)",
+              "ms": 865.6,
+              "percent": 74.2
+            },
+            {
+              "name": "FrameworkPerf.js:112 view",
+              "ms": 865.1,
+              "percent": 74.2
+            },
+            {
+              "name": "FrameworkPerf.js:117 (anonymous)",
+              "ms": 865.1,
+              "percent": 74.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:991 Ranvier.View.Foundation.Representation.Backend.ElementWith45902D85",
+              "ms": 860.3,
+              "percent": 73.8
+            },
+            {
+              "name": "FrameworkPerf.js:157 (anonymous)",
+              "ms": 850.8,
+              "percent": 72.9
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:339 materialise",
+              "ms": 840,
+              "percent": 72
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:791 (anonymous)",
+              "ms": 761.9,
+              "percent": 65.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1321 Ranvier.View.Foundation.Representation.Backend.Template4D95A689",
+              "ms": 760.9,
+              "percent": 65.2
+            },
+            {
+              "name": "src/Ranvier/Api.js:316 Api_createEffect",
+              "ms": 358.5,
+              "percent": 30.7
+            },
+            {
+              "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+              "ms": 356.1,
+              "percent": 30.5
+            },
+            {
+              "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+              "ms": 356.1,
+              "percent": 30.5
+            },
+            {
+              "name": "src/Ranvier/Core.js:2592 Effect$1",
+              "ms": 355,
+              "percent": 30.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:1395 Graph__RunFlush",
+              "ms": 348.9,
+              "percent": 29.9
+            },
+            {
+              "name": "src/Ranvier/Core.js:2733 Effect__RunBody",
+              "ms": 337.6,
+              "percent": 28.9
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:401 (anonymous)",
+              "ms": 256.3,
+              "percent": 22
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:267 commit",
+              "ms": 249,
+              "percent": 21.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:251 write",
+              "ms": 248,
+              "percent": 21.3
+            },
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 198.6,
+              "percent": 17
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 173.4,
+              "percent": 14.9
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:167 (anonymous)",
+              "ms": 169.9,
+              "percent": 14.6
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+              "ms": 166,
+              "percent": 14.2
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 83.7,
+              "percent": 7.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:668 append",
+              "ms": 82.5,
+              "percent": 7.1
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1328 (anonymous)",
+              "ms": 79,
+              "percent": 6.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:349 OwnedRange__Attach_Z10A2E39D",
+              "ms": 72.3,
+              "percent": 6.2
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 63.5,
+              "percent": 5.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:274 SourceList__Add_Z47AEE590",
+              "ms": 52.9,
+              "percent": 4.5
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:310 collect",
+              "ms": 50.6,
+              "percent": 4.3
+            }
+          ]
+        },
+        "solid": {
+          "busyMs": 721.8,
+          "self": [
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 165.9,
+              "percent": 23
+            },
+            {
+              "name": "frameworks/solid.jsx:6 (anonymous)",
+              "ms": 152.2,
+              "percent": 21.1
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 108.7,
+              "percent": 15.1
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 53.5,
+              "percent": 7.4
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 47.6,
+              "percent": 6.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+              "ms": 32,
+              "percent": 4.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+              "ms": 28,
+              "percent": 3.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+              "ms": 24.6,
+              "percent": 3.4
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 18,
+              "percent": 2.5
+            },
+            {
+              "name": "frameworks/solid.jsx:19 (anonymous)",
+              "ms": 17.6,
+              "percent": 2.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+              "ms": 7.2,
+              "percent": 1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:541 setAttribute",
+              "ms": 6.6,
+              "percent": 0.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1018 read",
+              "ms": 5,
+              "percent": 0.7
+            },
+            {
+              "name": "(runtime):0 removeAttribute",
+              "ms": 4.8,
+              "percent": 0.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/graph.js:112 link",
+              "ms": 4.1,
+              "percent": 0.6
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:906 accessor.$s.options",
+              "ms": 3.7,
+              "percent": 0.5
+            },
+            {
+              "name": "(runtime):0 queueMicrotask",
+              "ms": 3.6,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+              "ms": 3.6,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:61 effect",
+              "ms": 3.5,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+              "ms": 3.1,
+              "percent": 0.4
+            },
+            {
+              "name": "(runtime):0 addEventListener",
+              "ms": 2.5,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/flatten.js:44 flattenArray",
+              "ms": 2.1,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:769 signal",
+              "ms": 2,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/signals.js:65 accessor",
+              "ms": 2,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+              "ms": 1.9,
+              "percent": 0.3
+            }
+          ],
+          "inclusive": [
+            {
+              "name": "frameworks/solid.jsx:13 mount$1",
+              "ms": 613.1,
+              "percent": 84.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:398 render",
+              "ms": 611.5,
+              "percent": 84.7
+            },
+            {
+              "name": "solid-js/dist/solid.js:934 createRoot$1",
+              "ms": 555.3,
+              "percent": 76.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+              "ms": 554.8,
+              "percent": 76.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:402 createRoot$1.id",
+              "ms": 554.3,
+              "percent": 76.8
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+              "ms": 554.3,
+              "percent": 76.8
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+              "ms": 554.3,
+              "percent": 76.8
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:874 insert",
+              "ms": 549.4,
+              "percent": 76.1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:61 effect",
+              "ms": 549.1,
+              "percent": 76.1
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+              "ms": 547.1,
+              "percent": 75.8
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+              "ms": 547.1,
+              "percent": 75.8
+            },
+            {
+              "name": "solid-js/dist/solid.js:935 createRenderEffect",
+              "ms": 547.1,
+              "percent": 75.8
+            },
+            {
+              "name": "frameworks/solid.jsx:15 (anonymous)",
+              "ms": 546.9,
+              "percent": 75.8
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+              "ms": 525.9,
+              "percent": 72.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:893 (anonymous)",
+              "ms": 523.4,
+              "percent": 72.5
+            },
+            {
+              "name": "frameworks/solid.jsx:19 (anonymous)",
+              "ms": 520.6,
+              "percent": 72.1
+            },
+            {
+              "name": "solid-js/dist/solid.js:1298 createComponent",
+              "ms": 503.1,
+              "percent": 69.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+              "ms": 502.6,
+              "percent": 69.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+              "ms": 314.6,
+              "percent": 43.6
+            },
+            {
+              "name": "frameworks/solid.jsx:6 (anonymous)",
+              "ms": 217.1,
+              "percent": 30.1
+            },
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 165.9,
+              "percent": 23
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 108.7,
+              "percent": 15.1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:906 accessor.$s.options",
+              "ms": 94.9,
+              "percent": 13.2
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+              "ms": 91.2,
+              "percent": 12.6
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:541 setAttribute",
+              "ms": 64.9,
+              "percent": 9
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 53.5,
+              "percent": 7.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:842 flush",
+              "ms": 49.2,
+              "percent": 6.8
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:406 flush",
+              "ms": 48.6,
+              "percent": 6.7
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 47.6,
+              "percent": 6.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:869 runQueue",
+              "ms": 47.6,
+              "percent": 6.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:589 run",
+              "ms": 47.6,
+              "percent": 6.6
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1766 appendNodes",
+              "ms": 19.1,
+              "percent": 2.6
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 18,
+              "percent": 2.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1018 read",
+              "ms": 10.2,
+              "percent": 1.4
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:450 registerDelegatedRoot",
+              "ms": 7.1,
+              "percent": 1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+              "ms": 6.1,
+              "percent": 0.8
+            },
+            {
+              "name": "frameworks/solid.jsx:6 Row$1.effect.e.e",
+              "ms": 6,
+              "percent": 0.8
+            },
+            {
+              "name": "(runtime):0 removeAttribute",
+              "ms": 4.8,
+              "percent": 0.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+              "ms": 4.4,
+              "percent": 0.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/signals.js:71 createSignal$1",
+              "ms": 4.3,
+              "percent": 0.6
+            }
+          ]
+        }
+      }
+    },
+    "after": {
+      "commit": "19ea929",
+      "modes": {
+        "ranvier-template": {
+          "busyMs": 686,
+          "self": [
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 135,
+              "percent": 19.7
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+              "ms": 125,
+              "percent": 18.2
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 102.7,
+              "percent": 15
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 49.6,
+              "percent": 7.2
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 36.7,
+              "percent": 5.4
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 36.7,
+              "percent": 5.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:313 collect",
+              "ms": 35.7,
+              "percent": 5.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:254 write",
+              "ms": 25.6,
+              "percent": 3.7
+            },
+            {
+              "name": "src/Ranvier/Core.js:274 SourceList__Add_Z47AEE590",
+              "ms": 24.7,
+              "percent": 3.6
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:342 materialise",
+              "ms": 12.4,
+              "percent": 1.8
+            },
+            {
+              "name": "src/Ranvier/Core.js:2592 Effect$1",
+              "ms": 7.8,
+              "percent": 1.1
+            },
+            {
+              "name": "FrameworkPerf.js:112 view",
+              "ms": 7.5,
+              "percent": 1.1
+            },
+            {
+              "name": "(runtime):0 addEventListener",
+              "ms": 6.3,
+              "percent": 0.9
+            },
+            {
+              "name": "src/Ranvier/Core.js:2733 Effect__RunBody",
+              "ms": 5.9,
+              "percent": 0.9
+            },
+            {
+              "name": "FrameworkPerf.js:157 (anonymous)",
+              "ms": 5,
+              "percent": 0.7
+            },
+            {
+              "name": "src/Ranvier/Core.js:1395 Graph__RunFlush",
+              "ms": 4.4,
+              "percent": 0.6
+            },
+            {
+              "name": "src/Ranvier/Core.js:1119 Graph_get_Ambient",
+              "ms": 4,
+              "percent": 0.6
+            },
+            {
+              "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+              "ms": 3.8,
+              "percent": 0.6
+            },
+            {
+              "name": "src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+              "ms": 3.4,
+              "percent": 0.5
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:331 (anonymous)",
+              "ms": 3.1,
+              "percent": 0.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:404 (anonymous)",
+              "ms": 2.7,
+              "percent": 0.4
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:156 claim",
+              "ms": 2.5,
+              "percent": 0.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+              "ms": 2.2,
+              "percent": 0.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:628 mountCore$1",
+              "ms": 2,
+              "percent": 0.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:253 (anonymous)",
+              "ms": 1.6,
+              "percent": 0.2
+            }
+          ],
+          "inclusive": [
+            {
+              "name": "FrameworkPerf.js:106 mountCore",
+              "ms": 581.5,
+              "percent": 84.8
+            },
+            {
+              "name": "FrameworkPerf.js:154 mountTemplate",
+              "ms": 581.5,
+              "percent": 84.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:628 mountCore$1",
+              "ms": 576,
+              "percent": 84
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1404 mountWith",
+              "ms": 576,
+              "percent": 84
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1425 mount$4",
+              "ms": 576,
+              "percent": 84
+            },
+            {
+              "name": "src/Ranvier/Api.js:671 Ranvier_Graph__Graph_Run_FCFD9EF",
+              "ms": 524.6,
+              "percent": 76.5
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1354 (anonymous)",
+              "ms": 523.1,
+              "percent": 76.3
+            },
+            {
+              "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+              "ms": 523.1,
+              "percent": 76.3
+            },
+            {
+              "name": "src/Ranvier/Api.js:471 Api_createRoot",
+              "ms": 523.1,
+              "percent": 76.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1353 (anonymous)",
+              "ms": 523.1,
+              "percent": 76.3
+            },
+            {
+              "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+              "ms": 521.2,
+              "percent": 76
+            },
+            {
+              "name": "FrameworkPerf.js:112 view",
+              "ms": 521.2,
+              "percent": 76
+            },
+            {
+              "name": "FrameworkPerf.js:117 (anonymous)",
+              "ms": 521.2,
+              "percent": 76
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1361 (anonymous)",
+              "ms": 521.2,
+              "percent": 76
+            },
+            {
+              "name": "src/Ranvier/Api.js:424 Api_untrack",
+              "ms": 521.2,
+              "percent": 76
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:991 Ranvier.View.Foundation.Representation.Backend.ElementWith45902D85",
+              "ms": 513.7,
+              "percent": 74.9
+            },
+            {
+              "name": "FrameworkPerf.js:157 (anonymous)",
+              "ms": 511.1,
+              "percent": 74.5
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:342 materialise",
+              "ms": 503.1,
+              "percent": 73.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:791 (anonymous)",
+              "ms": 451.5,
+              "percent": 65.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1321 Ranvier.View.Foundation.Representation.Backend.Template4D95A689",
+              "ms": 451,
+              "percent": 65.7
+            },
+            {
+              "name": "src/Ranvier/Api.js:316 Api_createEffect",
+              "ms": 256.7,
+              "percent": 37.4
+            },
+            {
+              "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+              "ms": 254.6,
+              "percent": 37.1
+            },
+            {
+              "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+              "ms": 254.6,
+              "percent": 37.1
+            },
+            {
+              "name": "src/Ranvier/Core.js:2592 Effect$1",
+              "ms": 253.5,
+              "percent": 37
+            },
+            {
+              "name": "src/Ranvier/Core.js:1395 Graph__RunFlush",
+              "ms": 245.2,
+              "percent": 35.7
+            },
+            {
+              "name": "src/Ranvier/Core.js:2733 Effect__RunBody",
+              "ms": 240.8,
+              "percent": 35.1
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:404 (anonymous)",
+              "ms": 196,
+              "percent": 28.6
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:270 commit",
+              "ms": 193.3,
+              "percent": 28.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:254 write",
+              "ms": 191.8,
+              "percent": 28
+            },
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 135,
+              "percent": 19.7
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:167 (anonymous)",
+              "ms": 129.6,
+              "percent": 18.9
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+              "ms": 125,
+              "percent": 18.2
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 102.7,
+              "percent": 15
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:668 append",
+              "ms": 53.6,
+              "percent": 7.8
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:1328 (anonymous)",
+              "ms": 52.1,
+              "percent": 7.6
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 49.6,
+              "percent": 7.2
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/Mounting.js:349 OwnedRange__Attach_Z10A2E39D",
+              "ms": 38.7,
+              "percent": 5.6
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 36.7,
+              "percent": 5.4
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 36.7,
+              "percent": 5.3
+            },
+            {
+              "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:313 collect",
+              "ms": 35.7,
+              "percent": 5.2
+            }
+          ]
+        },
+        "solid": {
+          "busyMs": 679.4,
+          "self": [
+            {
+              "name": "frameworks/solid.jsx:6 (anonymous)",
+              "ms": 160.2,
+              "percent": 23.6
+            },
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 157,
+              "percent": 23.1
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 100.1,
+              "percent": 14.7
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 45.8,
+              "percent": 6.7
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 36.8,
+              "percent": 5.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+              "ms": 30.7,
+              "percent": 4.5
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 24.5,
+              "percent": 3.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+              "ms": 21.2,
+              "percent": 3.1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+              "ms": 20.5,
+              "percent": 3
+            },
+            {
+              "name": "frameworks/solid.jsx:19 (anonymous)",
+              "ms": 12.8,
+              "percent": 1.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:541 setAttribute",
+              "ms": 7.2,
+              "percent": 1.1
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+              "ms": 6.3,
+              "percent": 0.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1018 read",
+              "ms": 6.1,
+              "percent": 0.9
+            },
+            {
+              "name": "(runtime):0 removeAttribute",
+              "ms": 6,
+              "percent": 0.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+              "ms": 4.1,
+              "percent": 0.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:724 bumpNotifyEpoch",
+              "ms": 3.6,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/graph.js:112 link",
+              "ms": 3.1,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+              "ms": 3,
+              "percent": 0.4
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:906 accessor.$s.options",
+              "ms": 2.5,
+              "percent": 0.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1160 serve",
+              "ms": 2.3,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/owner.js:166 inheritId",
+              "ms": 2.3,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:61 effect",
+              "ms": 2,
+              "percent": 0.3
+            },
+            {
+              "name": "(runtime):0 queueMicrotask",
+              "ms": 2,
+              "percent": 0.3
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1766 appendNodes",
+              "ms": 1.5,
+              "percent": 0.2
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/async.js:541 clearStatus",
+              "ms": 1.1,
+              "percent": 0.2
+            }
+          ],
+          "inclusive": [
+            {
+              "name": "frameworks/solid.jsx:13 mount$1",
+              "ms": 578.8,
+              "percent": 85.2
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:398 render",
+              "ms": 578.3,
+              "percent": 85.1
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+              "ms": 528.9,
+              "percent": 77.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+              "ms": 528.9,
+              "percent": 77.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+              "ms": 528.9,
+              "percent": 77.9
+            },
+            {
+              "name": "solid-js/dist/solid.js:934 createRoot$1",
+              "ms": 528.9,
+              "percent": 77.9
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:402 createRoot$1.id",
+              "ms": 528.1,
+              "percent": 77.7
+            },
+            {
+              "name": "frameworks/solid.jsx:15 (anonymous)",
+              "ms": 524.2,
+              "percent": 77.2
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:874 insert",
+              "ms": 524.1,
+              "percent": 77.1
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:61 effect",
+              "ms": 523,
+              "percent": 77
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+              "ms": 522.6,
+              "percent": 76.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+              "ms": 522.6,
+              "percent": 76.9
+            },
+            {
+              "name": "solid-js/dist/solid.js:935 createRenderEffect",
+              "ms": 522.6,
+              "percent": 76.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+              "ms": 494.6,
+              "percent": 72.8
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:893 (anonymous)",
+              "ms": 494.1,
+              "percent": 72.7
+            },
+            {
+              "name": "frameworks/solid.jsx:19 (anonymous)",
+              "ms": 492.9,
+              "percent": 72.6
+            },
+            {
+              "name": "solid-js/dist/solid.js:1298 createComponent",
+              "ms": 480.1,
+              "percent": 70.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+              "ms": 479.1,
+              "percent": 70.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+              "ms": 307.5,
+              "percent": 45.3
+            },
+            {
+              "name": "frameworks/solid.jsx:6 (anonymous)",
+              "ms": 210.2,
+              "percent": 30.9
+            },
+            {
+              "name": "(runtime):0 cloneNode",
+              "ms": 157,
+              "percent": 23.1
+            },
+            {
+              "name": "(runtime):0 (garbage collector)",
+              "ms": 100.1,
+              "percent": 14.7
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:906 accessor.$s.options",
+              "ms": 94.8,
+              "percent": 14
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+              "ms": 92.3,
+              "percent": 13.6
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:541 setAttribute",
+              "ms": 50,
+              "percent": 7.4
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:406 flush",
+              "ms": 47.8,
+              "percent": 7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:842 flush",
+              "ms": 47.8,
+              "percent": 7
+            },
+            {
+              "name": "(runtime):0 appendChild",
+              "ms": 45.8,
+              "percent": 6.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:869 runQueue",
+              "ms": 45.8,
+              "percent": 6.7
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:589 run",
+              "ms": 45.8,
+              "percent": 6.7
+            },
+            {
+              "name": "(runtime):0 setAttribute",
+              "ms": 36.8,
+              "percent": 5.4
+            },
+            {
+              "name": "@solidjs/web/dist/web.js:1766 appendNodes",
+              "ms": 26,
+              "percent": 3.8
+            },
+            {
+              "name": "(runtime):0 insertBefore",
+              "ms": 24.5,
+              "percent": 3.6
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1018 read",
+              "ms": 12.1,
+              "percent": 1.8
+            },
+            {
+              "name": "frameworks/solid.jsx:6 Row$1.effect.e.e",
+              "ms": 8.9,
+              "percent": 1.3
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+              "ms": 6.9,
+              "percent": 1
+            },
+            {
+              "name": "(runtime):0 removeAttribute",
+              "ms": 6,
+              "percent": 0.9
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/scheduler.js:724 bumpNotifyEpoch",
+              "ms": 3.6,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/graph.js:112 link",
+              "ms": 3.1,
+              "percent": 0.5
+            },
+            {
+              "name": "@solidjs/signals/dist/prod/core/core.js:1160 serve",
+              "ms": 2.8,
+              "percent": 0.4
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RanvierTrace>false</RanvierTrace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Toolkit.cs" />
+    <Compile Include="../Ranvier.cs" />
+    <Compile Include="../WpfProgram.cs" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <ProjectReference Include="../../../src/Ranvier.CSharp/Ranvier.CSharp.fsproj" />
+    <RuntimeHostConfigurationOption Include="System.Runtime.TieredCompilation" Value="false" />
+  </ItemGroup>
+</Project>

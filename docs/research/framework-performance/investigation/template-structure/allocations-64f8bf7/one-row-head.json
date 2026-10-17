@@ -1,0 +1,396 @@
+{
+  "measuredAt": "2026-10-14T03:57:03.826Z",
+  "chromium": "153.0.8010.12",
+  "configuration": "production unminified; CDP allocation sampling at 128-byte interval, including collected objects",
+  "note": "Sampled allocation estimates, one browser process, exclude total native DOM memory and are not exact allocation counts",
+  "results": [
+    {
+      "mode": "ranvier-template",
+      "width": 1,
+      "roots": 4096,
+      "estimatedBytesPerMount": 4426.841796875,
+      "functions": [
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:106 mountCore",
+          "estimatedBytesPerMount": 478.7841796875
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1103 Graph__Activate",
+          "estimatedBytesPerMount": 289.2880859375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:427 bind",
+          "estimatedBytesPerMount": 284.6767578125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+          "estimatedBytesPerMount": 210.2333984375
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1233 Graph__AddCleanup_3A5B6456",
+          "estimatedBytesPerMount": 196.7470703125
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:175 OwnedRange",
+          "estimatedBytesPerMount": 165.1181640625
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+          "estimatedBytesPerMount": 163.39453125
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:667 MountState",
+          "estimatedBytesPerMount": 130.4423828125
+        },
+        {
+          "name": "(runtime):0 add",
+          "estimatedBytesPerMount": 127.958984375
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:13 (anonymous)",
+          "estimatedBytesPerMount": 127.8095703125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2592 Effect$1",
+          "estimatedBytesPerMount": 125.9560546875
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1049 MountState__Run_Z5F452C38",
+          "estimatedBytesPerMount": 111.6689453125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:551 Owner__Append_ZE530460",
+          "estimatedBytesPerMount": 105.7578125
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:218 initialize",
+          "estimatedBytesPerMount": 102.7724609375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:412 stateFor",
+          "estimatedBytesPerMount": 97.3095703125
+        },
+        {
+          "name": "(runtime):0 Map",
+          "estimatedBytesPerMount": 94.12890625
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:978 Graph",
+          "estimatedBytesPerMount": 88.5810546875
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:570 materialise",
+          "estimatedBytesPerMount": 81.6689453125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2195 Memo$1",
+          "estimatedBytesPerMount": 76.6962890625
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:274 SourceList__Add_Z47AEE590",
+          "estimatedBytesPerMount": 76.43359375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Prepared.js:14 Backend",
+          "estimatedBytesPerMount": 75.2890625
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1965 Signal$1",
+          "estimatedBytesPerMount": 70.7470703125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1375 Graph__Schedule_B041F36",
+          "estimatedBytesPerMount": 68.0771484375
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js:208 Queue$1_$ctor_Z524259A4",
+          "estimatedBytesPerMount": 66.333984375
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:110 (anonymous)",
+          "estimatedBytesPerMount": 62.802734375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:873 get Setup",
+          "estimatedBytesPerMount": 62.3623046875
+        },
+        {
+          "name": "(runtime):0 push",
+          "estimatedBytesPerMount": 51.298828125
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:386 collect",
+          "estimatedBytesPerMount": 47.109375
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:24 ObserverSlot",
+          "estimatedBytesPerMount": 44.55859375
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "estimatedBytesPerMount": 41.205078125
+        }
+      ],
+      "sources": [
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js",
+          "estimatedBytesPerMount": 1708.8837890625
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js",
+          "estimatedBytesPerMount": 603.7607421875
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js",
+          "estimatedBytesPerMount": 597.1083984375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js",
+          "estimatedBytesPerMount": 550.3095703125
+        },
+        {
+          "name": "(runtime)",
+          "estimatedBytesPerMount": 379.0849609375
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "estimatedBytesPerMount": 169.0146484375
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js",
+          "estimatedBytesPerMount": 103.39453125
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Prepared.js",
+          "estimatedBytesPerMount": 75.2890625
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+          "estimatedBytesPerMount": 68.6787109375
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js",
+          "estimatedBytesPerMount": 45.173828125
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Types.js",
+          "estimatedBytesPerMount": 27.3837890625
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js",
+          "estimatedBytesPerMount": 25.1962890625
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Template.js",
+          "estimatedBytesPerMount": 21.3115234375
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/List.js",
+          "estimatedBytesPerMount": 21.005859375
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js",
+          "estimatedBytesPerMount": 13.6240234375
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js",
+          "estimatedBytesPerMount": 12.2177734375
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Platform.js",
+          "estimatedBytesPerMount": 2.5908203125
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js",
+          "estimatedBytesPerMount": 1.5263671875
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Native.js",
+          "estimatedBytesPerMount": 1.1826171875
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+          "estimatedBytesPerMount": 0.1044921875
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "width": 1,
+      "roots": 4096,
+      "estimatedBytesPerMount": 3966.51171875,
+      "functions": [
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+          "estimatedBytesPerMount": 578.083984375
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:874 insert",
+          "estimatedBytesPerMount": 298.046875
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:4 Row$1",
+          "estimatedBytesPerMount": 249.9140625
+        },
+        {
+          "name": "(runtime):0 bind",
+          "estimatedBytesPerMount": 218.8818359375
+        },
+        {
+          "name": "(runtime):0 Map",
+          "estimatedBytesPerMount": 185.5791015625
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:398 render",
+          "estimatedBytesPerMount": 162.0400390625
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:15 (anonymous)",
+          "estimatedBytesPerMount": 151.6220703125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js:112 link",
+          "estimatedBytesPerMount": 145.1748046875
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/scheduler.js:442 settle",
+          "estimatedBytesPerMount": 134.58203125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:518 computed",
+          "estimatedBytesPerMount": 122.59375
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:19 (anonymous)",
+          "estimatedBytesPerMount": 115.953125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/signals.js:71 createSignal$1",
+          "estimatedBytesPerMount": 105.14453125
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:467 (anonymous)",
+          "estimatedBytesPerMount": 101.333984375
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "estimatedBytesPerMount": 98.5205078125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/flatten.js:19 flatten",
+          "estimatedBytesPerMount": 96.486328125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:769 signal",
+          "estimatedBytesPerMount": 96.10546875
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/scheduler.js:596 enqueue",
+          "estimatedBytesPerMount": 93.005859375
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:13 mount$1",
+          "estimatedBytesPerMount": 91.705078125
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+          "estimatedBytesPerMount": 88.0703125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+          "estimatedBytesPerMount": 81.81640625
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:402 createRoot$1.id",
+          "estimatedBytesPerMount": 76.87890625
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/flatten.js:44 flattenArray",
+          "estimatedBytesPerMount": 72.5302734375
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+          "estimatedBytesPerMount": 71.7822265625
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:263 createOwner",
+          "estimatedBytesPerMount": 65.818359375
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:893 (anonymous)",
+          "estimatedBytesPerMount": 62.3193359375
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:1738 normalize",
+          "estimatedBytesPerMount": 61.220703125
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:1671 insertExpression",
+          "estimatedBytesPerMount": 60.25390625
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:6 Row$1.effect.e.e",
+          "estimatedBytesPerMount": 48.4462890625
+        },
+        {
+          "name": "(runtime):0 from",
+          "estimatedBytesPerMount": 28.3212890625
+        },
+        {
+          "name": "(runtime):0 set",
+          "estimatedBytesPerMount": 28.0537109375
+        }
+      ],
+      "sources": [
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js",
+          "estimatedBytesPerMount": 943.4482421875
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js",
+          "estimatedBytesPerMount": 801.185546875
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx",
+          "estimatedBytesPerMount": 657.7802734375
+        },
+        {
+          "name": "(runtime)",
+          "estimatedBytesPerMount": 541.8046875
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+          "estimatedBytesPerMount": 248.3583984375
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/flatten.js",
+          "estimatedBytesPerMount": 169.0166015625
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js",
+          "estimatedBytesPerMount": 145.1748046875
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js",
+          "estimatedBytesPerMount": 140.068359375
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/signals.js",
+          "estimatedBytesPerMount": 126.1826171875
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "estimatedBytesPerMount": 98.5205078125
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js",
+          "estimatedBytesPerMount": 81.81640625
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js",
+          "estimatedBytesPerMount": 13.1552734375
+        }
+      ]
+    }
+  ]
+}

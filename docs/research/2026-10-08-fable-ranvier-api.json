@@ -1,0 +1,216 @@
+{
+  "status": "ok",
+  "project": "C:\\Users\\shaya\\RiderProjects\\Ranvier\\src\\Fable.Ranvier\\Fable.Ranvier.fsproj",
+  "optionsSource": "ionide-proj-info",
+  "includeInternal": false,
+  "namespaceFilter": null,
+  "entityCount": 7,
+  "memberCount": 25,
+  "entities": [
+    {
+      "fullName": "Fable.Ranvier.Dom",
+      "kind": "module",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "attribute",
+          "kind": "function",
+          "signature": "attribute(name: string, value: string, element: Fable.Core.TS.Dom.HTMLElement) -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "bindAttribute",
+          "kind": "function",
+          "signature": "bindAttribute(name: string, read: unit -> string option, element: Fable.Core.TS.Dom.HTMLElement) -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "bindProperty",
+          "kind": "function",
+          "signature": "bindProperty(read: unit -> 'T, write: Fable.Core.TS.Dom.HTMLElement -> 'T -> unit, element: Fable.Core.TS.Dom.HTMLElement) -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "createElement",
+          "kind": "function",
+          "signature": "createElement(name: string) -> Fable.Core.TS.Dom.HTMLElement",
+          "accessibility": "public"
+        },
+        {
+          "name": "element",
+          "kind": "function",
+          "signature": "element(name: string, modifiers: Fable.Ranvier.Dom.Modifier list, children: Fable.Core.TS.Dom.Node list) -> Fable.Core.TS.Dom.HTMLElement",
+          "accessibility": "public"
+        },
+        {
+          "name": "on",
+          "kind": "function",
+          "signature": "on(name: string, handler: Fable.Core.TS.Dom.Event -> unit, element: Fable.Core.TS.Dom.HTMLElement) -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "property",
+          "kind": "function",
+          "signature": "property(write: Fable.Core.TS.Dom.HTMLElement -> 'T -> unit, value: 'T, element: Fable.Core.TS.Dom.HTMLElement) -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "reactiveText",
+          "kind": "function",
+          "signature": "reactiveText(read: unit -> string) -> Fable.Core.TS.Dom.Node",
+          "accessibility": "public"
+        },
+        {
+          "name": "text",
+          "kind": "function",
+          "signature": "text(value: string) -> Fable.Core.TS.Dom.Node",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Fable.Ranvier.DomMount",
+      "kind": "class",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "Dispose",
+          "kind": "method",
+          "signature": "Dispose() -> unit",
+          "accessibility": "public"
+        },
+        {
+          "name": "Errors",
+          "kind": "property",
+          "signature": "Errors() -> exn array",
+          "accessibility": "public"
+        },
+        {
+          "name": "Flush",
+          "kind": "method",
+          "signature": "Flush() -> unit",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Fable.Ranvier.DomOptions",
+      "kind": "record",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "BatchEvents",
+          "kind": "field",
+          "signature": "BatchEvents: bool",
+          "accessibility": "public"
+        },
+        {
+          "name": "Default",
+          "kind": "property",
+          "signature": "Default() -> Fable.Ranvier.DomOptions",
+          "accessibility": "public"
+        },
+        {
+          "name": "Scheduling",
+          "kind": "field",
+          "signature": "Scheduling: Fable.Ranvier.DomScheduling",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Fable.Ranvier.DomScheduling",
+      "kind": "union",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "IsMicrotask",
+          "kind": "property",
+          "signature": "IsMicrotask() -> bool",
+          "accessibility": "public"
+        },
+        {
+          "name": "IsSynchronous",
+          "kind": "property",
+          "signature": "IsSynchronous() -> bool",
+          "accessibility": "public"
+        },
+        {
+          "name": "Microtask",
+          "kind": "union-case",
+          "signature": "Microtask",
+          "accessibility": "public"
+        },
+        {
+          "name": "Synchronous",
+          "kind": "union-case",
+          "signature": "Synchronous",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Fable.Ranvier.Global",
+      "kind": "module",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "document",
+          "kind": "function",
+          "signature": "document() -> Fable.Core.TS.Dom.Document",
+          "accessibility": "public"
+        },
+        {
+          "name": "globalThis",
+          "kind": "function",
+          "signature": "globalThis() -> Fable.Core.TS.Es.GlobalThis",
+          "accessibility": "public"
+        },
+        {
+          "name": "isBrowser",
+          "kind": "function",
+          "signature": "isBrowser() -> Microsoft.FSharp.Control.Lazy<bool>",
+          "accessibility": "public"
+        },
+        {
+          "name": "window",
+          "kind": "function",
+          "signature": "window() -> Fable.Core.TS.Dom.Window",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Fable.Ranvier.Mount",
+      "kind": "module",
+      "accessibility": "public",
+      "members": [
+        {
+          "name": "mount",
+          "kind": "function",
+          "signature": "mount(graph: Ranvier.Graph, host: Fable.Core.TS.Dom.Node, factory: unit -> Fable.Core.TS.Dom.Node) -> System.IDisposable",
+          "accessibility": "public"
+        },
+        {
+          "name": "mountWith",
+          "kind": "function",
+          "signature": "mountWith(options: Fable.Ranvier.DomOptions, graph: Ranvier.Graph, host: Fable.Core.TS.Dom.Node, factory: unit -> Fable.Core.TS.Dom.Node) -> Fable.Ranvier.DomMount",
+          "accessibility": "public"
+        }
+      ]
+    },
+    {
+      "fullName": "Modifier",
+      "kind": "abbreviation",
+      "accessibility": "public",
+      "members": []
+    }
+  ],
+  "truncated": false,
+  "nextCursor": null,
+  "totalEstimate": {
+    "entities": 7
+  },
+  "pageOffset": 0,
+  "pageSize": 100
+}

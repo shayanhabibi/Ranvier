@@ -1,0 +1,297 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="2956" viewBox="0 0 760 2956" role="img">
+<title>.NET, 4939e9d</title>
+<style>
+text{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:12px}
+.surface{fill:#fcfcfb}.ink{fill:#0b0b0b}.ink2{fill:#52514e}.muted{fill:#898781}.axis{stroke:#c3c2b7;stroke-width:1}
+.s0{fill:#2a78d6}
+.s1{fill:#eb6834}
+.s2{fill:#1baf7a}
+@media (prefers-color-scheme: dark){
+.surface{fill:#1a1a19}.ink{fill:#ffffff}.ink2{fill:#c3c2b7}.axis{stroke:#383835}
+.s0{fill:#3987e5}
+.s1{fill:#d95926}
+.s2{fill:#199e70}
+}
+</style>
+<rect class="surface" width="760" height="2956" rx="8"/>
+<text class="ink" x="16" y="26" style="font-size:15px;font-weight:600">.NET, 4939e9d</text>
+<text class="ink2" x="16" y="44">Instructions per operation. Each panel scales from zero to its largest bar.</text>
+<rect class="s0" x="16" y="56" width="10" height="10" rx="2"/>
+<text class="ink2" x="30" y="65">Ranvier 4939e9d</text>
+<rect class="s1" x="147" y="56" width="10" height="10" rx="2"/>
+<text class="ink2" x="161" y="65">FSharp.Data.Adaptive 1.2.27</text>
+<rect class="s2" x="357.2" y="56" width="10" height="10" rx="2"/>
+<text class="ink2" x="371.2" y="65">R3 1.3.1</text>
+<text class="ink" x="16" y="92" style="font-weight:600">timed-capture-debounce<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="99" x2="220" y2="119"/>
+<text class="ink2" x="212" y="113" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 102h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-capture-debounce, Ranvier 4939e9d: 37,451 instructions per operation</title></path>
+<text class="ink" x="656" y="113">37,451</text>
+<text class="ink" x="16" y="152" style="font-weight:600">timed-admit-debounce<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="159" x2="220" y2="179"/>
+<text class="ink2" x="212" y="173" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 162h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-admit-debounce, Ranvier 4939e9d: 108,119 instructions per operation</title></path>
+<text class="ink" x="656" y="173">108,119</text>
+<text class="ink" x="16" y="212" style="font-weight:600">timed-capture-first<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="219" x2="220" y2="239"/>
+<text class="ink2" x="212" y="233" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 222h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-capture-first, Ranvier 4939e9d: 33,690 instructions per operation</title></path>
+<text class="ink" x="656" y="233">33,690</text>
+<text class="ink" x="16" y="272" style="font-weight:600">timed-admit-first<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="279" x2="220" y2="299"/>
+<text class="ink2" x="212" y="293" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 282h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-admit-first, Ranvier 4939e9d: 68,404 instructions per operation</title></path>
+<text class="ink" x="656" y="293">68,404</text>
+<text class="ink" x="16" y="332" style="font-weight:600">timed-capture-last<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="339" x2="220" y2="359"/>
+<text class="ink2" x="212" y="353" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 342h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-capture-last, Ranvier 4939e9d: 37,468 instructions per operation</title></path>
+<text class="ink" x="656" y="353">37,468</text>
+<text class="ink" x="16" y="392" style="font-weight:600">timed-admit-last<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="399" x2="220" y2="419"/>
+<text class="ink2" x="212" y="413" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 402h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-admit-last, Ranvier 4939e9d: 108,336 instructions per operation</title></path>
+<text class="ink" x="656" y="413">108,336</text>
+<text class="ink" x="16" y="452" style="font-weight:600">timed-capture-both<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="459" x2="220" y2="479"/>
+<text class="ink2" x="212" y="473" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 462h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-capture-both, Ranvier 4939e9d: 37,597 instructions per operation</title></path>
+<text class="ink" x="656" y="473">37,597</text>
+<text class="ink" x="16" y="512" style="font-weight:600">timed-admit-both<tspan class="muted" style="font-weight:400"> N = 1000</tspan></text>
+<line class="axis" x1="220" y1="519" x2="220" y2="539"/>
+<text class="ink2" x="212" y="533" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 522h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>timed-admit-both, Ranvier 4939e9d: 108,860 instructions per operation</title></path>
+<text class="ink" x="656" y="533">108,860</text>
+<text class="ink" x="16" y="572" style="font-weight:600">create<tspan class="muted" style="font-weight:400"> N = 8</tspan></text>
+<line class="axis" x1="220" y1="579" x2="220" y2="639"/>
+<text class="ink2" x="212" y="593" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 582h71.6a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-71.6z"><title>create, Ranvier 4939e9d: 2,177,890 instructions per operation</title></path>
+<text class="ink" x="301.6" y="593">2,177,890</text>
+<text class="ink2" x="212" y="613" text-anchor="end">FSharp.Data.Adaptive 1.2.27</text>
+<path class="s1" d="M220 602h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>create, FSharp.Data.Adaptive 1.2.27: 12,394,189 instructions per operation</title></path>
+<text class="ink" x="656" y="613">12,394,189</text>
+<text class="ink2" x="212" y="633" text-anchor="end">R3 1.3.1</text>
+<path class="s2" d="M220 622h50.5a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-50.5z"><title>create, R3 1.3.1: 1,571,568 instructions per operation</title></path>
+<text class="ink" x="280.5" y="633">1,571,568</text>
+<text class="ink" x="16" y="672" style="font-weight:600">update<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="679" x2="220" y2="739"/>
+<text class="ink2" x="212" y="693" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 682h28.1a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-28.1z"><title>update, Ranvier 4939e9d: 65,050 instructions per operation</title></path>
+<text class="ink" x="258.1" y="693">65,050</text>
+<text class="ink2" x="212" y="713" text-anchor="end">FSharp.Data.Adaptive 1.2.27</text>
+<path class="s1" d="M220 702h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>update, FSharp.Data.Adaptive 1.2.27: 871,936 instructions per operation</title></path>
+<text class="ink" x="656" y="713">871,936</text>
+<text class="ink2" x="212" y="733" text-anchor="end">R3 1.3.1</text>
+<path class="s2" d="M220 722h9a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-9z"><title>update, R3 1.3.1: 26,405 instructions per operation</title></path>
+<text class="ink" x="239" y="733">26,405</text>
+<text class="ink" x="16" y="772" style="font-weight:600">chain<tspan class="muted" style="font-weight:400"> N = 5000</tspan></text>
+<line class="axis" x1="220" y1="779" x2="220" y2="839"/>
+<text class="ink2" x="212" y="793" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 782h101.7a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-101.7z"><title>chain, Ranvier 4939e9d: 2,052 instructions per operation</title></path>
+<text class="ink" x="331.7" y="793">2,052</text>
+<text class="ink2" x="212" y="813" text-anchor="end">FSharp.Data.Adaptive 1.2.27</text>
+<path class="s1" d="M220 802h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>chain, FSharp.Data.Adaptive 1.2.27: 8,352 instructions per operation</title></path>
+<text class="ink" x="656" y="813">8,352</text>
+<text class="ink2" x="212" y="833" text-anchor="end">R3 1.3.1</text>
+<path class="s2" d="M220 822h9.7a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-9.7z"><title>chain, R3 1.3.1: 267 instructions per operation</title></path>
+<text class="ink" x="239.7" y="833">267</text>
+<text class="ink" x="16" y="872" style="font-weight:600">cutoff<tspan class="muted" style="font-weight:400"> N = 50000</tspan></text>
+<line class="axis" x1="220" y1="879" x2="220" y2="939"/>
+<text class="ink2" x="212" y="893" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 882h26.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-26.4z"><title>cutoff, Ranvier 4939e9d: 52.0 instructions per operation</title></path>
+<text class="ink" x="256.4" y="893">52.0</text>
+<text class="ink2" x="212" y="913" text-anchor="end">FSharp.Data.Adaptive 1.2.27</text>
+<path class="s1" d="M220 902h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>cutoff, FSharp.Data.Adaptive 1.2.27: 736 instructions per operation</title></path>
+<text class="ink" x="656" y="913">736</text>
+<text class="ink2" x="212" y="933" text-anchor="end">R3 1.3.1</text>
+<path class="s2" d="M220 922h21.3a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-21.3z"><title>cutoff, R3 1.3.1: 43.3 instructions per operation</title></path>
+<text class="ink" x="251.3" y="933">43.3</text>
+<text class="ink" x="16" y="972" style="font-weight:600">dispose<tspan class="muted" style="font-weight:400"> N = 8</tspan></text>
+<line class="axis" x1="220" y1="979" x2="220" y2="1039"/>
+<text class="ink2" x="212" y="993" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 982h48a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-48z"><title>dispose, Ranvier 4939e9d: 438,407 instructions per operation</title></path>
+<text class="ink" x="278" y="993">438,407</text>
+<text class="ink2" x="212" y="1013" text-anchor="end">FSharp.Data.Adaptive 1.2.27</text>
+<path class="s1" d="M220 1002h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>dispose, FSharp.Data.Adaptive 1.2.27: 3,623,092 instructions per operation</title></path>
+<text class="ink" x="656" y="1013">3,623,092</text>
+<text class="ink2" x="212" y="1033" text-anchor="end">R3 1.3.1</text>
+<path class="s2" d="M220 1022h56.7a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-56.7z"><title>dispose, R3 1.3.1: 511,620 instructions per operation</title></path>
+<text class="ink" x="286.7" y="1033">511,620</text>
+<text class="ink" x="16" y="1072" style="font-weight:600">create-on<tspan class="muted" style="font-weight:400"> N = 8</tspan></text>
+<line class="axis" x1="220" y1="1079" x2="220" y2="1099"/>
+<text class="ink2" x="212" y="1093" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1082h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>create-on, Ranvier 4939e9d: 2,405,836 instructions per operation</title></path>
+<text class="ink" x="656" y="1093">2,405,836</text>
+<text class="ink" x="16" y="1132" style="font-weight:600">update-on<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1139" x2="220" y2="1159"/>
+<text class="ink2" x="212" y="1153" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1142h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>update-on, Ranvier 4939e9d: 77,005 instructions per operation</title></path>
+<text class="ink" x="656" y="1153">77,005</text>
+<text class="ink" x="16" y="1192" style="font-weight:600">dispose-on<tspan class="muted" style="font-weight:400"> N = 8</tspan></text>
+<line class="axis" x1="220" y1="1199" x2="220" y2="1219"/>
+<text class="ink2" x="212" y="1213" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1202h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>dispose-on, Ranvier 4939e9d: 424,363 instructions per operation</title></path>
+<text class="ink" x="656" y="1213">424,363</text>
+<text class="ink" x="16" y="1252" style="font-weight:600">derive-effect<tspan class="muted" style="font-weight:400"> N = 50000</tspan></text>
+<line class="axis" x1="220" y1="1259" x2="220" y2="1279"/>
+<text class="ink2" x="212" y="1273" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1262h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>derive-effect, Ranvier 4939e9d: 594 instructions per operation</title></path>
+<text class="ink" x="656" y="1273">594</text>
+<text class="ink" x="16" y="1312" style="font-weight:600">derive-on<tspan class="muted" style="font-weight:400"> N = 50000</tspan></text>
+<line class="axis" x1="220" y1="1319" x2="220" y2="1339"/>
+<text class="ink2" x="212" y="1333" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1322h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>derive-on, Ranvier 4939e9d: 576 instructions per operation</title></path>
+<text class="ink" x="656" y="1333">576</text>
+<text class="ink" x="16" y="1372" style="font-weight:600">work-status<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1379" x2="220" y2="1419"/>
+<text class="ink2" x="212" y="1393" text-anchor="end">Ranvier 4939e9d (createEffect)</text>
+<path class="s0" d="M220 1382h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>work-status, Ranvier 4939e9d (createEffect): 78,611 instructions per operation</title></path>
+<text class="ink" x="656" y="1393">78,611</text>
+<text class="ink2" x="212" y="1413" text-anchor="end">Ranvier 4939e9d (createEffectOn)</text>
+<path class="s0" d="M220 1402h336.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-336.4z"><title>work-status, Ranvier 4939e9d (createEffectOn): 62,223 instructions per operation</title></path>
+<text class="ink" x="566.4" y="1413">62,223</text>
+<text class="ink" x="16" y="1452" style="font-weight:600">work-value<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1459" x2="220" y2="1499"/>
+<text class="ink2" x="212" y="1473" text-anchor="end">Ranvier 4939e9d (createEffect)</text>
+<path class="s0" d="M220 1462h368a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-368z"><title>work-value, Ranvier 4939e9d (createEffect): 83,087 instructions per operation</title></path>
+<text class="ink" x="598" y="1473">83,087</text>
+<text class="ink2" x="212" y="1493" text-anchor="end">Ranvier 4939e9d (createEffectOn)</text>
+<path class="s0" d="M220 1482h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>work-value, Ranvier 4939e9d (createEffectOn): 96,053 instructions per operation</title></path>
+<text class="ink" x="656" y="1493">96,053</text>
+<text class="ink" x="16" y="1532" style="font-weight:600">work-form<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1539" x2="220" y2="1579"/>
+<text class="ink2" x="212" y="1553" text-anchor="end">Ranvier 4939e9d (createEffect)</text>
+<path class="s0" d="M220 1542h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>work-form, Ranvier 4939e9d (createEffect): 144,601 instructions per operation</title></path>
+<text class="ink" x="656" y="1553">144,601</text>
+<text class="ink2" x="212" y="1573" text-anchor="end">Ranvier 4939e9d (createEffectOn)</text>
+<path class="s0" d="M220 1562h424.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-424.4z"><title>work-form, Ranvier 4939e9d (createEffectOn): 144,059 instructions per operation</title></path>
+<text class="ink" x="654.4" y="1573">144,059</text>
+<text class="ink" x="16" y="1612" style="font-weight:600">project-edit<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1619" x2="220" y2="1639"/>
+<text class="ink2" x="212" y="1633" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1622h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>project-edit, Ranvier 4939e9d: 75,672 instructions per operation</title></path>
+<text class="ink" x="656" y="1633">75,672</text>
+<text class="ink" x="16" y="1672" style="font-weight:600">project-reorder<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1679" x2="220" y2="1699"/>
+<text class="ink2" x="212" y="1693" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1682h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>project-reorder, Ranvier 4939e9d: 634,061 instructions per operation</title></path>
+<text class="ink" x="656" y="1693">634,061</text>
+<text class="ink" x="16" y="1732" style="font-weight:600">keyed-remove<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1739" x2="220" y2="1779"/>
+<text class="ink2" x="212" y="1753" text-anchor="end">Ranvier 4939e9d (fresh items)</text>
+<path class="s0" d="M220 1742h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>keyed-remove, Ranvier 4939e9d (fresh items): 1,577,704 instructions per operation</title></path>
+<text class="ink" x="656" y="1753">1,577,704</text>
+<text class="ink2" x="212" y="1773" text-anchor="end">Ranvier 4939e9d (stable items)</text>
+<path class="s0" d="M220 1762h15.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-15.4z"><title>keyed-remove, Ranvier 4939e9d (stable items): 71,148 instructions per operation</title></path>
+<text class="ink" x="245.4" y="1773">71,148</text>
+<text class="ink" x="16" y="1812" style="font-weight:600">keyed-swap<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1819" x2="220" y2="1859"/>
+<text class="ink2" x="212" y="1833" text-anchor="end">Ranvier 4939e9d (fresh items)</text>
+<path class="s0" d="M220 1822h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>keyed-swap, Ranvier 4939e9d (fresh items): 1,627,222 instructions per operation</title></path>
+<text class="ink" x="656" y="1833">1,627,222</text>
+<text class="ink2" x="212" y="1853" text-anchor="end">Ranvier 4939e9d (stable items)</text>
+<path class="s0" d="M220 1842h13.9a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-13.9z"><title>keyed-swap, Ranvier 4939e9d (stable items): 67,914 instructions per operation</title></path>
+<text class="ink" x="243.9" y="1853">67,914</text>
+<text class="ink" x="16" y="1892" style="font-weight:600">keyed-insert<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1899" x2="220" y2="1939"/>
+<text class="ink2" x="212" y="1913" text-anchor="end">Ranvier 4939e9d (fresh items)</text>
+<path class="s0" d="M220 1902h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>keyed-insert, Ranvier 4939e9d (fresh items): 1,578,370 instructions per operation</title></path>
+<text class="ink" x="656" y="1913">1,578,370</text>
+<text class="ink2" x="212" y="1933" text-anchor="end">Ranvier 4939e9d (stable items)</text>
+<path class="s0" d="M220 1922h17.7a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-17.7z"><title>keyed-insert, Ranvier 4939e9d (stable items): 79,634 instructions per operation</title></path>
+<text class="ink" x="247.7" y="1933">79,634</text>
+<text class="ink" x="16" y="1972" style="font-weight:600">project-chain<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="1979" x2="220" y2="1999"/>
+<text class="ink2" x="212" y="1993" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 1982h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>project-chain, Ranvier 4939e9d: 3,019,902 instructions per operation</title></path>
+<text class="ink" x="656" y="1993">3,019,902</text>
+<text class="ink" x="16" y="2032" style="font-weight:600">app-table<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2039" x2="220" y2="2059"/>
+<text class="ink2" x="212" y="2053" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2042h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>app-table, Ranvier 4939e9d: 7,540,629 instructions per operation</title></path>
+<text class="ink" x="656" y="2053">7,540,629</text>
+<text class="ink" x="16" y="2092" style="font-weight:600">app-detail<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2099" x2="220" y2="2119"/>
+<text class="ink2" x="212" y="2113" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2102h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>app-detail, Ranvier 4939e9d: 75,608 instructions per operation</title></path>
+<text class="ink" x="656" y="2113">75,608</text>
+<text class="ink" x="16" y="2152" style="font-weight:600">shape-diamond<tspan class="muted" style="font-weight:400"> N = 5000</tspan></text>
+<line class="axis" x1="220" y1="2159" x2="220" y2="2179"/>
+<text class="ink2" x="212" y="2173" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2162h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>shape-diamond, Ranvier 4939e9d: 54,020 instructions per operation</title></path>
+<text class="ink" x="656" y="2173">54,020</text>
+<text class="ink" x="16" y="2212" style="font-weight:600">shape-dynamic<tspan class="muted" style="font-weight:400"> N = 500</tspan></text>
+<line class="axis" x1="220" y1="2219" x2="220" y2="2239"/>
+<text class="ink2" x="212" y="2233" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2222h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>shape-dynamic, Ranvier 4939e9d: 69,441 instructions per operation</title></path>
+<text class="ink" x="656" y="2233">69,441</text>
+<text class="ink" x="16" y="2272" style="font-weight:600">async-resolve<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2279" x2="220" y2="2299"/>
+<text class="ink2" x="212" y="2293" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2282h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>async-resolve, Ranvier 4939e9d: 2,507,115 instructions per operation</title></path>
+<text class="ink" x="656" y="2293">2,507,115</text>
+<text class="ink" x="16" y="2332" style="font-weight:600">async-recover<tspan class="muted" style="font-weight:400"> N = 500</tspan></text>
+<line class="axis" x1="220" y1="2339" x2="220" y2="2359"/>
+<text class="ink2" x="212" y="2353" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2342h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>async-recover, Ranvier 4939e9d: 209,438 instructions per operation</title></path>
+<text class="ink" x="656" y="2353">209,438</text>
+<text class="ink" x="16" y="2392" style="font-weight:600">chain-affinity<tspan class="muted" style="font-weight:400"> N = 5000</tspan></text>
+<line class="axis" x1="220" y1="2399" x2="220" y2="2459"/>
+<text class="ink2" x="212" y="2413" text-anchor="end">Ranvier 4939e9d (Guarded)</text>
+<path class="s0" d="M220 2402h367.8a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-367.8z"><title>chain-affinity, Ranvier 4939e9d (Guarded): 2,150 instructions per operation</title></path>
+<text class="ink" x="597.8" y="2413">2,150</text>
+<text class="ink2" x="212" y="2433" text-anchor="end">Ranvier 4939e9d (Unchecked)</text>
+<path class="s0" d="M220 2422h367.5a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-367.5z"><title>chain-affinity, Ranvier 4939e9d (Unchecked): 2,148 instructions per operation</title></path>
+<text class="ink" x="597.5" y="2433">2,148</text>
+<text class="ink2" x="212" y="2453" text-anchor="end">Ranvier 4939e9d (Serialised)</text>
+<path class="s0" d="M220 2442h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>chain-affinity, Ranvier 4939e9d (Serialised): 2,487 instructions per operation</title></path>
+<text class="ink" x="656" y="2453">2,487</text>
+<text class="ink" x="16" y="2492" style="font-weight:600">project-churn<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2499" x2="220" y2="2539"/>
+<text class="ink2" x="212" y="2513" text-anchor="end">Ranvier 4939e9d (no reader)</text>
+<path class="s0" d="M220 2502h414.9a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-414.9z"><title>project-churn, Ranvier 4939e9d (no reader): 62,011 instructions per operation</title></path>
+<text class="ink" x="644.9" y="2513">62,011</text>
+<text class="ink2" x="212" y="2533" text-anchor="end">Ranvier 4939e9d (key reader)</text>
+<path class="s0" d="M220 2522h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>project-churn, Ranvier 4939e9d (key reader): 63,653 instructions per operation</title></path>
+<text class="ink" x="656" y="2533">63,653</text>
+<text class="ink" x="16" y="2572" style="font-weight:600">flight<tspan class="muted" style="font-weight:400"> N = 500</tspan></text>
+<line class="axis" x1="220" y1="2579" x2="220" y2="2659"/>
+<text class="ink2" x="212" y="2593" text-anchor="end">Ranvier 4939e9d (CancelPrevious)</text>
+<path class="s0" d="M220 2582h211.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-211.4z"><title>flight, Ranvier 4939e9d (CancelPrevious): 7,543 instructions per operation</title></path>
+<text class="ink" x="441.4" y="2593">7,543</text>
+<text class="ink2" x="212" y="2613" text-anchor="end">Ranvier 4939e9d (KeepLatest)</text>
+<path class="s0" d="M220 2602h205.5a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-205.5z"><title>flight, Ranvier 4939e9d (KeepLatest): 7,337 instructions per operation</title></path>
+<text class="ink" x="435.5" y="2613">7,337</text>
+<text class="ink2" x="212" y="2633" text-anchor="end">Ranvier 4939e9d (Queue)</text>
+<path class="s0" d="M220 2622h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>flight, Ranvier 4939e9d (Queue): 15,060 instructions per operation</title></path>
+<text class="ink" x="656" y="2633">15,060</text>
+<text class="ink2" x="212" y="2653" text-anchor="end">Ranvier 4939e9d (FinishCurrent)</text>
+<path class="s0" d="M220 2642h214.2a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-214.2z"><title>flight, Ranvier 4939e9d (FinishCurrent): 7,641 instructions per operation</title></path>
+<text class="ink" x="444.2" y="2653">7,641</text>
+<text class="ink" x="16" y="2692" style="font-weight:600">fail-recompute<tspan class="muted" style="font-weight:400"> N = 500</tspan></text>
+<line class="axis" x1="220" y1="2699" x2="220" y2="2739"/>
+<text class="ink2" x="212" y="2713" text-anchor="end">Ranvier 4939e9d (succeeding)</text>
+<path class="s0" d="M220 2702h3.7a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-3.7z"><title>fail-recompute, Ranvier 4939e9d (succeeding): 1,118 instructions per operation</title></path>
+<text class="ink" x="233.7" y="2713">1,118</text>
+<text class="ink2" x="212" y="2733" text-anchor="end">Ranvier 4939e9d (failing)</text>
+<path class="s0" d="M220 2722h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>fail-recompute, Ranvier 4939e9d (failing): 62,398 instructions per operation</title></path>
+<text class="ink" x="656" y="2733">62,398</text>
+<text class="ink" x="16" y="2772" style="font-weight:600">editable-edit<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2779" x2="220" y2="2799"/>
+<text class="ink2" x="212" y="2793" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2782h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>editable-edit, Ranvier 4939e9d: 144,539 instructions per operation</title></path>
+<text class="ink" x="656" y="2793">144,539</text>
+<text class="ink" x="16" y="2832" style="font-weight:600">editable-upstream<tspan class="muted" style="font-weight:400"> N = 50</tspan></text>
+<line class="axis" x1="220" y1="2839" x2="220" y2="2859"/>
+<text class="ink2" x="212" y="2853" text-anchor="end">Ranvier 4939e9d</text>
+<path class="s0" d="M220 2842h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>editable-upstream, Ranvier 4939e9d: 192,748 instructions per operation</title></path>
+<text class="ink" x="656" y="2853">192,748</text>
+<text class="ink" x="16" y="2892" style="font-weight:600">mvu-dispatch<tspan class="muted" style="font-weight:400"> N = 500</tspan></text>
+<line class="axis" x1="220" y1="2899" x2="220" y2="2939"/>
+<text class="ink2" x="212" y="2913" text-anchor="end">Ranvier 4939e9d (signal per field)</text>
+<path class="s0" d="M220 2902h1.4a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-1.4z"><title>mvu-dispatch, Ranvier 4939e9d (signal per field): 603 instructions per operation</title></path>
+<text class="ink" x="231.4" y="2913">603</text>
+<text class="ink2" x="212" y="2933" text-anchor="end">Ranvier 4939e9d (Mvu)</text>
+<path class="s0" d="M220 2922h426a4 4 0 0 1 4 4v6a4 4 0 0 1 -4 4h-426z"><title>mvu-dispatch, Ranvier 4939e9d (Mvu): 47,636 instructions per operation</title></path>
+<text class="ink" x="656" y="2933">47,636</text>
+</svg>

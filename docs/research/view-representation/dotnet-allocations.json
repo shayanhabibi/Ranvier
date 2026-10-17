@@ -1,0 +1,150 @@
+{
+  "runtime": "10.0.401",
+  "method": "Release; GetAllocatedBytesForCurrentThread; 3 warmups, 7 samples of 100 definitions; median bytes per definition; excludes DOM instances",
+  "rows": [
+    {
+      "representation": "tree",
+      "workload": "static",
+      "sugar": "direct",
+      "bytesPerDefinition": 13640.0
+    },
+    {
+      "representation": "tree",
+      "workload": "static",
+      "sugar": "functions",
+      "bytesPerDefinition": 13640.0
+    },
+    {
+      "representation": "tree",
+      "workload": "static",
+      "sugar": "builder",
+      "bytesPerDefinition": 13640.0
+    },
+    {
+      "representation": "tree",
+      "workload": "wide",
+      "sugar": "direct",
+      "bytesPerDefinition": 53576.0
+    },
+    {
+      "representation": "tree",
+      "workload": "wide",
+      "sugar": "functions",
+      "bytesPerDefinition": 53576.0
+    },
+    {
+      "representation": "tree",
+      "workload": "wide",
+      "sugar": "builder",
+      "bytesPerDefinition": 53576.0
+    },
+    {
+      "representation": "tree",
+      "workload": "fragments",
+      "sugar": "direct",
+      "bytesPerDefinition": 14920.0
+    },
+    {
+      "representation": "tree",
+      "workload": "fragments",
+      "sugar": "functions",
+      "bytesPerDefinition": 14920.0
+    },
+    {
+      "representation": "tree",
+      "workload": "fragments",
+      "sugar": "builder",
+      "bytesPerDefinition": 14920.0
+    },
+    {
+      "representation": "tree",
+      "workload": "reactive",
+      "sugar": "direct",
+      "bytesPerDefinition": 15760.0
+    },
+    {
+      "representation": "tree",
+      "workload": "reactive",
+      "sugar": "functions",
+      "bytesPerDefinition": 15760.0
+    },
+    {
+      "representation": "tree",
+      "workload": "reactive",
+      "sugar": "builder",
+      "bytesPerDefinition": 15760.0
+    },
+    {
+      "representation": "program",
+      "workload": "static",
+      "sugar": "direct",
+      "bytesPerDefinition": 15752.0
+    },
+    {
+      "representation": "program",
+      "workload": "static",
+      "sugar": "functions",
+      "bytesPerDefinition": 15752.0
+    },
+    {
+      "representation": "program",
+      "workload": "static",
+      "sugar": "builder",
+      "bytesPerDefinition": 15752.0
+    },
+    {
+      "representation": "program",
+      "workload": "wide",
+      "sugar": "direct",
+      "bytesPerDefinition": 61832.0
+    },
+    {
+      "representation": "program",
+      "workload": "wide",
+      "sugar": "functions",
+      "bytesPerDefinition": 61832.0
+    },
+    {
+      "representation": "program",
+      "workload": "wide",
+      "sugar": "builder",
+      "bytesPerDefinition": 61832.0
+    },
+    {
+      "representation": "program",
+      "workload": "fragments",
+      "sugar": "direct",
+      "bytesPerDefinition": 17352.0
+    },
+    {
+      "representation": "program",
+      "workload": "fragments",
+      "sugar": "functions",
+      "bytesPerDefinition": 17352.0
+    },
+    {
+      "representation": "program",
+      "workload": "fragments",
+      "sugar": "builder",
+      "bytesPerDefinition": 17352.0
+    },
+    {
+      "representation": "program",
+      "workload": "reactive",
+      "sugar": "direct",
+      "bytesPerDefinition": 17888.0
+    },
+    {
+      "representation": "program",
+      "workload": "reactive",
+      "sugar": "functions",
+      "bytesPerDefinition": 17888.0
+    },
+    {
+      "representation": "program",
+      "workload": "reactive",
+      "sugar": "builder",
+      "bytesPerDefinition": 17888.0
+    }
+  ]
+}

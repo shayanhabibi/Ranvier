@@ -1,0 +1,1198 @@
+{
+  "MeasuredUtc": "2026-10-02T05:41:01.8816579+00:00",
+  "Runtime": ".NET 10.0.12",
+  "OS": "Microsoft Windows 10.0.26200",
+  "CorrectnessChecks": 20,
+  "TieredCompilation": false,
+  "RanvierTracing": false,
+  "SourceHashes": {
+    "WpfProgram.cs": "EC9BD1833BF22584EE8187C60DB58D973B7ACF2D61E400AFBF58F97348B64AB4",
+    "Toolkit.cs": "C7EF66EF91333FE58A1F45BCA801BD9ABA03510DDA1DF217288EFC1D491BF5E3",
+    "Ranvier.cs": "F3ABDA45BD9A194DDDCBAC7DEB82BE6128377BAAB47A217A15B557FA762F48F3",
+    "wpf/WpfBench.csproj": "CFC3576ED4E71E7DE051D062931E2BB5C33E4A37F17CE2125EC54A90C14F91F0"
+  },
+  "Summaries": [
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 27.895655,
+      "MinMicrosecondsPerOperation": 26.586890000000004,
+      "MaxMicrosecondsPerOperation": 29.676040000000004,
+      "MedianUiThreadBytesPerOperation": 3926.6392,
+      "MedianNotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 29.458635,
+      "MinMicrosecondsPerOperation": 28.54738,
+      "MaxMicrosecondsPerOperation": 31.02277,
+      "MedianUiThreadBytesPerOperation": 5150.5288,
+      "MedianNotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 54.96355,
+      "MinMicrosecondsPerOperation": 51.2028,
+      "MaxMicrosecondsPerOperation": 66.0144,
+      "MedianUiThreadBytesPerOperation": 8228.736,
+      "MedianNotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 60.5716,
+      "MinMicrosecondsPerOperation": 54.781400000000005,
+      "MaxMicrosecondsPerOperation": 76.48710000000001,
+      "MedianUiThreadBytesPerOperation": 10948.736,
+      "MedianNotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 75.04016666666666,
+      "MinMicrosecondsPerOperation": 66.49066666666667,
+      "MaxMicrosecondsPerOperation": 90.74466666666667,
+      "MedianUiThreadBytesPerOperation": 12803.946666666667,
+      "MedianNotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 86.25533333333333,
+      "MinMicrosecondsPerOperation": 79.94933333333333,
+      "MaxMicrosecondsPerOperation": 113.63666666666667,
+      "MedianUiThreadBytesPerOperation": 20379.946666666667,
+      "MedianNotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 28.641605,
+      "MinMicrosecondsPerOperation": 27.85646,
+      "MaxMicrosecondsPerOperation": 29.650440000000003,
+      "MedianUiThreadBytesPerOperation": 3924.0696,
+      "MedianNotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 31.25025,
+      "MinMicrosecondsPerOperation": 29.213729999999998,
+      "MaxMicrosecondsPerOperation": 32.38146,
+      "MedianUiThreadBytesPerOperation": 5146.7448,
+      "MedianNotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 157.28883333333334,
+      "MinMicrosecondsPerOperation": 152.224,
+      "MaxMicrosecondsPerOperation": 169.12433333333334,
+      "MedianUiThreadBytesPerOperation": 39403.333333333336,
+      "MedianNotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Trials": 12,
+      "MedianMicrosecondsPerOperation": 250.03683333333333,
+      "MinMicrosecondsPerOperation": 245.3286666666667,
+      "MaxMicrosecondsPerOperation": 263.59566666666666,
+      "MedianUiThreadBytesPerOperation": 61428.18666666667,
+      "MedianNotificationsPerOperation": 6
+    }
+  ],
+  "Trials": [
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 0,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 26.586890000000004,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 0,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.25628,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 1,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.1964,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 1,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 26.96542,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 2,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 27.52052,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 2,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.54738,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 3,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.30889,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 3,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 26.985809999999997,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 4,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 27.121409999999997,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 4,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.2832,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 5,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.60838,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 5,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.49819,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 6,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.503629999999998,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 6,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 30.214140000000004,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 7,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 30.02733,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 7,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.51189,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 8,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 27.43828,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 8,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.25504,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 9,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.88065,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 9,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.26892,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 10,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.27079,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 10,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.02277,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Ranvier",
+      "Index": 11,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 30.88161,
+      "UiThreadBytesPerOperation": 5150.5288,
+      "NotificationsPerOperation": 3.9996
+    },
+    {
+      "Workload": "wpf-quantity-input",
+      "Implementation": "Toolkit",
+      "Index": 11,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.676040000000004,
+      "UiThreadBytesPerOperation": 3926.6392,
+      "NotificationsPerOperation": 2.9997
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 0,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 51.2028,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 0,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 54.781400000000005,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 1,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 55.8407,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 1,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 52.4107,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 2,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 66.0144,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 2,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 76.3605,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 3,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 76.48710000000001,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 3,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 61.6758,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 4,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 55.2725,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 4,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 57.8762,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 5,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 59.0731,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 5,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 53.9601,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 6,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 54.6546,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 6,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 57.1253,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 7,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 57.4015,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 7,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 51.4024,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 8,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 57.5577,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 8,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 69.2273,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 9,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 62.0701,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 9,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 52.9845,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 10,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 56.3964,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 10,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 74.2288,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Ranvier",
+      "Index": 11,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 68.4035,
+      "UiThreadBytesPerOperation": 10948.736,
+      "NotificationsPerOperation": 8
+    },
+    {
+      "Workload": "wpf-refresh",
+      "Implementation": "Toolkit",
+      "Index": 11,
+      "Operations": 1000,
+      "MicrosecondsPerOperation": 61.7502,
+      "UiThreadBytesPerOperation": 8228.736,
+      "NotificationsPerOperation": 15
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 0,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 74.97,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 0,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 101.489,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 1,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 96.97800000000001,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 1,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 90.71966666666667,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 2,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 76.39566666666667,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 2,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 113.63666666666667,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 3,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 87.89,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 3,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 73.26633333333334,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 4,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 67.48333333333333,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 4,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 84.73233333333333,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 5,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 97.79933333333334,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 5,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 71.38666666666667,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 6,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 72.026,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 6,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 81.164,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 7,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 87.48533333333333,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 7,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 90.74466666666667,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 8,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 66.49066666666667,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 8,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 79.94933333333333,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 9,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 82.81433333333334,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 9,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 76.362,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 10,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 76.057,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 10,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 85.02533333333332,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Ranvier",
+      "Index": 11,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 80.584,
+      "UiThreadBytesPerOperation": 20379.946666666667,
+      "NotificationsPerOperation": 16
+    },
+    {
+      "Workload": "wpf-error-retry",
+      "Implementation": "Toolkit",
+      "Index": 11,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 75.11033333333333,
+      "UiThreadBytesPerOperation": 12803.946666666667,
+      "NotificationsPerOperation": 29
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 0,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.97878,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 0,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.725920000000002,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 1,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.26584,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 1,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.12361,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 2,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.525609999999997,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 2,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 30.44827,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 3,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.2676,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 3,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.126109999999997,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 4,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 27.85646,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 4,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.09425,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 5,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 30.83962,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 5,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.8037,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 6,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.133020000000002,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 6,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.231659999999998,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 7,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.234659999999998,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 7,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.7576,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 8,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.14967,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 8,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.86777,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 9,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.213729999999998,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 9,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.368940000000002,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 10,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 28.280179999999998,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 10,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 31.357509999999998,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Ranvier",
+      "Index": 11,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 32.38146,
+      "UiThreadBytesPerOperation": 5146.7448,
+      "NotificationsPerOperation": 3.9952
+    },
+    {
+      "Workload": "wpf-100-row-input",
+      "Implementation": "Toolkit",
+      "Index": 11,
+      "Operations": 10000,
+      "MicrosecondsPerOperation": 29.650440000000003,
+      "UiThreadBytesPerOperation": 3924.0696,
+      "NotificationsPerOperation": 2.9964
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 0,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 152.224,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 0,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 263.59566666666666,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 1,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 257.50399999999996,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 1,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 156.55766666666668,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 2,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 157.53300000000002,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 2,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 245.3286666666667,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 3,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 257.77933333333334,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 3,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 155.38,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 4,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 162.98433333333335,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 4,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 245.4176666666667,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 5,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 250.23100000000002,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 5,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 158.35133333333334,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 6,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 169.12433333333334,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 6,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 248.98166666666665,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 7,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 257.91833333333335,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 7,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 158.80166666666668,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 8,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 153.14600000000002,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 8,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 249.77100000000002,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 9,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 255.877,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 9,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 157.70566666666664,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 10,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 157.04466666666667,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 10,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 248.98200000000003,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Ranvier",
+      "Index": 11,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 249.84266666666667,
+      "UiThreadBytesPerOperation": 61428.18666666667,
+      "NotificationsPerOperation": 6
+    },
+    {
+      "Workload": "wpf-open-close",
+      "Implementation": "Toolkit",
+      "Index": 11,
+      "Operations": 300,
+      "MicrosecondsPerOperation": 153.88933333333335,
+      "UiThreadBytesPerOperation": 39403.333333333336,
+      "NotificationsPerOperation": 9
+    }
+  ]
+}

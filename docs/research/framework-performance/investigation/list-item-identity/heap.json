@@ -1,0 +1,3728 @@
+{
+  "measuredAt": "2026-10-15T13:32:54.761Z",
+  "commit": "0a4870ef4cfa2d812dfc43fb8917cf80b7980c6f",
+  "dirty": [
+    "?? docs/research/framework-performance/investigation/poc-rerun-2026-10-15/",
+    "?? examples/Fable.Ranvier.Playground/generated-keyed-profile/"
+  ],
+  "node": "v26.7.0",
+  "chromium": "153.0.8010.12",
+  "cpu": "AMD Ryzen 9 9900X 12-Core Processor            ",
+  "cores": 24,
+  "memoryGb": 62,
+  "platform": "win32 10.0.26200",
+  "production": true,
+  "minified": false,
+  "notes": [
+    "Each entry diffs two heap snapshots of one page: an empty mounted list, then the same list after create(rows). Each snapshot follows two forced GCs; two mounts of 1,000 rows and their release run first.",
+    "Objects are matched by snapshot id. `js` lists the V8 objects new in the second snapshot, by node type and constructor name, with self sizes; the kinds sum to jsBytesPerRow.",
+    "codeBytesPerRow (compiled code, shapes, feedback) and nativeBytesPerRow (Blink nodes outside the V8 heap) are excluded from jsBytesPerRow.",
+    "`memo` attributes the new objects held by each field of a new Memo$1, and the arrays, closures and contexts directly inside them, each object once. Shared objects (an empty array, a comparer, the graph) are not new and do not appear.",
+    "One bundle: ranvier is the production keyed list (t.each); solid is Solid 2 <For>."
+  ],
+  "bundles": {
+    "production": [
+      "ranvier",
+      "solid"
+    ]
+  },
+  "counts": [
+    1000,
+    10000
+  ],
+  "processes": 2,
+  "results": [
+    {
+      "bundle": "production",
+      "mode": "ranvier",
+      "rows": 1000,
+      "replicate": 0,
+      "jsBytesPerRow": 1171.9,
+      "codeBytesPerRow": 64.1,
+      "nativeBytesPerRow": 8750.4,
+      "removedBytesPerRow": 9.8,
+      "js": [
+        {
+          "kind": "array (object elements)",
+          "perRow": 4.008,
+          "bytesPerRow": 263.6,
+          "count": 4008,
+          "bytes": 263600
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 4.002,
+          "bytesPerRow": 140,
+          "count": 4002,
+          "bytes": 140040
+        },
+        {
+          "kind": "object Array",
+          "perRow": 6.005,
+          "bytesPerRow": 96.1,
+          "count": 6005,
+          "bytes": 96080
+        },
+        {
+          "kind": "string",
+          "perRow": 16.574,
+          "bytesPerRow": 95.2,
+          "count": 16574,
+          "bytes": 95248
+        },
+        {
+          "kind": "closure",
+          "perRow": 3.002,
+          "bytesPerRow": 84.1,
+          "count": 3002,
+          "bytes": 84056
+        },
+        {
+          "kind": "object OwnerLink",
+          "perRow": 2,
+          "bytesPerRow": 72,
+          "count": 2000,
+          "bytes": 72000
+        },
+        {
+          "kind": "object Effect$1",
+          "perRow": 1,
+          "bytesPerRow": 72,
+          "count": 1000,
+          "bytes": 72000
+        },
+        {
+          "kind": "object Signal$1",
+          "perRow": 2,
+          "bytesPerRow": 64,
+          "count": 2000,
+          "bytes": 64000
+        },
+        {
+          "kind": "object Owner",
+          "perRow": 1,
+          "bytesPerRow": 52,
+          "count": 1000,
+          "bytes": 52000
+        },
+        {
+          "kind": "object OnceRow$3",
+          "perRow": 1,
+          "bytesPerRow": 48,
+          "count": 1000,
+          "bytes": 48000
+        },
+        {
+          "kind": "object ObserverSet",
+          "perRow": 2,
+          "bytesPerRow": 48,
+          "count": 2000,
+          "bytes": 48000
+        },
+        {
+          "kind": "object Row$2",
+          "perRow": 1,
+          "bytesPerRow": 32,
+          "count": 1000,
+          "bytes": 32000
+        },
+        {
+          "kind": "object ObserverSlot",
+          "perRow": 2,
+          "bytesPerRow": 32,
+          "count": 2000,
+          "bytes": 32000
+        },
+        {
+          "kind": "object SourceList",
+          "perRow": 1,
+          "bytesPerRow": 28,
+          "count": 1000,
+          "bytes": 28000
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.005,
+          "bytesPerRow": 24.8,
+          "count": 5,
+          "bytes": 24828
+        },
+        {
+          "kind": "object KeyedRow",
+          "perRow": 1,
+          "bytesPerRow": 20,
+          "count": 1000,
+          "bytes": 20000
+        },
+        {
+          "kind": "object Map",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "object Set",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "number",
+          "perRow": 13.445,
+          "bytesPerRow": 0,
+          "count": 13445,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.006,
+          "bytesPerRow": 1040.5,
+          "count": 11006,
+          "bytes": 1040480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7.003,
+          "bytesPerRow": 840.4,
+          "count": 7003,
+          "bytes": 840360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 4000,
+          "bytes": 768000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 4000,
+          "bytes": 592000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8.007,
+          "bytesPerRow": 576.5,
+          "count": 8007,
+          "bytes": 576504
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.006,
+          "bytesPerRow": 560.5,
+          "count": 7006,
+          "bytes": 560480
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6.003,
+          "bytesPerRow": 432.2,
+          "count": 6003,
+          "bytes": 432216
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 426.3,
+          "count": 4000,
+          "bytes": 426272
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 2000,
+          "bytes": 352000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 8000,
+          "bytes": 320000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 3000,
+          "bytes": 264000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10.003,
+          "bytesPerRow": 240.1,
+          "count": 10003,
+          "bytes": 240072
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 2000,
+          "bytes": 224000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 208,
+          "count": 2000,
+          "bytes": 208000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 4000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 3000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.006,
+          "bytesPerRow": 164.1,
+          "count": 5006,
+          "bytes": 164128
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 1000,
+          "bytes": 160000
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 2000,
+          "bytes": 144000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 2000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 4000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 1000,
+          "bytes": 120000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 1000,
+          "bytes": 104000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 1.999,
+          "bytesPerRow": 94.2,
+          "count": 1999,
+          "bytes": 94224
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 79.4,
+          "count": 2000,
+          "bytes": 79440
+        },
+        {
+          "kind": "native system",
+          "perRow": 4.029,
+          "bytesPerRow": 79,
+          "count": 4029,
+          "bytes": 78953
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 2.999,
+          "bytesPerRow": 72,
+          "count": 2999,
+          "bytes": 71976
+        },
+        {
+          "kind": "native blink::TextRecord",
+          "perRow": 0.066,
+          "bytesPerRow": 10,
+          "count": 66,
+          "bytes": 10032
+        }
+      ],
+      "removed": [
+        {
+          "kind": "code system",
+          "perRow": 0.032,
+          "bytesPerRow": 3.4,
+          "count": 32,
+          "bytes": 3440
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.045,
+          "bytesPerRow": 3.1,
+          "count": 45,
+          "bytes": 3144
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.6,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.5,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.003,
+          "bytesPerRow": 0.4,
+          "count": 3,
+          "bytes": 396
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 212
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.002,
+          "bytesPerRow": 0.2,
+          "count": 2,
+          "bytes": 160
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0.002,
+          "bytesPerRow": 0.2,
+          "count": 2,
+          "bytes": 160
+        },
+        {
+          "kind": "native blink::AnimationFrameTimingInfo",
+          "perRow": 0.001,
+          "bytesPerRow": 0.2,
+          "count": 1,
+          "bytes": 152
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0.002,
+          "bytesPerRow": 0.1,
+          "count": 2,
+          "bytes": 144
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<unsigned",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.005,
+          "bytesPerRow": 0.1,
+          "count": 5,
+          "bytes": 80
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 76
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::Element,",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 24
+        },
+        {
+          "kind": "string",
+          "perRow": 11.757,
+          "bytesPerRow": 0,
+          "count": 11757,
+          "bytes": 0
+        },
+        {
+          "kind": "number",
+          "perRow": 10.529,
+          "bytesPerRow": 0,
+          "count": 10529,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "solid",
+      "rows": 1000,
+      "replicate": 0,
+      "jsBytesPerRow": 905.4,
+      "codeBytesPerRow": 34.4,
+      "nativeBytesPerRow": 8703.4,
+      "removedBytesPerRow": 15.3,
+      "js": [
+        {
+          "kind": "object Object",
+          "perRow": 6,
+          "bytesPerRow": 460,
+          "count": 6000,
+          "bytes": 460000
+        },
+        {
+          "kind": "closure",
+          "perRow": 10.001,
+          "bytesPerRow": 272,
+          "count": 10001,
+          "bytes": 272024
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 3,
+          "bytesPerRow": 108,
+          "count": 3000,
+          "bytes": 108000
+        },
+        {
+          "kind": "array (bound arguments)",
+          "perRow": 2.001,
+          "bytesPerRow": 24,
+          "count": 2001,
+          "bytes": 24012
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.006,
+          "bytesPerRow": 21.2,
+          "count": 6,
+          "bytes": 21212
+        },
+        {
+          "kind": "string",
+          "perRow": 13.863,
+          "bytesPerRow": 20,
+          "count": 13863,
+          "bytes": 20000
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.007,
+          "bytesPerRow": 0.1,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "number",
+          "perRow": 11.634,
+          "bytesPerRow": 0,
+          "count": 11634,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.006,
+          "bytesPerRow": 1040.5,
+          "count": 11006,
+          "bytes": 1040480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7.003,
+          "bytesPerRow": 840.4,
+          "count": 7003,
+          "bytes": 840360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 4000,
+          "bytes": 768000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 4000,
+          "bytes": 592000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8.001,
+          "bytesPerRow": 576.1,
+          "count": 8001,
+          "bytes": 576072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.006,
+          "bytesPerRow": 560.5,
+          "count": 7006,
+          "bytes": 560480
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 441.6,
+          "count": 4000,
+          "bytes": 441600
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6.003,
+          "bytesPerRow": 432.2,
+          "count": 6003,
+          "bytes": 432216
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 2000,
+          "bytes": 352000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 8000,
+          "bytes": 320000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 3000,
+          "bytes": 264000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 10000,
+          "bytes": 240000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 2000,
+          "bytes": 224000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 4000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 3000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 176,
+          "count": 2000,
+          "bytes": 176000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.006,
+          "bytesPerRow": 164.1,
+          "count": 5006,
+          "bytes": 164128
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 1000,
+          "bytes": 160000
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 2000,
+          "bytes": 144000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 2000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 4000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 1000,
+          "bytes": 120000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 1000,
+          "bytes": 104000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 94.3,
+          "count": 2000,
+          "bytes": 94288
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 79.4,
+          "count": 2000,
+          "bytes": 79440
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 3000,
+          "bytes": 72000
+        },
+        {
+          "kind": "native system",
+          "perRow": 3.061,
+          "bytesPerRow": 63.5,
+          "count": 3061,
+          "bytes": 63456
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0.001,
+          "bytesPerRow": 8.2,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0.001,
+          "bytesPerRow": 8.2,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.035,
+          "bytesPerRow": 2.1,
+          "count": 35,
+          "bytes": 2064
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.006,
+          "bytesPerRow": 0.9,
+          "count": 6,
+          "bytes": 868
+        },
+        {
+          "kind": "code system",
+          "perRow": 0.031,
+          "bytesPerRow": 0.7,
+          "count": 31,
+          "bytes": 732
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.6,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.5,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.4,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.005,
+          "bytesPerRow": 0.1,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.007,
+          "bytesPerRow": 0.1,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "string",
+          "perRow": 11.952,
+          "bytesPerRow": 0,
+          "count": 11952,
+          "bytes": 0
+        },
+        {
+          "kind": "number",
+          "perRow": 10.723,
+          "bytesPerRow": 0,
+          "count": 10723,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "ranvier",
+      "rows": 10000,
+      "replicate": 0,
+      "jsBytesPerRow": 1176,
+      "codeBytesPerRow": 8.6,
+      "nativeBytesPerRow": 8719,
+      "removedBytesPerRow": 6,
+      "js": [
+        {
+          "kind": "array (object elements)",
+          "perRow": 4.001,
+          "bytesPerRow": 260,
+          "count": 40008,
+          "bytes": 2600348
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 4,
+          "bytesPerRow": 140,
+          "count": 40002,
+          "bytes": 1400040
+        },
+        {
+          "kind": "object Array",
+          "perRow": 6,
+          "bytesPerRow": 96,
+          "count": 60005,
+          "bytes": 960080
+        },
+        {
+          "kind": "string",
+          "perRow": 6.176,
+          "bytesPerRow": 88.6,
+          "count": 61761,
+          "bytes": 885876
+        },
+        {
+          "kind": "closure",
+          "perRow": 3,
+          "bytesPerRow": 84,
+          "count": 30002,
+          "bytes": 840056
+        },
+        {
+          "kind": "object OwnerLink",
+          "perRow": 2,
+          "bytesPerRow": 72,
+          "count": 20000,
+          "bytes": 720000
+        },
+        {
+          "kind": "object Effect$1",
+          "perRow": 1,
+          "bytesPerRow": 72,
+          "count": 10000,
+          "bytes": 720000
+        },
+        {
+          "kind": "object Signal$1",
+          "perRow": 2,
+          "bytesPerRow": 64,
+          "count": 20000,
+          "bytes": 640000
+        },
+        {
+          "kind": "object Owner",
+          "perRow": 1,
+          "bytesPerRow": 52,
+          "count": 10000,
+          "bytes": 520000
+        },
+        {
+          "kind": "object ObserverSet",
+          "perRow": 2,
+          "bytesPerRow": 48,
+          "count": 20000,
+          "bytes": 480000
+        },
+        {
+          "kind": "object OnceRow$3",
+          "perRow": 1,
+          "bytesPerRow": 48,
+          "count": 10000,
+          "bytes": 480000
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.001,
+          "bytesPerRow": 39.3,
+          "count": 5,
+          "bytes": 393468
+        },
+        {
+          "kind": "object Row$2",
+          "perRow": 1,
+          "bytesPerRow": 32,
+          "count": 10000,
+          "bytes": 320000
+        },
+        {
+          "kind": "object ObserverSlot",
+          "perRow": 2,
+          "bytesPerRow": 32,
+          "count": 20000,
+          "bytes": 320000
+        },
+        {
+          "kind": "object SourceList",
+          "perRow": 1,
+          "bytesPerRow": 28,
+          "count": 10000,
+          "bytes": 280000
+        },
+        {
+          "kind": "object KeyedRow",
+          "perRow": 1,
+          "bytesPerRow": 20,
+          "count": 10000,
+          "bytes": 200000
+        },
+        {
+          "kind": "object Map",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "object Set",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "number",
+          "perRow": 4.063,
+          "bytesPerRow": 0,
+          "count": 40631,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.001,
+          "bytesPerRow": 1040,
+          "count": 110006,
+          "bytes": 10400480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7,
+          "bytesPerRow": 840,
+          "count": 70003,
+          "bytes": 8400360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 40000,
+          "bytes": 7680000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 40000,
+          "bytes": 5920000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8,
+          "bytesPerRow": 576,
+          "count": 80001,
+          "bytes": 5760072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.001,
+          "bytesPerRow": 560,
+          "count": 70006,
+          "bytes": 5600480
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6,
+          "bytesPerRow": 432,
+          "count": 60003,
+          "bytes": 4320216
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 416.2,
+          "count": 40000,
+          "bytes": 4161920
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 20000,
+          "bytes": 3520000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 80000,
+          "bytes": 3200000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 30000,
+          "bytes": 2640000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 100000,
+          "bytes": 2400000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 20000,
+          "bytes": 2240000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 208,
+          "count": 20000,
+          "bytes": 2080000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 40000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 30000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 10000,
+          "bytes": 1600000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.001,
+          "bytesPerRow": 152,
+          "count": 50006,
+          "bytes": 1520120
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 20000,
+          "bytes": 1440000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 20000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 40000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 10000,
+          "bytes": 1200000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 110.2,
+          "count": 20000,
+          "bytes": 1102304
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 10000,
+          "bytes": 1040000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 87.8,
+          "count": 20000,
+          "bytes": 877712
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 30000,
+          "bytes": 720000
+        },
+        {
+          "kind": "native system",
+          "perRow": 3.666,
+          "bytesPerRow": 71.5,
+          "count": 36664,
+          "bytes": 714734
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "code system",
+          "perRow": 0.021,
+          "bytesPerRow": 4.1,
+          "count": 205,
+          "bytes": 40720
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.011,
+          "bytesPerRow": 0.7,
+          "count": 115,
+          "bytes": 6836
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 4,
+          "bytes": 324
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "array ",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 212
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 80
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 76
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::Node,",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "solid",
+      "rows": 10000,
+      "replicate": 0,
+      "jsBytesPerRow": 936,
+      "codeBytesPerRow": 3.6,
+      "nativeBytesPerRow": 8731.9,
+      "removedBytesPerRow": 2.4,
+      "js": [
+        {
+          "kind": "object Object",
+          "perRow": 6,
+          "bytesPerRow": 460,
+          "count": 60000,
+          "bytes": 4600000
+        },
+        {
+          "kind": "closure",
+          "perRow": 10,
+          "bytesPerRow": 272,
+          "count": 100001,
+          "bytes": 2720024
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 3,
+          "bytesPerRow": 108,
+          "count": 30000,
+          "bytes": 1080000
+        },
+        {
+          "kind": "string",
+          "perRow": 3.186,
+          "bytesPerRow": 52,
+          "count": 31856,
+          "bytes": 520000
+        },
+        {
+          "kind": "array (bound arguments)",
+          "perRow": 2,
+          "bytesPerRow": 24,
+          "count": 20001,
+          "bytes": 240012
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 20,
+          "count": 6,
+          "bytes": 200128
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "number",
+          "perRow": 2.063,
+          "bytesPerRow": 0,
+          "count": 20627,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.001,
+          "bytesPerRow": 1040,
+          "count": 110006,
+          "bytes": 10400480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7,
+          "bytesPerRow": 840,
+          "count": 70003,
+          "bytes": 8400360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 40000,
+          "bytes": 7680000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 40000,
+          "bytes": 5920000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8,
+          "bytesPerRow": 576,
+          "count": 80001,
+          "bytes": 5760072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.001,
+          "bytesPerRow": 560,
+          "count": 70006,
+          "bytes": 5600480
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 452.5,
+          "count": 40000,
+          "bytes": 4525440
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6,
+          "bytesPerRow": 432,
+          "count": 60003,
+          "bytes": 4320216
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 20000,
+          "bytes": 3520000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 80000,
+          "bytes": 3200000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 30000,
+          "bytes": 2640000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 100000,
+          "bytes": 2400000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 20000,
+          "bytes": 2240000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 40000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 30000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 176,
+          "count": 20000,
+          "bytes": 1760000
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 10000,
+          "bytes": 1600000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.001,
+          "bytesPerRow": 152,
+          "count": 50006,
+          "bytes": 1520120
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 20000,
+          "bytes": 1440000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 20000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 40000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 10000,
+          "bytes": 1200000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 110.2,
+          "count": 20000,
+          "bytes": 1102304
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 10000,
+          "bytes": 1040000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 87.8,
+          "count": 20000,
+          "bytes": 877712
+        },
+        {
+          "kind": "native system",
+          "perRow": 4.005,
+          "bytesPerRow": 80.1,
+          "count": 40049,
+          "bytes": 800726
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 30000,
+          "bytes": 720000
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "code system",
+          "perRow": 0.008,
+          "bytesPerRow": 1,
+          "count": 79,
+          "bytes": 10264
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.003,
+          "bytesPerRow": 0.1,
+          "count": 31,
+          "bytes": 1036
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 6,
+          "bytes": 876
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "string",
+          "perRow": 1.195,
+          "bytesPerRow": 0,
+          "count": 11952,
+          "bytes": 0
+        },
+        {
+          "kind": "number",
+          "perRow": 1.072,
+          "bytesPerRow": 0,
+          "count": 10723,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "solid",
+      "rows": 1000,
+      "replicate": 1,
+      "jsBytesPerRow": 905.4,
+      "codeBytesPerRow": 33.5,
+      "nativeBytesPerRow": 8707.9,
+      "removedBytesPerRow": 7.7,
+      "js": [
+        {
+          "kind": "object Object",
+          "perRow": 6,
+          "bytesPerRow": 460,
+          "count": 6000,
+          "bytes": 460000
+        },
+        {
+          "kind": "closure",
+          "perRow": 10.001,
+          "bytesPerRow": 272,
+          "count": 10001,
+          "bytes": 272024
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 3,
+          "bytesPerRow": 108,
+          "count": 3000,
+          "bytes": 108000
+        },
+        {
+          "kind": "array (bound arguments)",
+          "perRow": 2.001,
+          "bytesPerRow": 24,
+          "count": 2001,
+          "bytes": 24012
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.006,
+          "bytesPerRow": 21.2,
+          "count": 6,
+          "bytes": 21212
+        },
+        {
+          "kind": "string",
+          "perRow": 13.367,
+          "bytesPerRow": 20,
+          "count": 13367,
+          "bytes": 20000
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.007,
+          "bytesPerRow": 0.1,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "number",
+          "perRow": 11.14,
+          "bytesPerRow": 0,
+          "count": 11140,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.006,
+          "bytesPerRow": 1040.5,
+          "count": 11006,
+          "bytes": 1040480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7.003,
+          "bytesPerRow": 840.4,
+          "count": 7003,
+          "bytes": 840360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 4000,
+          "bytes": 768000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 4000,
+          "bytes": 592000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8.004,
+          "bytesPerRow": 576.3,
+          "count": 8004,
+          "bytes": 576288
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.006,
+          "bytesPerRow": 560.5,
+          "count": 7006,
+          "bytes": 560480
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 441.7,
+          "count": 4000,
+          "bytes": 441696
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6.003,
+          "bytesPerRow": 432.2,
+          "count": 6003,
+          "bytes": 432216
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 2000,
+          "bytes": 352000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 8000,
+          "bytes": 320000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 3000,
+          "bytes": 264000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 10000,
+          "bytes": 240000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 2000,
+          "bytes": 224000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 4000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 3000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 176,
+          "count": 2000,
+          "bytes": 176000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.006,
+          "bytesPerRow": 164.1,
+          "count": 5006,
+          "bytes": 164128
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 1000,
+          "bytes": 160000
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 2000,
+          "bytes": 144000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 2000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 4000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 1000,
+          "bytes": 120000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 1000,
+          "bytes": 104000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 94.3,
+          "count": 2000,
+          "bytes": 94288
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 79.4,
+          "count": 2000,
+          "bytes": 79440
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 3000,
+          "bytes": 72000
+        },
+        {
+          "kind": "native system",
+          "perRow": 3.064,
+          "bytesPerRow": 64.2,
+          "count": 3064,
+          "bytes": 64228
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0.002,
+          "bytesPerRow": 8.3,
+          "count": 2,
+          "bytes": 8272
+        }
+      ],
+      "removed": [
+        {
+          "kind": "native system",
+          "perRow": 0.04,
+          "bytesPerRow": 2.6,
+          "count": 40,
+          "bytes": 2592
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.004,
+          "bytesPerRow": 0.8,
+          "count": 4,
+          "bytes": 832
+        },
+        {
+          "kind": "code system",
+          "perRow": 0.031,
+          "bytesPerRow": 0.7,
+          "count": 31,
+          "bytes": 716
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.6,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.5,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.4,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<unsigned",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.005,
+          "bytesPerRow": 0.1,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.007,
+          "bytesPerRow": 0.1,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::Element,",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 24
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "string",
+          "perRow": 11.456,
+          "bytesPerRow": 0,
+          "count": 11456,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "ranvier",
+      "rows": 1000,
+      "replicate": 1,
+      "jsBytesPerRow": 1171.9,
+      "codeBytesPerRow": 66.1,
+      "nativeBytesPerRow": 8736.3,
+      "removedBytesPerRow": 18.8,
+      "js": [
+        {
+          "kind": "array (object elements)",
+          "perRow": 4.008,
+          "bytesPerRow": 263.6,
+          "count": 4008,
+          "bytes": 263600
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 4.002,
+          "bytesPerRow": 140,
+          "count": 4002,
+          "bytes": 140040
+        },
+        {
+          "kind": "object Array",
+          "perRow": 6.005,
+          "bytesPerRow": 96.1,
+          "count": 6005,
+          "bytes": 96080
+        },
+        {
+          "kind": "string",
+          "perRow": 16.767,
+          "bytesPerRow": 95.2,
+          "count": 16767,
+          "bytes": 95248
+        },
+        {
+          "kind": "closure",
+          "perRow": 3.002,
+          "bytesPerRow": 84.1,
+          "count": 3002,
+          "bytes": 84056
+        },
+        {
+          "kind": "object OwnerLink",
+          "perRow": 2,
+          "bytesPerRow": 72,
+          "count": 2000,
+          "bytes": 72000
+        },
+        {
+          "kind": "object Effect$1",
+          "perRow": 1,
+          "bytesPerRow": 72,
+          "count": 1000,
+          "bytes": 72000
+        },
+        {
+          "kind": "object Signal$1",
+          "perRow": 2,
+          "bytesPerRow": 64,
+          "count": 2000,
+          "bytes": 64000
+        },
+        {
+          "kind": "object Owner",
+          "perRow": 1,
+          "bytesPerRow": 52,
+          "count": 1000,
+          "bytes": 52000
+        },
+        {
+          "kind": "object OnceRow$3",
+          "perRow": 1,
+          "bytesPerRow": 48,
+          "count": 1000,
+          "bytes": 48000
+        },
+        {
+          "kind": "object ObserverSet",
+          "perRow": 2,
+          "bytesPerRow": 48,
+          "count": 2000,
+          "bytes": 48000
+        },
+        {
+          "kind": "object Row$2",
+          "perRow": 1,
+          "bytesPerRow": 32,
+          "count": 1000,
+          "bytes": 32000
+        },
+        {
+          "kind": "object ObserverSlot",
+          "perRow": 2,
+          "bytesPerRow": 32,
+          "count": 2000,
+          "bytes": 32000
+        },
+        {
+          "kind": "object SourceList",
+          "perRow": 1,
+          "bytesPerRow": 28,
+          "count": 1000,
+          "bytes": 28000
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.005,
+          "bytesPerRow": 24.8,
+          "count": 5,
+          "bytes": 24828
+        },
+        {
+          "kind": "object KeyedRow",
+          "perRow": 1,
+          "bytesPerRow": 20,
+          "count": 1000,
+          "bytes": 20000
+        },
+        {
+          "kind": "object Map",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "object Set",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "number",
+          "perRow": 13.637,
+          "bytesPerRow": 0,
+          "count": 13637,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.006,
+          "bytesPerRow": 1040.5,
+          "count": 11006,
+          "bytes": 1040480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7.003,
+          "bytesPerRow": 840.4,
+          "count": 7003,
+          "bytes": 840360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 4000,
+          "bytes": 768000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 4000,
+          "bytes": 592000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8.001,
+          "bytesPerRow": 576.1,
+          "count": 8001,
+          "bytes": 576072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.006,
+          "bytesPerRow": 560.5,
+          "count": 7006,
+          "bytes": 560480
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6.003,
+          "bytesPerRow": 432.2,
+          "count": 6003,
+          "bytes": 432216
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 427.1,
+          "count": 4000,
+          "bytes": 427088
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 2000,
+          "bytes": 352000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 8000,
+          "bytes": 320000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 3000,
+          "bytes": 264000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 10000,
+          "bytes": 240000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 2000,
+          "bytes": 224000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 208,
+          "count": 2000,
+          "bytes": 208000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 4000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 3000,
+          "bytes": 192000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.006,
+          "bytesPerRow": 164.1,
+          "count": 5006,
+          "bytes": 164128
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 1000,
+          "bytes": 160000
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 2000,
+          "bytes": 144000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 2000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 4000,
+          "bytes": 128000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 1000,
+          "bytes": 120000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 2000,
+          "bytes": 112000
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 1000,
+          "bytes": 104000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 94.3,
+          "count": 2000,
+          "bytes": 94288
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 79.4,
+          "count": 2000,
+          "bytes": 79440
+        },
+        {
+          "kind": "native system",
+          "perRow": 4.027,
+          "bytesPerRow": 78.7,
+          "count": 4027,
+          "bytes": 78741
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 3000,
+          "bytes": 72000
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0.001,
+          "bytesPerRow": 8.2,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0.001,
+          "bytesPerRow": 8.2,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "code system",
+          "perRow": 0.032,
+          "bytesPerRow": 3.5,
+          "count": 32,
+          "bytes": 3456
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.043,
+          "bytesPerRow": 3,
+          "count": 43,
+          "bytes": 3024
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.6,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0.001,
+          "bytesPerRow": 0.5,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.006,
+          "bytesPerRow": 0.5,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.005,
+          "bytesPerRow": 0.4,
+          "count": 5,
+          "bytes": 432
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.4,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.003,
+          "bytesPerRow": 0.2,
+          "count": 3,
+          "bytes": 212
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.005,
+          "bytesPerRow": 0.1,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.005,
+          "bytesPerRow": 0.1,
+          "count": 5,
+          "bytes": 80
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 76
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "string",
+          "perRow": 11.951,
+          "bytesPerRow": 0,
+          "count": 11951,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "solid",
+      "rows": 10000,
+      "replicate": 1,
+      "jsBytesPerRow": 936,
+      "codeBytesPerRow": 5.3,
+      "nativeBytesPerRow": 8726.8,
+      "removedBytesPerRow": 2.6,
+      "js": [
+        {
+          "kind": "object Object",
+          "perRow": 6,
+          "bytesPerRow": 460,
+          "count": 60000,
+          "bytes": 4600000
+        },
+        {
+          "kind": "closure",
+          "perRow": 10,
+          "bytesPerRow": 272,
+          "count": 100001,
+          "bytes": 2720024
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 3,
+          "bytesPerRow": 108,
+          "count": 30000,
+          "bytes": 1080000
+        },
+        {
+          "kind": "string",
+          "perRow": 3.186,
+          "bytesPerRow": 52,
+          "count": 31856,
+          "bytes": 520000
+        },
+        {
+          "kind": "array (bound arguments)",
+          "perRow": 2,
+          "bytesPerRow": 24,
+          "count": 20001,
+          "bytes": 240012
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0.001,
+          "bytesPerRow": 20,
+          "count": 6,
+          "bytes": 200128
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "number",
+          "perRow": 2.063,
+          "bytesPerRow": 0,
+          "count": 20627,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.001,
+          "bytesPerRow": 1040,
+          "count": 110006,
+          "bytes": 10400480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7,
+          "bytesPerRow": 840,
+          "count": 70002,
+          "bytes": 8400240
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 40000,
+          "bytes": 7680000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 40000,
+          "bytes": 5920000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8,
+          "bytesPerRow": 576,
+          "count": 80001,
+          "bytes": 5760072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.001,
+          "bytesPerRow": 560,
+          "count": 70006,
+          "bytes": 5600480
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 447.3,
+          "count": 40000,
+          "bytes": 4473120
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6,
+          "bytesPerRow": 432,
+          "count": 60003,
+          "bytes": 4320216
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 20000,
+          "bytes": 3520000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 80000,
+          "bytes": 3200000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 30000,
+          "bytes": 2640000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 100000,
+          "bytes": 2400000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 20000,
+          "bytes": 2240000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 40000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 30000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 176,
+          "count": 20000,
+          "bytes": 1760000
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 10000,
+          "bytes": 1600000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.001,
+          "bytesPerRow": 152,
+          "count": 50006,
+          "bytes": 1520120
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 20000,
+          "bytes": 1440000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 20000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 40000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 10000,
+          "bytes": 1200000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 110.2,
+          "count": 20000,
+          "bytes": 1102304
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 10000,
+          "bytes": 1040000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 87.8,
+          "count": 20000,
+          "bytes": 877712
+        },
+        {
+          "kind": "native system",
+          "perRow": 4.006,
+          "bytesPerRow": 80.2,
+          "count": 40061,
+          "bytes": 801766
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 30000,
+          "bytes": 720000
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "code system",
+          "perRow": 0.009,
+          "bytesPerRow": 1.2,
+          "count": 87,
+          "bytes": 11512
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.004,
+          "bytesPerRow": 0.2,
+          "count": 43,
+          "bytes": 1664
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0.001,
+          "bytesPerRow": 0.1,
+          "count": 6,
+          "bytes": 868
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 7,
+          "bytes": 112
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "string",
+          "perRow": 1.195,
+          "bytesPerRow": 0,
+          "count": 11952,
+          "bytes": 0
+        },
+        {
+          "kind": "number",
+          "perRow": 1.072,
+          "bytesPerRow": 0,
+          "count": 10723,
+          "bytes": 0
+        },
+        {
+          "kind": "synthetic",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 2,
+          "bytes": 0
+        }
+      ]
+    },
+    {
+      "bundle": "production",
+      "mode": "ranvier",
+      "rows": 10000,
+      "replicate": 1,
+      "jsBytesPerRow": 1155.2,
+      "codeBytesPerRow": 7.8,
+      "nativeBytesPerRow": 8713.4,
+      "removedBytesPerRow": 4.2,
+      "js": [
+        {
+          "kind": "array (object elements)",
+          "perRow": 4.001,
+          "bytesPerRow": 260,
+          "count": 40008,
+          "bytes": 2600348
+        },
+        {
+          "kind": "object system / Context",
+          "perRow": 4,
+          "bytesPerRow": 140,
+          "count": 40002,
+          "bytes": 1400040
+        },
+        {
+          "kind": "object Array",
+          "perRow": 6,
+          "bytesPerRow": 96,
+          "count": 60005,
+          "bytes": 960080
+        },
+        {
+          "kind": "closure",
+          "perRow": 3,
+          "bytesPerRow": 84,
+          "count": 30002,
+          "bytes": 840056
+        },
+        {
+          "kind": "object Effect$1",
+          "perRow": 1,
+          "bytesPerRow": 72,
+          "count": 10000,
+          "bytes": 720000
+        },
+        {
+          "kind": "object OwnerLink",
+          "perRow": 2,
+          "bytesPerRow": 72,
+          "count": 20000,
+          "bytes": 720000
+        },
+        {
+          "kind": "string",
+          "perRow": 6.176,
+          "bytesPerRow": 67.8,
+          "count": 61762,
+          "bytes": 678420
+        },
+        {
+          "kind": "object Signal$1",
+          "perRow": 2,
+          "bytesPerRow": 64,
+          "count": 20000,
+          "bytes": 640000
+        },
+        {
+          "kind": "object Owner",
+          "perRow": 1,
+          "bytesPerRow": 52,
+          "count": 10000,
+          "bytes": 520000
+        },
+        {
+          "kind": "object OnceRow$3",
+          "perRow": 1,
+          "bytesPerRow": 48,
+          "count": 10000,
+          "bytes": 480000
+        },
+        {
+          "kind": "object ObserverSet",
+          "perRow": 2,
+          "bytesPerRow": 48,
+          "count": 20000,
+          "bytes": 480000
+        },
+        {
+          "kind": "array ",
+          "perRow": 0.001,
+          "bytesPerRow": 39.3,
+          "count": 5,
+          "bytes": 393468
+        },
+        {
+          "kind": "object ObserverSlot",
+          "perRow": 2,
+          "bytesPerRow": 32,
+          "count": 20000,
+          "bytes": 320000
+        },
+        {
+          "kind": "object Row$2",
+          "perRow": 1,
+          "bytesPerRow": 32,
+          "count": 10000,
+          "bytes": 320000
+        },
+        {
+          "kind": "object SourceList",
+          "perRow": 1,
+          "bytesPerRow": 28,
+          "count": 10000,
+          "bytes": 280000
+        },
+        {
+          "kind": "object KeyedRow",
+          "perRow": 1,
+          "bytesPerRow": 20,
+          "count": 10000,
+          "bytes": 200000
+        },
+        {
+          "kind": "object Set",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "object Map",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 16
+        },
+        {
+          "kind": "number",
+          "perRow": 4.063,
+          "bytesPerRow": 0,
+          "count": 40632,
+          "bytes": 0
+        }
+      ],
+      "memo": [],
+      "native": [
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 11.001,
+          "bytesPerRow": 1040,
+          "count": 110006,
+          "bytes": 10400480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 7,
+          "bytesPerRow": 840,
+          "count": 70003,
+          "bytes": 8400360
+        },
+        {
+          "kind": "native blink::LayoutTableCell",
+          "perRow": 4,
+          "bytesPerRow": 768,
+          "count": 40000,
+          "bytes": 7680000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::FragmentItem>",
+          "perRow": 4,
+          "bytesPerRow": 592,
+          "count": 40000,
+          "bytes": 5920000
+        },
+        {
+          "kind": "native blink::ComputedStyle",
+          "perRow": 8,
+          "bytesPerRow": 576,
+          "count": 80001,
+          "bytes": 5760072
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 7.001,
+          "bytesPerRow": 560,
+          "count": 70006,
+          "bytes": 5600480
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 6,
+          "bytesPerRow": 432,
+          "count": 60003,
+          "bytes": 4320216
+        },
+        {
+          "kind": "native <td",
+          "perRow": 4,
+          "bytesPerRow": 421.4,
+          "count": 40000,
+          "bytes": 4214144
+        },
+        {
+          "kind": "native <a>",
+          "perRow": 2,
+          "bytesPerRow": 352,
+          "count": 20000,
+          "bytes": 3520000
+        },
+        {
+          "kind": "native blink::InlineItem",
+          "perRow": 8,
+          "bytesPerRow": 320,
+          "count": 80000,
+          "bytes": 3200000
+        },
+        {
+          "kind": "native blink::LayoutInline",
+          "perRow": 3,
+          "bytesPerRow": 264,
+          "count": 30000,
+          "bytes": 2640000
+        },
+        {
+          "kind": "native blink::FragmentDataList",
+          "perRow": 10,
+          "bytesPerRow": 240,
+          "count": 100000,
+          "bytes": 2400000
+        },
+        {
+          "kind": "native blink::LayoutText",
+          "perRow": 2,
+          "bytesPerRow": 224,
+          "count": 20000,
+          "bytes": 2240000
+        },
+        {
+          "kind": "native Text",
+          "perRow": 2,
+          "bytesPerRow": 208,
+          "count": 20000,
+          "bytes": 2080000
+        },
+        {
+          "kind": "native blink::PhysicalLineBoxFragment",
+          "perRow": 4,
+          "bytesPerRow": 192,
+          "count": 40000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::InlineNodeData",
+          "perRow": 3,
+          "bytesPerRow": 192,
+          "count": 30000,
+          "bytes": 1920000
+        },
+        {
+          "kind": "native blink::LayoutTableRow",
+          "perRow": 1,
+          "bytesPerRow": 160,
+          "count": 10000,
+          "bytes": 1600000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 5.001,
+          "bytesPerRow": 152,
+          "count": 50006,
+          "bytes": 1520120
+        },
+        {
+          "kind": "native blink::ShapeResultView",
+          "perRow": 2,
+          "bytesPerRow": 144,
+          "count": 20000,
+          "bytes": 1440000
+        },
+        {
+          "kind": "native blink::ShapeResult",
+          "perRow": 2,
+          "bytesPerRow": 128,
+          "count": 20000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native blink::MeasureCache",
+          "perRow": 4,
+          "bytesPerRow": 128,
+          "count": 40000,
+          "bytes": 1280000
+        },
+        {
+          "kind": "native <tr>",
+          "perRow": 1,
+          "bytesPerRow": 120,
+          "count": 10000,
+          "bytes": 1200000
+        },
+        {
+          "kind": "native blink::ShapeResultRun",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native DOMTokenList",
+          "perRow": 2,
+          "bytesPerRow": 112,
+          "count": 20000,
+          "bytes": 1120000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::HarfBuzzRunGlyphData>",
+          "perRow": 2,
+          "bytesPerRow": 110.2,
+          "count": 20000,
+          "bytes": 1102304
+        },
+        {
+          "kind": "native <span",
+          "perRow": 1,
+          "bytesPerRow": 104,
+          "count": 10000,
+          "bytes": 1040000
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::ShapeResultCharacterData>",
+          "perRow": 2,
+          "bytesPerRow": 87.8,
+          "count": 20000,
+          "bytes": 877712
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<cppgc::internal::BasicMember<blink::InlineItem,",
+          "perRow": 3,
+          "bytesPerRow": 72,
+          "count": 30000,
+          "bytes": 720000
+        },
+        {
+          "kind": "native system",
+          "perRow": 3.016,
+          "bytesPerRow": 60.7,
+          "count": 30159,
+          "bytes": 607058
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        }
+      ],
+      "removed": [
+        {
+          "kind": "code system",
+          "perRow": 0.015,
+          "bytesPerRow": 2.6,
+          "count": 148,
+          "bytes": 25964
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<const",
+          "perRow": 0,
+          "bytesPerRow": 0.8,
+          "count": 1,
+          "bytes": 8200
+        },
+        {
+          "kind": "native system",
+          "perRow": 0.009,
+          "bytesPerRow": 0.4,
+          "count": 88,
+          "bytes": 4252
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PendingLayer>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 584
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PaintChunk>",
+          "perRow": 0,
+          "bytesPerRow": 0.1,
+          "count": 1,
+          "bytes": 520
+        },
+        {
+          "kind": "native blink::LayoutResult",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::PhysicalBoxFragment",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 6,
+          "bytes": 480
+        },
+        {
+          "kind": "native blink::ConstraintSpace::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 360
+        },
+        {
+          "kind": "object shape system",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 4,
+          "bytes": 324
+        },
+        {
+          "kind": "native blink::HitTestData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 240
+        },
+        {
+          "kind": "native blink::PhysicalFragmentRareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 216
+        },
+        {
+          "kind": "array ",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 3,
+          "bytes": 212
+        },
+        {
+          "kind": "native blink::LayoutResult::RareData",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 136
+        },
+        {
+          "kind": "native blink::HeapVectorBacking<blink::PhysicalFragmentLink>",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 120
+        },
+        {
+          "kind": "object Array",
+          "perRow": 0.001,
+          "bytesPerRow": 0,
+          "count": 5,
+          "bytes": 80
+        },
+        {
+          "kind": "array (object elements)",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 76
+        },
+        {
+          "kind": "native blink::HeapHashTableBacking<blink::HashTable<cppgc::internal::BasicMember<blink::Node,",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::TableBorders",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 72
+        },
+        {
+          "kind": "native blink::PaintArtifact",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 64
+        },
+        {
+          "kind": "native blink::SelectionPaintRange",
+          "perRow": 0,
+          "bytesPerRow": 0,
+          "count": 1,
+          "bytes": 32
+        }
+      ]
+    }
+  ]
+}

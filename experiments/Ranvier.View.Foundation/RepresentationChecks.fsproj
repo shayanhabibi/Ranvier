@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Representation.fs" />
+    <Compile Include="Typed.fs" />
+    <Compile Include="Template.fs" />
+    <Compile Include="Generated/HtmlTemplate.fs" />
+    <Compile Include="Fixtures.fs" />
+    <Compile Include="RepresentationChecks.fsx" />
+    <ProjectReference Include="../../src/Fable.Ranvier/Fable.Ranvier.fsproj" />
+    <PackageReference Update="FSharp.Core" Version="10.1.401" />
+  </ItemGroup>
+</Project>

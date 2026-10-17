@@ -1,0 +1,982 @@
+{
+  "measuredAt": "2026-10-14T14:15:32.087Z",
+  "commit": "ab68bde731caa3bc159267b573050250a8db8b35",
+  "dirty": [
+    "A  bench/Ranvier.RowsBench/.gitignore",
+    "AM bench/Ranvier.RowsBench/Program.fs",
+    "A  bench/Ranvier.RowsBench/Ranvier.RowsBench.fsproj",
+    "AM bench/Ranvier.RowsBench/run.mjs",
+    "M  examples/Fable.Ranvier.Playground/.gitignore",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-counters.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-heap.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-page.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-rows.mjs",
+    "A  examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-solid.jsx",
+    "M  examples/Fable.Ranvier.Playground/benchmarks/frameworks/page.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/rows-bundle.mjs",
+    "M  examples/Fable.Ranvier.Playground/benchmarks/frameworks/vite.config.mjs",
+    " M examples/Fable.Ranvier.Playground/tests/DomTests.fsproj",
+    "AM examples/Fable.Ranvier.Playground/tests/KeyedRowsPerf.fs",
+    " M experiments/Ranvier.View.Foundation/Mounting.fs",
+    " M src/Ranvier/Api.fs",
+    " M src/Ranvier/Combinators.fs",
+    " M src/Ranvier/Projections.fs",
+    " M src/Ranvier/Ranvier.fsproj",
+    "?? docs/research/framework-performance/investigation/keyed-rows-on-core/"
+  ],
+  "node": "v26.7.0",
+  "runtime": "Node.js with jsdom",
+  "counters": true,
+  "notes": [
+    "Counts of core operations (src/Ranvier/Counters.fs) during one run of each operation, after its untimed setup on a fresh list. Counter builds are never timed.",
+    "A: core with the option code compiled out (RanvierRowsBaseline=true), createProjectionWith. B: options compiled in, createProjectionWithOptions None. C1: createProjectionWithOptions CreateFirst. C2: createProjectionOnce None. C3: createProjectionOnce CreateFirst (production). B to C1 wrap each row as fun item -> let row = buildRow item in fun () -> row.",
+    "FactoryRowsCreated counts factory rows with a row memo (RowsOf.CreateFactored); OnceRowsCreated counts memo-free rows (RowsOf.CreateOnce).",
+    "`differences` lists every count of B, C1, C2 and C3 that differs from A on the same operation."
+  ],
+  "names": [
+    "SignalsCreated",
+    "MemosCreated",
+    "EffectsCreated",
+    "OwnersCreated",
+    "EdgesAdded",
+    "EdgesRemoved",
+    "ObserverInserts",
+    "ObserverRemoves",
+    "MemoRecomputes",
+    "EffectRuns",
+    "Flushes",
+    "FactoryRowsCreated",
+    "OnceRowsCreated"
+  ],
+  "results": [
+    {
+      "operation": "create1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 0,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 1000
+      }
+    },
+    {
+      "operation": "create1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 0,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 1000
+      }
+    },
+    {
+      "operation": "create10k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 20000,
+        "MemosCreated": 10000,
+        "EffectsCreated": 10000,
+        "OwnersCreated": 10000,
+        "EdgesAdded": 10000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 10000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 10000,
+        "EffectRuns": 10001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 10000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create10k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 20000,
+        "MemosCreated": 10000,
+        "EffectsCreated": 10000,
+        "OwnersCreated": 10000,
+        "EdgesAdded": 10000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 10000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 10000,
+        "EffectRuns": 10001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 10000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create10k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 20000,
+        "MemosCreated": 10000,
+        "EffectsCreated": 10000,
+        "OwnersCreated": 10000,
+        "EdgesAdded": 10000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 10000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 10000,
+        "EffectRuns": 10001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 10000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "create10k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 20000,
+        "MemosCreated": 0,
+        "EffectsCreated": 10000,
+        "OwnersCreated": 10000,
+        "EdgesAdded": 10000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 10000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 10001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 10000
+      }
+    },
+    {
+      "operation": "create10k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 20000,
+        "MemosCreated": 0,
+        "EffectsCreated": 10000,
+        "OwnersCreated": 10000,
+        "EdgesAdded": 10000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 10000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 10001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 10000
+      }
+    },
+    {
+      "operation": "append1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "append1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "append1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 1000,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 1000,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 1000,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "append1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 0,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 1000
+      }
+    },
+    {
+      "operation": "append1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 2000,
+        "MemosCreated": 0,
+        "EffectsCreated": 1000,
+        "OwnersCreated": 1000,
+        "EdgesAdded": 1000,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 1000,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1001,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 1000
+      }
+    },
+    {
+      "operation": "update10th1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 100,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "update10th1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 100,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "update10th1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 100,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "update10th1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 100,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "update10th1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 100,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "swap1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "swap1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "swap1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "swap1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "swap1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 0,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 0,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "remove1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "remove1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "remove1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "remove1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "remove1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "clear1k",
+      "variant": "A",
+      "build": "baseline",
+      "form": 0,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1000,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1000,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "clear1k",
+      "variant": "B",
+      "build": "option",
+      "form": 1,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1000,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1000,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "clear1k",
+      "variant": "C1",
+      "build": "option",
+      "form": 2,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1000,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1000,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "clear1k",
+      "variant": "C2",
+      "build": "option",
+      "form": 3,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1000,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1000,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    },
+    {
+      "operation": "clear1k",
+      "variant": "C3",
+      "build": "option",
+      "form": 4,
+      "counts": {
+        "SignalsCreated": 0,
+        "MemosCreated": 0,
+        "EffectsCreated": 0,
+        "OwnersCreated": 0,
+        "EdgesAdded": 0,
+        "EdgesRemoved": 1000,
+        "ObserverInserts": 0,
+        "ObserverRemoves": 1000,
+        "MemoRecomputes": 0,
+        "EffectRuns": 1,
+        "Flushes": 1,
+        "FactoryRowsCreated": 0,
+        "OnceRowsCreated": 0
+      }
+    }
+  ],
+  "differences": [
+    {
+      "operation": "create1k",
+      "variant": "C2",
+      "name": "MemosCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C2",
+      "name": "MemoRecomputes",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C2",
+      "name": "FactoryRowsCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C2",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 1000,
+      "delta": 1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C3",
+      "name": "MemosCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C3",
+      "name": "MemoRecomputes",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C3",
+      "name": "FactoryRowsCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "create1k",
+      "variant": "C3",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 1000,
+      "delta": 1000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C2",
+      "name": "MemosCreated",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C2",
+      "name": "MemoRecomputes",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C2",
+      "name": "FactoryRowsCreated",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C2",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 10000,
+      "delta": 10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C3",
+      "name": "MemosCreated",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C3",
+      "name": "MemoRecomputes",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C3",
+      "name": "FactoryRowsCreated",
+      "A": 10000,
+      "value": 0,
+      "delta": -10000
+    },
+    {
+      "operation": "create10k",
+      "variant": "C3",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 10000,
+      "delta": 10000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C2",
+      "name": "MemosCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C2",
+      "name": "MemoRecomputes",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C2",
+      "name": "FactoryRowsCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C2",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 1000,
+      "delta": 1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C3",
+      "name": "MemosCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C3",
+      "name": "MemoRecomputes",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C3",
+      "name": "FactoryRowsCreated",
+      "A": 1000,
+      "value": 0,
+      "delta": -1000
+    },
+    {
+      "operation": "append1k",
+      "variant": "C3",
+      "name": "OnceRowsCreated",
+      "A": 0,
+      "value": 1000,
+      "delta": 1000
+    }
+  ]
+}

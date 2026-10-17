@@ -1,0 +1,3518 @@
+{
+  "measuredAt": "2026-10-12T13:39:21.794Z",
+  "configuration": "production minified; compiler-only diagnostic, no runtime source changes",
+  "checks": [
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "workload": {
+        "width": 128,
+        "initialRows": 128,
+        "identity": true,
+        "click": true,
+        "disposalDom": true
+      },
+      "ranges": [
+        "staged empty single and fragment ranges preserve siblings",
+        "range movement preserves identity and rejects invalid destinations",
+        "mutated boundaries reject movement without deleting foreign nodes",
+        "owned nodes release after external reparenting",
+        "borrowed native nodes restore original placement",
+        "setup failure unwinds acquired listeners and bindings",
+        "attachment failure after insertion unwinds resources and nodes",
+        "range cleanup runs child first while DOM stays attached",
+        "parent and graph disposal preserve independent mounts",
+        "retained setup capabilities cannot mutate attached or disposed mounts",
+        "duplicate or host native ownership is rejected",
+        "release and reporter failures cannot strand remaining owned nodes",
+        "disposal during setup cannot attach or acquire further nodes",
+        "array key callbacks cannot change unread snapshot slots",
+        "array comparers cannot change renderer snapshot slots",
+        "reusable bindings retain identity across range movement",
+        "keyed rows preserve identity and current data across reorder and removal",
+        "top-level keyed regions retain sibling order and move with their mount",
+        "foreign mutations inside keyed rows reject outer movement",
+        "keyed range release attempts both endpoints after a removal failure",
+        "duplicate keys fail before mounting mutates the host",
+        "disposal during attachment cannot revive a mount",
+        "native ownership cannot overlap another live mount",
+        "equality-triggered disposal prevents a late DOM write",
+        "direct child mount disposal uses its explicit reporter",
+        "failed movement rollback disposes resources instead of stranding bindings",
+        "generated descendants remain owned after external reparenting",
+        "duplicate keyed updates report once and recover without replacing retained rows",
+        "initial keyed row setup failure unwinds the entire mount",
+        "failed live row setup retains prior rows and permits recovery",
+        "failed keyed movement restores prior order and permits recovery",
+        "failed keyed rollback terminates the mount and all row resources",
+        "nested keyed rows update and dispose after outer movement",
+        "keyed reader disposal prevents further reconciliation",
+        "keyed comparer disposal prevents further reconciliation",
+        "keyed row setup disposal cannot attach new rows",
+        "keyed movement disposal cannot revive row ranges",
+        "keyed row cleanup disposal cancels the remaining update",
+        "keyed error reporting does not subscribe to reporter reads",
+        "throwing keyed reporters cannot prevent later recovery or disposal",
+        "keyed reconciliation tracks snapshots but not comparers or cleanup",
+        "initial keyed reader disposal stops before comparer calls",
+        "initial keyed comparer disposal stops before further callbacks",
+        "keyed setup and its cleanup failure report together and recover"
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.23015625029802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.3462499976158142
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.26484375447034836
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.21796875447034836
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.3009375035762787
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.26890625059604645
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.27171874791383743
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.2814062535762787
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.27656249701976776
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.3165624961256981
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.2265625
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.24031250178813934
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.2837500050663948
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.28328125178813934
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.2824999988079071
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.3712499961256981
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.2068750038743019
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.29124999791383743
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.18046875298023224
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.22749999910593033
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.1993750035762787
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.24015624821186066
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.07562500238418579
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.08812499791383743
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.08406249433755875
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.08703124523162842
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.0639062449336052
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.07593750208616257
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.06937500089406967
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.11187499761581421
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.08062499761581421
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.07421875
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.09093749523162842
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.05531249940395355
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.08453124761581421
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.046875
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.08906250447034836
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.10078124701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.09562499821186066
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.08500000089406967
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.08437500149011612
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.08843749761581421
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.061250001192092896
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.0951562449336052
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 2.3643749952316284
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 2.0067187547683716
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 1.8506250008940697
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 2.5476562529802322
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 2.2131249979138374
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 1.8770312517881393
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 1.8312500044703484
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 2.0626562535762787
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 1.9770312532782555
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 2.032343752682209
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.9604687467217445
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.9762500002980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 2.074062503874302
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 2.290000006556511
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 2.1815624982118607
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 2.0895312502980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 2.2154687494039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 1.9187500029802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 1.8734375014901161
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 2.3210937529802322
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 2.2795312479138374
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 2.557343751192093
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.8414062485098839
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.8787500038743019
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.8946874961256981
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.6970312520861626
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.7409374937415123
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.8417187482118607
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.9148437529802322
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.7212499976158142
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.8054687455296516
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.6539062485098839
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.5700000002980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.7582812532782555
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.7768749967217445
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.9073437452316284
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.6684374958276749
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.62890625
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.6917187497019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.5921875014901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.5595312491059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.5829687491059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.6142187491059303
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.5160937532782555
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 7.6607812494039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 7.9671874940395355
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 8.700624994933605
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 8.435781247913837
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 8.048593752086163
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 7.646718747913837
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 7.373437501490116
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 7.264843747019768
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 7.576406247913837
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 7.884062506258488
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 7.085781253874302
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 8.06437499821186
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 8.325781248509884
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 7.359375
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 7.992343753576279
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 9.046718746423721
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 7.783906251192093
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 7.2378124967217445
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 8.488750003278255
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 8.122187502682209
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 7.912187501788139
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 7.69046875089407
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 2.0954687520861626
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 2.536250002682209
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 2.3837499991059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 2.820781245827675
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 3.0775000005960464
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 2.441874995827675
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 2.6639062464237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 2.340937502682209
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.5320312529802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.575312502682209
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.100156247615814
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.7245312482118607
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.796875
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.354374997317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.483437493443489
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.8887499943375587
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 3.071874998509884
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 3.1982812508940697
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 3.049374997615814
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 5.307499997317791
+    },
+    {
+      "variant": "baseline",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 3.803125001490116
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 0,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 3.8831249997019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.23749999701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.24140624701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.23093750327825546
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.22937499731779099
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.3451562449336052
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.24281249940395355
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.26750000566244125
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.26078125089406967
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.2590624988079071
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.29203125089406967
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.2540625035762787
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.25093749910593033
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.28031250089406967
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.37156250327825546
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.2581249997019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.29500000178813934
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.21640624850988388
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.2770312502980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.21656250208616257
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.23046875
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.19624999910593033
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.21656250208616257
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.06718750298023224
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.09781250357627869
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.0871875062584877
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.08046874403953552
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.10359375178813934
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.07468750327825546
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.06843750178813934
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.05546875298023224
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.08281250298023224
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.09609375149011612
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.08765624463558197
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.0676562488079071
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.07343749701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.08375000208616257
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.09421874582767487
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.10296875238418579
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.07015624642372131
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.07578125596046448
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.0756249949336052
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.0832812488079071
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.07453124970197678
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.07171875238418579
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 2.03125
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 1.873750001192093
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 1.7870312556624413
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 1.6976562514901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 1.6110937520861626
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 2.0878124982118607
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 2.0084374994039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 2.469218745827675
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 2.177343748509884
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 2.0974999964237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.9539062529802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.8825000002980232
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 1.8310937508940697
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 1.9814062491059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 1.7268749997019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 1.868906244635582
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 1.757656253874302
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 1.8068749979138374
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 2.0676562562584877
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 1.8875000029802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 1.7614062428474426
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 1.9185937494039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.6953125
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.7923437505960464
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.6953125
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.6882812529802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.8178125023841858
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.7054687514901161
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.7229687497019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.7039062529802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.7531250044703484
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.6954687535762787
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.7795312479138374
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.7171875014901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.7221874967217445
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.7001562491059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.6789062544703484
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.6815624982118607
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.7571875005960464
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.6506249979138374
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.6667187511920929
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.5837500020861626
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.6799999997019768
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.6585937514901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 8.028593748807907
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 8.437968745827675
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 9.183437496423721
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 8.52734375
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 8.75593750178814
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 7.6176562532782555
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 7.510624997317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 7.992499999701977
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 9.169843755662441
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 9.633593745529652
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 10.176406249403954
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 8.758124999701977
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 10.744531244039536
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 8.70406249910593
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 9.741406254470348
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 8.580468751490116
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 9.653906255960464
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 10.984218746423721
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 8.228906251490116
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 9.697031252086163
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 7.769375003874302
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 8.924687497317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 3.2685937508940697
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 3.739687502384186
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 3.1396875008940697
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 3.6568749994039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 2.9137500002980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 2.939843751490116
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 4.397343747317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 2.5071875005960464
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.6532812491059303
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.7403125017881393
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.9901562482118607
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.8068749979138374
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.084531247615814
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.8467187508940697
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.975156247615814
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.709218755364418
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 2.5175000056624413
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 2.940937504172325
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 2.872656248509884
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 2.475468747317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 2.6368750035762787
+    },
+    {
+      "variant": "baseline",
+      "replicate": 1,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 2.4534374997019768
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.29749999940395355
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 0,
+      "ms": 0.26124999672174454
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.2757812514901161
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 1,
+      "ms": 0.2707812488079071
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.19187499582767487
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 2,
+      "ms": 0.32484374940395355
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.2603124976158142
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 3,
+      "ms": 0.22578124701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.3284374997019768
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 4,
+      "ms": 0.27296875417232513
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.16062500327825546
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 5,
+      "ms": 0.2679687514901161
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.2239062488079071
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 6,
+      "ms": 0.2123437523841858
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.24921874701976776
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 7,
+      "ms": 0.20609374344348907
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.18453124910593033
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 8,
+      "ms": 0.2592187523841858
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.18687500059604645
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 9,
+      "ms": 0.2201562449336052
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.1756249964237213
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "mount",
+      "round": 10,
+      "ms": 0.19890625029802322
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.09125000238418579
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.0715624988079071
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.055781252682209015
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.07578124850988388
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.08546875417232513
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.06609375029802322
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.0871874988079071
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.09078124910593033
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.06796875596046448
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.09125000238418579
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.06531249731779099
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.049531251192092896
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.059999994933605194
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.06812500208616257
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.06781250238418579
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.05140625685453415
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.07749999314546585
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.07843749970197678
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.08406249433755875
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.049531251192092896
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.10265624523162842
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 16,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.07124999910593033
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 1.5114062502980232
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 0,
+      "ms": 1.7079687491059303
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 1.5028125047683716
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 1,
+      "ms": 1.6854687482118607
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 1.6753125041723251
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 2,
+      "ms": 1.657968744635582
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 1.3904687464237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 3,
+      "ms": 1.6518750041723251
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 1.6273437514901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 4,
+      "ms": 1.5642187520861626
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.5271874964237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 5,
+      "ms": 1.6168750002980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 1.6890624985098839
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 6,
+      "ms": 1.7206250056624413
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 1.5668749958276749
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 7,
+      "ms": 1.6203125044703484
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 1.5356249958276749
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 8,
+      "ms": 1.7100000008940697
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 1.4320312514901161
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 9,
+      "ms": 1.492343746125698
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 1.4395312517881393
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "mount",
+      "round": 10,
+      "ms": 1.677031248807907
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.4918750002980232
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 0.48531249910593033
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.5190624967217445
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 0.48109374940395355
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.5278125032782555
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 0.50390625
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.5220312476158142
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 0.48375000059604645
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.5096874982118607
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 0.5254687443375587
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.5093749985098839
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 0.43140625208616257
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.4567187502980232
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 0.5021874979138374
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.4581249952316284
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 0.48609374463558197
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.5235937535762787
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 0.4645312502980232
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.4751562550663948
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 0.5901562497019768
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.5179687514901161
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 128,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 0.49421875178813934
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 6.521093748509884
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 0,
+      "ms": 7.850312493741512
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 7.172187499701977
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 1,
+      "ms": 6.778124995529652
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 7.563593752682209
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 2,
+      "ms": 6.6724999994039536
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 7.3090625032782555
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 3,
+      "ms": 6.9164062440395355
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 6.387031249701977
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 4,
+      "ms": 6.724531248211861
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 6.519062504172325
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 5,
+      "ms": 6.892812505364418
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 6.8226562440395355
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 6,
+      "ms": 7.424062497913837
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 7.059687495231628
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 7,
+      "ms": 6.6217187494039536
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 7.713593751192093
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 8,
+      "ms": 6.682343751192093
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 6.533750005066395
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 9,
+      "ms": 6.966093748807907
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 6.765156254172325
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "mount",
+      "round": 10,
+      "ms": 6.439218752086163
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 2.1915625035762787
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 0,
+      "ms": 2.5390625
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 2.096250005066395
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 1,
+      "ms": 1.9953124970197678
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 2.174218751490116
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 2,
+      "ms": 2.604374997317791
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 2.403749994933605
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 3,
+      "ms": 2.7949999943375587
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.253437504172325
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 4,
+      "ms": 2.4328124970197678
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.9762500002980232
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 5,
+      "ms": 2.2107812464237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.2178125008940697
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 6,
+      "ms": 2.4589062482118607
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.252499997615814
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 7,
+      "ms": 2.1599999964237213
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 2.369687497615814
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 8,
+      "ms": 1.984218753874302
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 2.0034374967217445
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 9,
+      "ms": 2.118437498807907
+    },
+    {
+      "variant": "baseline",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 2.6320312470197678
+    },
+    {
+      "variant": "shared-backend",
+      "replicate": 2,
+      "width": 512,
+      "phase": "dispose",
+      "round": 10,
+      "ms": 2.126093752682209
+    }
+  ]
+}

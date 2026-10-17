@@ -1,0 +1,15 @@
+generated/
+generated-tests/
+generated-authoring-counters/
+generated-ripple/
+generated-framework-dist/
+generated-framework-shared/
+generated-framework-before/
+generated-framework-binding-before/
+generated-framework-prepared-before/
+generated-ladder/
+generated-ladder-dist/
+dist/
+node_modules/
+test-results/
+playwright-report/

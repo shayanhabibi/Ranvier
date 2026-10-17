@@ -1,0 +1,3 @@
+.githooks/* text eol=lf
+tools/Ranvier.Dom.Generate/*.json text eol=lf
+docs/research/**/*-report-github.md -whitespace

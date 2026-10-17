@@ -1,0 +1,13 @@
+diff --git a/src/Ranvier/Projections.fs b/src/Ranvier/Projections.fs
+index f64ec0c..efcf8ad 100644
+--- a/src/Ranvier/Projections.fs
++++ b/src/Ranvier/Projections.fs
+@@ -2302,7 +2302,8 @@ type internal KeyedProjection<'T, 'K, 'V when 'K: equality>
+             changedKeys.Clear ()
+
+     override this.Enumerate() =
+-        let trim = trimValid && keyPure
++        // EXPERIMENT (measure/poc-rerun-2026-10-15): every pass takes the full visit.
++        let trim = false && trimValid && keyPure
+         trimValid <- false
+         this.Read ()

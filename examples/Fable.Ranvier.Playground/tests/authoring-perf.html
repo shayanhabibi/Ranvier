@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Authoring performance</title></head>
+<body><script type="module">
+const root = new URL(location.href).searchParams.has("counters") ? "generated-authoring-counters" : "generated-tests";
+window.authoringPerf = await import(`../${root}/AuthoringPerf.js`);
+</script></body></html>

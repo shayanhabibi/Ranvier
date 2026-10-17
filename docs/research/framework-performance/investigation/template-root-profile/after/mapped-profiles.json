@@ -1,0 +1,1049 @@
+{
+  "map": "index-DZUAjp4v.js.map",
+  "results": [
+    {
+      "mode": "ranvier-template",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 cloneNode",
+          "ms": 35.945
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 31.451
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+          "ms": 27.452
+        },
+        {
+          "name": "(runtime):0 insertBefore",
+          "ms": 22.655
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 14.621
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:144 delegateFrom",
+          "ms": 9.009
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 8.568
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:30 fill",
+          "ms": 8.56
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:148 claim",
+          "ms": 7.069
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:290 collect",
+          "ms": 6.864
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 6.769
+        },
+        {
+          "name": "(runtime):0 createComment",
+          "ms": 6.477
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:231 write",
+          "ms": 3.695
+        },
+        {
+          "name": "(runtime):0 createElement",
+          "ms": 3.409
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:366 equals$1",
+          "ms": 3.242
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:671 Ranvier_Graph__Graph_Run_FCFD9EF",
+          "ms": 3.136
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js:347 validNameCharacters",
+          "ms": 3.054
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js:169 FSharpRef$1",
+          "ms": 2.955
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/FSharp.Core.js:60 Operators_IsNull$1",
+          "ms": 2.605
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1389 MountState__openElement",
+          "ms": 2.567
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1110 Dispose",
+          "ms": 2.547
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:319 materialise",
+          "ms": 2.532
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:630 MountState",
+          "ms": 2.239
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1119 Graph_get_Ambient",
+          "ms": 2.014
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:424 Api_untrack",
+          "ms": 1.942
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1098 Ranvier.View.Foundation.Representation.Backend.Template4D95A689",
+          "ms": 1.912
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:106 mountCore",
+          "ms": 1.872
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+          "ms": 1.793
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2592 Effect$1",
+          "ms": 1.651
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1103 Graph__Activate",
+          "ms": 1.63
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 277.527
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 246.076
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 246.076
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 246.076
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:154 mountTemplate",
+          "ms": 245.094
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:13 (anonymous)",
+          "ms": 245.094
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:106 mountCore",
+          "ms": 244.094
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1598 mount$4",
+          "ms": 228.385
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1578 mountWith",
+          "ms": 227.913
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1279 MountState__Run_Z5F452C38",
+          "ms": 210.296
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:671 Ranvier_Graph__Graph_Run_FCFD9EF",
+          "ms": 171.385
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:471 Api_createRoot",
+          "ms": 160.129
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1282 (anonymous)",
+          "ms": 160.129
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+          "ms": 159.136
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1283 (anonymous)",
+          "ms": 157.252
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:424 Api_untrack",
+          "ms": 155.79
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+          "ms": 153.324
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1290 (anonymous)",
+          "ms": 152.831
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:766 Ranvier.View.Foundation.Representation.Backend.ElementWith45902D85",
+          "ms": 152.333
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:112 view",
+          "ms": 152.333
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:117 (anonymous)",
+          "ms": 152.333
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1098 Ranvier.View.Foundation.Representation.Backend.Template4D95A689",
+          "ms": 133.467
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Template.js:791 (anonymous)",
+          "ms": 133.467
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:157 (anonymous)",
+          "ms": 133.467
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js:319 materialise",
+          "ms": 131.555
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+          "ms": 67.842
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+          "ms": 67.842
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js:316 Api_createEffect",
+          "ms": 67.842
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2592 Effect$1",
+          "ms": 66.049
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1395 Graph__RunFlush",
+          "ms": 60.448
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 131.487
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js",
+          "ms": 33.231
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Template.js",
+          "ms": 29.559
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js",
+          "ms": 25.274
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/TemplateDom.js",
+          "ms": 16.522
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js",
+          "ms": 9.913
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Api.js",
+          "ms": 6.673
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 4.695
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Representation.js",
+          "ms": 4.553
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Types.js",
+          "ms": 4.43
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js",
+          "ms": 4.04
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+          "ms": 2.605
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+          "ms": 1.592
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js",
+          "ms": 1.473
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 0.982
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/List.js",
+          "ms": 0.498
+        }
+      ]
+    },
+    {
+      "mode": "ranvier-template",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "(runtime):0 remove",
+          "ms": 25.178
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:152 unclaim",
+          "ms": 6.832
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 5.105
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1213 Mounted__Dispose",
+          "ms": 3.967
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:561 clear$1",
+          "ms": 3.091
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1287 (anonymous)",
+          "ms": 3.037
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 2.981
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+          "ms": 2.98
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:456 OwnedRange__Release",
+          "ms": 2.388
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:692 Owner__Dispose",
+          "ms": 1.983
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:57 remove",
+          "ms": 1.913
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:138 Scope__Dispose",
+          "ms": 1.502
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2771 Effect__Dispose",
+          "ms": 1.051
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:474 OwnerLink__get_Acquired",
+          "ms": 1.048
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:320 SourceList__sourceAt_Z524259A4",
+          "ms": 1.04
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js:925 item$1",
+          "ms": 1.009
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:575 Owner__Unlink_Z6ED9BB41",
+          "ms": 1
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1261 Graph__Dispose",
+          "ms": 0.993
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:146 undelegateFrom",
+          "ms": 0.992
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:453 OwnerLink__set_Next_Z6ED9BB41",
+          "ms": 0.967
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+          "ms": 0.512
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1224 MountState__get_Root",
+          "ms": 0.503
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:338 SourceList__trimFrom",
+          "ms": 0.503
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:429 OwnerLink__get_Child",
+          "ms": 0.5
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1300 (anonymous)",
+          "ms": 0.498
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1983 RemoveObserver",
+          "ms": 0.498
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1312 MountState__release",
+          "ms": 0.497
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js:366 equals$1",
+          "ms": 0.496
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:968 AmbientSlot_get_Existing",
+          "ms": 0.493
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:645 Owner__DisposeScope",
+          "ms": 0.491
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 74.494
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 74.494
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 74.494
+        },
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 74.494
+        },
+        {
+          "name": "../../generated-tests/FrameworkPerf.js:127 (anonymous)",
+          "ms": 71.513
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1213 Mounted__Dispose",
+          "ms": 69.026
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:138 Scope__Dispose",
+          "ms": 64.556
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:122 Scope__Release_Z11D86880",
+          "ms": 38.308
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1312 MountState__release",
+          "ms": 37.304
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:638 (anonymous)",
+          "ms": 37.304
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:456 OwnedRange__Release",
+          "ms": 36.311
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:57 remove",
+          "ms": 27.091
+        },
+        {
+          "name": "(runtime):0 remove",
+          "ms": 25.178
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js:110 Scope__Clean_Z11D86880",
+          "ms": 24.239
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1287 (anonymous)",
+          "ms": 15.66
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:692 Owner__Dispose",
+          "ms": 14.117
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:714 Owner__TearDown_6ED947BB",
+          "ms": 12.134
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:645 Owner__DisposeScope",
+          "ms": 9.655
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+          "ms": 9.174
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1011 RunDetached",
+          "ms": 9.174
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:720 (anonymous)",
+          "ms": 8.662
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:1015 (anonymous)",
+          "ms": 8.662
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:152 unclaim",
+          "ms": 6.832
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1300 (anonymous)",
+          "ms": 6.595
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:146 undelegateFrom",
+          "ms": 6.097
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js:1523 MountState__releaseDelegation",
+          "ms": 6.097
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2771 Effect__Dispose",
+          "ms": 6.072
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:2612 Release",
+          "ms": 6.072
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 5.105
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js:338 SourceList__trimFrom",
+          "ms": 5.021
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 30.283
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Mounting.js",
+          "ms": 20.627
+        },
+        {
+          "name": "../../generated-tests/src/Ranvier/Core.js",
+          "ms": 14.059
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Util.js",
+          "ms": 3.587
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 2.981
+        },
+        {
+          "name": "../../generated-tests/experiments/Ranvier.View.Foundation/Lifetime.js",
+          "ms": 1.948
+        },
+        {
+          "name": "../../generated-tests/fable_modules/fable-library-js.5.18.0/Array.js",
+          "ms": 1.009
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "mount",
+      "self": [
+        {
+          "name": "(runtime):0 cloneNode",
+          "ms": 44.739
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:6 (anonymous)",
+          "ms": 24.806
+        },
+        {
+          "name": "(runtime):0 appendChild",
+          "ms": 20.021
+        },
+        {
+          "name": "(runtime):0 (garbage collector)",
+          "ms": 19.14
+        },
+        {
+          "name": "(runtime):0 addEventListener",
+          "ms": 12.612
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:108 recompute",
+          "ms": 10.99
+        },
+        {
+          "name": "(runtime):0 insertBefore",
+          "ms": 8.653
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:4 Row$1",
+          "ms": 7.936
+        },
+        {
+          "name": "(runtime):0 queueMicrotask",
+          "ms": 7.104
+        },
+        {
+          "name": "(runtime):0 setAttribute",
+          "ms": 5.931
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+          "ms": 5.85
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:1671 insertExpression",
+          "ms": 4.456
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+          "ms": 4.234
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:753 setupComputedNode",
+          "ms": 3.589
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:19 (anonymous)",
+          "ms": 3.553
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:438 (anonymous)",
+          "ms": 3.535
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:61 effect",
+          "ms": 3.43
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:541 setAttribute",
+          "ms": 2.572
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:678 createEffectNode",
+          "ms": 2.564
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:874 insert",
+          "ms": 2.126
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/scheduler.js:442 settle",
+          "ms": 2.035
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:906 accessor.$s.options",
+          "ms": 2.009
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+          "ms": 1.607
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:1766 appendNodes",
+          "ms": 1.603
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:518 computed",
+          "ms": 1.545
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:398 render",
+          "ms": 1.521
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:402 createRoot$1.id",
+          "ms": 1.52
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:1018 read",
+          "ms": 1.394
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:13 mount$1",
+          "ms": 1.095
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:479 attachDelegatedEvent",
+          "ms": 1.023
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 228.556
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 209.416
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 209.416
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 209.416
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:13 mount$1",
+          "ms": 208.431
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:398 render",
+          "ms": 207.336
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:934 createRoot$1",
+          "ms": 162.396
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+          "ms": 161.895
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:402 createRoot$1.id",
+          "ms": 160.927
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+          "ms": 160.927
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+          "ms": 160.927
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:874 insert",
+          "ms": 145.387
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:61 effect",
+          "ms": 143.862
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+          "ms": 140.432
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+          "ms": 140.432
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:935 createRenderEffect",
+          "ms": 140.432
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:15 (anonymous)",
+          "ms": 138.958
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:108 recompute",
+          "ms": 115.679
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:893 (anonymous)",
+          "ms": 107.232
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:19 (anonymous)",
+          "ms": 105.725
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js:865 untrack",
+          "ms": 102.172
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:1298 createComponent",
+          "ms": 102.172
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js:1299 (anonymous)",
+          "ms": 101.674
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:4 Row$1",
+          "ms": 100.676
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+          "ms": 71.669
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:438 (anonymous)",
+          "ms": 48.274
+        },
+        {
+          "name": "(runtime):0 cloneNode",
+          "ms": 44.739
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:906 accessor.$s.options",
+          "ms": 36.238
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:1671 insertExpression",
+          "ms": 34.733
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:6 (anonymous)",
+          "ms": 33.316
+        }
+      ],
+      "sources": [
+        {
+          "name": "(runtime)",
+          "ms": 118.705
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx",
+          "ms": 37.894
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js",
+          "ms": 28.527
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/core.js",
+          "ms": 21.641
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/effect.js",
+          "ms": 7.457
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+          "ms": 4.934
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/signals.js",
+          "ms": 1.972
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js",
+          "ms": 1.957
+        },
+        {
+          "name": "../../node_modules/solid-js/dist/solid.js",
+          "ms": 1.499
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js",
+          "ms": 1.47
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/flatten.js",
+          "ms": 1.009
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 0.985
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/async.js",
+          "ms": 0.506
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "dispose",
+      "self": [
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:425 (anonymous)",
+          "ms": 21.016
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 9.323
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+          "ms": 6.499
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+          "ms": 6.432
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:476 (anonymous)",
+          "ms": 4.725
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+          "ms": 4.375
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+          "ms": 3.043
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+          "ms": 2.517
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+          "ms": 2.179
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 2.004
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+          "ms": 0.513
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:27 dispose",
+          "ms": 0.5
+        }
+      ],
+      "inclusive": [
+        {
+          "name": "../../benchmarks/frameworks/page.mjs:56 run",
+          "ms": 63.126
+        },
+        {
+          "name": "(runtime):1 (anonymous)",
+          "ms": 63.126
+        },
+        {
+          "name": "(runtime):305 evaluate",
+          "ms": 63.126
+        },
+        {
+          "name": "(runtime):0 (root)",
+          "ms": 63.126
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx:27 dispose",
+          "ms": 61.122
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:425 (anonymous)",
+          "ms": 60.622
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+          "ms": 23.064
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+          "ms": 16.565
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+          "ms": 16.542
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+          "ms": 16.029
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js:252 disposeRootSelf",
+          "ms": 16.029
+        },
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js:476 (anonymous)",
+          "ms": 14.048
+        },
+        {
+          "name": "(runtime):0 removeEventListener",
+          "ms": 9.323
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+          "ms": 6.554
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+          "ms": 4.375
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+          "ms": 3.043
+        }
+      ],
+      "sources": [
+        {
+          "name": "../../node_modules/@solidjs/web/dist/web.js",
+          "ms": 34.757
+        },
+        {
+          "name": "(runtime)",
+          "ms": 9.323
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/owner.js",
+          "ms": 6.945
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/graph.js",
+          "ms": 6.554
+        },
+        {
+          "name": "../../node_modules/@solidjs/signals/dist/prod/core/heap.js",
+          "ms": 3.043
+        },
+        {
+          "name": "../../benchmarks/frameworks/page.mjs",
+          "ms": 2.004
+        },
+        {
+          "name": "../../benchmarks/frameworks/solid.jsx",
+          "ms": 0.5
+        }
+      ]
+    }
+  ]
+}

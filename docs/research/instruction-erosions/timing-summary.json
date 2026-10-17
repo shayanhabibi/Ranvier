@@ -1,0 +1,227 @@
+[
+  {
+    "scenario": "cutoff",
+    "variant": "59da758-parent",
+    "processes": 3,
+    "ranvierNs": 2.49525,
+    "ratio": 1.303513125244874,
+    "minRatio": 1.2846823605288615,
+    "maxRatio": 1.3612865798633493
+  },
+  {
+    "scenario": "cutoff",
+    "variant": "59da758",
+    "processes": 3,
+    "ranvierNs": 3.95475,
+    "ratio": 2.0280596649957205,
+    "minRatio": 1.8763945792625274,
+    "maxRatio": 2.0521502237789453
+  },
+  {
+    "scenario": "cutoff",
+    "variant": "878f294",
+    "processes": 3,
+    "ranvierNs": 3.847,
+    "ratio": 1.989913358334411,
+    "minRatio": 1.9659142950605168,
+    "maxRatio": 2.3153600104445458
+  },
+  {
+    "scenario": "cutoff",
+    "variant": "2ef3876",
+    "processes": 3,
+    "ranvierNs": 3.870875,
+    "ratio": 1.9265273111857655,
+    "minRatio": 1.900197262976205,
+    "maxRatio": 2.223525032570259
+  },
+  {
+    "scenario": "cutoff",
+    "variant": "no-guard",
+    "processes": 3,
+    "ranvierNs": 2.615375,
+    "ratio": 1.323402909550917,
+    "minRatio": 1.2446210853454458,
+    "maxRatio": 1.4334002460661788
+  },
+  {
+    "scenario": "chain",
+    "variant": "59da758-parent",
+    "processes": 3,
+    "ranvierNs": 1192.565,
+    "ratio": 8.199104683195593,
+    "minRatio": 8.106474587245064,
+    "maxRatio": 8.225153458859232
+  },
+  {
+    "scenario": "chain",
+    "variant": "59da758",
+    "processes": 3,
+    "ranvierNs": 1283.975,
+    "ratio": 8.275546566502937,
+    "minRatio": 8.244614248563263,
+    "maxRatio": 8.332677565972457
+  },
+  {
+    "scenario": "chain",
+    "variant": "878f294",
+    "processes": 3,
+    "ranvierNs": 1381.34,
+    "ratio": 8.87023415668262,
+    "minRatio": 8.869526133299088,
+    "maxRatio": 8.945189764507186
+  },
+  {
+    "scenario": "chain",
+    "variant": "2ef3876",
+    "processes": 3,
+    "ranvierNs": 1366.48,
+    "ratio": 8.943224581956217,
+    "minRatio": 8.820511968085107,
+    "maxRatio": 9.115378419305989
+  },
+  {
+    "scenario": "chain",
+    "variant": "no-guard",
+    "processes": 3,
+    "ranvierNs": 1333.67,
+    "ratio": 8.665846472626024,
+    "minRatio": 8.612530887181396,
+    "maxRatio": 8.807753269052967
+  },
+  {
+    "scenario": "update",
+    "variant": "59da758-parent",
+    "processes": 3,
+    "ranvierNs": 88366.5,
+    "ratio": 0.8307522717406679,
+    "minRatio": 0.8237956510592677,
+    "maxRatio": 0.8570946041039209
+  },
+  {
+    "scenario": "update",
+    "variant": "59da758",
+    "processes": 3,
+    "ranvierNs": 94208,
+    "ratio": 0.8807124661951576,
+    "minRatio": 0.88063385815852,
+    "maxRatio": 0.8881095807762286
+  },
+  {
+    "scenario": "update",
+    "variant": "878f294",
+    "processes": 3,
+    "ranvierNs": 101167.5,
+    "ratio": 0.964955462372528,
+    "minRatio": 0.9309073015493431,
+    "maxRatio": 0.9700641004127932
+  },
+  {
+    "scenario": "update",
+    "variant": "2ef3876",
+    "processes": 3,
+    "ranvierNs": 95442.5,
+    "ratio": 0.9195164346739576,
+    "minRatio": 0.8811712861511788,
+    "maxRatio": 0.9289757104132296
+  },
+  {
+    "scenario": "update",
+    "variant": "no-guard",
+    "processes": 3,
+    "ranvierNs": 89366.5,
+    "ratio": 0.8732655175109444,
+    "minRatio": 0.8591778333398445,
+    "maxRatio": 0.8873375105650595
+  },
+  {
+    "scenario": "dispose",
+    "variant": "59da758-parent",
+    "processes": 3,
+    "ranvierNs": 340465.625,
+    "ratio": 1.0861879885149146,
+    "minRatio": 0.920551255185391,
+    "maxRatio": 1.1273887927807622
+  },
+  {
+    "scenario": "dispose",
+    "variant": "59da758",
+    "processes": 3,
+    "ranvierNs": 346262.5,
+    "ratio": 1.1560507892787464,
+    "minRatio": 1.064204064352244,
+    "maxRatio": 1.1720434396721082
+  },
+  {
+    "scenario": "dispose",
+    "variant": "878f294",
+    "processes": 3,
+    "ranvierNs": 324243.75,
+    "ratio": 1.0475719385780033,
+    "minRatio": 1.0368127585586666,
+    "maxRatio": 1.2258204334365326
+  },
+  {
+    "scenario": "dispose",
+    "variant": "2ef3876",
+    "processes": 3,
+    "ranvierNs": 284062.5,
+    "ratio": 0.9291553411947436,
+    "minRatio": 0.899300492402629,
+    "maxRatio": 0.9449457357894299
+  },
+  {
+    "scenario": "dispose",
+    "variant": "no-guard",
+    "processes": 3,
+    "ranvierNs": 296453.125,
+    "ratio": 0.9604637035537107,
+    "minRatio": 0.8554645458768084,
+    "maxRatio": 1.0227039875414943
+  },
+  {
+    "scenario": "create",
+    "variant": "59da758-parent",
+    "processes": 3,
+    "ranvierNs": 2047406.25,
+    "ratio": 1.481481971493085,
+    "minRatio": 1.4439982270694263,
+    "maxRatio": 1.4822179991855573
+  },
+  {
+    "scenario": "create",
+    "variant": "59da758",
+    "processes": 3,
+    "ranvierNs": 2155487.5,
+    "ratio": 1.4866487696137534,
+    "minRatio": 1.4651226775083122,
+    "maxRatio": 1.5379929450274037
+  },
+  {
+    "scenario": "create",
+    "variant": "878f294",
+    "processes": 3,
+    "ranvierNs": 2082137.5,
+    "ratio": 1.527291565425488,
+    "minRatio": 1.4784354156953137,
+    "maxRatio": 1.538490868721156
+  },
+  {
+    "scenario": "create",
+    "variant": "2ef3876",
+    "processes": 3,
+    "ranvierNs": 2137131.25,
+    "ratio": 1.5169692321534922,
+    "minRatio": 1.4841221443622925,
+    "maxRatio": 1.5530789528717077
+  },
+  {
+    "scenario": "create",
+    "variant": "no-guard",
+    "processes": 3,
+    "ranvierNs": 2036056.25,
+    "ratio": 1.455422452605416,
+    "minRatio": 1.4464967197180068,
+    "maxRatio": 1.51489462621603
+  }
+]

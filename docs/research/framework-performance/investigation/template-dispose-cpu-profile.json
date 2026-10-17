@@ -1,0 +1,1865 @@
+{
+  "machine": "AMD Ryzen 9 9900X, one Chromium process per width, production unminified bundle, CDP sampling interval 100 µs",
+  "workload": "repeated small runs: width 1 profiles 160 runs of 256 one-row roots, width 128 profiles 96 runs of 32 roots (diagnose.mjs --modes=ranvier-template,solid --phases=mount,dispose --repeat); host creation, preparation and cleanup are excluded",
+  "note": "Busy time is the time inside the timed run, including the garbage-collector samples between its JavaScript samples. Categories: view = Ranvier.View.Foundation or @solidjs/web; core = src/Ranvier or @solidjs/signals; fixture = FrameworkPerf.js, page.mjs or the compiled solid.jsx (Solid's row template code lives there); dom = native DOM time, attributed to the nearest categorized caller; library = fable-library time attributed to its caller. Self and inclusive times map each frame through the bundle's source map.",
+  "profiles": {
+    "before": {
+      "commit": "9798fd2",
+      "widths": {
+        "1": {
+          "chromium": "153.0.8010.12",
+          "measuredAt": "2026-10-13T18:44:23.915Z",
+          "modes": {
+            "ranvier-template mount": {
+              "busyMs": 645.5,
+              "roots": 40960,
+              "categories": {
+                "view": {
+                  "ms": 211.5,
+                  "percent": 32.8
+                },
+                "dom (from view)": {
+                  "ms": 177.7,
+                  "percent": 27.5
+                },
+                "gc": {
+                  "ms": 108.3,
+                  "percent": 16.8
+                },
+                "fixture": {
+                  "ms": 45,
+                  "percent": 7
+                },
+                "core": {
+                  "ms": 40.7,
+                  "percent": 6.3
+                },
+                "view (library)": {
+                  "ms": 38.1,
+                  "percent": 5.9
+                },
+                "core (library)": {
+                  "ms": 17.5,
+                  "percent": 2.7
+                },
+                "dom (from fixture)": {
+                  "ms": 6,
+                  "percent": 0.9
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0.1
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 104.2
+                },
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 50.6
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 46.3
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+                  "ms": 44.6
+                },
+                {
+                  "name": "FrameworkPerf.js:112 view",
+                  "ms": 31.6
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 27.3
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:628 mountCore$1",
+                  "ms": 26.4
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Prepared.js:14 Backend",
+                  "ms": 23.3
+                },
+                {
+                  "name": "(runtime):0 addEventListener",
+                  "ms": 12.2
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:833 (anonymous)",
+                  "ms": 12.2
+                },
+                {
+                  "name": "fable-library/Option.js:42 value$1",
+                  "ms": 11.4
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 10.2
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+                  "ms": 280.4
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+                  "ms": 275.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+                  "ms": 102.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+                  "ms": 102.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2592 Effect$1",
+                  "ms": 99.9
+                }
+              ]
+            },
+            "ranvier-template dispose": {
+              "busyMs": 173,
+              "roots": 40960,
+              "categories": {
+                "view": {
+                  "ms": 64.7,
+                  "percent": 37.4
+                },
+                "dom (from view)": {
+                  "ms": 48.1,
+                  "percent": 27.8
+                },
+                "core": {
+                  "ms": 30.3,
+                  "percent": 17.5
+                },
+                "view (library)": {
+                  "ms": 16.8,
+                  "percent": 9.7
+                },
+                "gc": {
+                  "ms": 6.2,
+                  "percent": 3.6
+                },
+                "fixture": {
+                  "ms": 5,
+                  "percent": 2.9
+                },
+                "core (library)": {
+                  "ms": 1.7,
+                  "percent": 1
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 remove",
+                  "ms": 35.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:160 unclaim",
+                  "ms": 14.4
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Lifetime.js:133 Scope__Dispose",
+                  "ms": 10.7
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:841 (anonymous)",
+                  "ms": 10.5
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 10.4
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:456 OwnedRange__Release",
+                  "ms": 8.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+                  "ms": 8.7
+                },
+                {
+                  "name": "fable-library/Util.js:561 clear$1",
+                  "ms": 6.3
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 6.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:338 SourceList__trimFrom",
+                  "ms": 6
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Lifetime.js:98 Scope__Clean_Z11D86880",
+                  "ms": 5.9
+                },
+                {
+                  "name": "fable-library/Types.js:163 get contents",
+                  "ms": 5.2
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:692 Owner__Dispose",
+                  "ms": 32
+                },
+                {
+                  "name": "src/Ranvier/Core.js:714 Owner__TearDown_6ED947BB",
+                  "ms": 29.1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+                  "ms": 25.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1011 RunDetached",
+                  "ms": 25.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 24.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:720 (anonymous)",
+                  "ms": 24.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1015 (anonymous)",
+                  "ms": 24.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:338 SourceList__trimFrom",
+                  "ms": 17.8
+                }
+              ]
+            },
+            "solid mount": {
+              "busyMs": 300.4,
+              "roots": 40960,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 107.1,
+                  "percent": 35.7
+                },
+                "fixture": {
+                  "ms": 64.2,
+                  "percent": 21.4
+                },
+                "core": {
+                  "ms": 49.2,
+                  "percent": 16.4
+                },
+                "view": {
+                  "ms": 31.8,
+                  "percent": 10.6
+                },
+                "gc": {
+                  "ms": 30.7,
+                  "percent": 10.2
+                },
+                "dom (from fixture)": {
+                  "ms": 9.7,
+                  "percent": 3.2
+                },
+                "dom (from core)": {
+                  "ms": 6.2,
+                  "percent": 2
+                },
+                "dom (from null)": {
+                  "ms": 1.5,
+                  "percent": 0.5
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 42.5
+                },
+                {
+                  "name": "solid.jsx:6 (anonymous)",
+                  "ms": 37.8
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 30.2
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 21.6
+                },
+                {
+                  "name": "(runtime):0 addEventListener",
+                  "ms": 20
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 16.1
+                },
+                {
+                  "name": "solid.jsx:4 Row$1",
+                  "ms": 11
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+                  "ms": 9.9
+                },
+                {
+                  "name": "solid.jsx:19 (anonymous)",
+                  "ms": 9.7
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 9.1
+                },
+                {
+                  "name": "(runtime):0 queueMicrotask",
+                  "ms": 6.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 5.6
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+                  "ms": 189.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 188
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+                  "ms": 188
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 163.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+                  "ms": 163.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 146.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 118.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+                  "ms": 86.2
+                }
+              ]
+            },
+            "solid dispose": {
+              "busyMs": 128.7,
+              "roots": 40960,
+              "categories": {
+                "view": {
+                  "ms": 59.1,
+                  "percent": 45.9
+                },
+                "dom (from view)": {
+                  "ms": 36.3,
+                  "percent": 28.2
+                },
+                "core": {
+                  "ms": 15.6,
+                  "percent": 12.2
+                },
+                "gc": {
+                  "ms": 8,
+                  "percent": 6.2
+                },
+                "fixture": {
+                  "ms": 6.6,
+                  "percent": 5.1
+                },
+                "dom (from fixture)": {
+                  "ms": 2.5,
+                  "percent": 2
+                },
+                "dom (from core)": {
+                  "ms": 0.5,
+                  "percent": 0.4
+                }
+              },
+              "self": [
+                {
+                  "name": "@solidjs/web/dist/web.js:425 (anonymous)",
+                  "ms": 34.9
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 21.9
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+                  "ms": 11.5
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+                  "ms": 11.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 9.3
+                },
+                {
+                  "name": "page.mjs:56 run",
+                  "ms": 4.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 3.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 2.2
+                },
+                {
+                  "name": "solid.jsx:27 dispose",
+                  "ms": 2
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:476 (anonymous)",
+                  "ms": 1.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 0.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 0.5
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 15.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 15.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:252 disposeRootSelf",
+                  "ms": 15.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 5.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 3.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 0.5
+                }
+              ]
+            }
+          }
+        },
+        "128": {
+          "chromium": "153.0.8010.12",
+          "measuredAt": "2026-10-13T18:44:19.099Z",
+          "modes": {
+            "ranvier-template mount": {
+              "busyMs": 1855.4,
+              "roots": 3072,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 780,
+                  "percent": 42
+                },
+                "view": {
+                  "ms": 638,
+                  "percent": 34.4
+                },
+                "core": {
+                  "ms": 241.4,
+                  "percent": 13
+                },
+                "gc": {
+                  "ms": 154.6,
+                  "percent": 8.3
+                },
+                "fixture": {
+                  "ms": 26.3,
+                  "percent": 1.4
+                },
+                "view (library)": {
+                  "ms": 8.5,
+                  "percent": 0.5
+                },
+                "core (library)": {
+                  "ms": 4.2,
+                  "percent": 0.2
+                },
+                "fixture (library)": {
+                  "ms": 2,
+                  "percent": 0.1
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 427.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+                  "ms": 363.8
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 154.6
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 126.1
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 119
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 93.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:274 SourceList__Add_Z47AEE590",
+                  "ms": 93.3
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:313 collect",
+                  "ms": 79
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:254 write",
+                  "ms": 66.6
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:342 materialise",
+                  "ms": 31.5
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2733 Effect__RunBody",
+                  "ms": 26.1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+                  "ms": 20.5
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+                  "ms": 1512.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+                  "ms": 1510.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+                  "ms": 765.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+                  "ms": 765.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2592 Effect$1",
+                  "ms": 757.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1395 Graph__RunFlush",
+                  "ms": 736.2
+                }
+              ]
+            },
+            "ranvier-template dispose": {
+              "busyMs": 234.7,
+              "roots": 3072,
+              "categories": {
+                "core": {
+                  "ms": 116.6,
+                  "percent": 49.7
+                },
+                "dom (from view)": {
+                  "ms": 99.5,
+                  "percent": 42.4
+                },
+                "view": {
+                  "ms": 9.5,
+                  "percent": 4
+                },
+                "gc": {
+                  "ms": 4.1,
+                  "percent": 1.7
+                },
+                "view (library)": {
+                  "ms": 3.1,
+                  "percent": 1.3
+                },
+                "core (library)": {
+                  "ms": 1,
+                  "percent": 0.4
+                },
+                "fixture": {
+                  "ms": 1,
+                  "percent": 0.4
+                }
+              },
+              "self": [
+                {
+                  "name": "src/Ranvier/Core.js:338 SourceList__trimFrom",
+                  "ms": 97.1
+                },
+                {
+                  "name": "(runtime):0 remove",
+                  "ms": 95.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:474 OwnerLink__get_Acquired",
+                  "ms": 8.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2771 Effect__Dispose",
+                  "ms": 5
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 4.1
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 3.8
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:837 releaseDelegation",
+                  "ms": 3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 2.5
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Lifetime.js:133 Scope__Dispose",
+                  "ms": 2.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:160 unclaim",
+                  "ms": 1.8
+                },
+                {
+                  "name": "fable-library/Util.js:561 clear$1",
+                  "ms": 1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2612 Release",
+                  "ms": 1
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:714 Owner__TearDown_6ED947BB",
+                  "ms": 118.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:692 Owner__Dispose",
+                  "ms": 118.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 117
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+                  "ms": 117
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1011 RunDetached",
+                  "ms": 117
+                },
+                {
+                  "name": "src/Ranvier/Core.js:720 (anonymous)",
+                  "ms": 116
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1015 (anonymous)",
+                  "ms": 116
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2612 Release",
+                  "ms": 102.6
+                }
+              ]
+            },
+            "solid mount": {
+              "busyMs": 1862.9,
+              "roots": 3072,
+              "categories": {
+                "dom (from core)": {
+                  "ms": 504.8,
+                  "percent": 27.1
+                },
+                "fixture": {
+                  "ms": 468.5,
+                  "percent": 25.1
+                },
+                "dom (from view)": {
+                  "ms": 360.4,
+                  "percent": 19.3
+                },
+                "core": {
+                  "ms": 290.8,
+                  "percent": 15.6
+                },
+                "view": {
+                  "ms": 120.6,
+                  "percent": 6.5
+                },
+                "gc": {
+                  "ms": 116.8,
+                  "percent": 6.3
+                },
+                "dom (from null)": {
+                  "ms": 1,
+                  "percent": 0.1
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 505
+                },
+                {
+                  "name": "solid.jsx:6 (anonymous)",
+                  "ms": 424.3
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 153.1
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 116.8
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 109.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 94.1
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+                  "ms": 76.9
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 75.4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 66.3
+                },
+                {
+                  "name": "solid.jsx:19 (anonymous)",
+                  "ms": 35.5
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:541 setAttribute",
+                  "ms": 23.8
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 16.1
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+                  "ms": 1575.8
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+                  "ms": 1574.9
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 1574.4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 1559.4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+                  "ms": 1559.4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 1474.8
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 1429
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+                  "ms": 894.1
+                }
+              ]
+            },
+            "solid dispose": {
+              "busyMs": 143.8,
+              "roots": 3072,
+              "categories": {
+                "view": {
+                  "ms": 96.2,
+                  "percent": 66.9
+                },
+                "core": {
+                  "ms": 44.6,
+                  "percent": 31
+                },
+                "dom (from view)": {
+                  "ms": 3,
+                  "percent": 2.1
+                }
+              },
+              "self": [
+                {
+                  "name": "@solidjs/web/dist/web.js:425 (anonymous)",
+                  "ms": 94.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 27.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 14
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 1.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 1
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+                  "ms": 1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 0.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:122 runDisposal",
+                  "ms": 0.5
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+                  "ms": 0.5
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 44.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 44.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:252 disposeRootSelf",
+                  "ms": 44.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 15
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 14
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 1.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:122 runDisposal",
+                  "ms": 0.5
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "after": {
+      "commit": "8762e5c",
+      "widths": {
+        "1": {
+          "chromium": "153.0.8010.12",
+          "measuredAt": "2026-10-13T19:27:05.315Z",
+          "modes": {
+            "ranvier-template mount": {
+              "busyMs": 431.5,
+              "roots": 40960,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 142.5,
+                  "percent": 33
+                },
+                "view": {
+                  "ms": 137.7,
+                  "percent": 31.9
+                },
+                "gc": {
+                  "ms": 63.6,
+                  "percent": 14.7
+                },
+                "core": {
+                  "ms": 38.3,
+                  "percent": 8.9
+                },
+                "core (library)": {
+                  "ms": 23.4,
+                  "percent": 5.4
+                },
+                "fixture": {
+                  "ms": 10.1,
+                  "percent": 2.3
+                },
+                "dom (from fixture)": {
+                  "ms": 9.6,
+                  "percent": 2.2
+                },
+                "view (library)": {
+                  "ms": 5,
+                  "percent": 1.2
+                },
+                "fixture (library)": {
+                  "ms": 0.7,
+                  "percent": 0.2
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0.1
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 63.6
+                },
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 37.8
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+                  "ms": 37.7
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 27.2
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 17.6
+                },
+                {
+                  "name": "fable-library/Array.js:30 fill",
+                  "ms": 15.5
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:160 claim",
+                  "ms": 13.2
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:313 collect",
+                  "ms": 13.1
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 10.3
+                },
+                {
+                  "name": "(runtime):0 addEventListener",
+                  "ms": 9.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:254 write",
+                  "ms": 8.7
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:761 mountCore$1",
+                  "ms": 8.1
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+                  "ms": 219.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+                  "ms": 212.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+                  "ms": 93.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+                  "ms": 93.7
+                }
+              ]
+            },
+            "ranvier-template dispose": {
+              "busyMs": 160.3,
+              "roots": 40960,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 64,
+                  "percent": 39.9
+                },
+                "view": {
+                  "ms": 41.7,
+                  "percent": 26
+                },
+                "core": {
+                  "ms": 36.2,
+                  "percent": 22.6
+                },
+                "view (library)": {
+                  "ms": 7.9,
+                  "percent": 4.9
+                },
+                "fixture": {
+                  "ms": 5,
+                  "percent": 3.1
+                },
+                "gc": {
+                  "ms": 2.6,
+                  "percent": 1.6
+                },
+                "dom (from fixture)": {
+                  "ms": 2,
+                  "percent": 1.2
+                },
+                "core (library)": {
+                  "ms": 1,
+                  "percent": 0.6
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 remove",
+                  "ms": 37.2
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 15.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+                  "ms": 11.6
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:164 unclaim",
+                  "ms": 9.4
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:1454 (anonymous)",
+                  "ms": 7.5
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 6.3
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Lifetime.js:138 Scope__Dispose",
+                  "ms": 6.1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:338 SourceList__trimFrom",
+                  "ms": 5.5
+                },
+                {
+                  "name": "fable-library/Util.js:561 clear$1",
+                  "ms": 4.6
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:462 OwnedRange__Release",
+                  "ms": 4
+                },
+                {
+                  "name": "page.mjs:56 run",
+                  "ms": 4
+                },
+                {
+                  "name": "fable-library/Array.js:925 item$1",
+                  "ms": 3.8
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:692 Owner__Dispose",
+                  "ms": 37.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:714 Owner__TearDown_6ED947BB",
+                  "ms": 35.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 30.7
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+                  "ms": 30.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1011 RunDetached",
+                  "ms": 30.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:720 (anonymous)",
+                  "ms": 28.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1015 (anonymous)",
+                  "ms": 28.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2771 Effect__Dispose",
+                  "ms": 19.7
+                }
+              ]
+            },
+            "solid mount": {
+              "busyMs": 323.9,
+              "roots": 40960,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 120.8,
+                  "percent": 37.3
+                },
+                "fixture": {
+                  "ms": 64.8,
+                  "percent": 20
+                },
+                "core": {
+                  "ms": 46.8,
+                  "percent": 14.5
+                },
+                "view": {
+                  "ms": 40.6,
+                  "percent": 12.5
+                },
+                "gc": {
+                  "ms": 33.8,
+                  "percent": 10.4
+                },
+                "dom (from core)": {
+                  "ms": 10.5,
+                  "percent": 3.2
+                },
+                "dom (from fixture)": {
+                  "ms": 6,
+                  "percent": 1.9
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0.2
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 41.5
+                },
+                {
+                  "name": "solid.jsx:6 (anonymous)",
+                  "ms": 38.4
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 33.8
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 24.7
+                },
+                {
+                  "name": "(runtime):0 addEventListener",
+                  "ms": 22.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 16.1
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 14.5
+                },
+                {
+                  "name": "solid.jsx:19 (anonymous)",
+                  "ms": 11.1
+                },
+                {
+                  "name": "(runtime):0 queueMicrotask",
+                  "ms": 10.5
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:459 registerDelegatedContainer",
+                  "ms": 10.2
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+                  "ms": 9
+                },
+                {
+                  "name": "solid.jsx:4 Row$1",
+                  "ms": 6.8
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+                  "ms": 196.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 194.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+                  "ms": 194.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 167.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+                  "ms": 167.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 151.8
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 124.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+                  "ms": 98.6
+                }
+              ]
+            },
+            "solid dispose": {
+              "busyMs": 118.8,
+              "roots": 40960,
+              "categories": {
+                "view": {
+                  "ms": 55.5,
+                  "percent": 46.7
+                },
+                "dom (from view)": {
+                  "ms": 26.6,
+                  "percent": 22.4
+                },
+                "core": {
+                  "ms": 26,
+                  "percent": 21.9
+                },
+                "fixture": {
+                  "ms": 4.4,
+                  "percent": 3.7
+                },
+                "gc": {
+                  "ms": 3.5,
+                  "percent": 2.9
+                },
+                "dom (from fixture)": {
+                  "ms": 1.5,
+                  "percent": 1.3
+                },
+                "dom (from core)": {
+                  "ms": 1,
+                  "percent": 0.8
+                },
+                "dom (from null)": {
+                  "ms": 0.4,
+                  "percent": 0.3
+                }
+              },
+              "self": [
+                {
+                  "name": "@solidjs/web/dist/web.js:425 (anonymous)",
+                  "ms": 39.9
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 18.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 13.9
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+                  "ms": 8.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 6.4
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+                  "ms": 6.4
+                },
+                {
+                  "name": "page.mjs:56 run",
+                  "ms": 4.4
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 3.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 3.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 1
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:476 (anonymous)",
+                  "ms": 0.5
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 26
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:252 disposeRootSelf",
+                  "ms": 25
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 24.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 9.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 6.4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 1
+                }
+              ]
+            }
+          }
+        },
+        "128": {
+          "chromium": "153.0.8010.12",
+          "measuredAt": "2026-10-13T19:27:20.011Z",
+          "modes": {
+            "ranvier-template mount": {
+              "busyMs": 1773.5,
+              "roots": 3072,
+              "categories": {
+                "dom (from view)": {
+                  "ms": 742.6,
+                  "percent": 41.9
+                },
+                "view": {
+                  "ms": 652.3,
+                  "percent": 36.8
+                },
+                "core": {
+                  "ms": 154,
+                  "percent": 8.7
+                },
+                "gc": {
+                  "ms": 133.6,
+                  "percent": 7.5
+                },
+                "core (library)": {
+                  "ms": 65.3,
+                  "percent": 3.7
+                },
+                "fixture": {
+                  "ms": 15.5,
+                  "percent": 0.9
+                },
+                "fixture (library)": {
+                  "ms": 8.7,
+                  "percent": 0.5
+                },
+                "view (library)": {
+                  "ms": 1,
+                  "percent": 0.1
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 432.5
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Template.js:313 (anonymous)",
+                  "ms": 365.2
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 145.8
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 133.6
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:313 collect",
+                  "ms": 94
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 89.4
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:254 write",
+                  "ms": 67.5
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 64.8
+                },
+                {
+                  "name": "fable-library/Array.js:30 fill",
+                  "ms": 45.3
+                },
+                {
+                  "name": "src/Ranvier/Core.js:68 ObserverSet__Add_7E1B59FA",
+                  "ms": 33
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:342 materialise",
+                  "ms": 27.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/TemplateDom.js:381 (anonymous)",
+                  "ms": 19.6
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:1206 Graph__RunRoot_Z6EC41034",
+                  "ms": 1542.4
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1887 Graph__RunUntracked_FCFD9EF",
+                  "ms": 1540.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2695 Effect_$ctor_Z2C5AF67C",
+                  "ms": 766
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2703 Effect_Create_Z2C5AF67C",
+                  "ms": 766
+                }
+              ]
+            },
+            "ranvier-template dispose": {
+              "busyMs": 235.6,
+              "roots": 3072,
+              "categories": {
+                "core": {
+                  "ms": 115.8,
+                  "percent": 49.2
+                },
+                "dom (from view)": {
+                  "ms": 107.8,
+                  "percent": 45.8
+                },
+                "view": {
+                  "ms": 7.5,
+                  "percent": 3.2
+                },
+                "gc": {
+                  "ms": 2.5,
+                  "percent": 1
+                },
+                "fixture": {
+                  "ms": 1.1,
+                  "percent": 0.5
+                },
+                "core (library)": {
+                  "ms": 0.5,
+                  "percent": 0.2
+                },
+                "view (library)": {
+                  "ms": 0.5,
+                  "percent": 0.2
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 remove",
+                  "ms": 103.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:104 ObserverSet__Remove_7E1B59FA",
+                  "ms": 54.9
+                },
+                {
+                  "name": "src/Ranvier/Core.js:338 SourceList__trimFrom",
+                  "ms": 38.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2771 Effect__Dispose",
+                  "ms": 6.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:320 SourceList__sourceAt_Z524259A4",
+                  "ms": 6.1
+                },
+                {
+                  "name": "experiments/Ranvier.View.Foundation/Mounting.js:164 unclaim",
+                  "ms": 4.8
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 4.5
+                },
+                {
+                  "name": "src/Ranvier/Core.js:474 OwnerLink__get_Acquired",
+                  "ms": 2.5
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 2.5
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:692 Owner__Dispose",
+                  "ms": 1.2
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1357 Graph__AssertOnGraphThread_Z721C83C5",
+                  "ms": 1
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "src/Ranvier/Core.js:692 Owner__Dispose",
+                  "ms": 116.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:714 Owner__TearDown_6ED947BB",
+                  "ms": 115.6
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1631 Graph__Detached_Z12158FD7",
+                  "ms": 115.1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1011 RunDetached",
+                  "ms": 115.1
+                },
+                {
+                  "name": "src/Ranvier/Core.js:645 Owner__DisposeScope",
+                  "ms": 114.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:720 (anonymous)",
+                  "ms": 114.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:1015 (anonymous)",
+                  "ms": 114.8
+                },
+                {
+                  "name": "src/Ranvier/Core.js:2612 Release",
+                  "ms": 108.8
+                }
+              ]
+            },
+            "solid mount": {
+              "busyMs": 1817.3,
+              "roots": 3072,
+              "categories": {
+                "dom (from core)": {
+                  "ms": 484.6,
+                  "percent": 26.7
+                },
+                "fixture": {
+                  "ms": 450.8,
+                  "percent": 24.8
+                },
+                "dom (from view)": {
+                  "ms": 329.2,
+                  "percent": 18.1
+                },
+                "core": {
+                  "ms": 298,
+                  "percent": 16.4
+                },
+                "gc": {
+                  "ms": 127.2,
+                  "percent": 7
+                },
+                "view": {
+                  "ms": 127.2,
+                  "percent": 7
+                },
+                "dom (from null)": {
+                  "ms": 0.5,
+                  "percent": 0
+                }
+              },
+              "self": [
+                {
+                  "name": "(runtime):0 cloneNode",
+                  "ms": 486.6
+                },
+                {
+                  "name": "solid.jsx:6 (anonymous)",
+                  "ms": 409.2
+                },
+                {
+                  "name": "(runtime):0 (garbage collector)",
+                  "ms": 127.2
+                },
+                {
+                  "name": "(runtime):0 appendChild",
+                  "ms": 117
+                },
+                {
+                  "name": "(runtime):0 setAttribute",
+                  "ms": 113.9
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 88.9
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:1671 insertExpression",
+                  "ms": 80.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 74.3
+                },
+                {
+                  "name": "(runtime):0 insertBefore",
+                  "ms": 66.9
+                },
+                {
+                  "name": "solid.jsx:19 (anonymous)",
+                  "ms": 29.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 23.6
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:541 setAttribute",
+                  "ms": 21.8
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:323 createRoot$2",
+                  "ms": 1551.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:1323 runWithOwner",
+                  "ms": 1550.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 1550.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:17 effect$1",
+                  "ms": 1532.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/signals.js:197 createRenderEffect$1",
+                  "ms": 1532.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:108 recompute",
+                  "ms": 1456.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/core.js:865 untrack",
+                  "ms": 1421.6
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/effect.js:57 runEffect",
+                  "ms": 840.2
+                }
+              ]
+            },
+            "solid dispose": {
+              "busyMs": 176.1,
+              "roots": 3072,
+              "categories": {
+                "view": {
+                  "ms": 108.2,
+                  "percent": 61.5
+                },
+                "core": {
+                  "ms": 62.3,
+                  "percent": 35.4
+                },
+                "dom (from view)": {
+                  "ms": 4.1,
+                  "percent": 2.3
+                },
+                "fixture": {
+                  "ms": 1.5,
+                  "percent": 0.8
+                }
+              },
+              "self": [
+                {
+                  "name": "@solidjs/web/dist/web.js:425 (anonymous)",
+                  "ms": 104.7
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 34.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 20.2
+                },
+                {
+                  "name": "(runtime):0 removeEventListener",
+                  "ms": 4.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 4
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:454 unregisterDelegatedRoot",
+                  "ms": 3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 2.1
+                },
+                {
+                  "name": "page.mjs:56 run",
+                  "ms": 1.5
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 1.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:122 runDisposal",
+                  "ms": 0.6
+                },
+                {
+                  "name": "@solidjs/web/dist/web.js:470 unregisterDelegatedContainer",
+                  "ms": 0.5
+                }
+              ],
+              "inclusive": [
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:325 (anonymous)",
+                  "ms": 62.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:38 disposeChildren",
+                  "ms": 61.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:252 disposeRootSelf",
+                  "ms": 61.1
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:59 clearDeps",
+                  "ms": 22.3
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/graph.js:19 unlinkSubs",
+                  "ms": 20.2
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/heap.js:64 deleteFromHeap",
+                  "ms": 4
+                },
+                {
+                  "name": "@solidjs/signals/dist/prod/core/owner.js:122 runDisposal",
+                  "ms": 0.6
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

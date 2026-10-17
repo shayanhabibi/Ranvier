@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    { "module": "", "native": "HTMLElement", "entries": [
+      { "helper": "id", "name": "id", "kind": "string", "member": "id" },
+      { "helper": "class", "name": "class", "kind": "string", "member": "className" },
+      { "helper": "title", "name": "title", "kind": "string", "member": "title" },
+      { "helper": "role", "name": "role", "kind": "string", "member": "role" },
+      { "helper": "lang", "name": "lang", "kind": "string", "member": "lang" },
+      { "helper": "dir", "name": "dir", "kind": "string", "member": "dir" },
+      { "helper": "hidden", "name": "hidden", "kind": "boolean", "member": "hidden" },
+      { "helper": "inert", "name": "inert", "kind": "boolean", "member": "inert" },
+      { "helper": "ariaLabel", "name": "aria-label", "kind": "string", "member": "ariaLabel" },
+      { "helper": "ariaLabelledBy", "name": "aria-labelledby", "kind": "string", "member": "ariaLabelledByElements" },
+      { "helper": "ariaDescribedBy", "name": "aria-describedby", "kind": "string", "member": "ariaDescribedByElements" },
+      { "helper": "ariaExpanded", "name": "aria-expanded", "kind": "ariaBoolean", "member": "ariaExpanded" },
+      { "helper": "ariaBusy", "name": "aria-busy", "kind": "ariaBoolean", "member": "ariaBusy" },
+      { "helper": "ariaDisabled", "name": "aria-disabled", "kind": "ariaBoolean", "member": "ariaDisabled" }
+    ]},
+    { "module": "Button", "native": "HTMLButtonElement", "entries": [
+      { "helper": "disabled", "name": "disabled", "kind": "boolean", "member": "disabled" },
+      { "helper": "type", "name": "type", "kind": "string", "member": "type" }
+    ]},
+    { "module": "Input", "native": "HTMLInputElement", "entries": [
+      { "helper": "disabled", "name": "disabled", "kind": "boolean", "member": "disabled" },
+      { "helper": "required", "name": "required", "kind": "boolean", "member": "required" },
+      { "helper": "readOnly", "name": "readonly", "kind": "boolean", "member": "readOnly" },
+      { "helper": "multiple", "name": "multiple", "kind": "boolean", "member": "multiple" },
+      { "helper": "checked", "name": "checked", "kind": "boolean", "member": "defaultChecked" },
+      { "helper": "value", "name": "value", "kind": "string", "member": "defaultValue" },
+      { "helper": "type", "name": "type", "kind": "string", "member": "type" },
+      { "helper": "placeholder", "name": "placeholder", "kind": "string", "member": "placeholder" }
+    ]},
+    { "module": "Select", "native": "HTMLSelectElement", "entries": [
+      { "helper": "disabled", "name": "disabled", "kind": "boolean", "member": "disabled" },
+      { "helper": "required", "name": "required", "kind": "boolean", "member": "required" },
+      { "helper": "multiple", "name": "multiple", "kind": "boolean", "member": "multiple" }
+    ]},
+    { "module": "Textarea", "native": "HTMLTextAreaElement", "entries": [
+      { "helper": "disabled", "name": "disabled", "kind": "boolean", "member": "disabled" },
+      { "helper": "required", "name": "required", "kind": "boolean", "member": "required" },
+      { "helper": "readOnly", "name": "readonly", "kind": "boolean", "member": "readOnly" },
+      { "helper": "placeholder", "name": "placeholder", "kind": "string", "member": "placeholder" }
+    ]},
+    { "module": "Option", "native": "HTMLOptionElement", "entries": [
+      { "helper": "disabled", "name": "disabled", "kind": "boolean", "member": "disabled" },
+      { "helper": "selected", "name": "selected", "kind": "boolean", "member": "defaultSelected" },
+      { "helper": "value", "name": "value", "kind": "string", "member": "value" }
+    ]}
+  ]
+}

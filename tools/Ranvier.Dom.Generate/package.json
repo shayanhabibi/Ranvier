@@ -1,0 +1,8 @@
+{
+  "name": "ranvier-dom-generate",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "typescript": "7.1.0-dev.20260902.1"
+  }
+}

@@ -1,0 +1,25 @@
+diff --git a/experiments/Ranvier.View.Foundation/Template.fs b/experiments/Ranvier.View.Foundation/Template.fs
+index dd89d06..ead6b93 100644
+--- a/experiments/Ranvier.View.Foundation/Template.fs
++++ b/experiments/Ranvier.View.Foundation/Template.fs
+@@ -669,9 +669,19 @@ type TemplateBuilder<'inst> internal () =
+             RegionNode
+                 {
+                     Items =
++                        // EXPERIMENT (measure/poc-rerun-2026-10-15): one tuple per object item across reads, so the projection's identity trim matches unchanged positions.
++                        let cache: obj = JsInterop.emitJsExpr () "new WeakMap()"
+                         Func<obj, (obj * obj) array>(fun instance ->
+                             items (unbox instance)
+-                            |> Array.map (fun item -> box (key item), box item))
++                            |> Array.map (fun item ->
++                                let k = box (key item)
++                                let cached: obj = JsInterop.emitJsExpr (cache, item) "(typeof $1 === 'object' && $1 !== null) ? $0.get($1) : undefined"
++                                if not (isNull cached) && obj.ReferenceEquals (fst (unbox<obj * obj> cached), k) then
++                                    unbox<obj * obj> cached
++                                else
++                                    let pair = (k, box item)
++                                    JsInterop.emitJsStatement (cache, item, pair) "if (typeof $1 === 'object' && $1 !== null) $0.set($1, $2)"
++                                    pair))
+                     Row = ItemRow (row :> TemplateComponent, Func<(unit -> obj), obj>(fun current -> box (fun () -> unbox<'item>(current ()))))
+                 }
+         )

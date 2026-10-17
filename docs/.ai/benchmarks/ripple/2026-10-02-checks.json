@@ -1,0 +1,604 @@
+{
+  "date": "2026-10-02T10:45:00.436Z",
+  "browser": "153.0.8010.12",
+  "node": "v26.7.0",
+  "cpu": "AMD Ryzen 9 9900X 12-Core Processor            ",
+  "fable": "5.18.0",
+  "ripple": "1.0.0-beta.6",
+  "rippleDom": "1.0.0-beta.7",
+  "correctness": {
+    "ranvier": [
+      {
+        "name": "initial reset is disabled",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "click updates count and derived output",
+        "expected": [
+          "1",
+          "2",
+          false
+        ],
+        "actual": [
+          "1",
+          "2",
+          false
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "counter root and text retain identity",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "input updates greeting and keeps focus/caret",
+        "expected": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "actual": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "programmatic name writes the live input property",
+        "expected": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "actual": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "repeated mount disposal removes its root",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "retained detached button is inert",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "moved root is removed safely on disposal",
+        "expected": [
+          0,
+          null
+        ],
+        "actual": [
+          0,
+          null
+        ],
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "factory failure escapes without altering host",
+        "expected": [
+          "factory failed",
+          "preserved"
+        ],
+        "actual": [
+          "factory failed",
+          "preserved"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "failed factory cleans reactive work and listener",
+        "expected": [
+          1,
+          0
+        ],
+        "actual": [
+          1,
+          0
+        ],
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "diamond produces one coherent result",
+        "expected": [
+          13,
+          2
+        ],
+        "actual": [
+          13,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "equal write does not rerun graph effect",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "batch coalesces two source writes",
+        "expected": [
+          34,
+          3
+        ],
+        "actual": [
+          34,
+          3
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "disposed graph effects stop",
+        "expected": 34,
+        "actual": 34,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "one failing effect does not strand healthy sibling",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "error isolation"
+      },
+      {
+        "name": "synchronous effect error policy",
+        "actual": null,
+        "classification": "observation"
+      },
+      {
+        "name": "healthy effect recovers on subsequent update",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "healthy effect remains live through later writes",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "classification": "error isolation"
+      },
+      {
+        "name": "async starts idle",
+        "expected": "idle",
+        "actual": "idle",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "request enters loading",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "outer completion waits for nested promise",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested promise updates settled DOM",
+        "expected": "loaded:Ada",
+        "actual": "loaded:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "refresh retains previous result while loading",
+        "expected": "reloading:Ada",
+        "actual": "reloading:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older success cannot overwrite newer nested response",
+        "expected": "loaded:Grace",
+        "actual": "loaded:Grace",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older rejection cannot replace current success",
+        "expected": "loaded:Linus",
+        "actual": "loaded:Linus",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested rejection becomes a visible error",
+        "expected": "failed:inner failed",
+        "actual": "failed:inner failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "successful request recovers after rejection",
+        "expected": "loaded:Recovered",
+        "actual": "loaded:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "exception thrown inside promise mapping becomes visible",
+        "expected": "failed:mapping failed",
+        "actual": "failed:mapping failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "synchronous request setup exception becomes visible",
+        "expected": "failed:request setup failed",
+        "actual": "failed:request setup failed",
+        "pass": true,
+        "classification": "async error capability"
+      },
+      {
+        "name": "synchronous request setup error observation",
+        "actual": null,
+        "classification": "observation"
+      },
+      {
+        "name": "pending promise cannot publish state after disposal",
+        "expected": "failed:AsyncMemo`1",
+        "actual": "failed:AsyncMemo`1",
+        "pass": true,
+        "classification": "async lifetime safety"
+      },
+      {
+        "name": "detached async DOM stops updating",
+        "expected": "reloading:Recovered",
+        "actual": "reloading:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "superseded and disposed flights signal cancellation",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "native cancellation capability"
+      },
+      {
+        "name": "async disposal removes mounted DOM",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      }
+    ],
+    "ripple": [
+      {
+        "name": "initial reset is disabled",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "click updates count and derived output",
+        "expected": [
+          "1",
+          "2",
+          false
+        ],
+        "actual": [
+          "1",
+          "2",
+          false
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "counter root and text retain identity",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "input updates greeting and keeps focus/caret",
+        "expected": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "actual": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "programmatic name writes the live input property",
+        "expected": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "actual": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "repeated mount disposal removes its root",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "retained detached button is inert",
+        "expected": 1,
+        "actual": 2,
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "moved root is removed safely on disposal",
+        "expected": [
+          0,
+          null
+        ],
+        "actual": [
+          1,
+          "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
+        ],
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "factory failure escapes without altering host",
+        "expected": [
+          "factory failed",
+          "preserved"
+        ],
+        "actual": [
+          "factory failed",
+          "preserved"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "failed factory cleans reactive work and listener",
+        "expected": [
+          1,
+          0
+        ],
+        "actual": [
+          2,
+          1
+        ],
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "diamond produces one coherent result",
+        "expected": [
+          13,
+          2
+        ],
+        "actual": [
+          13,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "equal write does not rerun graph effect",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "batch coalesces two source writes",
+        "expected": [
+          34,
+          3
+        ],
+        "actual": [
+          34,
+          3
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "disposed graph effects stop",
+        "expected": 34,
+        "actual": 34,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "one failing effect does not strand healthy sibling",
+        "expected": 2,
+        "actual": 1,
+        "pass": false,
+        "classification": "error isolation"
+      },
+      {
+        "name": "synchronous effect error policy",
+        "actual": "effect failed",
+        "classification": "observation"
+      },
+      {
+        "name": "healthy effect recovers on subsequent update",
+        "expected": 3,
+        "actual": 1,
+        "pass": false,
+        "classification": "common behavior"
+      },
+      {
+        "name": "healthy effect remains live through later writes",
+        "expected": 5,
+        "actual": 1,
+        "pass": false,
+        "classification": "error isolation"
+      },
+      {
+        "name": "async starts idle",
+        "expected": "idle",
+        "actual": "idle",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "request enters loading",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "outer completion waits for nested promise",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested promise updates settled DOM",
+        "expected": "loaded:Ada",
+        "actual": "loaded:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "refresh retains previous result while loading",
+        "expected": "reloading:Ada",
+        "actual": "reloading:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older success cannot overwrite newer nested response",
+        "expected": "loaded:Grace",
+        "actual": "loaded:Grace",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older rejection cannot replace current success",
+        "expected": "loaded:Linus",
+        "actual": "loaded:Linus",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested rejection becomes a visible error",
+        "expected": "failed:inner failed",
+        "actual": "failed:inner failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "successful request recovers after rejection",
+        "expected": "loaded:Recovered",
+        "actual": "loaded:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "exception thrown inside promise mapping becomes visible",
+        "expected": "failed:mapping failed",
+        "actual": "failed:mapping failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "synchronous request setup exception becomes visible",
+        "expected": "failed:request setup failed",
+        "actual": "loading",
+        "pass": false,
+        "classification": "async error capability"
+      },
+      {
+        "name": "synchronous request setup error observation",
+        "actual": "request setup failed",
+        "classification": "observation"
+      },
+      {
+        "name": "pending promise cannot publish state after disposal",
+        "expected": "loading",
+        "actual": "loaded:too late",
+        "pass": false,
+        "classification": "async lifetime safety"
+      },
+      {
+        "name": "detached async DOM stops updating",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "superseded and disposed flights signal cancellation",
+        "expected": true,
+        "actual": false,
+        "pass": false,
+        "classification": "native cancellation capability"
+      },
+      {
+        "name": "async disposal removes mounted DOM",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      }
+    ]
+  },
+  "samples": {},
+  "options": {
+    "cells": 1000,
+    "lifecycleCycles": 50,
+    "sparseWrites": 100000,
+    "batchCells": 100,
+    "batches": 2000,
+    "graphWrites": 100000,
+    "asyncWrites": 20000,
+    "warmups": 5,
+    "rounds": 25
+  },
+  "console": []
+}

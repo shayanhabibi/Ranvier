@@ -1,0 +1,77 @@
+{
+  "measuredAt": "2026-10-14T14:32:34.910Z",
+  "commit": "ab68bde731caa3bc159267b573050250a8db8b35",
+  "dirty": [
+    "A  bench/Ranvier.RowsBench/.gitignore",
+    "AM bench/Ranvier.RowsBench/Program.fs",
+    "A  bench/Ranvier.RowsBench/Ranvier.RowsBench.fsproj",
+    "AM bench/Ranvier.RowsBench/run.mjs",
+    "M  examples/Fable.Ranvier.Playground/.gitignore",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-counters.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-heap.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-page.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-rows.mjs",
+    "A  examples/Fable.Ranvier.Playground/benchmarks/frameworks/keyed-solid.jsx",
+    "M  examples/Fable.Ranvier.Playground/benchmarks/frameworks/page.mjs",
+    "AM examples/Fable.Ranvier.Playground/benchmarks/frameworks/rows-bundle.mjs",
+    "M  examples/Fable.Ranvier.Playground/benchmarks/frameworks/vite.config.mjs",
+    " M examples/Fable.Ranvier.Playground/tests/DomTests.fsproj",
+    "AM examples/Fable.Ranvier.Playground/tests/KeyedRowsPerf.fs",
+    " M experiments/Ranvier.View.Foundation/Mounting.fs",
+    " M src/Ranvier/Api.fs",
+    " M src/Ranvier/Combinators.fs",
+    " M src/Ranvier/Projections.fs",
+    " M src/Ranvier/Ranvier.fsproj",
+    "?? docs/research/framework-performance/investigation/keyed-rows-on-core/"
+  ],
+  "node": "v26.7.0",
+  "vite": "8.3.2",
+  "notes": [
+    "Minified Vite library builds (ES module) of one entry each; option is the default core, baseline the core built with RanvierRowsBaseline=true. Gzip at level 9, Brotli at its default.",
+    "The core entries re-export from src/Ranvier/Api.js and tree-shake the rest; the fixture entry includes the view."
+  ],
+  "results": [
+    {
+      "entry": "core, every Api export",
+      "variant": "option",
+      "bytes": 138911,
+      "gzipBytes": 31294,
+      "brotliBytes": 27304
+    },
+    {
+      "entry": "core, every Api export",
+      "variant": "baseline",
+      "bytes": 137576,
+      "gzipBytes": 30890,
+      "brotliBytes": 26929
+    },
+    {
+      "entry": "core, createProjectionWith only",
+      "variant": "option",
+      "bytes": 88882,
+      "gzipBytes": 20887,
+      "brotliBytes": 18587
+    },
+    {
+      "entry": "core, createProjectionWith only",
+      "variant": "baseline",
+      "bytes": 87848,
+      "gzipBytes": 20577,
+      "brotliBytes": 18336
+    },
+    {
+      "entry": "keyed fixture (view and core)",
+      "variant": "option",
+      "bytes": 175330,
+      "gzipBytes": 42304,
+      "brotliBytes": 36881
+    },
+    {
+      "entry": "keyed fixture (view and core)",
+      "variant": "baseline",
+      "bytes": 173724,
+      "gzipBytes": 41937,
+      "brotliBytes": 36536
+    }
+  ]
+}

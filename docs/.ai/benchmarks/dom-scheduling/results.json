@@ -1,0 +1,4095 @@
+{
+  "timestamp": "2026-10-02T13:02:34.622Z",
+  "commit": "f14d8eba4d11150dea6f4936175de3250b3fdfd9",
+  "node": "v26.7.0",
+  "platform": "win32 10.0.26200",
+  "cpu": "AMD Ryzen 9 9900X 12-Core Processor            ",
+  "chromium": "153.0.8010.12",
+  "warmups": 5,
+  "rounds": 21,
+  "workloads": [
+    {
+      "id": "counter-burst",
+      "rows": 1,
+      "writesPerRow": 100,
+      "waves": 400,
+      "input": false
+    },
+    {
+      "id": "dashboard-burst",
+      "rows": 40,
+      "writesPerRow": 10,
+      "waves": 100,
+      "input": false
+    },
+    {
+      "id": "dashboard-single",
+      "rows": 40,
+      "writesPerRow": 1,
+      "waves": 200,
+      "input": false
+    },
+    {
+      "id": "input-single",
+      "rows": 1,
+      "writesPerRow": 1,
+      "waves": 3000,
+      "input": true
+    },
+    {
+      "id": "layout-reading-setter",
+      "rows": 20,
+      "writesPerRow": 10,
+      "waves": 100,
+      "input": false,
+      "layoutRead": true
+    }
+  ],
+  "modes": [
+    {
+      "id": "sync",
+      "synchronous": true,
+      "batch": false
+    },
+    {
+      "id": "microtask",
+      "synchronous": false,
+      "batch": false
+    },
+    {
+      "id": "sync+batch",
+      "synchronous": true,
+      "batch": true
+    },
+    {
+      "id": "microtask+batch",
+      "synchronous": false,
+      "batch": true
+    }
+  ],
+  "samples": [
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 0,
+      "totalMs": 61.40000003576279,
+      "sourceMs": 56.20000022649765,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 0,
+      "totalMs": 63.09999996423721,
+      "sourceMs": 52.10000014305115,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 0,
+      "totalMs": 5.5,
+      "sourceMs": 1.100000023841858,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 0,
+      "totalMs": 6.800000011920929,
+      "sourceMs": 1.5000000596046448,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 1,
+      "totalMs": 59.5,
+      "sourceMs": 52.40000021457672,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 1,
+      "totalMs": 5.400000035762787,
+      "sourceMs": 1.699999988079071,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 1,
+      "totalMs": 7,
+      "sourceMs": 2.1999999284744263,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 1,
+      "totalMs": 61.69999998807907,
+      "sourceMs": 55.00000011920929,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 2,
+      "totalMs": 5.399999976158142,
+      "sourceMs": 0.6000001430511475,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 2,
+      "totalMs": 6.400000035762787,
+      "sourceMs": 1.7000000476837158,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 2,
+      "totalMs": 60.60000002384186,
+      "sourceMs": 54.00000047683716,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 2,
+      "totalMs": 62.30000001192093,
+      "sourceMs": 52.8000003695488,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 3,
+      "totalMs": 6.199999988079071,
+      "sourceMs": 1.2999999523162842,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 3,
+      "totalMs": 62.19999998807907,
+      "sourceMs": 56.499999940395355,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 3,
+      "totalMs": 61.90000003576279,
+      "sourceMs": 53.70000070333481,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 3,
+      "totalMs": 4.700000047683716,
+      "sourceMs": 1.1000000834465027,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 4,
+      "totalMs": 62.80000001192093,
+      "sourceMs": 55.60000020265579,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 4,
+      "totalMs": 63.89999997615814,
+      "sourceMs": 53.000000298023224,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 4,
+      "totalMs": 5.199999988079071,
+      "sourceMs": 1.1999998092651367,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 4,
+      "totalMs": 6.899999976158142,
+      "sourceMs": 1.3999998569488525,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 5,
+      "totalMs": 62.69999998807907,
+      "sourceMs": 53.5000005364418,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 5,
+      "totalMs": 5.899999976158142,
+      "sourceMs": 1.2999999523162842,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 5,
+      "totalMs": 5.699999988079071,
+      "sourceMs": 1.0999999642372131,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 5,
+      "totalMs": 57.30000001192093,
+      "sourceMs": 51.000000059604645,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 6,
+      "totalMs": 5.399999976158142,
+      "sourceMs": 1.7999998331069946,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 6,
+      "totalMs": 5.599999964237213,
+      "sourceMs": 0.9000001549720764,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 6,
+      "totalMs": 60.5,
+      "sourceMs": 54.499999701976776,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 6,
+      "totalMs": 67.29999995231628,
+      "sourceMs": 57.00000023841858,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 7,
+      "totalMs": 7.900000035762787,
+      "sourceMs": 1.5000001192092896,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 7,
+      "totalMs": 68.69999998807907,
+      "sourceMs": 61.69999986886978,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 7,
+      "totalMs": 58.09999996423721,
+      "sourceMs": 48.89999943971634,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 7,
+      "totalMs": 4.900000035762787,
+      "sourceMs": 1.1000000834465027,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 8,
+      "totalMs": 64,
+      "sourceMs": 57.8999999165535,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 8,
+      "totalMs": 54.89999997615814,
+      "sourceMs": 47.49999976158142,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 8,
+      "totalMs": 5.399999976158142,
+      "sourceMs": 1.0999999046325684,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 8,
+      "totalMs": 5.5,
+      "sourceMs": 0.9999998807907104,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 9,
+      "totalMs": 58.19999998807907,
+      "sourceMs": 50.49999988079071,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 9,
+      "totalMs": 5,
+      "sourceMs": 1.5999997854232788,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 9,
+      "totalMs": 6.400000035762787,
+      "sourceMs": 1.699999988079071,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 9,
+      "totalMs": 62,
+      "sourceMs": 54.6000000834465,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 10,
+      "totalMs": 6,
+      "sourceMs": 1.5999999046325684,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 10,
+      "totalMs": 5.800000011920929,
+      "sourceMs": 0.8000001311302185,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 10,
+      "totalMs": 61.5,
+      "sourceMs": 55.90000003576279,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 10,
+      "totalMs": 54.60000002384186,
+      "sourceMs": 46.8999999165535,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 11,
+      "totalMs": 6.599999964237213,
+      "sourceMs": 1.3999999165534973,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 11,
+      "totalMs": 75.5,
+      "sourceMs": 63.49999988079071,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 11,
+      "totalMs": 59.60000002384186,
+      "sourceMs": 49.3999999165535,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 11,
+      "totalMs": 4.700000047683716,
+      "sourceMs": 1.399999976158142,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 12,
+      "totalMs": 66.29999995231628,
+      "sourceMs": 57.999999940395355,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 12,
+      "totalMs": 58.69999998807907,
+      "sourceMs": 48.500000059604645,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 12,
+      "totalMs": 6.099999964237213,
+      "sourceMs": 2.1000000834465027,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 12,
+      "totalMs": 5.300000011920929,
+      "sourceMs": 0.9999999403953552,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 13,
+      "totalMs": 58.60000002384186,
+      "sourceMs": 49.30000001192093,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 13,
+      "totalMs": 5.300000011920929,
+      "sourceMs": 2.0000001192092896,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 13,
+      "totalMs": 6.599999964237213,
+      "sourceMs": 1.699999988079071,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 13,
+      "totalMs": 69.89999997615814,
+      "sourceMs": 62.09999990463257,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 14,
+      "totalMs": 4.900000035762787,
+      "sourceMs": 1.9000000357627869,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 14,
+      "totalMs": 6.200000047683716,
+      "sourceMs": 1.5999999642372131,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 14,
+      "totalMs": 68.5,
+      "sourceMs": 61.700000286102295,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 14,
+      "totalMs": 58.10000002384186,
+      "sourceMs": 48.500000059604645,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 15,
+      "totalMs": 5.599999964237213,
+      "sourceMs": 0.7999999523162842,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 15,
+      "totalMs": 57.69999998807907,
+      "sourceMs": 51.699999928474426,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 15,
+      "totalMs": 59.30000001192093,
+      "sourceMs": 48.8999999165535,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 15,
+      "totalMs": 5.399999976158142,
+      "sourceMs": 1.3000001907348633,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 16,
+      "totalMs": 65,
+      "sourceMs": 57.99999964237213,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 16,
+      "totalMs": 57,
+      "sourceMs": 49.70000022649765,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 16,
+      "totalMs": 5.100000023841858,
+      "sourceMs": 1.4000001549720764,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 16,
+      "totalMs": 6.199999988079071,
+      "sourceMs": 1.8999998569488525,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 17,
+      "totalMs": 54.19999998807907,
+      "sourceMs": 45.60000002384186,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 17,
+      "totalMs": 5,
+      "sourceMs": 1.5999999642372131,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 17,
+      "totalMs": 6.799999952316284,
+      "sourceMs": 1.9999998211860657,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 17,
+      "totalMs": 59.40000003576279,
+      "sourceMs": 54.5,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 18,
+      "totalMs": 6.099999964237213,
+      "sourceMs": 1.9000002145767212,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 18,
+      "totalMs": 5.699999988079071,
+      "sourceMs": 1.5999999046325684,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 18,
+      "totalMs": 63.5,
+      "sourceMs": 57.69999986886978,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 18,
+      "totalMs": 53.799999952316284,
+      "sourceMs": 47.69999986886978,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 19,
+      "totalMs": 8.300000011920929,
+      "sourceMs": 1.5000001788139343,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 19,
+      "totalMs": 68.70000004768372,
+      "sourceMs": 63.30000013113022,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 19,
+      "totalMs": 53.69999998807907,
+      "sourceMs": 47.90000009536743,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 19,
+      "totalMs": 5.599999964237213,
+      "sourceMs": 1.3999997973442078,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "round": 20,
+      "totalMs": 58.60000002384186,
+      "sourceMs": 53.000000059604645,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "round": 20,
+      "totalMs": 55.60000002384186,
+      "sourceMs": 46.80000025033951,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "round": 20,
+      "totalMs": 5.399999976158142,
+      "sourceMs": 0.800000011920929,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "round": 20,
+      "totalMs": 5.900000035762787,
+      "sourceMs": 1.6000000834465027,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 0,
+      "totalMs": 57.19999998807907,
+      "sourceMs": 34.700000286102295,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 0,
+      "totalMs": 101.89999997615814,
+      "sourceMs": 61.999999940395355,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 0,
+      "totalMs": 25.30000001192093,
+      "sourceMs": 5.3999998569488525,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 0,
+      "totalMs": 36.80000001192093,
+      "sourceMs": 9.49999988079071,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 1,
+      "totalMs": 81.5,
+      "sourceMs": 52.30000019073486,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 1,
+      "totalMs": 26.399999976158142,
+      "sourceMs": 6.300000011920929,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 1,
+      "totalMs": 35.80000001192093,
+      "sourceMs": 7.999999701976776,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 1,
+      "totalMs": 63.39999997615814,
+      "sourceMs": 36.999999701976776,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 2,
+      "totalMs": 26.100000023841858,
+      "sourceMs": 5.900000035762787,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 2,
+      "totalMs": 37.5,
+      "sourceMs": 9.499999523162842,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 2,
+      "totalMs": 54.90000003576279,
+      "sourceMs": 35.000000059604645,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 2,
+      "totalMs": 80.80000001192093,
+      "sourceMs": 48.80000013113022,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 3,
+      "totalMs": 33.80000001192093,
+      "sourceMs": 7.700000464916229,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 3,
+      "totalMs": 59.700000047683716,
+      "sourceMs": 34.6000000834465,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 3,
+      "totalMs": 82,
+      "sourceMs": 49.699999928474426,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 3,
+      "totalMs": 22.80000001192093,
+      "sourceMs": 5.20000022649765,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 4,
+      "totalMs": 57.89999997615814,
+      "sourceMs": 37.500000059604645,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 4,
+      "totalMs": 79.30000001192093,
+      "sourceMs": 50.299999833106995,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 4,
+      "totalMs": 23.400000035762787,
+      "sourceMs": 5.199999928474426,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 4,
+      "totalMs": 35.30000001192093,
+      "sourceMs": 7.900000214576721,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 5,
+      "totalMs": 87.19999998807907,
+      "sourceMs": 53.6000000834465,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 5,
+      "totalMs": 29.400000035762787,
+      "sourceMs": 7,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 5,
+      "totalMs": 39.5,
+      "sourceMs": 9.000000178813934,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 5,
+      "totalMs": 56.80000001192093,
+      "sourceMs": 35.20000010728836,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 6,
+      "totalMs": 24,
+      "sourceMs": 5.699999988079071,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 6,
+      "totalMs": 36.90000003576279,
+      "sourceMs": 9.900000095367432,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 6,
+      "totalMs": 57.40000003576279,
+      "sourceMs": 36.39999979734421,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 6,
+      "totalMs": 87.80000001192093,
+      "sourceMs": 53.20000034570694,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 7,
+      "totalMs": 37.69999998807907,
+      "sourceMs": 8.699999809265137,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 7,
+      "totalMs": 62,
+      "sourceMs": 38.60000026226044,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 7,
+      "totalMs": 79.69999998807907,
+      "sourceMs": 49.90000003576279,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 7,
+      "totalMs": 24.100000023841858,
+      "sourceMs": 5.1999998688697815,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 8,
+      "totalMs": 54.200000047683716,
+      "sourceMs": 33.6999996304512,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 8,
+      "totalMs": 79.80000001192093,
+      "sourceMs": 49.60000014305115,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 8,
+      "totalMs": 29,
+      "sourceMs": 5.900000154972076,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 8,
+      "totalMs": 37.30000001192093,
+      "sourceMs": 9.300000071525574,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 9,
+      "totalMs": 79.60000002384186,
+      "sourceMs": 47.39999997615814,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 9,
+      "totalMs": 24.80000001192093,
+      "sourceMs": 6.200000166893005,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 9,
+      "totalMs": 33.5,
+      "sourceMs": 7.7000004053115845,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 9,
+      "totalMs": 56.5,
+      "sourceMs": 35.900000274181366,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 10,
+      "totalMs": 25.099999964237213,
+      "sourceMs": 5.999999940395355,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 10,
+      "totalMs": 36.60000002384186,
+      "sourceMs": 7.800000071525574,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 10,
+      "totalMs": 65,
+      "sourceMs": 36.99999934434891,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 10,
+      "totalMs": 79.5,
+      "sourceMs": 47.500000178813934,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 11,
+      "totalMs": 34.90000003576279,
+      "sourceMs": 9.699999988079071,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 11,
+      "totalMs": 54.299999952316284,
+      "sourceMs": 34.10000014305115,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 11,
+      "totalMs": 93.10000002384186,
+      "sourceMs": 54.60000002384186,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 11,
+      "totalMs": 25.899999976158142,
+      "sourceMs": 5.999999940395355,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 12,
+      "totalMs": 56.19999998807907,
+      "sourceMs": 36.39999932050705,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 12,
+      "totalMs": 77.89999997615814,
+      "sourceMs": 49.499999821186066,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 12,
+      "totalMs": 23.5,
+      "sourceMs": 4.599999964237213,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 12,
+      "totalMs": 39.40000003576279,
+      "sourceMs": 10.800000011920929,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 13,
+      "totalMs": 78.59999996423721,
+      "sourceMs": 48.30000019073486,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 13,
+      "totalMs": 23.700000047683716,
+      "sourceMs": 5.599999964237213,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 13,
+      "totalMs": 35.39999997615814,
+      "sourceMs": 8.800000011920929,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 13,
+      "totalMs": 59.799999952316284,
+      "sourceMs": 34.80000001192093,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 14,
+      "totalMs": 26.599999964237213,
+      "sourceMs": 6.899999797344208,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 14,
+      "totalMs": 37.60000002384186,
+      "sourceMs": 8.199999630451202,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 14,
+      "totalMs": 53.90000003576279,
+      "sourceMs": 35.39999961853027,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 14,
+      "totalMs": 81.30000001192093,
+      "sourceMs": 50.00000011920929,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 15,
+      "totalMs": 43.39999997615814,
+      "sourceMs": 11.699999988079071,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 15,
+      "totalMs": 58.299999952316284,
+      "sourceMs": 36.60000002384186,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 15,
+      "totalMs": 78.39999997615814,
+      "sourceMs": 47.59999990463257,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 15,
+      "totalMs": 24.100000023841858,
+      "sourceMs": 5.599999785423279,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 16,
+      "totalMs": 56.40000003576279,
+      "sourceMs": 34.50000035762787,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 16,
+      "totalMs": 90.19999998807907,
+      "sourceMs": 55.69999951124191,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 16,
+      "totalMs": 25.899999976158142,
+      "sourceMs": 6.000000298023224,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 16,
+      "totalMs": 37.299999952316284,
+      "sourceMs": 9.899999976158142,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 17,
+      "totalMs": 77.80000001192093,
+      "sourceMs": 47.199999928474426,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 17,
+      "totalMs": 25.400000035762787,
+      "sourceMs": 6.200000166893005,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 17,
+      "totalMs": 38.90000003576279,
+      "sourceMs": 9.500000059604645,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 17,
+      "totalMs": 55.5,
+      "sourceMs": 35.80000025033951,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 18,
+      "totalMs": 24.400000035762787,
+      "sourceMs": 5.099999904632568,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 18,
+      "totalMs": 36.69999998807907,
+      "sourceMs": 8.70000022649765,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 18,
+      "totalMs": 56.5,
+      "sourceMs": 36.20000046491623,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 18,
+      "totalMs": 88.69999998807907,
+      "sourceMs": 53.19999998807907,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 19,
+      "totalMs": 35.40000003576279,
+      "sourceMs": 9.200000047683716,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 19,
+      "totalMs": 58.19999998807907,
+      "sourceMs": 35.700000405311584,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 19,
+      "totalMs": 82.90000003576279,
+      "sourceMs": 50.699999928474426,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 19,
+      "totalMs": 30.69999998807907,
+      "sourceMs": 6.200000166893005,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "round": 20,
+      "totalMs": 59,
+      "sourceMs": 35.99999988079071,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "round": 20,
+      "totalMs": 81.19999998807907,
+      "sourceMs": 47.999999940395355,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "round": 20,
+      "totalMs": 25.599999964237213,
+      "sourceMs": 6.499999821186066,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "round": 20,
+      "totalMs": 37.19999998807907,
+      "sourceMs": 9.399999618530273,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 0,
+      "totalMs": 47,
+      "sourceMs": 9.100000023841858,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 0,
+      "totalMs": 63.60000002384186,
+      "sourceMs": 13.000000059604645,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 0,
+      "totalMs": 54.69999998807907,
+      "sourceMs": 10.899999856948853,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 0,
+      "totalMs": 69.39999997615814,
+      "sourceMs": 14.200000405311584,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 1,
+      "totalMs": 66.19999998807907,
+      "sourceMs": 14.200000047683716,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 1,
+      "totalMs": 54.60000002384186,
+      "sourceMs": 10.70000010728836,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 1,
+      "totalMs": 70.60000002384186,
+      "sourceMs": 16.199999749660492,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 1,
+      "totalMs": 49.30000001192093,
+      "sourceMs": 7.800000071525574,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 2,
+      "totalMs": 53.799999952316284,
+      "sourceMs": 9.999999284744263,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 2,
+      "totalMs": 68.30000001192093,
+      "sourceMs": 16.399999856948853,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 2,
+      "totalMs": 47.59999996423721,
+      "sourceMs": 9.999999642372131,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 2,
+      "totalMs": 74.90000003576279,
+      "sourceMs": 18.699999809265137,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 3,
+      "totalMs": 67.30000001192093,
+      "sourceMs": 13.599999964237213,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 3,
+      "totalMs": 46.30000001192093,
+      "sourceMs": 8.199999988079071,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 3,
+      "totalMs": 74,
+      "sourceMs": 15.099999964237213,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 3,
+      "totalMs": 47.39999997615814,
+      "sourceMs": 8.899999737739563,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 4,
+      "totalMs": 47,
+      "sourceMs": 8.999999463558197,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 4,
+      "totalMs": 71.69999998807907,
+      "sourceMs": 14.000000357627869,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 4,
+      "totalMs": 46.60000002384186,
+      "sourceMs": 10.100000083446503,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 4,
+      "totalMs": 66.60000002384186,
+      "sourceMs": 13.199999332427979,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 5,
+      "totalMs": 77,
+      "sourceMs": 18.699999749660492,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 5,
+      "totalMs": 47.700000047683716,
+      "sourceMs": 10.00000011920929,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 5,
+      "totalMs": 67.19999998807907,
+      "sourceMs": 15.599999904632568,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 5,
+      "totalMs": 56,
+      "sourceMs": 9.199999928474426,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 6,
+      "totalMs": 46.19999998807907,
+      "sourceMs": 9.400000035762787,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 6,
+      "totalMs": 65.69999998807907,
+      "sourceMs": 14.099999964237213,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 6,
+      "totalMs": 52.40000003576279,
+      "sourceMs": 9.20000022649765,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 6,
+      "totalMs": 64.39999997615814,
+      "sourceMs": 14.100000143051147,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 7,
+      "totalMs": 67.19999998807907,
+      "sourceMs": 14.299999296665192,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 7,
+      "totalMs": 54.30000001192093,
+      "sourceMs": 9.500000238418579,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 7,
+      "totalMs": 65.69999998807907,
+      "sourceMs": 13.799999833106995,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 7,
+      "totalMs": 47.30000001192093,
+      "sourceMs": 11.099999606609344,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 8,
+      "totalMs": 54.5,
+      "sourceMs": 9.600000023841858,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 8,
+      "totalMs": 67.19999998807907,
+      "sourceMs": 13.700000286102295,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 8,
+      "totalMs": 47.10000002384186,
+      "sourceMs": 9.90000057220459,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 8,
+      "totalMs": 74.30000001192093,
+      "sourceMs": 20.0999995470047,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 9,
+      "totalMs": 66.30000001192093,
+      "sourceMs": 13.699999570846558,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 9,
+      "totalMs": 46.30000001192093,
+      "sourceMs": 8.700000166893005,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 9,
+      "totalMs": 71.10000002384186,
+      "sourceMs": 14.499999642372131,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 9,
+      "totalMs": 51.69999998807907,
+      "sourceMs": 11.100000202655792,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 10,
+      "totalMs": 46.69999998807907,
+      "sourceMs": 10.000000476837158,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 10,
+      "totalMs": 66,
+      "sourceMs": 14.900000154972076,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 10,
+      "totalMs": 53.80000001192093,
+      "sourceMs": 8.500000178813934,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 10,
+      "totalMs": 65,
+      "sourceMs": 12.999999642372131,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 11,
+      "totalMs": 69.80000001192093,
+      "sourceMs": 16.699999511241913,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 11,
+      "totalMs": 53.60000002384186,
+      "sourceMs": 8.199999928474426,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 11,
+      "totalMs": 61.90000003576279,
+      "sourceMs": 14.29999989271164,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 11,
+      "totalMs": 45.39999997615814,
+      "sourceMs": 9.900000035762787,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 12,
+      "totalMs": 54.60000002384186,
+      "sourceMs": 9.5,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 12,
+      "totalMs": 66.69999998807907,
+      "sourceMs": 14.29999989271164,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 12,
+      "totalMs": 45.69999998807907,
+      "sourceMs": 8.99999988079071,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 12,
+      "totalMs": 76.30000001192093,
+      "sourceMs": 19.200000286102295,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 13,
+      "totalMs": 66.69999998807907,
+      "sourceMs": 13.600000083446503,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 13,
+      "totalMs": 46.10000002384186,
+      "sourceMs": 9.499999940395355,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 13,
+      "totalMs": 70.90000003576279,
+      "sourceMs": 15.300000011920929,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 13,
+      "totalMs": 57.5,
+      "sourceMs": 10.299999952316284,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 14,
+      "totalMs": 46.10000002384186,
+      "sourceMs": 8.400000095367432,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 14,
+      "totalMs": 68.90000003576279,
+      "sourceMs": 17.100000143051147,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 14,
+      "totalMs": 54.80000001192093,
+      "sourceMs": 8.899999976158142,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 14,
+      "totalMs": 64.29999995231628,
+      "sourceMs": 12.600000441074371,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 15,
+      "totalMs": 64.10000002384186,
+      "sourceMs": 15.100000083446503,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 15,
+      "totalMs": 52.5,
+      "sourceMs": 9.400000095367432,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 15,
+      "totalMs": 66,
+      "sourceMs": 13.90000033378601,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 15,
+      "totalMs": 47.30000001192093,
+      "sourceMs": 10.199999809265137,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 16,
+      "totalMs": 53.69999998807907,
+      "sourceMs": 10.499999463558197,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 16,
+      "totalMs": 71.39999997615814,
+      "sourceMs": 15.199999570846558,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 16,
+      "totalMs": 44.89999997615814,
+      "sourceMs": 8.100000023841858,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 16,
+      "totalMs": 70.10000002384186,
+      "sourceMs": 15.799999833106995,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 17,
+      "totalMs": 81.39999997615814,
+      "sourceMs": 18.50000023841858,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 17,
+      "totalMs": 47.5,
+      "sourceMs": 8.800000429153442,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 17,
+      "totalMs": 68.39999997615814,
+      "sourceMs": 16.70000070333481,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 17,
+      "totalMs": 58.09999996423721,
+      "sourceMs": 9.199999988079071,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 18,
+      "totalMs": 51.5,
+      "sourceMs": 11.200000286102295,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 18,
+      "totalMs": 75.79999995231628,
+      "sourceMs": 17.300000429153442,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 18,
+      "totalMs": 50.60000002384186,
+      "sourceMs": 9.999999344348907,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 18,
+      "totalMs": 75.19999998807907,
+      "sourceMs": 16.000000178813934,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 19,
+      "totalMs": 70.09999996423721,
+      "sourceMs": 16.799999833106995,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 19,
+      "totalMs": 50.30000001192093,
+      "sourceMs": 9.399999797344208,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 19,
+      "totalMs": 82.5,
+      "sourceMs": 18.80000001192093,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 19,
+      "totalMs": 49.200000047683716,
+      "sourceMs": 9.399999976158142,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "round": 20,
+      "totalMs": 47.80000001192093,
+      "sourceMs": 9.40000033378601,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "round": 20,
+      "totalMs": 88,
+      "sourceMs": 19.800000309944153,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "round": 20,
+      "totalMs": 48.80000001192093,
+      "sourceMs": 9.300000011920929,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "round": 20,
+      "totalMs": 67.69999998807907,
+      "sourceMs": 16.20000022649765,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 0,
+      "totalMs": 44.69999998807907,
+      "sourceMs": 9.49999988079071,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 0,
+      "totalMs": 63.19999998807907,
+      "sourceMs": 13.50000011920929,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 0,
+      "totalMs": 43.5,
+      "sourceMs": 11.20000034570694,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 0,
+      "totalMs": 49.10000002384186,
+      "sourceMs": 11.300000071525574,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 1,
+      "totalMs": 56.30000001192093,
+      "sourceMs": 11.700000703334808,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 1,
+      "totalMs": 53.19999998807907,
+      "sourceMs": 11.900000095367432,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 1,
+      "totalMs": 47.60000002384186,
+      "sourceMs": 11.399999558925629,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 1,
+      "totalMs": 44.89999997615814,
+      "sourceMs": 9.20000010728836,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 2,
+      "totalMs": 52.69999998807907,
+      "sourceMs": 9.500000059604645,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 2,
+      "totalMs": 58.69999998807907,
+      "sourceMs": 15.20000034570694,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 2,
+      "totalMs": 44.60000002384186,
+      "sourceMs": 10.899999618530273,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 2,
+      "totalMs": 51.89999997615814,
+      "sourceMs": 12.200000047683716,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 3,
+      "totalMs": 62.39999997615814,
+      "sourceMs": 14.899999916553497,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 3,
+      "totalMs": 43.80000001192093,
+      "sourceMs": 9.900000274181366,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 3,
+      "totalMs": 51.90000003576279,
+      "sourceMs": 12.399999797344208,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 3,
+      "totalMs": 44.89999997615814,
+      "sourceMs": 10.699999988079071,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 4,
+      "totalMs": 56.5,
+      "sourceMs": 9.899999856948853,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 4,
+      "totalMs": 52.39999997615814,
+      "sourceMs": 12.199999570846558,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 4,
+      "totalMs": 42.30000001192093,
+      "sourceMs": 8.900000154972076,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 4,
+      "totalMs": 48.80000001192093,
+      "sourceMs": 12.599999725818634,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 5,
+      "totalMs": 59.80000001192093,
+      "sourceMs": 14,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 5,
+      "totalMs": 48.30000001192093,
+      "sourceMs": 10.200000047683716,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 5,
+      "totalMs": 48.30000001192093,
+      "sourceMs": 11.399999380111694,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 5,
+      "totalMs": 44.39999997615814,
+      "sourceMs": 12.099999904632568,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 6,
+      "totalMs": 58.5,
+      "sourceMs": 12.79999965429306,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 6,
+      "totalMs": 51.89999997615814,
+      "sourceMs": 13.699999809265137,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 6,
+      "totalMs": 44.5,
+      "sourceMs": 9.79999965429306,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 6,
+      "totalMs": 49.69999998807907,
+      "sourceMs": 12.79999989271164,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 7,
+      "totalMs": 63.09999996423721,
+      "sourceMs": 13.599999904632568,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 7,
+      "totalMs": 46.89999997615814,
+      "sourceMs": 11.699999988079071,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 7,
+      "totalMs": 49.30000001192093,
+      "sourceMs": 12.100000023841858,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 7,
+      "totalMs": 44.5,
+      "sourceMs": 10.800000309944153,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 8,
+      "totalMs": 56.19999998807907,
+      "sourceMs": 13.600000143051147,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 8,
+      "totalMs": 54.89999997615814,
+      "sourceMs": 13.399999618530273,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 8,
+      "totalMs": 42.299999952316284,
+      "sourceMs": 11.100000321865082,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 8,
+      "totalMs": 51.80000001192093,
+      "sourceMs": 14.900000512599945,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 9,
+      "totalMs": 66.09999996423721,
+      "sourceMs": 17.100000143051147,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 9,
+      "totalMs": 46.89999997615814,
+      "sourceMs": 11.199999809265137,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 9,
+      "totalMs": 52,
+      "sourceMs": 12.500000298023224,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 9,
+      "totalMs": 48.90000003576279,
+      "sourceMs": 10.799999952316284,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 10,
+      "totalMs": 62.60000002384186,
+      "sourceMs": 12.299999296665192,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 10,
+      "totalMs": 52.700000047683716,
+      "sourceMs": 13.600000083446503,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 10,
+      "totalMs": 44.200000047683716,
+      "sourceMs": 11.100000083446503,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 10,
+      "totalMs": 54.200000047683716,
+      "sourceMs": 13.599999785423279,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 11,
+      "totalMs": 70.10000002384186,
+      "sourceMs": 15.600000023841858,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 11,
+      "totalMs": 49.60000002384186,
+      "sourceMs": 14.199999809265137,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 11,
+      "totalMs": 52.89999997615814,
+      "sourceMs": 12.800000011920929,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 11,
+      "totalMs": 49.80000001192093,
+      "sourceMs": 12.199999690055847,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 12,
+      "totalMs": 65.39999997615814,
+      "sourceMs": 13.20000034570694,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 12,
+      "totalMs": 51.80000001192093,
+      "sourceMs": 14.600000321865082,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 12,
+      "totalMs": 47.299999952316284,
+      "sourceMs": 11.799999952316284,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 12,
+      "totalMs": 50.69999998807907,
+      "sourceMs": 11.799999833106995,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 13,
+      "totalMs": 70.80000001192093,
+      "sourceMs": 18.4000004529953,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 13,
+      "totalMs": 47.60000002384186,
+      "sourceMs": 12.59999942779541,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 13,
+      "totalMs": 53.69999998807907,
+      "sourceMs": 14.900000154972076,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 13,
+      "totalMs": 50.69999998807907,
+      "sourceMs": 12.299999833106995,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 14,
+      "totalMs": 65,
+      "sourceMs": 16.30000001192093,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 14,
+      "totalMs": 57.60000002384186,
+      "sourceMs": 14.399999618530273,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 14,
+      "totalMs": 50.09999996423721,
+      "sourceMs": 11.70000022649765,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 14,
+      "totalMs": 55.30000001192093,
+      "sourceMs": 13.700000643730164,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 15,
+      "totalMs": 74.60000002384186,
+      "sourceMs": 19.30000114440918,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 15,
+      "totalMs": 48.60000002384186,
+      "sourceMs": 11.899999797344208,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 15,
+      "totalMs": 56.19999998807907,
+      "sourceMs": 13.200000643730164,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 15,
+      "totalMs": 52.5,
+      "sourceMs": 11.199999928474426,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 16,
+      "totalMs": 67.89999997615814,
+      "sourceMs": 14.399999737739563,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 16,
+      "totalMs": 59.10000002384186,
+      "sourceMs": 15.599999606609344,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 16,
+      "totalMs": 48.5,
+      "sourceMs": 11.299999952316284,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 16,
+      "totalMs": 66.39999997615814,
+      "sourceMs": 18.500000178813934,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 17,
+      "totalMs": 62.40000003576279,
+      "sourceMs": 13.700000405311584,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 17,
+      "totalMs": 51.09999996423721,
+      "sourceMs": 13.399999856948853,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 17,
+      "totalMs": 51,
+      "sourceMs": 12.600000262260437,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 17,
+      "totalMs": 58.30000001192093,
+      "sourceMs": 11.300000190734863,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 18,
+      "totalMs": 51.80000001192093,
+      "sourceMs": 12.300000309944153,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 18,
+      "totalMs": 56.09999996423721,
+      "sourceMs": 16.000000059604645,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 18,
+      "totalMs": 49.90000003576279,
+      "sourceMs": 10.899999916553497,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 18,
+      "totalMs": 68.80000001192093,
+      "sourceMs": 15.800000071525574,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 19,
+      "totalMs": 57.89999997615814,
+      "sourceMs": 14.90000033378601,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 19,
+      "totalMs": 47.30000001192093,
+      "sourceMs": 10.900000035762787,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 19,
+      "totalMs": 53.40000003576279,
+      "sourceMs": 12.000000476837158,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 19,
+      "totalMs": 60.5,
+      "sourceMs": 16.69999986886978,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "round": 20,
+      "totalMs": 52.5,
+      "sourceMs": 11.300000011920929,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "round": 20,
+      "totalMs": 50.69999998807907,
+      "sourceMs": 11.599999785423279,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "round": 20,
+      "totalMs": 49.09999996423721,
+      "sourceMs": 12.400000035762787,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "round": 20,
+      "totalMs": 67.19999998807907,
+      "sourceMs": 19.69999998807907,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 0,
+      "totalMs": 272.39999997615814,
+      "sourceMs": 269.99999994039536,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 0,
+      "totalMs": 62.30000001192093,
+      "sourceMs": 26.300000250339508,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 0,
+      "totalMs": 28.19999998807907,
+      "sourceMs": 27.19999986886978,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 0,
+      "totalMs": 33.5,
+      "sourceMs": 4.699999928474426,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 1,
+      "totalMs": 57.5,
+      "sourceMs": 24.59999966621399,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 1,
+      "totalMs": 26.099999964237213,
+      "sourceMs": 24.999999940395355,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 1,
+      "totalMs": 33.89999997615814,
+      "sourceMs": 3.4000000953674316,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 1,
+      "totalMs": 250.5,
+      "sourceMs": 248.79999995231628,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 2,
+      "totalMs": 25.19999998807907,
+      "sourceMs": 24.399999797344208,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 2,
+      "totalMs": 41.700000047683716,
+      "sourceMs": 3.9999996423721313,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 2,
+      "totalMs": 256.19999998807907,
+      "sourceMs": 255.19999986886978,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 2,
+      "totalMs": 52.80000001192093,
+      "sourceMs": 22.499999821186066,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 3,
+      "totalMs": 32.700000047683716,
+      "sourceMs": 3.8000001907348633,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 3,
+      "totalMs": 260.4000000357628,
+      "sourceMs": 258.59999990463257,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 3,
+      "totalMs": 52.89999997615814,
+      "sourceMs": 22.799999952316284,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 3,
+      "totalMs": 25.099999964237213,
+      "sourceMs": 24.100000083446503,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 4,
+      "totalMs": 258,
+      "sourceMs": 256.00000005960464,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 4,
+      "totalMs": 47.89999997615814,
+      "sourceMs": 20.199999749660492,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 4,
+      "totalMs": 27.80000001192093,
+      "sourceMs": 26.59999990463257,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 4,
+      "totalMs": 34.09999996423721,
+      "sourceMs": 4.5000001192092896,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 5,
+      "totalMs": 66.30000001192093,
+      "sourceMs": 28.499999523162842,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 5,
+      "totalMs": 27.30000001192093,
+      "sourceMs": 26.59999990463257,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 5,
+      "totalMs": 34,
+      "sourceMs": 4.300000011920929,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 5,
+      "totalMs": 275.80000001192093,
+      "sourceMs": 273.80000001192093,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 6,
+      "totalMs": 28.69999998807907,
+      "sourceMs": 27.599999845027924,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 6,
+      "totalMs": 35.39999997615814,
+      "sourceMs": 5.699999809265137,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 6,
+      "totalMs": 273.9000000357628,
+      "sourceMs": 272.2000000476837,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 6,
+      "totalMs": 56.80000001192093,
+      "sourceMs": 24.499999701976776,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 7,
+      "totalMs": 36.80000001192093,
+      "sourceMs": 3.9999998807907104,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 7,
+      "totalMs": 274.5999999642372,
+      "sourceMs": 272.60000002384186,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 7,
+      "totalMs": 56.60000002384186,
+      "sourceMs": 23.200000286102295,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 7,
+      "totalMs": 37.80000001192093,
+      "sourceMs": 36.09999996423721,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 8,
+      "totalMs": 271.19999998807907,
+      "sourceMs": 269.69999998807907,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 8,
+      "totalMs": 60.69999998807907,
+      "sourceMs": 25.899999618530273,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 8,
+      "totalMs": 26.899999976158142,
+      "sourceMs": 25.399999916553497,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 8,
+      "totalMs": 34.19999998807907,
+      "sourceMs": 4.099999725818634,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 9,
+      "totalMs": 55.89999997615814,
+      "sourceMs": 24.699999809265137,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 9,
+      "totalMs": 25.900000035762787,
+      "sourceMs": 24.900000035762787,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 9,
+      "totalMs": 32.59999996423721,
+      "sourceMs": 4.3000001311302185,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 9,
+      "totalMs": 270.2999999523163,
+      "sourceMs": 268.30000001192093,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 10,
+      "totalMs": 27.600000023841858,
+      "sourceMs": 26.49999988079071,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 10,
+      "totalMs": 36.10000002384186,
+      "sourceMs": 4.600000083446503,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 10,
+      "totalMs": 270.10000002384186,
+      "sourceMs": 268.9000001549721,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 10,
+      "totalMs": 69.60000002384186,
+      "sourceMs": 31.00000011920929,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 11,
+      "totalMs": 35,
+      "sourceMs": 4.6000001430511475,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 11,
+      "totalMs": 274.5999999642372,
+      "sourceMs": 273.69999980926514,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 11,
+      "totalMs": 57.19999998807907,
+      "sourceMs": 23.100000321865082,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 11,
+      "totalMs": 27.69999998807907,
+      "sourceMs": 26.29999989271164,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 12,
+      "totalMs": 271.89999997615814,
+      "sourceMs": 270.1999998688698,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 12,
+      "totalMs": 53.60000002384186,
+      "sourceMs": 23.999999523162842,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 12,
+      "totalMs": 26.30000001192093,
+      "sourceMs": 24.700000047683716,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 12,
+      "totalMs": 32.5,
+      "sourceMs": 3.700000047683716,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 13,
+      "totalMs": 55.39999997615814,
+      "sourceMs": 22.199999809265137,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 13,
+      "totalMs": 27.799999952316284,
+      "sourceMs": 26.200000166893005,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 13,
+      "totalMs": 44.89999997615814,
+      "sourceMs": 8.299999713897705,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 13,
+      "totalMs": 274.69999998807907,
+      "sourceMs": 272.9000000357628,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 14,
+      "totalMs": 27.69999998807907,
+      "sourceMs": 26.59999990463257,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 14,
+      "totalMs": 35.69999998807907,
+      "sourceMs": 4.499999701976776,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 14,
+      "totalMs": 275.9000000357628,
+      "sourceMs": 275.10000002384186,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 14,
+      "totalMs": 58.59999996423721,
+      "sourceMs": 24.899999618530273,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 15,
+      "totalMs": 33.69999998807907,
+      "sourceMs": 4.600000083446503,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 15,
+      "totalMs": 275.0999999642372,
+      "sourceMs": 273.89999997615814,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 15,
+      "totalMs": 57.30000001192093,
+      "sourceMs": 24.100000143051147,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 15,
+      "totalMs": 29.80000001192093,
+      "sourceMs": 28.800000190734863,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 16,
+      "totalMs": 269.9000000357628,
+      "sourceMs": 267.89999997615814,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 16,
+      "totalMs": 60.19999998807907,
+      "sourceMs": 24.80000013113022,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 16,
+      "totalMs": 26.19999998807907,
+      "sourceMs": 25.499999940395355,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 16,
+      "totalMs": 44.10000002384186,
+      "sourceMs": 7.600000083446503,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 17,
+      "totalMs": 58.19999998807907,
+      "sourceMs": 24.900000035762787,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 17,
+      "totalMs": 27.80000001192093,
+      "sourceMs": 26.899999856948853,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 17,
+      "totalMs": 36.200000047683716,
+      "sourceMs": 4.800000309944153,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 17,
+      "totalMs": 271.80000001192093,
+      "sourceMs": 270.4999998807907,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 18,
+      "totalMs": 27,
+      "sourceMs": 26.200000047683716,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 18,
+      "totalMs": 39,
+      "sourceMs": 5.400000154972076,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 18,
+      "totalMs": 277.5999999642372,
+      "sourceMs": 275.9999998807907,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 18,
+      "totalMs": 56.5,
+      "sourceMs": 24.700000286102295,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 19,
+      "totalMs": 35.30000001192093,
+      "sourceMs": 4.200000166893005,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 19,
+      "totalMs": 278,
+      "sourceMs": 276.9000000357628,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 19,
+      "totalMs": 55.299999952316284,
+      "sourceMs": 23.19999986886978,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 19,
+      "totalMs": 28.30000001192093,
+      "sourceMs": 26.29999989271164,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "round": 20,
+      "totalMs": 279.89999997615814,
+      "sourceMs": 278.20000010728836,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "round": 20,
+      "totalMs": 65.20000004768372,
+      "sourceMs": 27.09999978542328,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "round": 20,
+      "totalMs": 27.19999998807907,
+      "sourceMs": 25.599999845027924,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "round": 20,
+      "totalMs": 35.5,
+      "sourceMs": 3.6999998688697815,
+      "setterCount": 2000,
+      "computeCount": 2000
+    }
+  ],
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+  "summaries": [
+    {
+      "workload": "counter-burst",
+      "mode": "sync",
+      "medianMs": 62.19999998807907,
+      "p25Ms": 60.60000002384186,
+      "p75Ms": 66.29999995231628,
+      "medianSourceMs": 56.20000022649765,
+      "minMs": 57.30000001192093,
+      "maxMs": 75.5,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask",
+      "medianMs": 58.60000002384186,
+      "p25Ms": 55.60000002384186,
+      "p75Ms": 61.90000003576279,
+      "medianSourceMs": 49.30000001192093,
+      "minMs": 53.69999998807907,
+      "maxMs": 67.29999995231628,
+      "setterCount": 400,
+      "computeCount": 40000
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "sync+batch",
+      "medianMs": 5.399999976158142,
+      "p25Ms": 5,
+      "p75Ms": 5.5,
+      "medianSourceMs": 1.399999976158142,
+      "minMs": 4.700000047683716,
+      "maxMs": 6.099999964237213,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "counter-burst",
+      "mode": "microtask+batch",
+      "medianMs": 6.200000047683716,
+      "p25Ms": 5.699999988079071,
+      "p75Ms": 6.799999952316284,
+      "medianSourceMs": 1.5000001192092896,
+      "minMs": 5.300000011920929,
+      "maxMs": 8.300000011920929,
+      "setterCount": 400,
+      "computeCount": 400
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync",
+      "medianMs": 57.19999998807907,
+      "p25Ms": 56.19999998807907,
+      "p75Ms": 59,
+      "medianSourceMs": 35.80000025033951,
+      "minMs": 53.90000003576279,
+      "maxMs": 65,
+      "setterCount": 40000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask",
+      "medianMs": 81.19999998807907,
+      "p25Ms": 79.5,
+      "p75Ms": 87.19999998807907,
+      "medianSourceMs": 49.90000003576279,
+      "minMs": 77.80000001192093,
+      "maxMs": 101.89999997615814,
+      "setterCount": 4000,
+      "computeCount": 40000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "sync+batch",
+      "medianMs": 25.30000001192093,
+      "p25Ms": 24.100000023841858,
+      "p75Ms": 26.100000023841858,
+      "medianSourceMs": 5.900000154972076,
+      "minMs": 22.80000001192093,
+      "maxMs": 30.69999998807907,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-burst",
+      "mode": "microtask+batch",
+      "medianMs": 36.90000003576279,
+      "p25Ms": 35.40000003576279,
+      "p75Ms": 37.60000002384186,
+      "medianSourceMs": 9.200000047683716,
+      "minMs": 33.5,
+      "maxMs": 43.39999997615814,
+      "setterCount": 4000,
+      "computeCount": 4000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync",
+      "medianMs": 52.5,
+      "p25Ms": 49.30000001192093,
+      "p75Ms": 54.5,
+      "medianSourceMs": 9.399999797344208,
+      "minMs": 46.30000001192093,
+      "maxMs": 58.09999996423721,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask",
+      "medianMs": 66.69999998807907,
+      "p25Ms": 65.69999998807907,
+      "p75Ms": 74.90000003576279,
+      "medianSourceMs": 14.200000047683716,
+      "minMs": 61.90000003576279,
+      "maxMs": 88,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "sync+batch",
+      "medianMs": 47.30000001192093,
+      "p25Ms": 46.19999998807907,
+      "p75Ms": 48.80000001192093,
+      "medianSourceMs": 9.900000035762787,
+      "minMs": 44.89999997615814,
+      "maxMs": 54.69999998807907,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "dashboard-single",
+      "mode": "microtask+batch",
+      "medianMs": 68.90000003576279,
+      "p25Ms": 67.19999998807907,
+      "p75Ms": 70.60000002384186,
+      "medianSourceMs": 15.799999833106995,
+      "minMs": 64.10000002384186,
+      "maxMs": 76.30000001192093,
+      "setterCount": 8000,
+      "computeCount": 8000
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync",
+      "medianMs": 48.90000003576279,
+      "p25Ms": 44.69999998807907,
+      "p75Ms": 52.5,
+      "medianSourceMs": 11.300000011920929,
+      "minMs": 43.80000001192093,
+      "maxMs": 67.89999997615814,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask",
+      "medianMs": 54.89999997615814,
+      "p25Ms": 51.90000003576279,
+      "p75Ms": 59.80000001192093,
+      "medianSourceMs": 13.399999618530273,
+      "minMs": 49.30000001192093,
+      "maxMs": 70.80000001192093,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "sync+batch",
+      "medianMs": 49.09999996423721,
+      "p25Ms": 46.89999997615814,
+      "p75Ms": 52.69999998807907,
+      "medianSourceMs": 11.799999952316284,
+      "minMs": 42.299999952316284,
+      "maxMs": 65,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "input-single",
+      "mode": "microtask+batch",
+      "medianMs": 53.69999998807907,
+      "p25Ms": 51,
+      "p75Ms": 62.39999997615814,
+      "medianSourceMs": 14.399999618530273,
+      "minMs": 47.60000002384186,
+      "maxMs": 74.60000002384186,
+      "setterCount": 0,
+      "computeCount": 0
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync",
+      "medianMs": 272.39999997615814,
+      "p25Ms": 270.10000002384186,
+      "p75Ms": 275.0999999642372,
+      "medianSourceMs": 270.4999998807907,
+      "minMs": 250.5,
+      "maxMs": 279.89999997615814,
+      "setterCount": 20000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask",
+      "medianMs": 57.19999998807907,
+      "p25Ms": 55.39999997615814,
+      "p75Ms": 60.19999998807907,
+      "medianSourceMs": 24.59999966621399,
+      "minMs": 47.89999997615814,
+      "maxMs": 69.60000002384186,
+      "setterCount": 2000,
+      "computeCount": 20000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "sync+batch",
+      "medianMs": 27.600000023841858,
+      "p25Ms": 26.30000001192093,
+      "p75Ms": 27.80000001192093,
+      "medianSourceMs": 26.29999989271164,
+      "minMs": 25.099999964237213,
+      "maxMs": 37.80000001192093,
+      "setterCount": 2000,
+      "computeCount": 2000
+    },
+    {
+      "workload": "layout-reading-setter",
+      "mode": "microtask+batch",
+      "medianMs": 35.30000001192093,
+      "p25Ms": 33.89999997615814,
+      "p75Ms": 36.200000047683716,
+      "medianSourceMs": 4.499999701976776,
+      "minMs": 32.5,
+      "maxMs": 44.89999997615814,
+      "setterCount": 2000,
+      "computeCount": 2000
+    }
+  ]
+}

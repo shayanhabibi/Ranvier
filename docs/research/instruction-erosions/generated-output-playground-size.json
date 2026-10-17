@@ -1,0 +1,12 @@
+[
+  {
+    "label": "before",
+    "bytes": 157846,
+    "gzipBytes": 44210
+  },
+  {
+    "label": "after",
+    "bytes": 154881,
+    "gzipBytes": 43350
+  }
+]

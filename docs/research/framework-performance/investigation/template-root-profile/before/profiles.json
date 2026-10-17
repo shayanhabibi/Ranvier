@@ -1,0 +1,517 @@
+{
+  "measuredAt": "2026-10-14T00:43:50.341Z",
+  "chromium": "153.0.8010.12",
+  "sourceMap": "index-DJNvbYsY.js.map",
+  "configuration": "production unminified diagnostic bundle; sampling enabled only for CPU profiles",
+  "modes": [
+    "ranvier-template",
+    "solid"
+  ],
+  "phases": [
+    "mount",
+    "dispose"
+  ],
+  "results": [
+    {
+      "mode": "ranvier-template",
+      "phase": "mount",
+      "width": 1,
+      "timingsUs": [
+        18.281250027939677,
+        17.187500023283064,
+        13.750000041909516,
+        12.656250037252903,
+        11.093750013969839,
+        10.624999995343387,
+        9.218749997671694
+      ],
+      "operations": {
+        "createDocumentFragment": 1,
+        "createComment": 2,
+        "claim": 3,
+        "createElement": 1,
+        "cloneNode": 1,
+        "appendChild": 1,
+        "insertBefore": 3,
+        "addEventListener": 1
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 353.24500001966953,
+      "hotspots": [
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 65.56
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 42.436
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 40.376
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 38.261
+        },
+        {
+          "functionName": "(anonymous):4536",
+          "ms": 30.419
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 21.26
+        },
+        {
+          "functionName": "host:26347",
+          "ms": 20.077
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 14.189
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 13.602
+        },
+        {
+          "functionName": "delegateFrom:6094",
+          "ms": 12.983
+        },
+        {
+          "functionName": "fill:1304",
+          "ms": 12.971
+        },
+        {
+          "functionName": "append:0",
+          "ms": 11.86
+        },
+        {
+          "functionName": "collect:5587",
+          "ms": 11.026
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 9.532
+        },
+        {
+          "functionName": "ObserverSet__Remove_7E1B59FA:2516",
+          "ms": 8.183
+        },
+        {
+          "functionName": "write:5552",
+          "ms": 7.946
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 6.825
+        },
+        {
+          "functionName": "claim:6133",
+          "ms": 6.757
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 6.47
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 6.408
+        },
+        {
+          "functionName": "unclaim:6136",
+          "ms": 5.482
+        },
+        {
+          "functionName": "materialise:5608",
+          "ms": 4.57
+        },
+        {
+          "functionName": "clear$1:279",
+          "ms": 4.56
+        },
+        {
+          "functionName": "createComment:0",
+          "ms": 4.497
+        },
+        {
+          "functionName": "(anonymous):7365",
+          "ms": 3.808
+        }
+      ]
+    },
+    {
+      "mode": "ranvier-template",
+      "phase": "dispose",
+      "width": 1,
+      "timingsUs": [
+        1.4062499976716936,
+        1.2500000302679837,
+        1.2499999720603228,
+        1.2499999720603228,
+        1.7187500488944352,
+        1.0937500046566129,
+        1.0937500046566129
+      ],
+      "operations": {
+        "removeEventListener": 1,
+        "remove": 3,
+        "unclaim": 3
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 105.14500001445413,
+      "hotspots": [
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 85.953
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 39.212
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 38.074
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 37.686
+        },
+        {
+          "functionName": "(anonymous):4536",
+          "ms": 31.41
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 26.051
+        },
+        {
+          "functionName": "host:26347",
+          "ms": 17.471
+        },
+        {
+          "functionName": "fill:1304",
+          "ms": 11.634
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 11.21
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 11.053
+        },
+        {
+          "functionName": "delegateFrom:6094",
+          "ms": 10.883
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 10.018
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 9.863
+        },
+        {
+          "functionName": "claim:6133",
+          "ms": 9.535
+        },
+        {
+          "functionName": "append:0",
+          "ms": 9.125
+        },
+        {
+          "functionName": "createComment:0",
+          "ms": 9.003
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 8.689
+        },
+        {
+          "functionName": "collect:5587",
+          "ms": 7.512
+        },
+        {
+          "functionName": "mountCore$1:6593",
+          "ms": 7.478
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 7.2
+        },
+        {
+          "functionName": "unclaim:6136",
+          "ms": 7.112
+        },
+        {
+          "functionName": "ObserverSet__Remove_7E1B59FA:2516",
+          "ms": 6.543
+        },
+        {
+          "functionName": "write:5552",
+          "ms": 6.501
+        },
+        {
+          "functionName": "run:26385",
+          "ms": 6.492
+        },
+        {
+          "functionName": "prepare:26381",
+          "ms": 6.046
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "mount",
+      "width": 1,
+      "timingsUs": [
+        12.500000011641532,
+        10.156250034924597,
+        11.40625000698492,
+        7.3437499813735485,
+        15.46874997438863,
+        12.343749986030161,
+        5.625000048894435
+      ],
+      "operations": {
+        "addEventListener": 2,
+        "cloneNode": 2,
+        "insertBefore": 1,
+        "appendChild": 1
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 251.1950000077486,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 51.689
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 41.913
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 35.526
+        },
+        {
+          "functionName": "(anonymous):12775",
+          "ms": 30.776
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 22.072
+        },
+        {
+          "functionName": "(anonymous):12431",
+          "ms": 19.484
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 15.604
+        },
+        {
+          "functionName": "host:26347",
+          "ms": 15.126
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 11.497
+        },
+        {
+          "functionName": "append:0",
+          "ms": 11.191
+        },
+        {
+          "functionName": "disposeChildren:10640",
+          "ms": 10.858
+        },
+        {
+          "functionName": "recompute:11347",
+          "ms": 10.52
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 10.082
+        },
+        {
+          "functionName": "queueMicrotask:0",
+          "ms": 9.458
+        },
+        {
+          "functionName": "unregisterDelegatedRoot:12459",
+          "ms": 8.417
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 6.456
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 6.094
+        },
+        {
+          "functionName": "(anonymous):12790",
+          "ms": 5.9
+        },
+        {
+          "functionName": "cleanup:26389",
+          "ms": 5.579
+        },
+        {
+          "functionName": "unlinkSubs:10825",
+          "ms": 5.519
+        },
+        {
+          "functionName": "unregisterDelegatedContainer:12475",
+          "ms": 5.519
+        },
+        {
+          "functionName": "Row$1:12761",
+          "ms": 5.057
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 5.023
+        },
+        {
+          "functionName": "effect:12304",
+          "ms": 5.015
+        },
+        {
+          "functionName": "registerDelegatedContainer:12464",
+          "ms": 4.893
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "dispose",
+      "width": 1,
+      "timingsUs": [
+        0.9374999790452421,
+        0.9374999790452421,
+        0.9374999790452421,
+        0.9374999790452421,
+        0.7812499534338713,
+        0.937500037252903,
+        1.2499999720603228
+      ],
+      "operations": {
+        "removeEventListener": 2
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 80.21500001102686,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 52.166
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 39.086
+        },
+        {
+          "functionName": "(anonymous):12775",
+          "ms": 34.945
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 34.615
+        },
+        {
+          "functionName": "(anonymous):12431",
+          "ms": 24.57
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 22.714
+        },
+        {
+          "functionName": "host:26347",
+          "ms": 14.924
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 14.514
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 12.007
+        },
+        {
+          "functionName": "unregisterDelegatedRoot:12459",
+          "ms": 11.505
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 11.395
+        },
+        {
+          "functionName": "disposeChildren:10640",
+          "ms": 10.515
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 10.021
+        },
+        {
+          "functionName": "append:0",
+          "ms": 9.051
+        },
+        {
+          "functionName": "recompute:11347",
+          "ms": 9.031
+        },
+        {
+          "functionName": "(anonymous):12790",
+          "ms": 9.012
+        },
+        {
+          "functionName": "queueMicrotask:0",
+          "ms": 8.309
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 7.109
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 7.01
+        },
+        {
+          "functionName": "insertExpression:12637",
+          "ms": 6.55
+        },
+        {
+          "functionName": "unregisterDelegatedContainer:12475",
+          "ms": 6.037
+        },
+        {
+          "functionName": "registerDelegatedContainer:12464",
+          "ms": 6.026
+        },
+        {
+          "functionName": "prepare:26381",
+          "ms": 6.02
+        },
+        {
+          "functionName": "(anonymous):12444",
+          "ms": 5.039
+        },
+        {
+          "functionName": "effect:12304",
+          "ms": 4.687
+        }
+      ]
+    }
+  ],
+  "probes": []
+}

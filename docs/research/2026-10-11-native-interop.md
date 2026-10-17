@@ -1,0 +1,13 @@
+# Typed native interop checkpoint
+
+Based on `3665d66`, this preserves the user's local typed Xantham DOM conversion. Native document creation, insertion, containment, text writes, input values and WeakSet operations now use the existing Core.TS bindings. The published PoC's text helpers return concrete `Text` nodes; this changes their F# signatures from `Node`. Event listener conversion uses `!^`. The playground project is included in the solution.
+
+Internal parent, placement and anchor variables use `Node` where several native node kinds are valid. This removes the inferred `DocumentFragment` and `Comment` downcasts. Document ownership checks retain reference identity. The complex ownership-overlap traversal remains an explicit JavaScript operation.
+
+The direct `queueMicrotask` function value caused two Chromium acceptance failures. Fable stores the scheduler callback on an object and invokes it as a member; that receiver produces `TypeError: Illegal invocation`. A typed wrapper calls `globalThis.queueMicrotask(callback)` with its native receiver. Both previously failing cases pass after this correction. Bare detached invocation alone did not reproduce the failure; object-member invocation did.
+
+Validation: 156 Node cases and 18 Chromium tests pass; Release DomTests and production playground builds pass; scoped FCS reports zero errors/warnings; XML audit reports zero findings. The reloaded SageFs session passes all 16 portable binding cases. A fresh reviewer found no actionable issues. Whole-solution Fable-test failures recorded in the previous checkpoint remain outside this change.
+
+The [benchmark data](native-interop/browser-results.json) contains 1,650 samples from three Chromium processes with the same frozen original renderer and current core used in the [text repair](2026-10-11-text-boundary-repair.md). Original results remain preserved separately. Synchronous direct/helper update ratios versus the frozen baseline are 0.970/0.980 for one binding and 1.068/1.080 for 64 bindings. Mount ratios are 0.971/1.058 and 0.966/1.019 respectively. These results remain close to the previous repair's relative measurements; they establish no speedup attributable to typed interop. Runs overlapped other build activity, so absolute timings across runs are not comparable. Queued measurements include manual flushing and exclude microtask latency.
+
+Next proof: compose core computation boundaries with existing keyed regions to select structural loading/error/content views. This must establish instance identity and cleanup before introducing a dedicated branch or renderer-boundary API. Descendant effect failures and coordinated reveal remain separate, unimplemented contracts.

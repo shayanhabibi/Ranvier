@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RanvierCounters)' == 'true'">
+    <DefineConstants>$(DefineConstants);RANVIER_COUNTERS</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Global.fs" />
+    <Compile Include="../../../tests/Ranvier.Tests/ComparerCases.fs" Link="ComparerCases.fs" />
+    <Compile Include="DomChecks.fs" />
+    <Compile Include="ScheduledChecks.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Lifetime.fs" Link="Lifetime.fs" />
+    <Compile Include="LifetimeChecks.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Scheduling.fs" Link="Scheduling.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Binding.fs" Link="Binding.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Microtask.fs" Link="Microtask.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Representation.fs" Link="Representation.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Typed.fs" Link="Typed.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Template.fs" Link="Template.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Generated/HtmlTemplate.fs" Link="Generated/HtmlTemplate.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Generated/Html.fs" Link="Generated/Html.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Browser.fs" Link="Browser.fs" />
+    <Compile Include="RepresentationChecks.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Prepared.fs" Link="Prepared.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/TemplateDom.fs" Link="TemplateDom.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Mounting.fs" Link="Mounting.fs" />
+    <Compile Include="RangeChecks.fs" />
+    <Compile Include="BindingChecks.fs" />
+    <Compile Include="BindingIntegrationChecks.fs" />
+    <Compile Include="GeneratedChecks.fs" />
+    <Compile Include="AttributeChecks.fs" />
+    <Compile Include="../benchmarks/BindingBaselineMounting.fs" Link="BindingBaselineMounting.fs" />
+    <Compile Include="BindingBench.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Components.fs" Link="Components.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Authoring.fs" Link="Authoring.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/ComponentPortableChecks.fs" Link="ComponentPortableChecks.fs" />
+    <Compile Include="ComponentChecks.fs" />
+    <Compile Include="AuthoringChecks.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/AuthoringPerfFixtures.fs" Link="AuthoringPerfFixtures.fs" />
+    <Compile Include="AuthoringPerf.fs" />
+    <Compile Include="FrameworkPerf.fs" />
+    <Compile Include="FrameworkDiagnostics.fs" />
+    <Compile Include="FrameworkSemantics.fs" />
+    <Compile Include="MountingInvestigationChecks.fs" />
+    <Compile Include="PreparedChecks.fs" />
+    <Compile Include="DelegationChecks.fs" />
+    <Compile Include="TemplateChecks.fs" />
+    <Compile Include="TemplateCatalogueChecks.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/ComponentBench.fs" Link="ComponentBench.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/Fixtures.fs" Link="Fixtures.fs" />
+    <Compile Include="RepresentationBench.fs" />
+    <Compile Include="../../../experiments/Ranvier.View.Foundation/SnapshotBench.fs" Link="SnapshotBench.fs" />
+    <ProjectReference Include="../../../src/Fable.Ranvier/Fable.Ranvier.fsproj" />
+    <PackageReference Update="FSharp.Core" Version="10.1.401" />
+  </ItemGroup>
+</Project>

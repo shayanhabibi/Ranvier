@@ -1,0 +1,16 @@
+{
+  "format": "minified ES library; exports all fixture cases",
+  "vite": "8.3.2",
+  "sizes": {
+    "ranvier": {
+      "minifiedBytes": 75324,
+      "gzipLevel9Bytes": 17712,
+      "sha256": "075db6ac7b8e6e1b0c677fd0dabcb6b4ccc63cf7b94017cf41bb6056748be445"
+    },
+    "ripple": {
+      "minifiedBytes": 34764,
+      "gzipLevel9Bytes": 8818,
+      "sha256": "218ed8bf0bf353c27ec56e9b92a1bf1b619996ac9ebf821f8d2cf1ea6e970967"
+    }
+  }
+}

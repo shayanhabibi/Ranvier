@@ -1,0 +1,130 @@
+{
+  "measuredAt": "2026-10-13T05:41:00.730Z",
+  "chromium": "153.0.8010.12",
+  "results": [
+    {
+      "framework": "ranvier",
+      "scenario": "caret",
+      "sameNode": true,
+      "focused": true,
+      "selection": [
+        2,
+        2
+      ],
+      "value": "Grace",
+      "pageErrors": []
+    },
+    {
+      "framework": "ranvier",
+      "scenario": "setter",
+      "threw": true,
+      "message": "setter",
+      "afterMount": "<span>keep</span>",
+      "cleanedAtMount": 3,
+      "laterReads": 0,
+      "updateError": null,
+      "cleanedAfterDispose": 3,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": []
+    },
+    {
+      "framework": "ranvier",
+      "scenario": "reader",
+      "threw": false,
+      "message": "",
+      "afterMount": "<span>keep</span><!--ranvier:start--><section><div title=\"a\"></div><div title=\"a\"></div><div></div><div title=\"a\"></div></section><!--ranvier:end-->",
+      "cleanedAtMount": 0,
+      "laterReads": 3,
+      "updateError": null,
+      "cleanedAfterDispose": 4,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": []
+    },
+    {
+      "framework": "solid",
+      "scenario": "caret",
+      "sameNode": true,
+      "focused": true,
+      "selection": [
+        2,
+        2
+      ],
+      "value": "Grace",
+      "pageErrors": []
+    },
+    {
+      "framework": "solid",
+      "scenario": "setter",
+      "threw": true,
+      "message": "setter",
+      "afterMount": "<span>keep</span>",
+      "cleanedAtMount": 3,
+      "laterReads": 0,
+      "updateError": null,
+      "cleanedAfterDispose": 3,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": [
+        "setter"
+      ]
+    },
+    {
+      "framework": "solid",
+      "scenario": "reader",
+      "threw": true,
+      "message": "reader",
+      "afterMount": "<span>keep</span>",
+      "cleanedAtMount": 3,
+      "laterReads": 0,
+      "updateError": null,
+      "cleanedAfterDispose": 3,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": [
+        "reader"
+      ]
+    },
+    {
+      "framework": "ripple",
+      "scenario": "caret",
+      "sameNode": true,
+      "focused": true,
+      "selection": [
+        2,
+        2
+      ],
+      "value": "Grace",
+      "pageErrors": []
+    },
+    {
+      "framework": "ripple",
+      "scenario": "setter",
+      "threw": true,
+      "message": "setter",
+      "afterMount": "<span>keep</span>",
+      "cleanedAtMount": 0,
+      "laterReads": 3,
+      "updateError": null,
+      "cleanedAfterDispose": 0,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": []
+    },
+    {
+      "framework": "ripple",
+      "scenario": "reader",
+      "threw": true,
+      "message": "reader",
+      "afterMount": "<span>keep</span>",
+      "cleanedAtMount": 0,
+      "laterReads": 2,
+      "updateError": null,
+      "cleanedAfterDispose": 0,
+      "disposeError": null,
+      "afterDispose": "<span>keep</span>",
+      "pageErrors": []
+    }
+  ]
+}

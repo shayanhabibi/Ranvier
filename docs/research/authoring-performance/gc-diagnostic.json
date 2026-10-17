@@ -1,0 +1,577 @@
+{
+  "runtime": ".NET 10.0.12",
+  "samples": [
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 0.00012436,
+      "round": 0,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.0008093400000000001,
+      "round": 0,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 9.216e-05,
+      "round": 1,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 8.96e-05,
+      "round": 1,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 9.85e-05,
+      "round": 2,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        1
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.00076784,
+      "round": 2,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 8.826e-05,
+      "round": 3,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 8.918000000000001e-05,
+      "round": 3,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 9.549999999999999e-05,
+      "round": 4,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.0007379,
+      "round": 4,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 9.086e-05,
+      "round": 5,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 9.033999999999999e-05,
+      "round": 5,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 9.594e-05,
+      "round": 6,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.0007329,
+      "round": 6,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 9.268e-05,
+      "round": 7,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 8.976e-05,
+      "round": 7,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 0.00010822,
+      "round": 8,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.00070518,
+      "round": 8,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 9.314e-05,
+      "round": 9,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 9.298e-05,
+      "round": 9,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "explicit",
+      "ms": 0.00011399999999999999,
+      "round": 10,
+      "width": 1
+    },
+    {
+      "bytes": 840.0048,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 5000,
+      "mode": "overloaded",
+      "ms": 0.00081072,
+      "round": 10,
+      "width": 1
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0065157,
+      "round": 0,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0079634,
+      "round": 0,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0014206000000000002,
+      "round": 1,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0050679,
+      "round": 1,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0055179,
+      "round": 2,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0089002,
+      "round": 2,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0019018,
+      "round": 3,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.004964400000000001,
+      "round": 3,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0056500000000000005,
+      "round": 4,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.008561500000000001,
+      "round": 4,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0021785999999999997,
+      "round": 5,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.00458,
+      "round": 5,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0086418,
+      "round": 6,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0101932,
+      "round": 6,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0017125999999999999,
+      "round": 7,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0022849,
+      "round": 7,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0055621,
+      "round": 8,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.00788,
+      "round": 8,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        0,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0018092,
+      "round": 9,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0018866,
+      "round": 9,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        0,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "explicit",
+      "ms": 0.0102448,
+      "round": 10,
+      "width": 16
+    },
+    {
+      "bytes": 12656.024,
+      "collections": [
+        1,
+        1,
+        0
+      ],
+      "iterations": 1000,
+      "mode": "overloaded",
+      "ms": 0.0113926,
+      "round": 10,
+      "width": 16
+    }
+  ]
+}

@@ -1,0 +1,1358 @@
+{
+  "d87920f": [
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102741839,
+      "instr2N": 188453447,
+      "deltaPerOp": 10713951.0,
+      "nonlinearity": -17030231
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 144780420,
+      "instr2N": 223916215,
+      "deltaPerOp": 9891974.375,
+      "nonlinearity": -65644625
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 24479363,
+      "instr2N": 43400110,
+      "deltaPerOp": 378414.94,
+      "nonlinearity": -5558616
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24268064,
+      "instr2N": 48499872,
+      "deltaPerOp": 484636.16,
+      "nonlinearity": -36256
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 17085399,
+      "instr2N": 34158537,
+      "deltaPerOp": 3414.6276,
+      "nonlinearity": -12261
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 25202513,
+      "instr2N": 50351319,
+      "deltaPerOp": 5029.7612,
+      "nonlinearity": -53707
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 2100509,
+      "instr2N": 4156987,
+      "deltaPerOp": 41.12956,
+      "nonlinearity": -44031
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2856172,
+      "instr2N": 5650993,
+      "deltaPerOp": 55.89642,
+      "nonlinearity": -61351
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 6536479,
+      "instr2N": 15321091,
+      "deltaPerOp": 1098076.5,
+      "nonlinearity": 2248133
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3895578,
+      "instr2N": 7749248,
+      "deltaPerOp": 481708.75,
+      "nonlinearity": -41908
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102899709,
+      "instr2N": 188398516,
+      "deltaPerOp": 10687350.875,
+      "nonlinearity": -17400902
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 144957633,
+      "instr2N": 224193854,
+      "deltaPerOp": 9904527.625,
+      "nonlinearity": -65721412
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 24656446,
+      "instr2N": 43138491,
+      "deltaPerOp": 369640.9,
+      "nonlinearity": -6174401
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24296193,
+      "instr2N": 48527794,
+      "deltaPerOp": 484632.02,
+      "nonlinearity": -64592
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 17078325,
+      "instr2N": 34122655,
+      "deltaPerOp": 3408.866,
+      "nonlinearity": -33995
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 25206196,
+      "instr2N": 50355559,
+      "deltaPerOp": 5029.8726,
+      "nonlinearity": -56833
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 2104993,
+      "instr2N": 4150517,
+      "deltaPerOp": 40.91048,
+      "nonlinearity": -59469
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2850807,
+      "instr2N": 5654644,
+      "deltaPerOp": 56.07674,
+      "nonlinearity": -46970
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 6538280,
+      "instr2N": 541666221,
+      "deltaPerOp": 66890992.625,
+      "nonlinearity": 528589661
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3895136,
+      "instr2N": 7744278,
+      "deltaPerOp": 481142.75,
+      "nonlinearity": -45994
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102736334,
+      "instr2N": 188321437,
+      "deltaPerOp": 10698137.875,
+      "nonlinearity": -17151231
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 145002548,
+      "instr2N": 224130741,
+      "deltaPerOp": 9891024.125,
+      "nonlinearity": -65874355
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 24548801,
+      "instr2N": 43056674,
+      "deltaPerOp": 370157.46,
+      "nonlinearity": -6040928
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24352070,
+      "instr2N": 48532386,
+      "deltaPerOp": 483606.32,
+      "nonlinearity": -171754
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 17078612,
+      "instr2N": 34148229,
+      "deltaPerOp": 3413.9234,
+      "nonlinearity": -8995
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 25183581,
+      "instr2N": 50351608,
+      "deltaPerOp": 5033.6054,
+      "nonlinearity": -15554
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 2100700,
+      "instr2N": 4151279,
+      "deltaPerOp": 41.01158,
+      "nonlinearity": -50121
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2850794,
+      "instr2N": 5654676,
+      "deltaPerOp": 56.07764,
+      "nonlinearity": -46912
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 6541923,
+      "instr2N": 15531559,
+      "deltaPerOp": 1123704.5,
+      "nonlinearity": 2447713
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3936102,
+      "instr2N": 7754570,
+      "deltaPerOp": 477308.5,
+      "nonlinearity": -117634
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102809126,
+      "instr2N": 188320022,
+      "deltaPerOp": 10688862.0,
+      "nonlinearity": -17298230
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 145127861,
+      "instr2N": 224113996,
+      "deltaPerOp": 9873266.875,
+      "nonlinearity": -66141726
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 24641975,
+      "instr2N": 43080720,
+      "deltaPerOp": 368774.9,
+      "nonlinearity": -6203230
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24616110,
+      "instr2N": 48488888,
+      "deltaPerOp": 477455.56,
+      "nonlinearity": -743332
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 17078031,
+      "instr2N": 34149042,
+      "deltaPerOp": 3414.2022,
+      "nonlinearity": -7020
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 25236740,
+      "instr2N": 50387399,
+      "deltaPerOp": 5030.1318,
+      "nonlinearity": -86081
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 2100866,
+      "instr2N": 4153905,
+      "deltaPerOp": 41.06078,
+      "nonlinearity": -47827
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2850756,
+      "instr2N": 5652291,
+      "deltaPerOp": 56.0307,
+      "nonlinearity": -49221
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 6540979,
+      "instr2N": 15320692,
+      "deltaPerOp": 1097464.125,
+      "nonlinearity": 2238734
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3895139,
+      "instr2N": 7738002,
+      "deltaPerOp": 480357.875,
+      "nonlinearity": -52276
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102713257,
+      "instr2N": 188492056,
+      "deltaPerOp": 10722349.875,
+      "nonlinearity": -16934458
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 145349440,
+      "instr2N": 224159202,
+      "deltaPerOp": 9851220.25,
+      "nonlinearity": -66539678
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 24636917,
+      "instr2N": 43204566,
+      "deltaPerOp": 371352.98,
+      "nonlinearity": -6069268
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24285007,
+      "instr2N": 48506897,
+      "deltaPerOp": 484437.8,
+      "nonlinearity": -63117
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 23137280,
+      "instr2N": 34108749,
+      "deltaPerOp": 2194.2938,
+      "nonlinearity": -12165811
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 25195343,
+      "instr2N": 50340941,
+      "deltaPerOp": 5029.1196,
+      "nonlinearity": -49745
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 2103840,
+      "instr2N": 4150829,
+      "deltaPerOp": 40.93978,
+      "nonlinearity": -56851
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2859171,
+      "instr2N": 5650726,
+      "deltaPerOp": 55.8311,
+      "nonlinearity": -67616
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 6584253,
+      "instr2N": 15608471,
+      "deltaPerOp": 1128027.25,
+      "nonlinearity": 2439965
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3894777,
+      "instr2N": 7738386,
+      "deltaPerOp": 480451.125,
+      "nonlinearity": -51168
+    }
+  ],
+  "878f294": [
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 152455287,
+      "instr2N": 216692001,
+      "deltaPerOp": 8029589.25,
+      "nonlinearity": -88218573
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146235017,
+      "instr2N": 215469259,
+      "deltaPerOp": 8654280.25,
+      "nonlinearity": -77000775
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25537784,
+      "instr2N": 44970645,
+      "deltaPerOp": 388657.22,
+      "nonlinearity": -6104923
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24339897,
+      "instr2N": 48511990,
+      "deltaPerOp": 483441.86,
+      "nonlinearity": -167804
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19599641,
+      "instr2N": 39152025,
+      "deltaPerOp": 3910.4768,
+      "nonlinearity": -47257
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26761089,
+      "instr2N": 53438072,
+      "deltaPerOp": 5335.3966,
+      "nonlinearity": -84106
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3501580,
+      "instr2N": 7006573,
+      "deltaPerOp": 70.09986,
+      "nonlinearity": 3413
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2850844,
+      "instr2N": 5650151,
+      "deltaPerOp": 55.98614,
+      "nonlinearity": -51537
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8621627,
+      "instr2N": 19357800,
+      "deltaPerOp": 1342021.625,
+      "nonlinearity": 2114546
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3897600,
+      "instr2N": 7745195,
+      "deltaPerOp": 480949.375,
+      "nonlinearity": -50005
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 152244551,
+      "instr2N": 216669929,
+      "deltaPerOp": 8053172.25,
+      "nonlinearity": -87819173
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146131969,
+      "instr2N": 215462362,
+      "deltaPerOp": 8666299.125,
+      "nonlinearity": -76801576
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25610123,
+      "instr2N": 44999519,
+      "deltaPerOp": 387787.92,
+      "nonlinearity": -6220727
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24687266,
+      "instr2N": 48456821,
+      "deltaPerOp": 475391.1,
+      "nonlinearity": -917711
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19603866,
+      "instr2N": 39146835,
+      "deltaPerOp": 3908.5938,
+      "nonlinearity": -60897
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26735431,
+      "instr2N": 53458172,
+      "deltaPerOp": 5344.5482,
+      "nonlinearity": -12690
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3539907,
+      "instr2N": 6951074,
+      "deltaPerOp": 68.22334,
+      "nonlinearity": -128740
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2856024,
+      "instr2N": 5650866,
+      "deltaPerOp": 55.89684,
+      "nonlinearity": -61182
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8565025,
+      "instr2N": 19356952,
+      "deltaPerOp": 1348990.875,
+      "nonlinearity": 2226902
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3899387,
+      "instr2N": 7765930,
+      "deltaPerOp": 483317.875,
+      "nonlinearity": -32844
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 152545329,
+      "instr2N": 216543678,
+      "deltaPerOp": 7999793.625,
+      "nonlinearity": -88546980
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146204769,
+      "instr2N": 215287347,
+      "deltaPerOp": 8635322.25,
+      "nonlinearity": -77122191
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25613919,
+      "instr2N": 44917727,
+      "deltaPerOp": 386076.16,
+      "nonlinearity": -6310111
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24321175,
+      "instr2N": 48502682,
+      "deltaPerOp": 483630.14,
+      "nonlinearity": -139668
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19602517,
+      "instr2N": 39140480,
+      "deltaPerOp": 3907.5926,
+      "nonlinearity": -64554
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26735122,
+      "instr2N": 53420741,
+      "deltaPerOp": 5337.1238,
+      "nonlinearity": -49503
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3528006,
+      "instr2N": 6950542,
+      "deltaPerOp": 68.45072,
+      "nonlinearity": -105470
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2850809,
+      "instr2N": 5664927,
+      "deltaPerOp": 56.28236,
+      "nonlinearity": -36691
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8228994,
+      "instr2N": 19350428,
+      "deltaPerOp": 1390179.25,
+      "nonlinearity": 2892440
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3901978,
+      "instr2N": 7743303,
+      "deltaPerOp": 480165.625,
+      "nonlinearity": -60653
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 152711077,
+      "instr2N": 216788905,
+      "deltaPerOp": 8009728.5,
+      "nonlinearity": -88633249
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146221851,
+      "instr2N": 215166925,
+      "deltaPerOp": 8618134.25,
+      "nonlinearity": -77276777
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25690187,
+      "instr2N": 45000265,
+      "deltaPerOp": 386201.56,
+      "nonlinearity": -6380109
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24316431,
+      "instr2N": 48490673,
+      "deltaPerOp": 483484.84,
+      "nonlinearity": -142189
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19596313,
+      "instr2N": 39155548,
+      "deltaPerOp": 3911.847,
+      "nonlinearity": -37078
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26746136,
+      "instr2N": 53456868,
+      "deltaPerOp": 5342.1464,
+      "nonlinearity": -35404
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3506362,
+      "instr2N": 6956769,
+      "deltaPerOp": 69.00814,
+      "nonlinearity": -55955
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2854457,
+      "instr2N": 5671491,
+      "deltaPerOp": 56.34068,
+      "nonlinearity": -37423
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8225796,
+      "instr2N": 22192407,
+      "deltaPerOp": 1745826.375,
+      "nonlinearity": 5740815
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3895199,
+      "instr2N": 7744028,
+      "deltaPerOp": 481103.625,
+      "nonlinearity": -46370
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 152895793,
+      "instr2N": 217099361,
+      "deltaPerOp": 8025446.0,
+      "nonlinearity": -88692225
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146483832,
+      "instr2N": 215459385,
+      "deltaPerOp": 8621944.125,
+      "nonlinearity": -77508279
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25522272,
+      "instr2N": 44957573,
+      "deltaPerOp": 388706.02,
+      "nonlinearity": -6086971
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24448492,
+      "instr2N": 48551098,
+      "deltaPerOp": 482052.12,
+      "nonlinearity": -345886
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19596140,
+      "instr2N": 39143565,
+      "deltaPerOp": 3909.485,
+      "nonlinearity": -48715
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26747127,
+      "instr2N": 53422829,
+      "deltaPerOp": 5335.1404,
+      "nonlinearity": -71425
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3500130,
+      "instr2N": 6954089,
+      "deltaPerOp": 69.07918,
+      "nonlinearity": -46171
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2857423,
+      "instr2N": 5650172,
+      "deltaPerOp": 55.85498,
+      "nonlinearity": -64674
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8224923,
+      "instr2N": 22165557,
+      "deltaPerOp": 1742579.25,
+      "nonlinearity": 5715711
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3896058,
+      "instr2N": 7742372,
+      "deltaPerOp": 480789.25,
+      "nonlinearity": -49744
+    }
+  ],
+  "2ef3876": [
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102257486,
+      "instr2N": 178522169,
+      "deltaPerOp": 9533085.375,
+      "nonlinearity": -25992803
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146323944,
+      "instr2N": 216155611,
+      "deltaPerOp": 8728958.375,
+      "nonlinearity": -76492277
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25893798,
+      "instr2N": 45546185,
+      "deltaPerOp": 393047.74,
+      "nonlinearity": -6241411
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24349597,
+      "instr2N": 48493584,
+      "deltaPerOp": 482879.74,
+      "nonlinearity": -205610
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19598908,
+      "instr2N": 39157846,
+      "deltaPerOp": 3911.7876,
+      "nonlinearity": -39970
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26735554,
+      "instr2N": 53436076,
+      "deltaPerOp": 5340.1044,
+      "nonlinearity": -35032
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3499413,
+      "instr2N": 6963081,
+      "deltaPerOp": 69.27336,
+      "nonlinearity": -35745
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2852516,
+      "instr2N": 5649547,
+      "deltaPerOp": 55.94062,
+      "nonlinearity": -55485
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8647729,
+      "instr2N": 19917005,
+      "deltaPerOp": 1408659.5,
+      "nonlinearity": 2621547
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3897635,
+      "instr2N": 7738191,
+      "deltaPerOp": 480069.5,
+      "nonlinearity": -57079
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102328938,
+      "instr2N": 178419666,
+      "deltaPerOp": 9511341.0,
+      "nonlinearity": -26238210
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 171014965,
+      "instr2N": 217111358,
+      "deltaPerOp": 5762049.125,
+      "nonlinearity": -124918572
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25862250,
+      "instr2N": 45518727,
+      "deltaPerOp": 393129.54,
+      "nonlinearity": -6205773
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24318865,
+      "instr2N": 48498861,
+      "deltaPerOp": 483599.92,
+      "nonlinearity": -138869
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19600866,
+      "instr2N": 39154578,
+      "deltaPerOp": 3910.7424,
+      "nonlinearity": -47154
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26777644,
+      "instr2N": 53426440,
+      "deltaPerOp": 5329.7592,
+      "nonlinearity": -128848
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3499369,
+      "instr2N": 6953343,
+      "deltaPerOp": 69.07948,
+      "nonlinearity": -45395
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2862602,
+      "instr2N": 5648795,
+      "deltaPerOp": 55.72386,
+      "nonlinearity": -76409
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8683084,
+      "instr2N": 19933221,
+      "deltaPerOp": 1406267.125,
+      "nonlinearity": 2567053
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3903523,
+      "instr2N": 7739194,
+      "deltaPerOp": 479458.875,
+      "nonlinearity": -67852
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102260760,
+      "instr2N": 178278743,
+      "deltaPerOp": 9502247.875,
+      "nonlinearity": -26242777
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146267466,
+      "instr2N": 216820823,
+      "deltaPerOp": 8819169.625,
+      "nonlinearity": -75714109
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25882085,
+      "instr2N": 45500898,
+      "deltaPerOp": 392376.26,
+      "nonlinearity": -6263272
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24320838,
+      "instr2N": 48496959,
+      "deltaPerOp": 483522.42,
+      "nonlinearity": -144717
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19594899,
+      "instr2N": 39168811,
+      "deltaPerOp": 3914.7824,
+      "nonlinearity": -20987
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26734809,
+      "instr2N": 53442932,
+      "deltaPerOp": 5341.6246,
+      "nonlinearity": -26686
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3514590,
+      "instr2N": 6963069,
+      "deltaPerOp": 68.96958,
+      "nonlinearity": -66111
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 11433702,
+      "instr2N": 5657408,
+      "deltaPerOp": -115.52588,
+      "nonlinearity": -17209996
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8647426,
+      "instr2N": 19935116,
+      "deltaPerOp": 1410961.25,
+      "nonlinearity": 2640264
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3901271,
+      "instr2N": 7745461,
+      "deltaPerOp": 480523.75,
+      "nonlinearity": -57081
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102343298,
+      "instr2N": 179926063,
+      "deltaPerOp": 9697845.625,
+      "nonlinearity": -24760533
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146846823,
+      "instr2N": 217796353,
+      "deltaPerOp": 8868691.25,
+      "nonlinearity": -75897293
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25855119,
+      "instr2N": 45520567,
+      "deltaPerOp": 393308.96,
+      "nonlinearity": -6189671
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24314942,
+      "instr2N": 48506117,
+      "deltaPerOp": 483823.5,
+      "nonlinearity": -123767
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19597178,
+      "instr2N": 39144348,
+      "deltaPerOp": 3909.434,
+      "nonlinearity": -50008
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26736228,
+      "instr2N": 53430518,
+      "deltaPerOp": 5338.858,
+      "nonlinearity": -41938
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3500148,
+      "instr2N": 6954369,
+      "deltaPerOp": 69.08442,
+      "nonlinearity": -45927
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2849640,
+      "instr2N": 5658612,
+      "deltaPerOp": 56.17944,
+      "nonlinearity": -40668
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8641400,
+      "instr2N": 19917012,
+      "deltaPerOp": 1409451.5,
+      "nonlinearity": 2634212
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3894023,
+      "instr2N": 7756121,
+      "deltaPerOp": 482762.25,
+      "nonlinearity": -31925
+    },
+    {
+      "scenario": "create",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 102367150,
+      "instr2N": 178291092,
+      "deltaPerOp": 9490492.75,
+      "nonlinearity": -26443208
+    },
+    {
+      "scenario": "create",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 146316595,
+      "instr2N": 215918944,
+      "deltaPerOp": 8700293.625,
+      "nonlinearity": -76714246
+    },
+    {
+      "scenario": "update",
+      "engine": "Ranvier",
+      "N": 50,
+      "instrN": 25934245,
+      "instr2N": 45480216,
+      "deltaPerOp": 390919.42,
+      "nonlinearity": -6388274
+    },
+    {
+      "scenario": "update",
+      "engine": "Fable.Ripple",
+      "N": 50,
+      "instrN": 24337416,
+      "instr2N": 48492967,
+      "deltaPerOp": 483111.02,
+      "nonlinearity": -181865
+    },
+    {
+      "scenario": "chain",
+      "engine": "Ranvier",
+      "N": 5000,
+      "instrN": 19595201,
+      "instr2N": 39148648,
+      "deltaPerOp": 3910.6894,
+      "nonlinearity": -41754
+    },
+    {
+      "scenario": "chain",
+      "engine": "Fable.Ripple",
+      "N": 5000,
+      "instrN": 26742407,
+      "instr2N": 53424557,
+      "deltaPerOp": 5336.43,
+      "nonlinearity": -60257
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Ranvier",
+      "N": 50000,
+      "instrN": 3502164,
+      "instr2N": 6952562,
+      "deltaPerOp": 69.00796,
+      "nonlinearity": -51766
+    },
+    {
+      "scenario": "cutoff",
+      "engine": "Fable.Ripple",
+      "N": 50000,
+      "instrN": 2852699,
+      "instr2N": 5649520,
+      "deltaPerOp": 55.93642,
+      "nonlinearity": -55878
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Ranvier",
+      "N": 8,
+      "instrN": 8685509,
+      "instr2N": 19955214,
+      "deltaPerOp": 1408713.125,
+      "nonlinearity": 2584196
+    },
+    {
+      "scenario": "dispose",
+      "engine": "Fable.Ripple",
+      "N": 8,
+      "instrN": 3946235,
+      "instr2N": 7753236,
+      "deltaPerOp": 475875.125,
+      "nonlinearity": -139234
+    }
+  ]
+}

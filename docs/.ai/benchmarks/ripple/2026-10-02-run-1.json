@@ -1,0 +1,945 @@
+{
+  "date": "2026-10-02T10:30:50.927Z",
+  "browser": "153.0.8010.12",
+  "node": "v26.7.0",
+  "cpu": "AMD Ryzen 9 9900X 12-Core Processor            ",
+  "fable": "5.18.0",
+  "ripple": "1.0.0-beta.6",
+  "rippleDom": "1.0.0-beta.7",
+  "correctness": {
+    "ranvier": [
+      {
+        "name": "initial reset is disabled",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "click updates count and derived output",
+        "expected": [
+          "1",
+          "2",
+          false
+        ],
+        "actual": [
+          "1",
+          "2",
+          false
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "counter root and text retain identity",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "input updates greeting and keeps focus/caret",
+        "expected": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "actual": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "programmatic name writes the live input property",
+        "expected": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "actual": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "repeated mount disposal removes its root",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "retained detached button is inert",
+        "expected": 1,
+        "actual": 1,
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "moved root is removed safely on disposal",
+        "expected": [
+          0,
+          null
+        ],
+        "actual": [
+          0,
+          null
+        ],
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "factory failure escapes without altering host",
+        "expected": [
+          "factory failed",
+          "preserved"
+        ],
+        "actual": [
+          "factory failed",
+          "preserved"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "failed factory cleans reactive work and listener",
+        "expected": [
+          1,
+          0
+        ],
+        "actual": [
+          1,
+          0
+        ],
+        "pass": true,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "diamond produces one coherent result",
+        "expected": [
+          13,
+          2
+        ],
+        "actual": [
+          13,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "equal write does not rerun graph effect",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "batch coalesces two source writes",
+        "expected": [
+          34,
+          3
+        ],
+        "actual": [
+          34,
+          3
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "disposed graph effects stop",
+        "expected": 34,
+        "actual": 34,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "one failing effect does not strand healthy sibling",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "error isolation"
+      },
+      {
+        "name": "effect failure observation",
+        "expected": null,
+        "actual": null,
+        "pass": true,
+        "classification": "error-policy difference"
+      },
+      {
+        "name": "healthy effect recovers on subsequent update",
+        "expected": 3,
+        "actual": 3,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "healthy effect remains live through later writes",
+        "expected": 5,
+        "actual": 5,
+        "pass": true,
+        "classification": "error isolation"
+      },
+      {
+        "name": "async starts idle",
+        "expected": "idle",
+        "actual": "idle",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "request enters loading",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "outer completion waits for nested promise",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested promise updates settled DOM",
+        "expected": "loaded:Ada",
+        "actual": "loaded:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "refresh retains previous result while loading",
+        "expected": "reloading:Ada",
+        "actual": "reloading:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older success cannot overwrite newer nested response",
+        "expected": "loaded:Grace",
+        "actual": "loaded:Grace",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older rejection cannot replace current success",
+        "expected": "loaded:Linus",
+        "actual": "loaded:Linus",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested rejection becomes a visible error",
+        "expected": "failed:inner failed",
+        "actual": "failed:inner failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "successful request recovers after rejection",
+        "expected": "loaded:Recovered",
+        "actual": "loaded:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "exception thrown inside promise mapping becomes visible",
+        "expected": "failed:mapping failed",
+        "actual": "failed:mapping failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "synchronous request setup exception becomes visible",
+        "expected": "failed:request setup failed",
+        "actual": "failed:request setup failed",
+        "pass": true,
+        "classification": "async error capability"
+      },
+      {
+        "name": "synchronous request setup error observation",
+        "actual": null,
+        "classification": "observation"
+      },
+      {
+        "name": "pending promise cannot publish state after disposal",
+        "expected": "failed:AsyncMemo`1",
+        "actual": "failed:AsyncMemo`1",
+        "pass": true,
+        "classification": "async lifetime safety"
+      },
+      {
+        "name": "detached async DOM stops updating",
+        "expected": "reloading:Recovered",
+        "actual": "reloading:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "superseded and disposed flights signal cancellation",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "native cancellation capability"
+      },
+      {
+        "name": "async disposal removes mounted DOM",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      }
+    ],
+    "ripple": [
+      {
+        "name": "initial reset is disabled",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "click updates count and derived output",
+        "expected": [
+          "1",
+          "2",
+          false
+        ],
+        "actual": [
+          "1",
+          "2",
+          false
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "counter root and text retain identity",
+        "expected": true,
+        "actual": true,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "input updates greeting and keeps focus/caret",
+        "expected": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "actual": [
+          "Hello, abcdef",
+          true,
+          2,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "programmatic name writes the live input property",
+        "expected": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "actual": [
+          "Ada",
+          "Hello, Ada"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "repeated mount disposal removes its root",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "retained detached button is inert",
+        "expected": 1,
+        "actual": 2,
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "moved root is removed safely on disposal",
+        "expected": [
+          0,
+          null
+        ],
+        "actual": [
+          1,
+          "NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
+        ],
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "factory failure escapes without altering host",
+        "expected": [
+          "factory failed",
+          "preserved"
+        ],
+        "actual": [
+          "factory failed",
+          "preserved"
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "failed factory cleans reactive work and listener",
+        "expected": [
+          1,
+          0
+        ],
+        "actual": [
+          2,
+          1
+        ],
+        "pass": false,
+        "classification": "lifecycle safety"
+      },
+      {
+        "name": "diamond produces one coherent result",
+        "expected": [
+          13,
+          2
+        ],
+        "actual": [
+          13,
+          2
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "equal write does not rerun graph effect",
+        "expected": 2,
+        "actual": 2,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "batch coalesces two source writes",
+        "expected": [
+          34,
+          3
+        ],
+        "actual": [
+          34,
+          3
+        ],
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "disposed graph effects stop",
+        "expected": 34,
+        "actual": 34,
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "one failing effect does not strand healthy sibling",
+        "expected": 2,
+        "actual": 1,
+        "pass": false,
+        "classification": "error isolation"
+      },
+      {
+        "name": "effect failure observation",
+        "expected": null,
+        "actual": "effect failed",
+        "pass": false,
+        "classification": "error-policy difference"
+      },
+      {
+        "name": "healthy effect recovers on subsequent update",
+        "expected": 3,
+        "actual": 1,
+        "pass": false,
+        "classification": "common behavior"
+      },
+      {
+        "name": "healthy effect remains live through later writes",
+        "expected": 5,
+        "actual": 1,
+        "pass": false,
+        "classification": "error isolation"
+      },
+      {
+        "name": "async starts idle",
+        "expected": "idle",
+        "actual": "idle",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "request enters loading",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "outer completion waits for nested promise",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested promise updates settled DOM",
+        "expected": "loaded:Ada",
+        "actual": "loaded:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "refresh retains previous result while loading",
+        "expected": "reloading:Ada",
+        "actual": "reloading:Ada",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older success cannot overwrite newer nested response",
+        "expected": "loaded:Grace",
+        "actual": "loaded:Grace",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "older rejection cannot replace current success",
+        "expected": "loaded:Linus",
+        "actual": "loaded:Linus",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "nested rejection becomes a visible error",
+        "expected": "failed:inner failed",
+        "actual": "failed:inner failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "successful request recovers after rejection",
+        "expected": "loaded:Recovered",
+        "actual": "loaded:Recovered",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "exception thrown inside promise mapping becomes visible",
+        "expected": "failed:mapping failed",
+        "actual": "failed:mapping failed",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "synchronous request setup exception becomes visible",
+        "expected": "failed:request setup failed",
+        "actual": "loading",
+        "pass": false,
+        "classification": "async error capability"
+      },
+      {
+        "name": "synchronous request setup error observation",
+        "actual": "request setup failed",
+        "classification": "observation"
+      },
+      {
+        "name": "pending promise cannot publish state after disposal",
+        "expected": "loading",
+        "actual": "loaded:too late",
+        "pass": false,
+        "classification": "async lifetime safety"
+      },
+      {
+        "name": "detached async DOM stops updating",
+        "expected": "loading",
+        "actual": "loading",
+        "pass": true,
+        "classification": "common behavior"
+      },
+      {
+        "name": "superseded and disposed flights signal cancellation",
+        "expected": true,
+        "actual": false,
+        "pass": false,
+        "classification": "native cancellation capability"
+      },
+      {
+        "name": "async disposal removes mounted DOM",
+        "expected": 0,
+        "actual": 0,
+        "pass": true,
+        "classification": "common behavior"
+      }
+    ]
+  },
+  "samples": {
+    "mount-50x1000": {
+      "ranvier": [
+        38.90000009536743,
+        32.20000007748604,
+        30.700000017881393,
+        33.30000004172325,
+        53.60000002384186,
+        31.799999922513962,
+        32.00000008940697,
+        32.50000002980232,
+        30.40000006556511,
+        29.69999995827675,
+        31.499999940395355,
+        32.5,
+        32.89999997615814,
+        34.300000101327896,
+        32.699999898672104,
+        33.70000007748604,
+        39.8999999165535,
+        29.500000029802322,
+        29.80000004172325,
+        34.49999997019768,
+        29.500000029802322,
+        30.89999994635582,
+        29.900000005960464,
+        61.90000009536743,
+        29.299999982118607
+      ],
+      "ripple": [
+        39.39999997615814,
+        33.39999994635582,
+        33.900000005960464,
+        34.299999952316284,
+        34.40000003576279,
+        33,
+        32.60000002384186,
+        48.20000001788139,
+        38.09999993443489,
+        31.400000035762787,
+        32.400000005960464,
+        31.799999982118607,
+        33.69999995827675,
+        35.20000001788139,
+        33.80000001192093,
+        35.60000002384186,
+        37.999999940395355,
+        35.199999928474426,
+        38.800000071525574,
+        32.69999998807907,
+        32.79999998211861,
+        31.799999952316284,
+        32.30000004172325,
+        33.099999994039536,
+        40.80000004172325
+      ]
+    },
+    "dispose-50x1000": {
+      "ranvier": [
+        1.6999999582767487,
+        1.5000000298023224,
+        2.0000000298023224,
+        2.1999999284744263,
+        1.8999999165534973,
+        2.0999999344348907,
+        2.3999999165534973,
+        2.0999999940395355,
+        2.6000000834465027,
+        1.6999999582767487,
+        2.5000000596046448,
+        2.3000000417232513,
+        3.0000000298023224,
+        1.4999999701976776,
+        1.9999999701976776,
+        2.699999988079071,
+        2.800000011920929,
+        1.9999999701976776,
+        2.0999999344348907,
+        2.4999999403953552,
+        2.0000000596046448,
+        1.899999976158142,
+        1.5,
+        2.4000000059604645,
+        2.2000000178813934
+      ],
+      "ripple": [
+        1.4999999701976776,
+        1.3000000715255737,
+        2.0000000298023224,
+        2.4000000655651093,
+        1.8000000715255737,
+        1.2000000476837158,
+        1.7000000476837158,
+        1.699999988079071,
+        1.8000000417232513,
+        1.399999976158142,
+        1.7999999821186066,
+        1.5999999046325684,
+        2.2000000178813934,
+        1,
+        1.4000000059604645,
+        1.5999999940395355,
+        1.5999999940395355,
+        1.4000000059604645,
+        1.7999999523162842,
+        1.6999999582767487,
+        1.6999999582767487,
+        1,
+        1.4999999701976776,
+        1.5999999940395355,
+        1.9000000059604645
+      ]
+    },
+    "sparse-100000": {
+      "ranvier": [
+        13.699999988079071,
+        13.800000011920929,
+        13.900000005960464,
+        13.900000005960464,
+        14,
+        13.599999994039536,
+        13.800000011920929,
+        13.799999982118607,
+        13.400000005960464,
+        13.599999994039536,
+        13.5,
+        15,
+        14.400000005960464,
+        13.700000017881393,
+        14.200000017881393,
+        13.5,
+        13.800000011920929,
+        13.900000005960464,
+        14.099999994039536,
+        13.599999994039536,
+        13.699999988079071,
+        14.5,
+        13.700000017881393,
+        14,
+        13.5
+      ],
+      "ripple": [
+        17.400000005960464,
+        16.099999994039536,
+        15.800000011920929,
+        15.900000005960464,
+        16.099999994039536,
+        16,
+        16.299999982118607,
+        16.900000005960464,
+        15.900000005960464,
+        16.099999994039536,
+        16.399999976158142,
+        16.30000001192093,
+        16,
+        15.700000017881393,
+        15.899999976158142,
+        15.799999982118607,
+        16,
+        16.5,
+        15.799999982118607,
+        16.400000005960464,
+        16.5,
+        16,
+        16.400000005960464,
+        15.800000011920929,
+        16
+      ]
+    },
+    "batch-2000x100": {
+      "ranvier": [
+        29.80000001192093,
+        33.29999998211861,
+        24.19999998807907,
+        23.700000017881393,
+        25.099999994039536,
+        24.5,
+        23.80000001192093,
+        24.599999994039536,
+        27.200000017881393,
+        24.299999982118607,
+        23.900000005960464,
+        24.599999994039536,
+        24,
+        24.400000005960464,
+        23.900000005960464,
+        23.69999998807907,
+        24.400000005960464,
+        24.5,
+        25.099999994039536,
+        23.80000001192093,
+        30.69999998807907,
+        29.799999982118607,
+        29.30000001192093,
+        30.299999982118607,
+        29.400000005960464
+      ],
+      "ripple": [
+        30.69999998807907,
+        24.899999976158142,
+        24.799999982118607,
+        24.900000005960464,
+        25.30000001192093,
+        25.399999976158142,
+        25.5,
+        25.69999998807907,
+        25.399999976158142,
+        25.900000005960464,
+        24.80000001192093,
+        24.900000005960464,
+        25.099999994039536,
+        24.80000001192093,
+        25.299999982118607,
+        25.30000001192093,
+        26.299999982118607,
+        24.599999994039536,
+        24.700000017881393,
+        24.899999976158142,
+        25.400000005960464,
+        31.69999998807907,
+        30.899999976158142,
+        32,
+        31.900000005960464
+      ]
+    },
+    "diamond-100000": {
+      "ranvier": [
+        11.299999982118607,
+        11,
+        10.5,
+        11,
+        10.400000005960464,
+        10.400000005960464,
+        10.399999976158142,
+        11.900000005960464,
+        10.299999982118607,
+        11.199999988079071,
+        11.299999982118607,
+        10.700000017881393,
+        10.400000005960464,
+        10.300000011920929,
+        11,
+        10.700000017881393,
+        10.5,
+        10.699999988079071,
+        10.399999976158142,
+        10.5,
+        11.199999988079071,
+        10.700000017881393,
+        10.5,
+        11,
+        10.5
+      ],
+      "ripple": [
+        14.800000011920929,
+        15.199999988079071,
+        15.400000005960464,
+        14.900000005960464,
+        17.80000001192093,
+        15.400000005960464,
+        15.099999994039536,
+        15,
+        15,
+        15.199999988079071,
+        15.5,
+        15.100000023841858,
+        15.899999976158142,
+        14.800000011920929,
+        14.799999982118607,
+        15.099999994039536,
+        15.200000017881393,
+        15.199999988079071,
+        14.800000011920929,
+        15.599999994039536,
+        15.400000005960464,
+        15,
+        14.800000011920929,
+        14.899999976158142,
+        15.300000011920929
+      ]
+    },
+    "async-20000": {
+      "ranvier": [
+        13,
+        15.099999994039536,
+        13.900000005960464,
+        14.299999982118607,
+        13.5,
+        14.900000005960464,
+        13,
+        13.700000017881393,
+        12.5,
+        14.299999982118607,
+        12.400000005960464,
+        14.099999994039536,
+        13,
+        13.900000005960464,
+        14.300000011920929,
+        14.200000017881393,
+        13.299999982118607,
+        13.700000017881393,
+        12.399999976158142,
+        16.100000023841858,
+        13,
+        13.599999994039536,
+        12.400000005960464,
+        13.700000017881393,
+        12.199999988079071
+      ],
+      "ripple": [
+        15.5,
+        12.400000005960464,
+        13.700000017881393,
+        14.799999982118607,
+        14.400000005960464,
+        13,
+        13.699999988079071,
+        14.400000005960464,
+        14.299999982118607,
+        12.099999994039536,
+        13.799999982118607,
+        13.099999994039536,
+        13.799999982118607,
+        12.400000005960464,
+        13.699999988079071,
+        12.700000017881393,
+        14.399999976158142,
+        13.199999988079071,
+        13.699999988079071,
+        12.199999988079071,
+        13.799999982118607,
+        13.300000011920929,
+        13.400000005960464,
+        12.400000005960464,
+        14.699999988079071
+      ]
+    }
+  },
+  "options": {
+    "cells": 1000,
+    "lifecycleCycles": 50,
+    "sparseWrites": 100000,
+    "batchCells": 100,
+    "batches": 2000,
+    "graphWrites": 100000,
+    "asyncWrites": 20000,
+    "warmups": 5,
+    "rounds": 25
+  },
+  "console": []
+}

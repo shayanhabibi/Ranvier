@@ -1,0 +1,3827 @@
+[
+ {
+  "mode": "ranvier",
+  "operation": "remove1k",
+  "repeats": 1000,
+  "sampledMsPerOperation": 1.255,
+  "buckets": {
+   "core projection pass": {
+    "msPerOperation": 0.4601,
+    "percent": 36.7
+   },
+   "core graph": {
+    "msPerOperation": 0.4161,
+    "percent": 33.2
+   },
+   "view list region": {
+    "msPerOperation": 0.3397,
+    "percent": 27.1
+   },
+   "row teardown": {
+    "msPerOperation": 0.0329,
+    "percent": 2.6
+   },
+   "GC": {
+    "msPerOperation": 0.0029,
+    "percent": 0.2
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0023,
+    "percent": 0.2
+   },
+   "other": {
+    "msPerOperation": 0.001,
+    "percent": 0.1
+   }
+  },
+  "self": [
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.26,
+    "percent": 20.7
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.2488,
+    "percent": 19.8
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.1182,
+    "percent": 9.4
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0653,
+    "percent": 5.2
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0506,
+    "percent": 4
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0346,
+    "percent": 2.8
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0343,
+    "percent": 2.7
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0318,
+    "percent": 2.5
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0267,
+    "percent": 2.1
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0256,
+    "percent": 2
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.025,
+    "percent": 2
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0238,
+    "percent": 1.9
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0228,
+    "percent": 1.8
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0191,
+    "percent": 1.5
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0175,
+    "percent": 1.4
+   },
+   {
+    "name": "filter$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0149,
+    "percent": 1.2
+   },
+   {
+    "name": "Projection$2__ReadRow_2E247979 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0149,
+    "percent": 1.2
+   },
+   {
+    "name": "Owner__TearDown_6ED947BB src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0146,
+    "percent": 1.2
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0131,
+    "percent": 1
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0098,
+    "percent": 0.8
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0096,
+    "percent": 0.8
+   },
+   {
+    "name": "Row__set_Index_Z524259A4 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0081,
+    "percent": 0.6
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0081,
+    "percent": 0.6
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0077,
+    "percent": 0.6
+   },
+   {
+    "name": "(anonymous) fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0076,
+    "percent": 0.6
+   },
+   {
+    "name": "Owner__DisposeScope src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0068,
+    "percent": 0.5
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0065,
+    "percent": 0.5
+   },
+   {
+    "name": "KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0061,
+    "percent": 0.5
+   },
+   {
+    "name": "RowEntry$2__get_Row src/Ranvier/ValueReaders.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0059,
+    "percent": 0.5
+   },
+   {
+    "name": "Graph__Track_Z6287CB6 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0057,
+    "percent": 0.5
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0055,
+    "percent": 0.4
+   },
+   {
+    "name": "equals$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0054,
+    "percent": 0.4
+   },
+   {
+    "name": "KeyMap$2__Exists_Z3AD716D8 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0044,
+    "percent": 0.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0036,
+    "percent": 0.3
+   },
+   {
+    "name": "Row__get_Last experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0035,
+    "percent": 0.3
+   },
+   {
+    "name": "Effect__Dispose src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0032,
+    "percent": 0.3
+   },
+   {
+    "name": "Projection$2__get_OnceValue src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.003,
+    "percent": 0.2
+   },
+   {
+    "name": "setItem$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0028,
+    "percent": 0.2
+   },
+   {
+    "name": "Row__set_Removed_Z1FBCCD16 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0027,
+    "percent": 0.2
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0027,
+    "percent": 0.2
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 1.255,
+    "percent": 100
+   },
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 1.255,
+    "percent": 100
+   },
+   {
+    "name": "(anonymous) KeyedRowsPerf.js",
+    "msPerOperation": 1.254,
+    "percent": 99.9
+   },
+   {
+    "name": "Ranvier_Graph__Graph_Run_FCFD9EF src/Ranvier/Api.js",
+    "msPerOperation": 1.2535,
+    "percent": 99.9
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "msPerOperation": 1.2289,
+    "percent": 97.9
+   },
+   {
+    "name": "Graph__Flush src/Ranvier/Core.js",
+    "msPerOperation": 1.227,
+    "percent": 97.8
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "msPerOperation": 1.227,
+    "percent": 97.8
+   },
+   {
+    "name": "Graph__RunFlush src/Ranvier/Core.js",
+    "msPerOperation": 1.2264,
+    "percent": 97.7
+   },
+   {
+    "name": "Execute src/Ranvier/Core.js",
+    "msPerOperation": 1.2263,
+    "percent": 97.7
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "msPerOperation": 1.2243,
+    "percent": 97.6
+   },
+   {
+    "name": "Effect__RunBody src/Ranvier/Core.js",
+    "msPerOperation": 1.2146,
+    "percent": 96.8
+   },
+   {
+    "name": "Graph__RunHosted_4E4940D5 src/Ranvier/Core.js",
+    "msPerOperation": 0.9545,
+    "percent": 76.1
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.9535,
+    "percent": 76
+   },
+   {
+    "name": "Api_untrack src/Ranvier/Api.js",
+    "msPerOperation": 0.8489,
+    "percent": 67.6
+   },
+   {
+    "name": "Graph__RunUntracked_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 0.8485,
+    "percent": 67.6
+   },
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "msPerOperation": 0.6863,
+    "percent": 54.7
+   },
+   {
+    "name": "MountLifetime_Capture_30631095 experiments/Ranvier.View.Foundation/Lifetime.js",
+    "msPerOperation": 0.6504,
+    "percent": 51.8
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js",
+    "msPerOperation": 0.55,
+    "percent": 43.8
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js",
+    "msPerOperation": 0.55,
+    "percent": 43.8
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js",
+    "msPerOperation": 0.55,
+    "percent": 43.8
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "msPerOperation": 0.5489,
+    "percent": 43.7
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js",
+    "msPerOperation": 0.5471,
+    "percent": 43.6
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.3898,
+    "percent": 31.1
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.3898,
+    "percent": 31.1
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "msPerOperation": 0.3623,
+    "percent": 28.9
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.3009,
+    "percent": 24
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "msPerOperation": 0.2699,
+    "percent": 21.5
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "msPerOperation": 0.2541,
+    "percent": 20.2
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.1678,
+    "percent": 13.4
+   },
+   {
+    "name": "Graph__RunBatch_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 0.1554,
+    "percent": 12.4
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 0.1544,
+    "percent": 12.3
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.1182,
+    "percent": 9.4
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "msPerOperation": 0.1116,
+    "percent": 8.9
+   },
+   {
+    "name": "map$3 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.097,
+    "percent": 7.7
+   },
+   {
+    "name": "Projection$2__Get_2B595 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0845,
+    "percent": 6.7
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0807,
+    "percent": 6.4
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "msPerOperation": 0.0767,
+    "percent": 6.1
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.0609,
+    "percent": 4.9
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0415,
+    "percent": 3.3
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js",
+    "msPerOperation": 0.038,
+    "percent": 3
+   },
+   {
+    "name": "Owner__TearDown_6ED947BB src/Ranvier/Core.js",
+    "msPerOperation": 0.0348,
+    "percent": 2.8
+   },
+   {
+    "name": "Owner__Dispose src/Ranvier/Core.js",
+    "msPerOperation": 0.0348,
+    "percent": 2.8
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "msPerOperation": 0.0318,
+    "percent": 2.5
+   },
+   {
+    "name": "Projection$2__ReadRow_2E247979 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0305,
+    "percent": 2.4
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.025,
+    "percent": 2
+   },
+   {
+    "name": "removeAt fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.023,
+    "percent": 1.8
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js",
+    "msPerOperation": 0.0228,
+    "percent": 1.8
+   },
+   {
+    "name": "filter$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.0225,
+    "percent": 1.8
+   },
+   {
+    "name": "KeyMap$2__Exists_Z3AD716D8 src/Ranvier/Platform.js",
+    "msPerOperation": 0.0218,
+    "percent": 1.7
+   },
+   {
+    "name": "Owner__DisposeScope src/Ranvier/Core.js",
+    "msPerOperation": 0.0195,
+    "percent": 1.6
+   }
+  ]
+ },
+ {
+  "mode": "ranvier",
+  "operation": "swap1k",
+  "repeats": 1000,
+  "sampledMsPerOperation": 1.4252,
+  "buckets": {
+   "core projection pass": {
+    "msPerOperation": 0.6133,
+    "percent": 43
+   },
+   "view list region": {
+    "msPerOperation": 0.5391,
+    "percent": 37.8
+   },
+   "core graph": {
+    "msPerOperation": 0.2574,
+    "percent": 18.1
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0075,
+    "percent": 0.5
+   },
+   "GC": {
+    "msPerOperation": 0.004,
+    "percent": 0.3
+   },
+   "other": {
+    "msPerOperation": 0.0029,
+    "percent": 0.2
+   },
+   "row teardown": {
+    "msPerOperation": 0.001,
+    "percent": 0.1
+   }
+  },
+  "self": [
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1331,
+    "percent": 9.3
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1152,
+    "percent": 8.1
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.1144,
+    "percent": 8
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1034,
+    "percent": 7.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0843,
+    "percent": 5.9
+   },
+   {
+    "name": "fill fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0747,
+    "percent": 5.2
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0731,
+    "percent": 5.1
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.053,
+    "percent": 3.7
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0484,
+    "percent": 3.4
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0482,
+    "percent": 3.4
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0456,
+    "percent": 3.2
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0435,
+    "percent": 3.1
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0382,
+    "percent": 2.7
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0348,
+    "percent": 2.4
+   },
+   {
+    "name": "KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0309,
+    "percent": 2.2
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.026,
+    "percent": 1.8
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0225,
+    "percent": 1.6
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Template.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0211,
+    "percent": 1.5
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0197,
+    "percent": 1.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0161,
+    "percent": 1.1
+   },
+   {
+    "name": "Projection$2__ReadRow_2E247979 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0145,
+    "percent": 1
+   },
+   {
+    "name": "setItem$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0143,
+    "percent": 1
+   },
+   {
+    "name": "increasingRun experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0118,
+    "percent": 0.8
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0114,
+    "percent": 0.8
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.011,
+    "percent": 0.8
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0107,
+    "percent": 0.7
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.01,
+    "percent": 0.7
+   },
+   {
+    "name": "equals$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0089,
+    "percent": 0.6
+   },
+   {
+    "name": "Row__get_Index experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0082,
+    "percent": 0.6
+   },
+   {
+    "name": "Graph__AssertOnGraphThread_Z721C83C5 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0082,
+    "percent": 0.6
+   },
+   {
+    "name": "ObserverSet__NotifyDirty src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0079,
+    "percent": 0.6
+   },
+   {
+    "name": "ItemRow$3__get_Item src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0077,
+    "percent": 0.5
+   },
+   {
+    "name": "insertBefore (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0075,
+    "percent": 0.5
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0067,
+    "percent": 0.5
+   },
+   {
+    "name": "Row__get_Mount experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0067,
+    "percent": 0.5
+   },
+   {
+    "name": "RowEntry$2__get_Row src/Ranvier/ValueReaders.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0062,
+    "percent": 0.4
+   },
+   {
+    "name": "copy fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.006,
+    "percent": 0.4
+   },
+   {
+    "name": "(anonymous) KeyedRowsPerf.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0056,
+    "percent": 0.4
+   },
+   {
+    "name": "EqualityComparer$1__Equals_5BDDA0 fable_modules/fable-library-js.5.18.0/System.Collections.Generic.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0053,
+    "percent": 0.4
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.005,
+    "percent": 0.4
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 1.4252,
+    "percent": 100
+   },
+   {
+    "name": "swap ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 1.4233,
+    "percent": 99.9
+   },
+   {
+    "name": "(anonymous) KeyedRowsPerf.js",
+    "msPerOperation": 1.4218,
+    "percent": 99.8
+   },
+   {
+    "name": "Ranvier_Graph__Graph_Run_FCFD9EF src/Ranvier/Api.js",
+    "msPerOperation": 1.4213,
+    "percent": 99.7
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "msPerOperation": 1.4088,
+    "percent": 98.9
+   },
+   {
+    "name": "Graph__Flush src/Ranvier/Core.js",
+    "msPerOperation": 1.4078,
+    "percent": 98.8
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "msPerOperation": 1.4078,
+    "percent": 98.8
+   },
+   {
+    "name": "Graph__RunFlush src/Ranvier/Core.js",
+    "msPerOperation": 1.4073,
+    "percent": 98.7
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "msPerOperation": 1.4062,
+    "percent": 98.7
+   },
+   {
+    "name": "Execute src/Ranvier/Core.js",
+    "msPerOperation": 1.4062,
+    "percent": 98.7
+   },
+   {
+    "name": "Graph__RunHosted_4E4940D5 src/Ranvier/Core.js",
+    "msPerOperation": 1.4057,
+    "percent": 98.6
+   },
+   {
+    "name": "Effect__RunBody src/Ranvier/Core.js",
+    "msPerOperation": 1.4057,
+    "percent": 98.6
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 1.4052,
+    "percent": 98.6
+   },
+   {
+    "name": "Graph__RunUntracked_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 1.2523,
+    "percent": 87.9
+   },
+   {
+    "name": "Api_untrack src/Ranvier/Api.js",
+    "msPerOperation": 1.2523,
+    "percent": 87.9
+   },
+   {
+    "name": "MountLifetime_Capture_30631095 experiments/Ranvier.View.Foundation/Lifetime.js",
+    "msPerOperation": 0.9276,
+    "percent": 65.1
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js",
+    "msPerOperation": 0.779,
+    "percent": 54.7
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js",
+    "msPerOperation": 0.7771,
+    "percent": 54.5
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "msPerOperation": 0.7769,
+    "percent": 54.5
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js",
+    "msPerOperation": 0.7766,
+    "percent": 54.5
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js",
+    "msPerOperation": 0.7735,
+    "percent": 54.3
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.588,
+    "percent": 41.3
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.588,
+    "percent": 41.3
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "msPerOperation": 0.534,
+    "percent": 37.5
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.4752,
+    "percent": 33.3
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.3298,
+    "percent": 23.1
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "msPerOperation": 0.2558,
+    "percent": 17.9
+   },
+   {
+    "name": "Graph__RunBatch_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 0.1814,
+    "percent": 12.7
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 0.1804,
+    "percent": 12.7
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "msPerOperation": 0.1784,
+    "percent": 12.5
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "msPerOperation": 0.1357,
+    "percent": 9.5
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.1337,
+    "percent": 9.4
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "msPerOperation": 0.1269,
+    "percent": 8.9
+   },
+   {
+    "name": "map$3 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.121,
+    "percent": 8.5
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "msPerOperation": 0.1034,
+    "percent": 7.3
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.0848,
+    "percent": 6
+   },
+   {
+    "name": "Projection$2__Get_2B595 src/Ranvier/Projections.js",
+    "msPerOperation": 0.081,
+    "percent": 5.7
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0785,
+    "percent": 5.5
+   },
+   {
+    "name": "fill fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.0747,
+    "percent": 5.2
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.0484,
+    "percent": 3.4
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.0382,
+    "percent": 2.7
+   },
+   {
+    "name": "increasingRun experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.0366,
+    "percent": 2.6
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js",
+    "msPerOperation": 0.0338,
+    "percent": 2.4
+   },
+   {
+    "name": "KeyMap$2__Exists_Z3AD716D8 src/Ranvier/Platform.js",
+    "msPerOperation": 0.0323,
+    "percent": 2.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Template.js",
+    "msPerOperation": 0.0316,
+    "percent": 2.2
+   },
+   {
+    "name": "read experiments/Ranvier.View.Foundation/TemplateDom.js",
+    "msPerOperation": 0.0316,
+    "percent": 2.2
+   },
+   {
+    "name": "KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.0309,
+    "percent": 2.2
+   },
+   {
+    "name": "Projection$2__ReadRow_2E247979 src/Ranvier/Projections.js",
+    "msPerOperation": 0.0305,
+    "percent": 2.1
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.026,
+    "percent": 1.8
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Platform.js",
+    "msPerOperation": 0.0256,
+    "percent": 1.8
+   }
+  ]
+ },
+ {
+  "mode": "solid",
+  "operation": "remove1k",
+  "repeats": 1000,
+  "sampledMsPerOperation": 0.1754,
+  "buckets": {
+   "solid": {
+    "msPerOperation": 0.1554,
+    "percent": 88.6
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0201,
+    "percent": 11.4
+   }
+  },
+  "self": [
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.094,
+    "percent": 53.6
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0186,
+    "percent": 10.6
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0106,
+    "percent": 6
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.01,
+    "percent": 5.7
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.007,
+    "percent": 4
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0056,
+    "percent": 3.2
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0048,
+    "percent": 2.8
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0047,
+    "percent": 2.7
+   },
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0039,
+    "percent": 2.2
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0017,
+    "percent": 1
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0016,
+    "percent": 0.9
+   },
+   {
+    "name": "remove (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0014,
+    "percent": 0.8
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0013,
+    "percent": 0.7
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0013,
+    "percent": 0.7
+   },
+   {
+    "name": "runDisposal node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0012,
+    "percent": 0.7
+   },
+   {
+    "name": "(anonymous) node_modules/solid-js/dist/solid.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0012,
+    "percent": 0.7
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.001,
+    "percent": 0.5
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0009,
+    "percent": 0.5
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.4
+   },
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-solid.jsx",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.4
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "sweepDormant node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "runHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "queuePendingNode node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0002,
+    "percent": 0.1
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "settle node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.1754,
+    "percent": 100
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 0.1754,
+    "percent": 100
+   },
+   {
+    "name": "flush node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.155,
+    "percent": 88.3
+   },
+   {
+    "name": "flush$1 node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.155,
+    "percent": 88.3
+   },
+   {
+    "name": "runHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.1336,
+    "percent": 76.1
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1332,
+    "percent": 75.9
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1318,
+    "percent": 75.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0958,
+    "percent": 54.6
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0957,
+    "percent": 54.6
+   },
+   {
+    "name": "list node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.0952,
+    "percent": 54.3
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.094,
+    "percent": 53.6
+   },
+   {
+    "name": "updateKeyedMap node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.0286,
+    "percent": 16.3
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.027,
+    "percent": 15.4
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0206,
+    "percent": 11.7
+   },
+   {
+    "name": "run node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0206,
+    "percent": 11.7
+   },
+   {
+    "name": "runEffect node_modules/@solidjs/signals/dist/prod/core/effect.js",
+    "msPerOperation": 0.0205,
+    "percent": 11.7
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0198,
+    "percent": 11.3
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0189,
+    "percent": 10.8
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "msPerOperation": 0.0186,
+    "percent": 10.6
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0186,
+    "percent": 10.6
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0179,
+    "percent": 10.2
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.0164,
+    "percent": 9.4
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0131,
+    "percent": 7.5
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.0064,
+    "percent": 3.6
+   },
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.0059,
+    "percent": 3.4
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0048,
+    "percent": 2.8
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0021,
+    "percent": 1.2
+   },
+   {
+    "name": "(anonymous) node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.0016,
+    "percent": 0.9
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0016,
+    "percent": 0.9
+   },
+   {
+    "name": "remove (native)",
+    "msPerOperation": 0.0014,
+    "percent": 0.8
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0013,
+    "percent": 0.7
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0012,
+    "percent": 0.7
+   },
+   {
+    "name": "runDisposal node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.0012,
+    "percent": 0.7
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.4
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "normalize node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "get each ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "settle node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "sweepDormant node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "queuePendingNode node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0002,
+    "percent": 0.1
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   }
+  ]
+ },
+ {
+  "mode": "solid",
+  "operation": "swap1k",
+  "repeats": 1000,
+  "sampledMsPerOperation": 0.1444,
+  "buckets": {
+   "solid": {
+    "msPerOperation": 0.1246,
+    "percent": 86.3
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0198,
+    "percent": 13.7
+   }
+  },
+  "self": [
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0858,
+    "percent": 59.4
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0167,
+    "percent": 11.6
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0075,
+    "percent": 5.2
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0057,
+    "percent": 3.9
+   },
+   {
+    "name": "trySmallMove node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0042,
+    "percent": 2.9
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0042,
+    "percent": 2.9
+   },
+   {
+    "name": "commitSmallMove node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0026,
+    "percent": 1.8
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0022,
+    "percent": 1.5
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0018,
+    "percent": 1.2
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0017,
+    "percent": 1.2
+   },
+   {
+    "name": "insertBefore (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0016,
+    "percent": 1.1
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0016,
+    "percent": 1.1
+   },
+   {
+    "name": "replaceChild (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0015,
+    "percent": 1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0012,
+    "percent": 0.9
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.6
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.5
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.5
+   },
+   {
+    "name": "updateKeyedMap node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.5
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "flush node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.3
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.3
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.3
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0002,
+    "percent": 0.1
+   },
+   {
+    "name": "pullComputed node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "get each ../../benchmarks/frameworks/keyed-solid.jsx",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 0.1444,
+    "percent": 100
+   },
+   {
+    "name": "swap ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.1444,
+    "percent": 100
+   },
+   {
+    "name": "flush node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.1276,
+    "percent": 88.4
+   },
+   {
+    "name": "flush$1 node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.1276,
+    "percent": 88.4
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1075,
+    "percent": 74.5
+   },
+   {
+    "name": "runHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.1075,
+    "percent": 74.5
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1058,
+    "percent": 73.3
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0884,
+    "percent": 61.2
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0879,
+    "percent": 60.9
+   },
+   {
+    "name": "list node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.0875,
+    "percent": 60.6
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0858,
+    "percent": 59.4
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0197,
+    "percent": 13.6
+   },
+   {
+    "name": "run node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0197,
+    "percent": 13.6
+   },
+   {
+    "name": "runEffect node_modules/@solidjs/signals/dist/prod/core/effect.js",
+    "msPerOperation": 0.0189,
+    "percent": 13.1
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0172,
+    "percent": 11.9
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.017,
+    "percent": 11.8
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0167,
+    "percent": 11.6
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0167,
+    "percent": 11.6
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "msPerOperation": 0.0167,
+    "percent": 11.6
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0148,
+    "percent": 10.2
+   },
+   {
+    "name": "updateKeyedMap node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.01,
+    "percent": 6.9
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0088,
+    "percent": 6.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.0081,
+    "percent": 5.6
+   },
+   {
+    "name": "trySmallMove node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.0069,
+    "percent": 4.8
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0042,
+    "percent": 2.9
+   },
+   {
+    "name": "commitSmallMove node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.0026,
+    "percent": 1.8
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0017,
+    "percent": 1.2
+   },
+   {
+    "name": "insertBefore (native)",
+    "msPerOperation": 0.0016,
+    "percent": 1.1
+   },
+   {
+    "name": "replaceChild (native)",
+    "msPerOperation": 0.0015,
+    "percent": 1
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0012,
+    "percent": 0.9
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0012,
+    "percent": 0.9
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0012,
+    "percent": 0.9
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0009,
+    "percent": 0.7
+   },
+   {
+    "name": "normalize node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0009,
+    "percent": 0.7
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.6
+   },
+   {
+    "name": "get each ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "(anonymous) node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0005,
+    "percent": 0.3
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0004,
+    "percent": 0.3
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0004,
+    "percent": 0.2
+   },
+   {
+    "name": "pullComputed node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "untrack node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "handleAsync node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   }
+  ]
+ },
+ {
+  "mode": "ranvier",
+  "operation": "remove10k",
+  "repeats": 200,
+  "sampledMsPerOperation": 11.2122,
+  "buckets": {
+   "core projection pass": {
+    "msPerOperation": 3.2616,
+    "percent": 29.1
+   },
+   "core graph": {
+    "msPerOperation": 3.0757,
+    "percent": 27.4
+   },
+   "view list region": {
+    "msPerOperation": 2.9667,
+    "percent": 26.5
+   },
+   "GC": {
+    "msPerOperation": 1.8174,
+    "percent": 16.2
+   },
+   "row teardown": {
+    "msPerOperation": 0.0834,
+    "percent": 0.7
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0074,
+    "percent": 0.1
+   }
+  },
+  "self": [
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.8052,
+    "percent": 7.2
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.6989,
+    "percent": 6.2
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.5113,
+    "percent": 4.6
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.4893,
+    "percent": 4.4
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.4544,
+    "percent": 4.1
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.4429,
+    "percent": 4
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.4223,
+    "percent": 3.8
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.4104,
+    "percent": 3.7
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.3924,
+    "percent": 3.5
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.3664,
+    "percent": 3.3
+   },
+   {
+    "name": "(garbage collector) under KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "bucket": "GC",
+    "msPerOperation": 0.3619,
+    "percent": 3.2
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.3508,
+    "percent": 3.1
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.3384,
+    "percent": 3
+   },
+   {
+    "name": "KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.3101,
+    "percent": 2.8
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.2839,
+    "percent": 2.5
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.2792,
+    "percent": 2.5
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.2774,
+    "percent": 2.5
+   },
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.2604,
+    "percent": 2.3
+   },
+   {
+    "name": "equals$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.156,
+    "percent": 1.4
+   },
+   {
+    "name": "(garbage collector) under Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "GC",
+    "msPerOperation": 0.1553,
+    "percent": 1.4
+   },
+   {
+    "name": "(garbage collector) under RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "bucket": "GC",
+    "msPerOperation": 0.1503,
+    "percent": 1.3
+   },
+   {
+    "name": "ObserverSet__NotifyDirty src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.1488,
+    "percent": 1.3
+   },
+   {
+    "name": "(garbage collector) under KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "bucket": "GC",
+    "msPerOperation": 0.1424,
+    "percent": 1.3
+   },
+   {
+    "name": "Row__set_Index_Z524259A4 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.1406,
+    "percent": 1.3
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.1362,
+    "percent": 1.2
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1174,
+    "percent": 1
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1154,
+    "percent": 1
+   },
+   {
+    "name": "(garbage collector) under KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "bucket": "GC",
+    "msPerOperation": 0.1073,
+    "percent": 1
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Template.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.107,
+    "percent": 1
+   },
+   {
+    "name": "clear$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1057,
+    "percent": 0.9
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1049,
+    "percent": 0.9
+   },
+   {
+    "name": "Graph__AssertOnGraphThread_Z721C83C5 src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.092,
+    "percent": 0.8
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0884,
+    "percent": 0.8
+   },
+   {
+    "name": "filter$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0835,
+    "percent": 0.7
+   },
+   {
+    "name": "map$3 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0829,
+    "percent": 0.7
+   },
+   {
+    "name": "(garbage collector) under visit src/Ranvier/Projections.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0819,
+    "percent": 0.7
+   },
+   {
+    "name": "(garbage collector) under same$1 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "GC",
+    "msPerOperation": 0.08,
+    "percent": 0.7
+   },
+   {
+    "name": "(garbage collector) under KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0781,
+    "percent": 0.7
+   },
+   {
+    "name": "Projection$2__get_Runs src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0746,
+    "percent": 0.7
+   },
+   {
+    "name": "(garbage collector) under (anonymous) experiments/Ranvier.View.Foundation/Template.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0742,
+    "percent": 0.7
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "(anonymous) KeyedRowsPerf.js",
+    "msPerOperation": 11.2122,
+    "percent": 100
+   },
+   {
+    "name": "Ranvier_Graph__Graph_Run_FCFD9EF src/Ranvier/Api.js",
+    "msPerOperation": 11.2122,
+    "percent": 100
+   },
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 11.2122,
+    "percent": 100
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 11.2122,
+    "percent": 100
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "msPerOperation": 10.9881,
+    "percent": 98
+   },
+   {
+    "name": "Graph__Flush src/Ranvier/Core.js",
+    "msPerOperation": 10.9855,
+    "percent": 98
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "msPerOperation": 10.983,
+    "percent": 98
+   },
+   {
+    "name": "Graph__RunFlush src/Ranvier/Core.js",
+    "msPerOperation": 10.9405,
+    "percent": 97.6
+   },
+   {
+    "name": "Execute src/Ranvier/Core.js",
+    "msPerOperation": 10.9396,
+    "percent": 97.6
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "msPerOperation": 10.937,
+    "percent": 97.5
+   },
+   {
+    "name": "Effect__RunBody src/Ranvier/Core.js",
+    "msPerOperation": 10.92,
+    "percent": 97.4
+   },
+   {
+    "name": "Graph__RunHosted_4E4940D5 src/Ranvier/Core.js",
+    "msPerOperation": 10.6592,
+    "percent": 95.1
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 10.6567,
+    "percent": 95
+   },
+   {
+    "name": "Api_untrack src/Ranvier/Api.js",
+    "msPerOperation": 8.9655,
+    "percent": 80
+   },
+   {
+    "name": "Graph__RunUntracked_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 8.963,
+    "percent": 79.9
+   },
+   {
+    "name": "MountLifetime_Capture_30631095 experiments/Ranvier.View.Foundation/Lifetime.js",
+    "msPerOperation": 8.473,
+    "percent": 75.6
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "msPerOperation": 6.8062,
+    "percent": 60.7
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js",
+    "msPerOperation": 6.7879,
+    "percent": 60.5
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js",
+    "msPerOperation": 6.7879,
+    "percent": 60.5
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js",
+    "msPerOperation": 6.7829,
+    "percent": 60.5
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js",
+    "msPerOperation": 6.7729,
+    "percent": 60.4
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 5.1899,
+    "percent": 46.3
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 5.1899,
+    "percent": 46.3
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "msPerOperation": 4.7551,
+    "percent": 42.4
+   },
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "msPerOperation": 3.9533,
+    "percent": 35.3
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js",
+    "msPerOperation": 2.5044,
+    "percent": 22.3
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 2.1812,
+    "percent": 19.5
+   },
+   {
+    "name": "Graph__RunBatch_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 1.5755,
+    "percent": 14.1
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 1.573,
+    "percent": 14
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js",
+    "msPerOperation": 1.4467,
+    "percent": 12.9
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 1.256,
+    "percent": 11.2
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js",
+    "msPerOperation": 1.1761,
+    "percent": 10.5
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 1.1692,
+    "percent": 10.4
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 1.167,
+    "percent": 10.4
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js",
+    "msPerOperation": 1.1416,
+    "percent": 10.2
+   },
+   {
+    "name": "map$3 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.8826,
+    "percent": 7.9
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "msPerOperation": 0.6989,
+    "percent": 6.2
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.5093,
+    "percent": 4.5
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.4933,
+    "percent": 4.4
+   },
+   {
+    "name": "Projection$2__Get_2B595 src/Ranvier/Projections.js",
+    "msPerOperation": 0.4898,
+    "percent": 4.4
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js",
+    "msPerOperation": 0.4652,
+    "percent": 4.1
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.4557,
+    "percent": 4.1
+   },
+   {
+    "name": "KeySet$1__Contains_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.4174,
+    "percent": 3.7
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "msPerOperation": 0.413,
+    "percent": 3.7
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Template.js",
+    "msPerOperation": 0.3821,
+    "percent": 3.4
+   },
+   {
+    "name": "read experiments/Ranvier.View.Foundation/TemplateDom.js",
+    "msPerOperation": 0.3821,
+    "percent": 3.4
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.3639,
+    "percent": 3.2
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "msPerOperation": 0.3435,
+    "percent": 3.1
+   },
+   {
+    "name": "filter$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.2163,
+    "percent": 1.9
+   },
+   {
+    "name": "removeAt fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.2163,
+    "percent": 1.9
+   }
+  ]
+ },
+ {
+  "mode": "solid",
+  "operation": "remove10k",
+  "repeats": 200,
+  "sampledMsPerOperation": 0.9925,
+  "buckets": {
+   "solid": {
+    "msPerOperation": 0.9474,
+    "percent": 95.5
+   },
+   "DOM operations": {
+    "msPerOperation": 0.0391,
+    "percent": 3.9
+   },
+   "GC": {
+    "msPerOperation": 0.0059,
+    "percent": 0.6
+   }
+  },
+  "self": [
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1629,
+    "percent": 16.4
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1446,
+    "percent": 14.6
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1283,
+    "percent": 12.9
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1267,
+    "percent": 12.8
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1094,
+    "percent": 11
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0899,
+    "percent": 9.1
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.058,
+    "percent": 5.8
+   },
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-solid.jsx",
+    "bucket": "solid",
+    "msPerOperation": 0.0394,
+    "percent": 4
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0316,
+    "percent": 3.2
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0172,
+    "percent": 1.7
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0147,
+    "percent": 1.5
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0143,
+    "percent": 1.4
+   },
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.009,
+    "percent": 0.9
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0085,
+    "percent": 0.9
+   },
+   {
+    "name": "remove (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.0075,
+    "percent": 0.8
+   },
+   {
+    "name": "(garbage collector) under link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0059,
+    "percent": 0.6
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0049,
+    "percent": 0.5
+   },
+   {
+    "name": "list node_modules/solid-js/dist/solid.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0049,
+    "percent": 0.5
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0035,
+    "percent": 0.4
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.003,
+    "percent": 0.3
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0025,
+    "percent": 0.3
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0017,
+    "percent": 0.2
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0015,
+    "percent": 0.2
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0009,
+    "percent": 0.1
+   },
+   {
+    "name": "settle node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "stagedRead node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "remove ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.9925,
+    "percent": 100
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 0.9925,
+    "percent": 100
+   },
+   {
+    "name": "flush node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.9209,
+    "percent": 92.8
+   },
+   {
+    "name": "flush$1 node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.9209,
+    "percent": 92.8
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.609,
+    "percent": 61.4
+   },
+   {
+    "name": "runHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.609,
+    "percent": 61.4
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.5948,
+    "percent": 59.9
+   },
+   {
+    "name": "runEffect node_modules/@solidjs/signals/dist/prod/core/effect.js",
+    "msPerOperation": 0.3102,
+    "percent": 31.3
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.3102,
+    "percent": 31.3
+   },
+   {
+    "name": "run node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.3102,
+    "percent": 31.3
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.3085,
+    "percent": 31.1
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.2999,
+    "percent": 30.2
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.269,
+    "percent": 27.1
+   },
+   {
+    "name": "updateKeyedMap node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.269,
+    "percent": 27.1
+   },
+   {
+    "name": "reconcileArrays node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.242,
+    "percent": 24.4
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1558,
+    "percent": 15.7
+   },
+   {
+    "name": "isLive node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1446,
+    "percent": 14.6
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.1407,
+    "percent": 14.2
+   },
+   {
+    "name": "list node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.1351,
+    "percent": 13.6
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1302,
+    "percent": 13.1
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0322,
+    "percent": 3.2
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0322,
+    "percent": 3.2
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "msPerOperation": 0.0316,
+    "percent": 3.2
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0207,
+    "percent": 2.1
+   },
+   {
+    "name": "normalize node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0207,
+    "percent": 2.1
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0206,
+    "percent": 2.1
+   },
+   {
+    "name": "flattenArray node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0172,
+    "percent": 1.7
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.014,
+    "percent": 1.4
+   },
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.009,
+    "percent": 0.9
+   },
+   {
+    "name": "remove (native)",
+    "msPerOperation": 0.0075,
+    "percent": 0.8
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0071,
+    "percent": 0.7
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0046,
+    "percent": 0.5
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0046,
+    "percent": 0.5
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0017,
+    "percent": 0.2
+   },
+   {
+    "name": "settle node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0017,
+    "percent": 0.2
+   },
+   {
+    "name": "actualInsertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0015,
+    "percent": 0.2
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0009,
+    "percent": 0.1
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0002,
+    "percent": 0
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "stagedRead node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   }
+  ]
+ },
+ {
+  "mode": "ranvier",
+  "operation": "clear1k",
+  "repeats": 600,
+  "sampledMsPerOperation": 2.1886,
+  "buckets": {
+   "row teardown": {
+    "msPerOperation": 1.0033,
+    "percent": 45.8
+   },
+   "DOM operations": {
+    "msPerOperation": 0.3778,
+    "percent": 17.3
+   },
+   "core projection pass": {
+    "msPerOperation": 0.3282,
+    "percent": 15
+   },
+   "core graph": {
+    "msPerOperation": 0.3074,
+    "percent": 14
+   },
+   "view list region": {
+    "msPerOperation": 0.1333,
+    "percent": 6.1
+   },
+   "GC": {
+    "msPerOperation": 0.037,
+    "percent": 1.7
+   },
+   "other": {
+    "msPerOperation": 0.0017,
+    "percent": 0.1
+   }
+  },
+  "self": [
+   {
+    "name": "remove (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.3778,
+    "percent": 17.3
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.2263,
+    "percent": 10.3
+   },
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.1605,
+    "percent": 7.3
+   },
+   {
+    "name": "Owner__Unlink_Z6ED9BB41 src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.1423,
+    "percent": 6.5
+   },
+   {
+    "name": "Owner__TearDown_6ED947BB src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.124,
+    "percent": 5.7
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.1202,
+    "percent": 5.5
+   },
+   {
+    "name": "Owner__DisposeScope src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0735,
+    "percent": 3.4
+   },
+   {
+    "name": "clear$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0606,
+    "percent": 2.8
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.055,
+    "percent": 2.5
+   },
+   {
+    "name": "Row_Remove_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0539,
+    "percent": 2.5
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0492,
+    "percent": 2.2
+   },
+   {
+    "name": "Owner__Dispose src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0462,
+    "percent": 2.1
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0458,
+    "percent": 2.1
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0329,
+    "percent": 1.5
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0323,
+    "percent": 1.5
+   },
+   {
+    "name": "KeyMap$2__Find_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0311,
+    "percent": 1.4
+   },
+   {
+    "name": "OwnerLink__Detach src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0305,
+    "percent": 1.4
+   },
+   {
+    "name": "KeySet$1__Add_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0302,
+    "percent": 1.4
+   },
+   {
+    "name": "Enumerator$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0277,
+    "percent": 1.3
+   },
+   {
+    "name": "equals$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0266,
+    "percent": 1.2
+   },
+   {
+    "name": "defaultOf$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0245,
+    "percent": 1.1
+   },
+   {
+    "name": "ObserverSet__Remove_7E1B59FA src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0229,
+    "percent": 1
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0221,
+    "percent": 1
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js",
+    "bucket": "core projection pass",
+    "msPerOperation": 0.0214,
+    "percent": 1
+   },
+   {
+    "name": "KeyMap$2__Remove_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0211,
+    "percent": 1
+   },
+   {
+    "name": "(garbage collector) under Execute src/Ranvier/Core.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0193,
+    "percent": 0.9
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "view list region",
+    "msPerOperation": 0.0178,
+    "percent": 0.8
+   },
+   {
+    "name": "KeySet$1__Remove_2B595 src/Ranvier/Platform.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0178,
+    "percent": 0.8
+   },
+   {
+    "name": "OwnerLink__get_Prev src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0175,
+    "percent": 0.8
+   },
+   {
+    "name": "Effect__Dispose src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0164,
+    "percent": 0.8
+   },
+   {
+    "name": "MountState__releaseNodes_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0148,
+    "percent": 0.7
+   },
+   {
+    "name": "OwnerLink__set_Prev_Z6ED9BB41 src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0137,
+    "percent": 0.6
+   },
+   {
+    "name": "RegionSite__ReleaseRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0126,
+    "percent": 0.6
+   },
+   {
+    "name": "RowEntry$2__set_Live_Z1FBCCD16 src/Ranvier/ValueReaders.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0115,
+    "percent": 0.5
+   },
+   {
+    "name": "(garbage collector) under Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "bucket": "GC",
+    "msPerOperation": 0.0101,
+    "percent": 0.5
+   },
+   {
+    "name": "RemoveObserver src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.01,
+    "percent": 0.5
+   },
+   {
+    "name": "SourceList__trimFrom src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.01,
+    "percent": 0.5
+   },
+   {
+    "name": "OwnerLink__get_Acquired src/Ranvier/Core.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0099,
+    "percent": 0.5
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "bucket": "core graph",
+    "msPerOperation": 0.0098,
+    "percent": 0.4
+   },
+   {
+    "name": "Row__get_Last experiments/Ranvier.View.Foundation/Mounting.js",
+    "bucket": "row teardown",
+    "msPerOperation": 0.0093,
+    "percent": 0.4
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "clear ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 2.1886,
+    "percent": 100
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 2.1886,
+    "percent": 100
+   },
+   {
+    "name": "Ranvier_Graph__Graph_Run_FCFD9EF src/Ranvier/Api.js",
+    "msPerOperation": 2.1869,
+    "percent": 99.9
+   },
+   {
+    "name": "live KeyedRowsPerf.js",
+    "msPerOperation": 2.1869,
+    "percent": 99.9
+   },
+   {
+    "name": "Graph__Flush src/Ranvier/Core.js",
+    "msPerOperation": 2.1844,
+    "percent": 99.8
+   },
+   {
+    "name": "Graph__RequestFlush src/Ranvier/Core.js",
+    "msPerOperation": 2.1844,
+    "percent": 99.8
+   },
+   {
+    "name": "Signal$1__set_Value_2B595 src/Ranvier/Core.js",
+    "msPerOperation": 2.1844,
+    "percent": 99.8
+   },
+   {
+    "name": "(anonymous) KeyedRowsPerf.js",
+    "msPerOperation": 2.1844,
+    "percent": 99.8
+   },
+   {
+    "name": "Graph__RunFlush src/Ranvier/Core.js",
+    "msPerOperation": 2.1835,
+    "percent": 99.8
+   },
+   {
+    "name": "Execute src/Ranvier/Core.js",
+    "msPerOperation": 2.1834,
+    "percent": 99.8
+   },
+   {
+    "name": "Effect__Run src/Ranvier/Core.js",
+    "msPerOperation": 2.1616,
+    "percent": 98.8
+   },
+   {
+    "name": "Effect__RunBody src/Ranvier/Core.js",
+    "msPerOperation": 2.1518,
+    "percent": 98.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 1.9903,
+    "percent": 90.9
+   },
+   {
+    "name": "Graph__RunHosted_4E4940D5 src/Ranvier/Core.js",
+    "msPerOperation": 1.9903,
+    "percent": 90.9
+   },
+   {
+    "name": "MountLifetime_Capture_30631095 experiments/Ranvier.View.Foundation/Lifetime.js",
+    "msPerOperation": 1.9752,
+    "percent": 90.3
+   },
+   {
+    "name": "Graph__RunUntracked_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 1.8688,
+    "percent": 85.4
+   },
+   {
+    "name": "Api_untrack src/Ranvier/Api.js",
+    "msPerOperation": 1.8688,
+    "percent": 85.4
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js",
+    "msPerOperation": 1.8562,
+    "percent": 84.8
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js",
+    "msPerOperation": 1.8562,
+    "percent": 84.8
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js",
+    "msPerOperation": 1.8562,
+    "percent": 84.8
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js",
+    "msPerOperation": 1.8537,
+    "percent": 84.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js",
+    "msPerOperation": 1.8518,
+    "percent": 84.6
+   },
+   {
+    "name": "SourceList__EndRun_7E1B59FA src/Ranvier/Core.js",
+    "msPerOperation": 1.7362,
+    "percent": 79.3
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 1.6976,
+    "percent": 77.6
+   },
+   {
+    "name": "Graph__RunBatch_FCFD9EF src/Ranvier/Core.js",
+    "msPerOperation": 1.6976,
+    "percent": 77.6
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js",
+    "msPerOperation": 1.6721,
+    "percent": 76.4
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js",
+    "msPerOperation": 1.4675,
+    "percent": 67.1
+   },
+   {
+    "name": "Owner__Dispose src/Ranvier/Core.js",
+    "msPerOperation": 1.3986,
+    "percent": 63.9
+   },
+   {
+    "name": "Owner__TearDown_6ED947BB src/Ranvier/Core.js",
+    "msPerOperation": 1.3427,
+    "percent": 61.3
+   },
+   {
+    "name": "Owner__DisposeScope src/Ranvier/Core.js",
+    "msPerOperation": 0.9779,
+    "percent": 44.7
+   },
+   {
+    "name": "RegionSite__ReleaseRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.5036,
+    "percent": 23
+   },
+   {
+    "name": "MountState__releaseNodes_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.4759,
+    "percent": 21.7
+   },
+   {
+    "name": "Row_Remove_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.4527,
+    "percent": 20.7
+   },
+   {
+    "name": "remove experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.3842,
+    "percent": 17.6
+   },
+   {
+    "name": "remove (native)",
+    "msPerOperation": 0.3778,
+    "percent": 17.3
+   },
+   {
+    "name": "Operators_IsNull$1 fable_modules/fable-library-js.5.18.0/FSharp.Core.js",
+    "msPerOperation": 0.2606,
+    "percent": 11.9
+   },
+   {
+    "name": "OwnerLink__Detach src/Ranvier/Core.js",
+    "msPerOperation": 0.2279,
+    "percent": 10.4
+   },
+   {
+    "name": "Owner__Unlink_Z6ED9BB41 src/Ranvier/Core.js",
+    "msPerOperation": 0.1949,
+    "percent": 8.9
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.1533,
+    "percent": 7
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js",
+    "msPerOperation": 0.1533,
+    "percent": 7
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js",
+    "msPerOperation": 0.1179,
+    "percent": 5.4
+   },
+   {
+    "name": "Release src/Ranvier/Core.js",
+    "msPerOperation": 0.1133,
+    "percent": 5.2
+   },
+   {
+    "name": "Effect__Dispose src/Ranvier/Core.js",
+    "msPerOperation": 0.1034,
+    "percent": 4.7
+   },
+   {
+    "name": "Row_Validate_Z1D5FD3C5 experiments/Ranvier.View.Foundation/Mounting.js",
+    "msPerOperation": 0.098,
+    "percent": 4.5
+   },
+   {
+    "name": "Effect__DetachSources src/Ranvier/Core.js",
+    "msPerOperation": 0.0695,
+    "percent": 3.2
+   },
+   {
+    "name": "SourceList__Clear_7E1B59FA src/Ranvier/Core.js",
+    "msPerOperation": 0.066,
+    "percent": 3
+   },
+   {
+    "name": "clear$1 fable_modules/fable-library-js.5.18.0/Util.js",
+    "msPerOperation": 0.0606,
+    "percent": 2.8
+   },
+   {
+    "name": "SourceList__trimFrom src/Ranvier/Core.js",
+    "msPerOperation": 0.0601,
+    "percent": 2.7
+   },
+   {
+    "name": "RemoveObserver src/Ranvier/Core.js",
+    "msPerOperation": 0.0474,
+    "percent": 2.2
+   },
+   {
+    "name": "item$1 fable_modules/fable-library-js.5.18.0/Array.js",
+    "msPerOperation": 0.0458,
+    "percent": 2.1
+   }
+  ]
+ },
+ {
+  "mode": "solid",
+  "operation": "clear1k",
+  "repeats": 600,
+  "sampledMsPerOperation": 0.6334,
+  "buckets": {
+   "solid": {
+    "msPerOperation": 0.6144,
+    "percent": 97
+   },
+   "DOM operations": {
+    "msPerOperation": 0.019,
+    "percent": 3
+   }
+  },
+  "self": [
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.212,
+    "percent": 33.5
+   },
+   {
+    "name": "cleanChildren node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1671,
+    "percent": 26.4
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.1263,
+    "percent": 19.9
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0387,
+    "percent": 6.1
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "bucket": "DOM operations",
+    "msPerOperation": 0.019,
+    "percent": 3
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0164,
+    "percent": 2.6
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0153,
+    "percent": 2.4
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0074,
+    "percent": 1.2
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0046,
+    "percent": 0.7
+   },
+   {
+    "name": "runDisposal node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0043,
+    "percent": 0.7
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0042,
+    "percent": 0.7
+   },
+   {
+    "name": "unlinkSubs node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0037,
+    "percent": 0.6
+   },
+   {
+    "name": "clearDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0018,
+    "percent": 0.3
+   },
+   {
+    "name": "isThenable node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0017,
+    "percent": 0.3
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0014,
+    "percent": 0.2
+   },
+   {
+    "name": "pullComputed node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0009,
+    "percent": 0.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.1
+   },
+   {
+    "name": "handleAsync node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.1
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.1
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/web/dist/web.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0007,
+    "percent": 0.1
+   },
+   {
+    "name": "sweepDormant node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0006,
+    "percent": 0.1
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0006,
+    "percent": 0.1
+   },
+   {
+    "name": "clear ../../benchmarks/frameworks/keyed-solid.jsx",
+    "bucket": "solid",
+    "msPerOperation": 0.0006,
+    "percent": 0.1
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "stagedRead node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "run node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "bucket": "solid",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "bucket": "solid",
+    "msPerOperation": 0,
+    "percent": 0
+   }
+  ],
+  "inclusive": [
+   {
+    "name": "run ../../benchmarks/frameworks/keyed-page.mjs",
+    "msPerOperation": 0.6334,
+    "percent": 100
+   },
+   {
+    "name": "clear ../../benchmarks/frameworks/keyed-solid.jsx",
+    "msPerOperation": 0.6325,
+    "percent": 99.9
+   },
+   {
+    "name": "flush node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.6124,
+    "percent": 96.7
+   },
+   {
+    "name": "flush$1 node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.6124,
+    "percent": 96.7
+   },
+   {
+    "name": "GlobalQueue.Ce node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.4059,
+    "percent": 64.1
+   },
+   {
+    "name": "runHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.4059,
+    "percent": 64.1
+   },
+   {
+    "name": "recompute$1 node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.4017,
+    "percent": 63.4
+   },
+   {
+    "name": "runWithOwner node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.2533,
+    "percent": 40
+   },
+   {
+    "name": "updateKeyedMap node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.2533,
+    "percent": 40
+   },
+   {
+    "name": "disposeRootSelf node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.2527,
+    "percent": 39.9
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/map.js",
+    "msPerOperation": 0.2527,
+    "percent": 39.9
+   },
+   {
+    "name": "disposeChildren node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.2374,
+    "percent": 37.5
+   },
+   {
+    "name": "run node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.2059,
+    "percent": 32.5
+   },
+   {
+    "name": "runEffect node_modules/@solidjs/signals/dist/prod/core/effect.js",
+    "msPerOperation": 0.2058,
+    "percent": 32.5
+   },
+   {
+    "name": "runQueue node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.2058,
+    "percent": 32.5
+   },
+   {
+    "name": "cleanChildren node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1671,
+    "percent": 26.4
+   },
+   {
+    "name": "insertExpression node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1671,
+    "percent": 26.4
+   },
+   {
+    "name": "accessor.$s.options node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1671,
+    "percent": 26.4
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.1341,
+    "percent": 21.2
+   },
+   {
+    "name": "read node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.1326,
+    "percent": 20.9
+   },
+   {
+    "name": "list node_modules/solid-js/dist/solid.js",
+    "msPerOperation": 0.1326,
+    "percent": 20.9
+   },
+   {
+    "name": "link node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.1263,
+    "percent": 19.9
+   },
+   {
+    "name": "trimStaleDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0387,
+    "percent": 6.1
+   },
+   {
+    "name": "setSignal node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0196,
+    "percent": 3.1
+   },
+   {
+    "name": "schedule node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0195,
+    "percent": 3.1
+   },
+   {
+    "name": "queueMicrotask (native)",
+    "msPerOperation": 0.019,
+    "percent": 3
+   },
+   {
+    "name": "deleteFromHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0164,
+    "percent": 2.6
+   },
+   {
+    "name": "clearDeps node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0055,
+    "percent": 0.9
+   },
+   {
+    "name": "runDisposal node_modules/@solidjs/signals/dist/prod/core/owner.js",
+    "msPerOperation": 0.0043,
+    "percent": 0.7
+   },
+   {
+    "name": "unlinkSubs node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0037,
+    "percent": 0.6
+   },
+   {
+    "name": "handleAsync node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "msPerOperation": 0.0032,
+    "percent": 0.5
+   },
+   {
+    "name": "insertSubs node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.003,
+    "percent": 0.5
+   },
+   {
+    "name": "(anonymous) node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "msPerOperation": 0.0025,
+    "percent": 0.4
+   },
+   {
+    "name": "untrack node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0025,
+    "percent": 0.4
+   },
+   {
+    "name": "enqueueSub node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0023,
+    "percent": 0.4
+   },
+   {
+    "name": "isThenable node_modules/@solidjs/signals/dist/prod/core/async.js",
+    "msPerOperation": 0.0017,
+    "percent": 0.3
+   },
+   {
+    "name": "pullComputed node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0009,
+    "percent": 0.1
+   },
+   {
+    "name": "insertIntoHeap node_modules/@solidjs/signals/dist/prod/core/heap.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "serve node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "flatten node_modules/@solidjs/signals/dist/prod/flatten.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "normalize node_modules/@solidjs/web/dist/web.js",
+    "msPerOperation": 0.0008,
+    "percent": 0.1
+   },
+   {
+    "name": "readerSeesCommitted node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0007,
+    "percent": 0.1
+   },
+   {
+    "name": "sweepDormant node_modules/@solidjs/signals/dist/prod/core/graph.js",
+    "msPerOperation": 0.0006,
+    "percent": 0.1
+   },
+   {
+    "name": "stagedRead node_modules/@solidjs/signals/dist/prod/core/core.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "commitPendingNodes node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   },
+   {
+    "name": "settle node_modules/@solidjs/signals/dist/prod/core/scheduler.js",
+    "msPerOperation": 0.0001,
+    "percent": 0
+   }
+  ]
+ }
+]

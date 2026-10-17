@@ -1,0 +1,970 @@
+[
+ {
+  "operation": "clear1k",
+  "repeats": 1000,
+  "sampledMsPerOperation": 0.3978,
+  "inclusive": [
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1741",
+    "msPerOperation": 0.3971,
+    "percent": 99.8
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1752",
+    "msPerOperation": 0.3877,
+    "percent": 97.5
+   },
+   {
+    "name": "RegionSite__FlushReleased_Z1FBCCD16 experiments/Ranvier.View.Foundation/Mounting.js:1471",
+    "msPerOperation": 0.2359,
+    "percent": 59.3
+   },
+   {
+    "name": "Row_ClearBetween_54F25073 experiments/Ranvier.View.Foundation/Mounting.js:1224",
+    "msPerOperation": 0.2351,
+    "percent": 59.1
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js:1198",
+    "msPerOperation": 0.1164,
+    "percent": 29.3
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js:1236",
+    "msPerOperation": 0.1164,
+    "percent": 29.3
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js:1319",
+    "msPerOperation": 0.1164,
+    "percent": 29.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1780",
+    "msPerOperation": 0.1164,
+    "percent": 29.3
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js:912",
+    "msPerOperation": 0.1159,
+    "percent": 29.1
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:959",
+    "msPerOperation": 0.1115,
+    "percent": 28
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:958",
+    "msPerOperation": 0.1115,
+    "percent": 28
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js:1040",
+    "msPerOperation": 0.111,
+    "percent": 27.9
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js:1087",
+    "msPerOperation": 0.0887,
+    "percent": 22.3
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js:857",
+    "msPerOperation": 0.0692,
+    "percent": 17.4
+   },
+   {
+    "name": "(garbage collector)",
+    "msPerOperation": 0.0306,
+    "percent": 7.7
+   },
+   {
+    "name": "Row_ValidateWindow_53A768FB experiments/Ranvier.View.Foundation/Mounting.js:1239",
+    "msPerOperation": 0.0236,
+    "percent": 5.9
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1731",
+    "msPerOperation": 0.0083,
+    "percent": 2.1
+   },
+   {
+    "name": "RegionSite__ReleaseRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1440",
+    "msPerOperation": 0.0069,
+    "percent": 1.7
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1755",
+    "msPerOperation": 0.0066,
+    "percent": 1.7
+   },
+   {
+    "name": "MarkDirty src/Ranvier/Projections.js:450",
+    "msPerOperation": 0.0055,
+    "percent": 1.4
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js:1537",
+    "msPerOperation": 0.0051,
+    "percent": 1.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1802",
+    "msPerOperation": 0.0046,
+    "percent": 1.2
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1805",
+    "msPerOperation": 0.0041,
+    "percent": 1
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js:1280",
+    "msPerOperation": 0.003,
+    "percent": 0.8
+   },
+   {
+    "name": "RegionSite__ReleasedAll experiments/Ranvier.View.Foundation/Mounting.js:1454",
+    "msPerOperation": 0.003,
+    "percent": 0.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:938",
+    "msPerOperation": 0.003,
+    "percent": 0.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:1043",
+    "msPerOperation": 0.0026,
+    "percent": 0.7
+   },
+   {
+    "name": "RowsOf$3__CreateAdded src/Ranvier/Projections.js:1991",
+    "msPerOperation": 0.0025,
+    "percent": 0.6
+   },
+   {
+    "name": "CreateAdded src/Ranvier/Projections.js:1816",
+    "msPerOperation": 0.0025,
+    "percent": 0.6
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js:2076",
+    "msPerOperation": 0.0025,
+    "percent": 0.6
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js:1812",
+    "msPerOperation": 0.0025,
+    "percent": 0.6
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js:1108",
+    "msPerOperation": 0.002,
+    "percent": 0.5
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js:1179",
+    "msPerOperation": 0.002,
+    "percent": 0.5
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js:2195",
+    "msPerOperation": 0.002,
+    "percent": 0.5
+   },
+   {
+    "name": "RegionSite__Parent experiments/Ranvier.View.Foundation/Mounting.js:1418",
+    "msPerOperation": 0.0015,
+    "percent": 0.4
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js:119",
+    "msPerOperation": 0.0015,
+    "percent": 0.4
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Applied src/Ranvier/Projections.js:2093",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "Applied src/Ranvier/Projections.js:1838",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "ClearStaged src/Ranvier/Projections.js:1833",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "Row__set_Removed_Z1FBCCD16 experiments/Ranvier.View.Foundation/Mounting.js:1183",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "RegionSite__get_Deferring experiments/Ranvier.View.Foundation/Mounting.js:1432",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js:1165",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "AddSource src/Ranvier/Projections.js:445",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1736",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   },
+   {
+    "name": "KeyedProjection$3__Read src/Ranvier/Projections.js:2144",
+    "msPerOperation": 0.0005,
+    "percent": 0.1
+   }
+  ]
+ },
+ {
+  "operation": "remove10k",
+  "repeats": 200,
+  "sampledMsPerOperation": 0.9921,
+  "inclusive": [
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1741",
+    "msPerOperation": 0.9103,
+    "percent": 91.8
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1752",
+    "msPerOperation": 0.4806,
+    "percent": 48.4
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js:1537",
+    "msPerOperation": 0.3177,
+    "percent": 32
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1802",
+    "msPerOperation": 0.3152,
+    "percent": 31.8
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1805",
+    "msPerOperation": 0.3041,
+    "percent": 30.7
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js:1198",
+    "msPerOperation": 0.3012,
+    "percent": 30.4
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js:1236",
+    "msPerOperation": 0.3012,
+    "percent": 30.4
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js:1319",
+    "msPerOperation": 0.3012,
+    "percent": 30.4
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1780",
+    "msPerOperation": 0.3012,
+    "percent": 30.4
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js:912",
+    "msPerOperation": 0.2992,
+    "percent": 30.2
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js:1040",
+    "msPerOperation": 0.1958,
+    "percent": 19.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:959",
+    "msPerOperation": 0.1958,
+    "percent": 19.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:958",
+    "msPerOperation": 0.1958,
+    "percent": 19.7
+   },
+   {
+    "name": "(garbage collector)",
+    "msPerOperation": 0.1654,
+    "percent": 16.7
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js:1108",
+    "msPerOperation": 0.1499,
+    "percent": 15.1
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js:1165",
+    "msPerOperation": 0.1474,
+    "percent": 14.9
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js:1280",
+    "msPerOperation": 0.1225,
+    "percent": 12.3
+   },
+   {
+    "name": "Projection$2__rowObserved_2E247979 src/Ranvier/Projections.js:1782",
+    "msPerOperation": 0.0964,
+    "percent": 9.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:1171",
+    "msPerOperation": 0.0964,
+    "percent": 9.7
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js:2076",
+    "msPerOperation": 0.0933,
+    "percent": 9.4
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js:1812",
+    "msPerOperation": 0.0933,
+    "percent": 9.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:938",
+    "msPerOperation": 0.0933,
+    "percent": 9.4
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js:1179",
+    "msPerOperation": 0.0718,
+    "percent": 7.2
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js:2195",
+    "msPerOperation": 0.056,
+    "percent": 5.6
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js:1087",
+    "msPerOperation": 0.0443,
+    "percent": 4.5
+   },
+   {
+    "name": "KeyedProjection$3__Read src/Ranvier/Projections.js:2144",
+    "msPerOperation": 0.0373,
+    "percent": 3.8
+   },
+   {
+    "name": "Row__set_Index_Z524259A4 experiments/Ranvier.View.Foundation/Mounting.js:1175",
+    "msPerOperation": 0.0202,
+    "percent": 2
+   },
+   {
+    "name": "MountState__releaseNodes_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:2000",
+    "msPerOperation": 0.0129,
+    "percent": 1.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1698",
+    "msPerOperation": 0.0129,
+    "percent": 1.3
+   },
+   {
+    "name": "RegionSite__FlushReleased_Z1FBCCD16 experiments/Ranvier.View.Foundation/Mounting.js:1471",
+    "msPerOperation": 0.0126,
+    "percent": 1.3
+   },
+   {
+    "name": "KeyedProjection$3__take_Z524259A4 src/Ranvier/Projections.js:2308",
+    "msPerOperation": 0.0125,
+    "percent": 1.3
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js:857",
+    "msPerOperation": 0.0119,
+    "percent": 1.2
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js:119",
+    "msPerOperation": 0.0099,
+    "percent": 1
+   },
+   {
+    "name": "remove experiments/Ranvier.View.Foundation/Mounting.js:59",
+    "msPerOperation": 0.0075,
+    "percent": 0.8
+   },
+   {
+    "name": "Row_Remove_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1208",
+    "msPerOperation": 0.0075,
+    "percent": 0.8
+   },
+   {
+    "name": "MountState__removeRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1955",
+    "msPerOperation": 0.0075,
+    "percent": 0.8
+   },
+   {
+    "name": "RegionSite__ReleaseRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1440",
+    "msPerOperation": 0.0055,
+    "percent": 0.6
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1731",
+    "msPerOperation": 0.0055,
+    "percent": 0.6
+   },
+   {
+    "name": "remove (native)",
+    "msPerOperation": 0.005,
+    "percent": 0.5
+   },
+   {
+    "name": "Row_ValidateWindow_53A768FB experiments/Ranvier.View.Foundation/Mounting.js:1239",
+    "msPerOperation": 0.005,
+    "percent": 0.5
+   },
+   {
+    "name": "AddSource src/Ranvier/Projections.js:445",
+    "msPerOperation": 0.0049,
+    "percent": 0.5
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1736",
+    "msPerOperation": 0.0049,
+    "percent": 0.5
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Applied src/Ranvier/Projections.js:2093",
+    "msPerOperation": 0.0025,
+    "percent": 0.3
+   },
+   {
+    "name": "Applied src/Ranvier/Projections.js:1838",
+    "msPerOperation": 0.0025,
+    "percent": 0.3
+   }
+  ]
+ },
+ {
+  "operation": "remove1k",
+  "repeats": 2000,
+  "sampledMsPerOperation": 0.0777,
+  "inclusive": [
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1741",
+    "msPerOperation": 0.0652,
+    "percent": 83.9
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1752",
+    "msPerOperation": 0.0376,
+    "percent": 48.4
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1802",
+    "msPerOperation": 0.0243,
+    "percent": 31.3
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js:1537",
+    "msPerOperation": 0.0243,
+    "percent": 31.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1805",
+    "msPerOperation": 0.0236,
+    "percent": 30.3
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js:1198",
+    "msPerOperation": 0.0231,
+    "percent": 29.8
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js:1236",
+    "msPerOperation": 0.0231,
+    "percent": 29.8
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js:1319",
+    "msPerOperation": 0.0231,
+    "percent": 29.8
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1780",
+    "msPerOperation": 0.0231,
+    "percent": 29.8
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js:912",
+    "msPerOperation": 0.0229,
+    "percent": 29.5
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:958",
+    "msPerOperation": 0.0128,
+    "percent": 16.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:959",
+    "msPerOperation": 0.0125,
+    "percent": 16.1
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js:1040",
+    "msPerOperation": 0.0123,
+    "percent": 15.8
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js:1280",
+    "msPerOperation": 0.0121,
+    "percent": 15.6
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js:2076",
+    "msPerOperation": 0.0099,
+    "percent": 12.7
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js:1812",
+    "msPerOperation": 0.0099,
+    "percent": 12.7
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:938",
+    "msPerOperation": 0.0099,
+    "percent": 12.7
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js:1108",
+    "msPerOperation": 0.0097,
+    "percent": 12.5
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js:1165",
+    "msPerOperation": 0.0083,
+    "percent": 10.7
+   },
+   {
+    "name": "(garbage collector)",
+    "msPerOperation": 0.0073,
+    "percent": 9.4
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js:2195",
+    "msPerOperation": 0.0059,
+    "percent": 7.6
+   },
+   {
+    "name": "KeyedProjection$3__Read src/Ranvier/Projections.js:2144",
+    "msPerOperation": 0.0035,
+    "percent": 4.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:1171",
+    "msPerOperation": 0.0034,
+    "percent": 4.4
+   },
+   {
+    "name": "RegionSite__FlushReleased_Z1FBCCD16 experiments/Ranvier.View.Foundation/Mounting.js:1471",
+    "msPerOperation": 0.0028,
+    "percent": 3.6
+   },
+   {
+    "name": "MountState__releaseNodes_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:2000",
+    "msPerOperation": 0.0027,
+    "percent": 3.5
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1698",
+    "msPerOperation": 0.0027,
+    "percent": 3.5
+   },
+   {
+    "name": "Projection$2__rowObserved_2E247979 src/Ranvier/Projections.js:1782",
+    "msPerOperation": 0.0025,
+    "percent": 3.2
+   },
+   {
+    "name": "remove experiments/Ranvier.View.Foundation/Mounting.js:59",
+    "msPerOperation": 0.0022,
+    "percent": 2.9
+   },
+   {
+    "name": "Row_Remove_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1208",
+    "msPerOperation": 0.0022,
+    "percent": 2.9
+   },
+   {
+    "name": "MountState__removeRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1955",
+    "msPerOperation": 0.0022,
+    "percent": 2.9
+   },
+   {
+    "name": "Projection$2__RetireRemoved_Z524259A4 src/Ranvier/Projections.js:1087",
+    "msPerOperation": 0.0021,
+    "percent": 2.7
+   },
+   {
+    "name": "KeyedProjection$3__take_Z524259A4 src/Ranvier/Projections.js:2308",
+    "msPerOperation": 0.002,
+    "percent": 2.5
+   },
+   {
+    "name": "remove (native)",
+    "msPerOperation": 0.0019,
+    "percent": 2.4
+   },
+   {
+    "name": "RegionSite__Parent experiments/Ranvier.View.Foundation/Mounting.js:1418",
+    "msPerOperation": 0.001,
+    "percent": 1.3
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js:119",
+    "msPerOperation": 0.0009,
+    "percent": 1.2
+   },
+   {
+    "name": "Projection$2__Retire_2E247979 src/Ranvier/Projections.js:857",
+    "msPerOperation": 0.0009,
+    "percent": 1.1
+   },
+   {
+    "name": "Row_ValidateWindow_53A768FB experiments/Ranvier.View.Foundation/Mounting.js:1239",
+    "msPerOperation": 0.0005,
+    "percent": 0.7
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js:1179",
+    "msPerOperation": 0.0005,
+    "percent": 0.6
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1755",
+    "msPerOperation": 0.0005,
+    "percent": 0.6
+   },
+   {
+    "name": "Row__set_Index_Z524259A4 experiments/Ranvier.View.Foundation/Mounting.js:1175",
+    "msPerOperation": 0.0003,
+    "percent": 0.3
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Applied src/Ranvier/Projections.js:2093",
+    "msPerOperation": 0.0002,
+    "percent": 0.3
+   },
+   {
+    "name": "Applied src/Ranvier/Projections.js:1838",
+    "msPerOperation": 0.0002,
+    "percent": 0.3
+   },
+   {
+    "name": "Projection$2__publishKeys src/Ranvier/Projections.js:1760",
+    "msPerOperation": 0.0002,
+    "percent": 0.3
+   },
+   {
+    "name": "RegionSite__ReleaseRow_Z6DD5078F experiments/Ranvier.View.Foundation/Mounting.js:1440",
+    "msPerOperation": 0.0002,
+    "percent": 0.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1731",
+    "msPerOperation": 0.0002,
+    "percent": 0.3
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js:1820",
+    "msPerOperation": 0.0002,
+    "percent": 0.2
+   }
+  ]
+ },
+ {
+  "operation": "swap1k",
+  "repeats": 2000,
+  "sampledMsPerOperation": 0.1187,
+  "inclusive": [
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1741",
+    "msPerOperation": 0.1162,
+    "percent": 97.9
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1752",
+    "msPerOperation": 0.0578,
+    "percent": 48.7
+   },
+   {
+    "name": "RegionSite__Settle_Z7FD688B0 experiments/Ranvier.View.Foundation/Mounting.js:1537",
+    "msPerOperation": 0.0542,
+    "percent": 45.6
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1802",
+    "msPerOperation": 0.0539,
+    "percent": 45.4
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1805",
+    "msPerOperation": 0.0519,
+    "percent": 43.7
+   },
+   {
+    "name": "Projection$2__Get_2B595 src/Ranvier/Projections.js:1347",
+    "msPerOperation": 0.0301,
+    "percent": 25.3
+   },
+   {
+    "name": "Projection$2__EnsureCurrent src/Ranvier/Projections.js:1198",
+    "msPerOperation": 0.0284,
+    "percent": 23.9
+   },
+   {
+    "name": "Projection$2__get_Keys src/Ranvier/Projections.js:1319",
+    "msPerOperation": 0.0277,
+    "percent": 23.3
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1780",
+    "msPerOperation": 0.0277,
+    "percent": 23.3
+   },
+   {
+    "name": "Projection$2__PullFor_7E1B59FA src/Ranvier/Projections.js:1236",
+    "msPerOperation": 0.0274,
+    "percent": 23.1
+   },
+   {
+    "name": "Row_ValidateWindow_53A768FB experiments/Ranvier.View.Foundation/Mounting.js:1239",
+    "msPerOperation": 0.0265,
+    "percent": 22.4
+   },
+   {
+    "name": "Projection$2__Run src/Ranvier/Projections.js:912",
+    "msPerOperation": 0.0261,
+    "percent": 22
+   },
+   {
+    "name": "Projection$2__GetRow_Z1FE5A521 src/Ranvier/Projections.js:1379",
+    "msPerOperation": 0.022,
+    "percent": 18.5
+   },
+   {
+    "name": "Projection$2__SettleAdditions src/Ranvier/Projections.js:1108",
+    "msPerOperation": 0.0147,
+    "percent": 12.4
+   },
+   {
+    "name": "Projection$2__ApplyDiff_Z524259A4 src/Ranvier/Projections.js:1040",
+    "msPerOperation": 0.0147,
+    "percent": 12.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:959",
+    "msPerOperation": 0.0147,
+    "percent": 12.4
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:958",
+    "msPerOperation": 0.0147,
+    "percent": 12.4
+   },
+   {
+    "name": "Projection$2__ObservePass src/Ranvier/Projections.js:1165",
+    "msPerOperation": 0.0134,
+    "percent": 11.3
+   },
+   {
+    "name": "(garbage collector)",
+    "msPerOperation": 0.0123,
+    "percent": 10.3
+   },
+   {
+    "name": "Row_Layout_6A012CAE experiments/Ranvier.View.Foundation/Mounting.js:1280",
+    "msPerOperation": 0.0119,
+    "percent": 10
+   },
+   {
+    "name": "Enumerate src/Ranvier/Projections.js:1812",
+    "msPerOperation": 0.0102,
+    "percent": 8.6
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:938",
+    "msPerOperation": 0.0102,
+    "percent": 8.6
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Enumerate src/Ranvier/Projections.js:2076",
+    "msPerOperation": 0.01,
+    "percent": 8.4
+   },
+   {
+    "name": "Projection$2__ReadRow_2E247979 src/Ranvier/Projections.js:1274",
+    "msPerOperation": 0.0077,
+    "percent": 6.5
+   },
+   {
+    "name": "KeyedProjection$3__Trim src/Ranvier/Projections.js:2195",
+    "msPerOperation": 0.0075,
+    "percent": 6.3
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:1171",
+    "msPerOperation": 0.0052,
+    "percent": 4.4
+   },
+   {
+    "name": "Row_Place_5A2396D1 experiments/Ranvier.View.Foundation/Mounting.js:1273",
+    "msPerOperation": 0.0046,
+    "percent": 3.9
+   },
+   {
+    "name": "Projection$2__rowObserved_2E247979 src/Ranvier/Projections.js:1782",
+    "msPerOperation": 0.0044,
+    "percent": 3.7
+   },
+   {
+    "name": "insertBefore (native)",
+    "msPerOperation": 0.0044,
+    "percent": 3.7
+   },
+   {
+    "name": "Row_MoveBefore_5A2396D1 experiments/Ranvier.View.Foundation/Mounting.js:1195",
+    "msPerOperation": 0.0044,
+    "percent": 3.7
+   },
+   {
+    "name": "visit src/Ranvier/Projections.js:2215",
+    "msPerOperation": 0.0036,
+    "percent": 3.1
+   },
+   {
+    "name": "RegionSite__Parent experiments/Ranvier.View.Foundation/Mounting.js:1418",
+    "msPerOperation": 0.0018,
+    "percent": 1.5
+   },
+   {
+    "name": "KeyedProjection$3__Read src/Ranvier/Projections.js:2144",
+    "msPerOperation": 0.0015,
+    "percent": 1.3
+   },
+   {
+    "name": "Row__get_Removed experiments/Ranvier.View.Foundation/Mounting.js:1179",
+    "msPerOperation": 0.001,
+    "percent": 0.9
+   },
+   {
+    "name": "Row__set_Index_Z524259A4 experiments/Ranvier.View.Foundation/Mounting.js:1175",
+    "msPerOperation": 0.0007,
+    "percent": 0.6
+   },
+   {
+    "name": "KeyedProjection$3__take_Z524259A4 src/Ranvier/Projections.js:2308",
+    "msPerOperation": 0.0007,
+    "percent": 0.6
+   },
+   {
+    "name": "Projection$2__get_OnceValue src/Ranvier/Projections.js:594",
+    "msPerOperation": 0.0005,
+    "percent": 0.4
+   },
+   {
+    "name": "Projection$2__publishKeys src/Ranvier/Projections.js:1760",
+    "msPerOperation": 0.0005,
+    "percent": 0.4
+   },
+   {
+    "name": "RowsOf$3__Stage_5BDD81 src/Ranvier/Projections.js:1867",
+    "msPerOperation": 0.0003,
+    "percent": 0.3
+   },
+   {
+    "name": "OnceRow$3__get_Value src/Ranvier/Projections.js:177",
+    "msPerOperation": 0.0003,
+    "percent": 0.3
+   },
+   {
+    "name": "(anonymous) src/Ranvier/Projections.js:1957",
+    "msPerOperation": 0.0003,
+    "percent": 0.3
+   },
+   {
+    "name": "Row__get_Mount experiments/Ranvier.View.Foundation/Mounting.js:1187",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "KeyedProjection$3__KeyOf_2B595 src/Ranvier/Projections.js:2181",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "Ranvier.RowsOf`3.Applied src/Ranvier/Projections.js:2093",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "Applied src/Ranvier/Projections.js:1838",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "RegionErrors__Report_Z36D62A65 experiments/Ranvier.View.Foundation/Mounting.js:232",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "Projection$2__get_Runs src/Ranvier/Projections.js:1597",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "same$1 experiments/Ranvier.View.Foundation/Mounting.js:119",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "(anonymous) experiments/Ranvier.View.Foundation/Mounting.js:1755",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "RegionSite__get_Errors experiments/Ranvier.View.Foundation/Mounting.js:1394",
+    "msPerOperation": 0.0003,
+    "percent": 0.2
+   },
+   {
+    "name": "RowBuilder__get_Staging experiments/Ranvier.View.Foundation/Mounting.js:1359",
+    "msPerOperation": 0.0002,
+    "percent": 0.2
+   },
+   {
+    "name": "CommitWrites src/Ranvier/Projections.js:1820",
+    "msPerOperation": 0.0002,
+    "percent": 0.2
+   },
+   {
+    "name": "ClearStaged src/Ranvier/Projections.js:1833",
+    "msPerOperation": 0.0002,
+    "percent": 0.2
+   }
+  ]
+ }
+]

@@ -1,0 +1,516 @@
+{
+  "measuredAt": "2026-10-14T01:09:14.052Z",
+  "chromium": "153.0.8010.12",
+  "sourceMap": "index-DZUAjp4v.js.map",
+  "configuration": "production unminified diagnostic bundle; sampling enabled only for CPU profiles",
+  "modes": [
+    "ranvier-template",
+    "solid"
+  ],
+  "phases": [
+    "mount",
+    "dispose"
+  ],
+  "results": [
+    {
+      "mode": "ranvier-template",
+      "phase": "mount",
+      "width": 1,
+      "timingsUs": [
+        16.874999972060323,
+        18.90625001396984,
+        25.781250034924597,
+        12.968750030267984,
+        10.624999995343387,
+        14.062499976716936,
+        9.374999965075403
+      ],
+      "operations": {
+        "createComment": 2,
+        "claim": 3,
+        "createElement": 1,
+        "cloneNode": 1,
+        "appendChild": 1,
+        "insertBefore": 3,
+        "addEventListener": 1
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 290.6599999908358,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 46.13
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 42.774
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 38.159
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 35.945
+        },
+        {
+          "functionName": "(anonymous):4536",
+          "ms": 27.452
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 22.655
+        },
+        {
+          "functionName": "host:26345",
+          "ms": 16.835
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 14.621
+        },
+        {
+          "functionName": "append:0",
+          "ms": 13.781
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 10.017
+        },
+        {
+          "functionName": "delegateFrom:6064",
+          "ms": 9.009
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 8.863
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 8.568
+        },
+        {
+          "functionName": "fill:1304",
+          "ms": 8.56
+        },
+        {
+          "functionName": "claim:6103",
+          "ms": 7.069
+        },
+        {
+          "functionName": "ObserverSet__Remove_7E1B59FA:2516",
+          "ms": 6.929
+        },
+        {
+          "functionName": "collect:5418",
+          "ms": 6.864
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 6.769
+        },
+        {
+          "functionName": "createComment:0",
+          "ms": 6.477
+        },
+        {
+          "functionName": "unclaim:6106",
+          "ms": 5.077
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 5.037
+        },
+        {
+          "functionName": "write:5383",
+          "ms": 3.695
+        },
+        {
+          "functionName": "equals$1:212",
+          "ms": 3.242
+        },
+        {
+          "functionName": "Ranvier_Graph__Graph_Run_FCFD9EF:4926",
+          "ms": 3.136
+        },
+        {
+          "functionName": "validNameCharacters:4271",
+          "ms": 3.054
+        }
+      ]
+    },
+    {
+      "mode": "ranvier-template",
+      "phase": "dispose",
+      "width": 1,
+      "timingsUs": [
+        1.7187499906867743,
+        1.4062499976716936,
+        1.2500000302679837,
+        1.2500000302679837,
+        1.0937500046566129,
+        0.9374999790452421,
+        0.937500037252903
+      ],
+      "operations": {
+        "removeEventListener": 1,
+        "remove": 3,
+        "unclaim": 3
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 83.05999998375773,
+      "hotspots": [
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 45.776
+        },
+        {
+          "functionName": "(program):0",
+          "ms": 42.733
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 39.794
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 31.669
+        },
+        {
+          "functionName": "(anonymous):4536",
+          "ms": 28.432
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 17.875
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 15.813
+        },
+        {
+          "functionName": "host:26345",
+          "ms": 15.494
+        },
+        {
+          "functionName": "fill:1304",
+          "ms": 13.699
+        },
+        {
+          "functionName": "append:0",
+          "ms": 12.586
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 12.081
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 10.248
+        },
+        {
+          "functionName": "collect:5418",
+          "ms": 9.823
+        },
+        {
+          "functionName": "delegateFrom:6064",
+          "ms": 8.786
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 7.086
+        },
+        {
+          "functionName": "unclaim:6106",
+          "ms": 6.832
+        },
+        {
+          "functionName": "createComment:0",
+          "ms": 6.413
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 6.092
+        },
+        {
+          "functionName": "write:5383",
+          "ms": 5.88
+        },
+        {
+          "functionName": "prepare:26379",
+          "ms": 5.709
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 5.105
+        },
+        {
+          "functionName": "claim:6103",
+          "ms": 4.839
+        },
+        {
+          "functionName": "FSharpRef$1:425",
+          "ms": 4.26
+        },
+        {
+          "functionName": "Mounted__Dispose:6926",
+          "ms": 3.967
+        },
+        {
+          "functionName": "equals$1:212",
+          "ms": 3.523
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "mount",
+      "width": 1,
+      "timingsUs": [
+        12.500000011641532,
+        10.000000009313226,
+        10.937499988358468,
+        8.28124996041879,
+        8.12499999301508,
+        20.625000004656613,
+        6.562500027939677
+      ],
+      "operations": {
+        "addEventListener": 2,
+        "cloneNode": 2,
+        "insertBefore": 1,
+        "appendChild": 1
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 240.2599999960512,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 50.769
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 44.739
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 28.153
+        },
+        {
+          "functionName": "(anonymous):12773",
+          "ms": 24.806
+        },
+        {
+          "functionName": "(anonymous):12429",
+          "ms": 21.171
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 20.021
+        },
+        {
+          "functionName": "host:26345",
+          "ms": 14.672
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 12.661
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 12.612
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 12.329
+        },
+        {
+          "functionName": "recompute:11345",
+          "ms": 10.99
+        },
+        {
+          "functionName": "disposeChildren:10638",
+          "ms": 10.517
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 8.653
+        },
+        {
+          "functionName": "Row$1:12759",
+          "ms": 7.936
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 7.625
+        },
+        {
+          "functionName": "unregisterDelegatedRoot:12457",
+          "ms": 7.545
+        },
+        {
+          "functionName": "append:0",
+          "ms": 7.463
+        },
+        {
+          "functionName": "queueMicrotask:0",
+          "ms": 7.104
+        },
+        {
+          "functionName": "unregisterDelegatedContainer:12473",
+          "ms": 6.529
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 5.931
+        },
+        {
+          "functionName": "effect$1:12059",
+          "ms": 5.85
+        },
+        {
+          "functionName": "createElement:0",
+          "ms": 5.483
+        },
+        {
+          "functionName": "unlinkSubs:10823",
+          "ms": 5.277
+        },
+        {
+          "functionName": "insertExpression:12635",
+          "ms": 4.456
+        },
+        {
+          "functionName": "registerDelegatedContainer:12462",
+          "ms": 4.234
+        }
+      ]
+    },
+    {
+      "mode": "solid",
+      "phase": "dispose",
+      "width": 1,
+      "timingsUs": [
+        1.0937500046566129,
+        0.7812499534338713,
+        1.0937500046566129,
+        1.0937500046566129,
+        0.7812499534338713,
+        0.937500037252903,
+        0.7812499534338713
+      ],
+      "operations": {
+        "removeEventListener": 2
+      },
+      "profiledRoots": 256,
+      "profiledRuns": 160,
+      "profiledRunMs": 64.95000000484288,
+      "hotspots": [
+        {
+          "functionName": "(program):0",
+          "ms": 52.603
+        },
+        {
+          "functionName": "cloneNode:0",
+          "ms": 44.41
+        },
+        {
+          "functionName": "(anonymous):12773",
+          "ms": 29.482
+        },
+        {
+          "functionName": "(garbage collector):0",
+          "ms": 27.59
+        },
+        {
+          "functionName": "(anonymous):12429",
+          "ms": 21.016
+        },
+        {
+          "functionName": "appendChild:0",
+          "ms": 17.298
+        },
+        {
+          "functionName": "append:0",
+          "ms": 15.646
+        },
+        {
+          "functionName": "addEventListener:0",
+          "ms": 15.042
+        },
+        {
+          "functionName": "host:26345",
+          "ms": 11.561
+        },
+        {
+          "functionName": "(idle):0",
+          "ms": 11.526
+        },
+        {
+          "functionName": "recompute:11345",
+          "ms": 10.453
+        },
+        {
+          "functionName": "(anonymous):12788",
+          "ms": 10.02
+        },
+        {
+          "functionName": "removeEventListener:0",
+          "ms": 9.323
+        },
+        {
+          "functionName": "setAttribute:0",
+          "ms": 8.752
+        },
+        {
+          "functionName": "insertExpression:12635",
+          "ms": 7.371
+        },
+        {
+          "functionName": "unregisterDelegatedRoot:12457",
+          "ms": 6.499
+        },
+        {
+          "functionName": "disposeChildren:10638",
+          "ms": 6.432
+        },
+        {
+          "functionName": "queueMicrotask:0",
+          "ms": 6.035
+        },
+        {
+          "functionName": "remove:0",
+          "ms": 5.413
+        },
+        {
+          "functionName": "(anonymous):12480",
+          "ms": 4.725
+        },
+        {
+          "functionName": "Row$1:12759",
+          "ms": 4.627
+        },
+        {
+          "functionName": "insertBefore:0",
+          "ms": 4.494
+        },
+        {
+          "functionName": "unlinkSubs:10823",
+          "ms": 4.375
+        },
+        {
+          "functionName": "createEffectNode:11625",
+          "ms": 3.709
+        },
+        {
+          "functionName": "effect$1:12059",
+          "ms": 3.567
+        }
+      ]
+    }
+  ],
+  "probes": []
+}
