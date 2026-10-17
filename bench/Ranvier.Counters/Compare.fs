@@ -22,7 +22,7 @@ type Kind =
     /// <summary>A gate regression in a runtime whose control moved between the sides.</summary>
     | Inconclusive
 
-/// <summary>Both sides' process samples and their comparison, including GC and acceptance flags.</summary>
+/// <summary>Both sides' process samples and their comparison, including GC, compilation and acceptance flags.</summary>
 type Finding =
     {
         Runtime: string
@@ -37,6 +37,8 @@ type Finding =
         Accepted: bool
         BaseGc: bool
         HeadGc: bool
+        BaseCompiled: bool
+        HeadCompiled: bool
     }
 
 /// <summary>An acceptance reason scoped to exact scenario names or <c>all</c>, with its source.</summary>
@@ -422,10 +424,13 @@ let verdict gate threshold floor failing (accept: Acceptance) (run: AbRun) =
                         |> Option.bind (fun s ->
                             s.Metrics
                             |> Array.tryFind (fun m -> m.Name = metric)
-                            |> Option.map (fun m -> m.Value, s.Gc)))
+                            |> Option.map (fun m -> m.Value, s.Gc, s.Compiled)))
 
                 let bs, hs = samples "base", samples "head"
-                let b, h = Array.map fst bs, Array.map fst hs
+                let value (v, _, _) = v
+                let gc (_, g, _) = g
+                let compiled (_, _, c) = c
+                let b, h = Array.map value bs, Array.map value hs
 
                 let kind =
                     if
@@ -467,8 +472,10 @@ let verdict gate threshold floor failing (accept: Acceptance) (run: AbRun) =
                         Accepted =
                             kind = Regressed
                             && (accept.All || List.contains scenario accept.Names)
-                        BaseGc = bs |> Array.exists snd
-                        HeadGc = hs |> Array.exists snd
+                        BaseGc = bs |> Array.exists gc
+                        HeadGc = hs |> Array.exists gc
+                        BaseCompiled = bs |> Array.exists compiled
+                        HeadCompiled = hs |> Array.exists compiled
                     }
         |]
 
@@ -642,7 +649,7 @@ let markdown (accept: Acceptance) (verdicts: Verdict list) =
             line "<details>"
             line ($"<summary>{escape v.Leg} / {escape runtime}: all metrics</summary>")
             line ""
-            line "Base → head medians; identical values appear once. GC flags cover any measured process."
+            line "Base → head medians; identical values appear once. GC and JIT flags cover any measured process."
             line ""
 
             let metrics =
@@ -652,13 +659,13 @@ let markdown (accept: Acceptance) (verdicts: Verdict list) =
                 |> Array.sort
 
             line (
-                "| Scenario | Engine | GC base/head | "
+                "| Scenario | Engine | GC base/head | JIT base/head | "
                 + (metrics |> Array.map escape |> String.concat " | ")
                 + " |"
             )
 
             line (
-                "|---|---|---|"
+                "|---|---|---|---|"
                 + (metrics
                    |> Array.map (fun _ -> "---:")
                    |> String.concat "|")
@@ -668,7 +675,7 @@ let markdown (accept: Acceptance) (verdicts: Verdict list) =
             for (scenario, engine), fs in
                 rows
                 |> Array.groupBy (fun f -> f.Scenario, f.Engine) do
-                let gc side =
+                let flag side =
                     if fs |> Array.exists side then "yes" else "no"
 
                 let cells =
@@ -688,7 +695,7 @@ let markdown (accept: Acceptance) (verdicts: Verdict list) =
                         | None -> "—")
 
                 line (
-                    $"| {escape scenario} | {escape engine} | {gc _.BaseGc}/{gc _.HeadGc} | "
+                    $"| {escape scenario} | {escape engine} | {flag _.BaseGc}/{flag _.HeadGc} | {flag _.BaseCompiled}/{flag _.HeadCompiled} | "
                     + String.concat " | " cells
                     + " |"
                 )
@@ -846,6 +853,8 @@ let main args =
                                     Accepted = f.Accepted
                                     BaseGc = f.BaseGc
                                     HeadGc = f.HeadGc
+                                    BaseCompiled = f.BaseCompiled
+                                    HeadCompiled = f.HeadCompiled
                                 |})
                     |})
         |}

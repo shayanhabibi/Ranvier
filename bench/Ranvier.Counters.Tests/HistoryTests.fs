@@ -22,6 +22,7 @@ let private ab head rows : AbRun =
                             Scenario = s
                             Engine = "Ranvier"
                             Gc = i = 0
+                            Compiled = false
                             Metrics =
                                 [|
                                     {

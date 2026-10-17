@@ -148,6 +148,7 @@ let private validateNode (run: NodeRuns.NodeRun) =
         for m in case.Measurements do
             finite m.Bytes
             finite m.HeapUsedBytes
+            finite m.CodeBytes
 
             require
                 (m.Gen0Collections >= 0
@@ -178,6 +179,7 @@ let dotnetFigures commit index (run: WorkerRun) =
             Scenario = case.Scenario
             Engine = case.Engine
             Gc = a.Gen0Collections > 0 || b.Gen0Collections > 0
+            Compiled = false
             Metrics =
                 metrics
                     a.Ops
@@ -204,6 +206,7 @@ let dotnetCounterFigures commit (run: WorkerRun) =
             Scenario = case.Scenario
             Engine = case.Engine
             Gc = a.Gen0Collections > 0 || b.Gen0Collections > 0
+            Compiled = false
             Metrics =
                 library
                     a.Ops
@@ -235,6 +238,7 @@ let nodeFigures commit index (run: NodeRuns.NodeRun) (recorded: IReadOnlyDiction
             Scenario = case.Scenario
             Engine = case.Engine
             Gc = a.Gen0Collections > 0 || b.Gen0Collections > 0
+            Compiled = NodeRuns.compiled a || NodeRuns.compiled b
             Metrics =
                 metrics
                     a.Ops
@@ -261,6 +265,7 @@ let nodeCounterFigures commit (run: NodeRuns.NodeRun) =
             Scenario = case.Scenario
             Engine = case.Engine
             Gc = a.Gen0Collections > 0 || b.Gen0Collections > 0
+            Compiled = NodeRuns.compiled a || NodeRuns.compiled b
             Metrics = library a.Ops (a.Counters |> Array.map (fun c -> c.Name, c.Value)) (b.Counters |> Array.map (fun c -> c.Name, c.Value))
         })
     |> processFigures commit "node" 0
@@ -473,6 +478,27 @@ let main args =
 
     let cpu = machine ()
 
+    // One Node process per scenario; a harness without --list runs every scenario in one process.
+    let nodeRegions (script: string) (dir: string) =
+        let measure (run: (int -> bool -> int -> unit) -> NodeRuns.NodeRun) =
+            use recorder = new LinuxPmc.RegionRecorder ()
+            let result = run recorder.Mark
+            result, (Dictionary recorder.Regions :> IReadOnlyDictionary<_, _>)
+
+        match NodeRuns.scenarios o.Node script with
+        | Some names ->
+            names
+            |> Array.filter (fun name ->
+                o.Only
+                |> Option.forall (fun prefix -> name.StartsWith (prefix, StringComparison.Ordinal)))
+            |> Array.mapi (fun i name ->
+                let run, regions =
+                    measure (NodeRuns.runScenario o.Node script o.Scale name (Path.Combine (dir, $"node-%d{i}.json")))
+
+                name, run, regions)
+            |> NodeRuns.merge
+        | None -> measure (NodeRuns.runHandshake o.Node script o.Scale o.Only (Path.Combine (dir, "node.json")))
+
     let timing runtime side index =
         scratch (fun dir ->
             let output = Path.Combine (dir, "run.json")
@@ -491,23 +517,15 @@ let main args =
 
                     dotnetFigures side.Commit index run
                 else
-                    use recorder = new LinuxPmc.RegionRecorder ()
-
-                    let run =
-                        NodeRuns.runHandshake
-                            o.Node
-                            (Path.Combine (side.Directory, "fable", "plain", "Main.fs.js"))
-                            o.Scale
-                            o.Only
-                            output
-                            recorder.Mark
+                    let run, regions =
+                        nodeRegions (Path.Combine (side.Directory, "fable", "plain", "Main.fs.js")) dir
 
                     hardware
                         o.Leg
-                        (recorder.Regions.Values
+                        (regions.Values
                          |> Seq.map (fun m -> m.Instructions, m.Cycles, m.BranchMisses))
 
-                    nodeFigures side.Commit index run recorder.Regions
+                    nodeFigures side.Commit index run regions
 
             { figure with Side = side.Name })
 

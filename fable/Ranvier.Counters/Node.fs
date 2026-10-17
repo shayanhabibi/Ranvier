@@ -11,6 +11,13 @@ open Fable.Core
 [<Emit("globalThis.gc()")>]
 let collect () : unit = jsNative
 
+/// <summary>
+/// A young-generation collection. Installed code stays in place; a full collection deoptimises code embedding freed
+/// objects.
+/// </summary>
+[<Emit("globalThis.gc({ type: 'minor' })")>]
+let collectYoung () : unit = jsNative
+
 [<Emit("typeof globalThis.gc === 'function'")>]
 let canCollect () : bool = jsNative
 
@@ -45,6 +52,41 @@ let objectHeapUsed () =
             total <- total + spaceUsed space
 
     total
+
+let private codeSpaces =
+    set
+        [
+            "code_space"
+            "code_large_object_space"
+            "trusted_space"
+            "trusted_large_object_space"
+        ]
+
+/// <summary>
+/// Bytes in use in the heap spaces holding bytecode and machine code. The total grows whenever V8 compiles a
+/// function, at any tier.
+/// </summary>
+let codeHeapUsed () =
+    let mutable total = 0.0
+
+    for space in heapSpaceStatistics () do
+        if codeSpaces.Contains (spaceName space) then
+            total <- total + spaceUsed space
+
+    total
+
+[<Import("setFlagsFromString", "node:v8")>]
+let private setFlags (flags: string) : unit = jsNative
+
+/// <summary>
+/// Enables or disables tier-up to Sparkplug, Maglev and TurboFan. While disabled, every function keeps its
+/// current tier or drops to the interpreter on deoptimisation.
+/// </summary>
+let setTierUp (enabled: bool) =
+    let prefix = if enabled then "--" else "--no-"
+
+    for compiler in [ "sparkplug"; "maglev"; "turbofan" ] do
+        setFlags (prefix + compiler)
 
 [<Import("GCProfiler", "node:v8")>]
 let private gcProfilerType: obj = jsNative
@@ -86,27 +128,48 @@ let private firstByte (buffer: obj) : int = jsNative
 let private errorCode (error: exn) : string = jsNative
 
 /// <summary>
-/// Writes <c>line</c> and a newline to standard output, unbuffered.
+/// Writes <c>line</c> and a newline to the file descriptor <c>fd</c>, unbuffered.
 /// </summary>
-let writeLine (line: string) =
-    writeSync (1, line + "\n")
+let writeLine (fd: int) (line: string) =
+    writeSync (fd, line + "\n")
 
 /// <summary>
-/// Blocks until standard input yields a newline or ends.
+/// Blocks until the file descriptor <c>fd</c> yields a newline or ends.
 /// </summary>
-let waitLine () =
+let waitLine (fd: int) =
     let buffer = allocBuffer 1
     let mutable finished = false
 
     while not finished do
         let read =
             try
-                readSync (0, buffer, 0, 1, null)
+                readSync (fd, buffer, 0, 1, null)
             with error when errorCode error = "EAGAIN" ->
                 -1
 
         if read = 0 || (read = 1 && firstByte buffer = 10) then
             finished <- true
+
+[<Import("devNull", "node:os")>]
+let private devNull: string = jsNative
+
+[<Import("openSync", "node:fs")>]
+let private openSync (path: string, flags: string) : int = jsNative
+
+[<Import("closeSync", "node:fs")>]
+let private closeSync (fd: int) : unit = jsNative
+
+/// <summary>
+/// Compiles <c>writeLine</c> and <c>waitLine</c> by exchanging one line with the null device.
+/// </summary>
+let compileLines () =
+    let fd = openSync (devNull, "r+")
+
+    try
+        writeLine fd ""
+        waitLine fd
+    finally
+        closeSync fd
 
 /// <summary>
 /// Blocks the thread for <c>milliseconds</c>, which switches it out.

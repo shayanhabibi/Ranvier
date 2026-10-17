@@ -130,6 +130,7 @@ let tests =
                         Region = region
                         Bytes = bytes
                         HeapUsedBytes = 0.
+                        CodeBytes = 0.
                         Gen0Collections = 0
                         NoGcRegion = true
                         Counters = [||]
@@ -201,6 +202,53 @@ let tests =
                     }
 
                 Expect.throws (fun () -> Ab.nodeFigures "abc" 0 bad regions |> ignore) "NaN"
+
+                let withCode small large =
+                    { run with
+                        Cases =
+                            [|
+                                { run.Cases[0] with
+                                    Measurements =
+                                        [|
+                                            { nm 50 0 100. with CodeBytes = small }
+                                            { nm 100 1 300. with CodeBytes = large }
+                                        |]
+                                }
+                            |]
+                    }
+
+                regions[1] <-
+                    { LinuxPmc.Counts.Unmeasured with
+                        Instructions = 3000L
+                        CpuNs = 1500L
+                    }
+
+                let compiled small large =
+                    (Ab.nodeFigures "abc" 0 (withCode small large) regions).Scenarios[0].Compiled
+
+                Expect.isFalse (compiled 0. 0.) "unchanged code spaces"
+                Expect.isTrue (compiled 1. 0.) "compiled at N"
+                Expect.isTrue (compiled 0. 1.) "compiled at 2N"
+                Expect.isFalse (compiled -4096. 0.) "code freed by a collection"
+                Expect.isFalse (figure worker).Scenarios[0].Compiled ".NET"
+
+                Expect.throws
+                    (fun () ->
+                        Ab.nodeFigures "abc" 0 (withCode Double.NaN 0.) regions
+                        |> ignore)
+                    "NaN code growth"
+            }
+            test "Node results that predate the code-space field read as compilation-free" {
+                let json =
+                    """{"ProcessId":2,"CountersCompiled":false,"Cases":[{"Scenario":"s","Engine":"e","Unit":"u","Measurements":[{"Ops":1,"Region":0,"Bytes":0,"HeapUsedBytes":0,"Gen0Collections":0,"NoGcRegion":true,"Counters":[]}]}]}"""
+
+                let run = Text.Json.JsonSerializer.Deserialize<NodeRuns.NodeRun> json
+                Expect.isFalse (NodeRuns.compiled run.Cases[0].Measurements[0]) "missing CodeBytes"
+
+                let figures =
+                    Text.Json.JsonSerializer.Deserialize<ScenarioFigures> """{"Scenario":"s","Engine":"e","Gc":false,"Metrics":[]}"""
+
+                Expect.isFalse figures.Compiled "missing Compiled"
             }
             test "invalid CLI arguments never create an artifact" {
                 for args in

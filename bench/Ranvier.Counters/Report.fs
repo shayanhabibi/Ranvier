@@ -564,6 +564,10 @@ type NodeRow =
         /// </summary>
         GcFree: bool
         /// <summary>
+        /// False when V8 compiled inside any region of any run.
+        /// </summary>
+        CompileFree: bool
+        /// <summary>
         /// Signals, memos, effects and owners created. Present for
         /// Ranvier when a <c>counters</c> build ran.
         /// </summary>
@@ -678,6 +682,11 @@ let nodeRows (sources: string[]) (allocation: NodeRuns.NodeRun[]) (counters: Nod
                 |> Array.forall (fun run ->
                     run.Cases[i].Measurements
                     |> Array.forall (fun m -> m.NoGcRegion))
+            CompileFree =
+                allocation
+                |> Array.forall (fun run ->
+                    run.Cases[i].Measurements
+                    |> Array.forall (NodeRuns.compiled >> not))
             ObjectsPerOp =
                 if perOpCounters.Length = 0 then
                     None
@@ -794,12 +803,14 @@ let nodeMarkdown (sources: string[]) (section: NodeSection) =
 
             let gc = if row.GcFree then "" else " (GC in region)"
 
+            let jit = if row.CompileFree then "" else " (compiled in region)"
+
             line (
                 "| "
                 + String.Join (
                     " | ",
                     [|
-                        engineLabel section.Versions row.Engine
+                        engineLabel section.Versions row.Engine + jit
                         yield! pmc
                         format row.Bytes.Median + gc
                         range row.Bytes

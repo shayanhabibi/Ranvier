@@ -120,3 +120,122 @@ let tests =
             }
         ]
     |> testSequenced
+
+let private measurement region : NodeRuns.NodeMeasurement =
+    {
+        Ops = 1 + region % 2
+        Region = region
+        Bytes = 0.
+        HeapUsedBytes = 0.
+        CodeBytes = 0.
+        Gen0Collections = 0
+        NoGcRegion = true
+        Counters = [||]
+    }
+
+let private nodeRun pid (cases: (string * int list) list) : NodeRuns.NodeRun =
+    {
+        ProcessId = pid
+        CountersCompiled = false
+        Cases =
+            [|
+                for scenario, regions in cases ->
+                    {
+                        Scenario = scenario
+                        Engine = "Ranvier"
+                        Unit = "op"
+                        Measurements = regions |> List.map measurement |> List.toArray
+                    }
+            |]
+    }
+
+let private recorded (pairs: (int * string) list) =
+    readOnlyDict pairs
+
+let private script (source: string) body =
+    nodeAvailable ()
+
+    let directory =
+        Path.Combine (Path.GetTempPath (), "ranvier-list-test-" + Guid.NewGuid().ToString "N")
+
+    Directory.CreateDirectory directory |> ignore
+
+    try
+        let path = Path.Combine (directory, "fixture.cjs")
+        File.WriteAllText (path, source)
+        body directory path
+    finally
+        Directory.Delete (directory, true)
+
+[<Tests>]
+let perScenario =
+    testList
+        "Node per-scenario runs"
+        [
+            test "merge keeps each run's own scenario and renumbers its regions in order" {
+                let run, regions =
+                    NodeRuns.merge
+                        [|
+                            "create", nodeRun 11 [ "create", [ 0; 1 ]; "create-on", [ 2; 3 ] ], recorded [ 0, "a"; 1, "b"; 2, "x"; 3, "y" ]
+                            "keyed", nodeRun 12 [ "keyed", [ 0; 1 ]; "keyed", [ 2; 3 ] ], recorded [ 0, "c"; 1, "d"; 2, "e"; 3, "f" ]
+                        |]
+
+                Expect.equal run.ProcessId 11 "first process ID"
+                Expect.equal (run.Cases |> Array.map _.Scenario) [| "create"; "keyed"; "keyed" |] "own scenarios in order"
+
+                Expect.equal
+                    (run.Cases
+                     |> Array.collect (fun c ->
+                         c.Measurements
+                         |> Array.map (fun m -> m.Region, m.Ops)))
+                    [| 0, 1; 1, 2; 2, 1; 3, 2; 4, 1; 5, 2 |]
+                    "regions renumbered, measurements kept"
+
+                Expect.equal [ for i in 0..5 -> regions[i] ] [ "a"; "b"; "c"; "d"; "e"; "f" ] "counts follow their regions"
+                Expect.equal regions.Count 6 "no other regions"
+            }
+            test "merge rejects an empty selection, a run without its scenario and an unrecorded region" {
+                Expect.throws
+                    (fun () ->
+                        NodeRuns.merge ([||]: (string * NodeRuns.NodeRun * Collections.Generic.IReadOnlyDictionary<int, string>)[])
+                        |> ignore)
+                    "no runs"
+
+                Expect.throws
+                    (fun () ->
+                        NodeRuns.merge [| "create", nodeRun 1 [ "create-on", [ 0; 1 ] ], recorded [ 0, "a"; 1, "b" ] |]
+                        |> ignore)
+                    "scenario absent from its run"
+
+                Expect.throws
+                    (fun () ->
+                        NodeRuns.merge [| "create", nodeRun 1 [ "create", [ 0; 1 ] ], recorded [ 0, "a" ] |]
+                        |> ignore)
+                    "region absent from the recording"
+            }
+            test "scenarios reads the harness list and passes every V8 flag" {
+                script
+                    "if (process.argv.includes('--list')) { process.stdout.write('alpha\\nbeta\\n\\n'); require('fs').writeFileSync(__dirname + '/flags', process.execArgv.join(' ')); } else process.exit(3);"
+                    (fun directory path ->
+                        Expect.equal (NodeRuns.scenarios "node" path) (Some [| "alpha"; "beta" |]) "listed names"
+                        Expect.equal (File.ReadAllText (Path.Combine (directory, "flags"))) (String.Join (" ", NodeRuns.flags)) "flags")
+            }
+            test "scenarios is None for a harness that rejects --list, lists nothing or fails" {
+                script "console.error('Unknown argument'); process.exit(1);" (fun _ path -> Expect.isNone (NodeRuns.scenarios "node" path) "rejected")
+
+                script "" (fun _ path -> Expect.isNone (NodeRuns.scenarios "node" path) "empty")
+
+                script "process.stdout.write('alpha\\n'); process.exit(1);" (fun _ path ->
+                    Expect.isNone (NodeRuns.scenarios "node" path) "names from a failed run")
+            }
+            test "runScenario selects its scenario by exact name" {
+                script
+                    "const fs = require('fs'); const a = process.argv; const name = a[a.indexOf('--scenario') + 1]; fs.writeFileSync(a[a.indexOf('--out') + 1], JSON.stringify({ProcessId: process.pid, CountersCompiled: false, Cases: [{Scenario: name, Engine: 'Test', Unit: 'op', Measurements: []}]}));"
+                    (fun directory path ->
+                        let run =
+                            NodeRuns.runScenario "node" path 1 "keyed-remove" (Path.Combine (directory, "out.json")) (fun _ _ _ -> ())
+
+                        Expect.equal run.Cases[0].Scenario "keyed-remove" "scenario argument")
+            }
+        ]
+    |> testSequenced

@@ -6,12 +6,14 @@ type Metric = { Name: string; Value: float }
 /// <summary>A named version, warning, or unavailable-baseline reason.</summary>
 type Label = { Name: string; Value: string }
 
-/// <summary>One scenario and engine, with a flag when either measured region collected.</summary>
+/// <summary>One scenario and engine, with flags for collection and compilation in either measured region.</summary>
 type ScenarioFigures =
     {
         Scenario: string
         Engine: string
         Gc: bool
+        /// <summary>V8 compiled inside either region. Always false for .NET, and in files that predate the field.</summary>
+        Compiled: bool
         Metrics: Metric[]
     }
 

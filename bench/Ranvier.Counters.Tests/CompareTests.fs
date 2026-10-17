@@ -26,6 +26,7 @@ let private run b h =
                         Scenario = "x"
                         Engine = "Ranvier"
                         Gc = (i = 0)
+                        Compiled = false
                         Metrics =
                             [|
                                 { Name = "instructions"; Value = value }
@@ -617,6 +618,42 @@ let tests =
                 Expect.stringContains text "y: separate" "separate scope"
                 Expect.stringContains text "<details>" "collapsed table"
                 Expect.stringContains text "GC" "GC flag"
+            testCase "a compiled region in any process flags its side"
+            <| fun _ ->
+                let r = run 1000. 1000.
+
+                let compiledHead =
+                    { r with
+                        Processes =
+                            r.Processes
+                            |> Array.map (fun p ->
+                                if
+                                    p.Side = "head"
+                                    && p.Runtime = "node"
+                                    && p.Process = 3
+                                then
+                                    { p with
+                                        Scenarios =
+                                            p.Scenarios
+                                            |> Array.map (fun s -> { s with Compiled = true })
+                                    }
+                                else
+                                    p)
+                    }
+
+                let v = verdict "instructions" 0.02 20. true none compiledHead
+
+                let finding runtime =
+                    v.Findings
+                    |> Array.find (fun f -> f.Runtime = runtime && f.Metric = "instructions")
+
+                Expect.isFalse (finding "node").BaseCompiled "base node"
+                Expect.isTrue (finding "node").HeadCompiled "head node"
+                Expect.isFalse (finding "dotnet").HeadCompiled "head dotnet"
+                let text = markdown none [ v ]
+                Expect.stringContains text "| GC base/head | JIT base/head |" "flag column"
+                Expect.stringContains text "| x | Ranvier | yes/yes | no/yes |" "node row"
+                Expect.stringContains text "| x | Ranvier | yes/yes | no/no |" "dotnet row"
             testCase "x64 regressions are advisory"
             <| fun _ ->
                 let r =
