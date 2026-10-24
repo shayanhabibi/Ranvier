@@ -32,6 +32,21 @@ module internal Platform =
         Operators.isNull value
 #endif
 
+    /// <summary>
+    /// The runtime type name of <c>value</c>: <c>"null"</c> for null, the CLR full name on .NET, and under Fable the
+    /// constructor name of an object or the <c>typeof</c> of a primitive.
+    /// </summary>
+#if FABLE_COMPILER
+    [<Emit("($0 == null ? 'null' : (typeof $0 === 'object' ? (($0.constructor && $0.constructor.name) || 'object') : typeof $0))")>]
+    let typeName (value: obj) : string =
+        nativeOnly
+#else
+    let typeName (value: obj) : string =
+        match value with
+        | null -> "null"
+        | value -> value.GetType().FullName
+#endif
+
 #if FABLE_COMPILER
     /// <summary>
     /// Constant under Fable. With one thread the comparison is always true,

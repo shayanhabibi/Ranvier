@@ -338,6 +338,150 @@ type StructuralPolicy() =
         member _.Comparer<'T>() =
             EqualityComparer<'T>.Default
 
+/// <summary>The input site a journal entry records.</summary>
+[<RequireQualifiedAccess>]
+type JournalEntryKind =
+    /// <summary>An external write to a signal.</summary>
+    | Write
+    /// <summary>A value published by an async source.</summary>
+    | Settle
+    /// <summary>A failure published by an async source.</summary>
+    | Fail
+    /// <summary>A message dispatched to a journaled MVU loop.</summary>
+    | Message
+    /// <summary>The end of a flush pass that followed at least one recorded entry.</summary>
+    | Flush
+
+    // AoT compat
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | JournalEntryKind.Write -> "Write"
+        | JournalEntryKind.Settle -> "Settle"
+        | JournalEntryKind.Fail -> "Fail"
+        | JournalEntryKind.Message -> "Message"
+        | JournalEntryKind.Flush -> "Flush"
+
+/// <summary>The value a journal entry carries.</summary>
+[<RequireQualifiedAccess>]
+type JournalPayload =
+    /// <summary>The payload of a <c>Flush</c> entry.</summary>
+    | Empty
+    /// <summary>The value as <c>data</c>, encoded by the codec named <c>codec</c> at <c>version</c>.</summary>
+    | Encoded of codec: string * version: int * data: string
+    /// <summary>
+    /// A value of <c>payloadType</c> written to an unkeyed node, or one its codec failed to encode. Replay fails on it.
+    /// </summary>
+    | NonReplayable of payloadType: string
+
+    // AoT compat
+    /// <summary>The case name and its fields.</summary>
+    override this.ToString() =
+        match this with
+        | JournalPayload.Empty -> "Empty"
+        | JournalPayload.Encoded (codec, version, data) ->
+            "Encoded ("
+            + codec
+            + ", "
+            + string version
+            + ", "
+            + data
+            + ")"
+        | JournalPayload.NonReplayable payloadType -> "NonReplayable " + payloadType
+
+/// <summary>Where a journaled input came from.</summary>
+[<RequireQualifiedAccess>]
+type JournalOrigin =
+    /// <summary>From outside the graph's computations and the application's attributed async work.</summary>
+    | External
+    /// <summary>
+    /// From the application's own async work: a message an <c>Mvu</c> command dispatches after its synchronous part, an
+    /// input passed to <c>Journal.produce</c>, or, on .NET, an input made in a continuation of an effect's body. A re-run
+    /// of that work produces the input again.
+    /// </summary>
+    /// <remarks>
+    /// The work is identified by <c>started</c>, the <c>Seq</c> of the last non-<c>Flush</c> entry recorded before the
+    /// work started (0 before the first entry), and <c>index</c>, the work's 0-based position among the works started
+    /// after that entry. A work re-run after the same entry carries the same pair, whatever the graph ran before.
+    /// <c>call</c> is the 0-based position of the input's call among the work's calls: each <c>Journal.produce</c>
+    /// call or <c>Mvu</c> command dispatch that made an input, recorded or not, and, on .NET, each input made in a
+    /// continuation of an effect's body outside its synchronous part.
+    /// </remarks>
+    | Produced of started: int * index: int * call: int
+
+    // AoT compat
+    /// <summary>The case name, followed by the work's <c>started</c>, <c>index</c> and <c>call</c> for <c>Produced</c>.</summary>
+    override this.ToString() =
+        match this with
+        | JournalOrigin.External -> "External"
+        | JournalOrigin.Produced (started, index, call) ->
+            "Produced ("
+            + string started
+            + ", "
+            + string index
+            + ", "
+            + string call
+            + ")"
+
+/// <summary>One input to a graph, in the order the graph thread observed it.</summary>
+type JournalEntry =
+    {
+        /// <summary>The entry format version, 2.</summary>
+        Schema: int
+
+        /// <summary>The <c>Stream</c> of the journal that recorded the entry.</summary>
+        Stream: string
+
+        /// <summary>
+        /// The 1-based position of the entry in its graph's journal. A snapshot taken at a position replays from the
+        /// entries after it.
+        /// </summary>
+        Seq: int
+
+        Kind: JournalEntryKind
+
+        /// <summary>The application key of the input node; <c>None</c> for an unkeyed node and for <c>Flush</c>.</summary>
+        Key: string option
+
+        /// <summary>The runtime type name of the value; empty for <c>Flush</c>.</summary>
+        PayloadType: string
+
+        Payload: JournalPayload
+
+        /// <summary><c>External</c> for <c>Flush</c>.</summary>
+        Origin: JournalOrigin
+    }
+
+/// <summary>Receives a graph's external inputs as they happen, on the graph thread.</summary>
+type IInputJournal =
+    /// <summary>The stream name copied into every recorded entry.</summary>
+    abstract Stream: string
+
+    /// <summary>Stores <c>entry</c>. An exception raised here propagates to the input that produced the entry.</summary>
+    abstract Record: entry: JournalEntry -> unit
+
+/// <summary>How a journal replay treats the async inputs it reaches.</summary>
+[<RequireQualifiedAccess>]
+type ReplayMode =
+    /// <summary>
+    /// Reproduces the recorded run: every entry is applied, and async sources settle and fail with the recorded
+    /// values. A re-run work's input is dropped while the replayed entries hold an unmatched <c>Produced</c> entry of
+    /// the same work and call; its other inputs are live.
+    /// </summary>
+    | Diagnostic
+    /// <summary>
+    /// Re-enacts the recorded run: the <c>External</c> entries are applied, and the <c>Produced</c> entries are skipped.
+    /// The application's async work runs again and produces them.
+    /// </summary>
+    | Reenact
+
+    // AoT compat
+    /// <summary>The case name.</summary>
+    override this.ToString() =
+        match this with
+        | ReplayMode.Diagnostic -> "Diagnostic"
+        | ReplayMode.Reenact -> "Reenact"
+
 /// <summary>
 /// Construction-time policy/configuration.
 /// </summary>
@@ -365,10 +509,16 @@ type GraphOptions =
         /// or the given manual pump otherwise.
         /// </summary>
         Dispatcher: IGraphDispatcher option
+
+        /// <summary>
+        /// The journal recording the graph's external inputs: signal writes, async-source settles and failures,
+        /// journaled messages and flush boundaries. <c>None</c> records nothing.
+        /// </summary>
+        Journal: IInputJournal option
     }
 
     /// <summary>
-    /// <c>===</c> equality, cancel-previous, thread-guarded.
+    /// <c>===</c> equality, cancel-previous, thread-guarded, no journal.
     /// The semantics a Solid user would expect, plus the one .NET has to add
     /// </summary>
     static member Default =
@@ -377,6 +527,7 @@ type GraphOptions =
             FlightPolicy = CancelPrevious
             ThreadAffinity = Guarded
             Dispatcher = None
+            Journal = None
         }
 
     /// <summary>These options, with <c>equality</c> deciding when a value has moved.</summary>
@@ -397,6 +548,10 @@ type GraphOptions =
             Dispatcher = Some dispatcher
         }
 
+    /// <summary>These options, with <c>journal</c> recording the graph's external inputs.</summary>
+    member this.WithJournal(journal: IInputJournal) =
+        { this with Journal = Some journal }
+
     // AoT compat
     /// <summary>The record's fields, one per line, in F# record syntax.</summary>
     override this.ToString() =
@@ -410,6 +565,11 @@ type GraphOptions =
             | Some dispatcher -> "Some " + text dispatcher
             | None -> "None"
 
+        let journal =
+            match this.Journal with
+            | Some journal -> "Some " + text journal
+            | None -> "None"
+
         "{ Equality = "
         + text this.Equality
         + "\n  FlightPolicy = "
@@ -418,6 +578,8 @@ type GraphOptions =
         + this.ThreadAffinity.ToString ()
         + "\n  Dispatcher = "
         + dispatcher
+        + "\n  Journal = "
+        + journal
         + " }"
 
 /// <summary>

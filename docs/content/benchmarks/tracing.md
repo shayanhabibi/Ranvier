@@ -130,6 +130,14 @@ the reason, and a new baseline directory under `docs/.ai/benchmarks/tracing/`.
 | Chromium retained heap per row | At most 5 % above 1,816 B (1,000 rows) and 1,584 B (10,000 rows). | Replicates differ by under 2 %. |
 | Chromium traced-to-untraced ratio | At most 1.25 times the measured ratio for operations whose per-process medians differ by under 15 %. | Per-process medians of most operations differ by under 15 %; operations with more spread are reported, not gated. |
 
+The input journal (`GraphOptions.Journal`) is compiled into the untraced build. With no journal, a
+signal write, an async-source settle, a flush and an untracked section each add one field load and
+a null check. Against its fork point, every untraced counter scenario keeps its bytes/op and library
+counters, except `server-render`, which builds a graph per request and gains 8 B/op for the graph's
+journal field. A paired, interleaved timing of a signal write and a four-memo chain shows no
+difference beyond an A/A run of the same harness. The figures are in
+`docs/.ai/benchmarks/journal/`.
+
 A Node.js counter row that ran a collection inside a measured region (`GC-free = no` in the
 report) understates its allocation and is not gated; most traced Node.js rows are in this state.
 The growth probe's bytes per event is the Node.js figure.

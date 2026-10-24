@@ -138,7 +138,7 @@ let main _ =
 
     equals
         "GraphOptions.Default"
-        "{ Equality = Ranvier.JsIdentityPolicy\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None }"
+        "{ Equality = Ranvier.JsIdentityPolicy\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None\n  Journal = None }"
         (GraphOptions.Default.ToString ())
 
     raises<NotReadyException> "a pending read" "NotReadyException " (fun () ->

@@ -66,6 +66,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Streams.fs | 26 | 26 | 26 | 26 | 26 | 26 | 1 | 0 |
 | PreviousValues.fs | 12 | 12 | 12 | 12 | 12 | 12 | 15 | 0 |
 | Texts.fs | 5 | 5 | 5 | 43 | 43 | 43 | 1 | 0 |
+| Journal.fs | 55 | 54 | 54 | 58 | 57 | 57 | 2 | 0 |
 | FailureOrigins.fs | 16 | 16 | 16 | 16 | 16 | 16 | 2 | 0 |
 | NullChecks.fs | 3 | 3 | 3 | 3 | 3 | 3 | 0 | 0 |
 | Editables.fs | 17 | 17 | 17 | 17 | 17 | 17 | 1 | 0 |
@@ -85,7 +86,7 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 | Conformance.fs | 104 | 104 | 104 | 104 | 104 | 104 | 0 | 0 |
 | Streams.fs (sources) | 9 | 9 | 9 | 9 | 9 | 9 | 0 | 0 |
 | Streams.fs (traces) | 0 | 0 | 0 | 3 | 3 | 3 | 0 | 0 |
-| **Total** | 1551 | 1530 | 1527 | 1769 | 1743 | 1740 | 144 | 1 |
+| **Total** | 1606 | 1584 | 1581 | 1827 | 1800 | 1797 | 146 | 1 |
 
 ## Tests.fs
 
@@ -2017,6 +2018,80 @@ Excluded tests exercise a .NET-only facility and are compiled out with `#if !FAB
 - trace text: snapshot maps (traced only)
 - trace text: dump (traced only)
 - trace text: timing (traced only)
+
+</details>
+
+## Journal.fs
+
+| Build | Failed | Inline | Promise | Difference |
+| --- | --- | --- | --- | --- |
+| untraced | a write after an await in an async memo's body is not journaled | failed | failed | Every `await` suspends |
+| traced | a write after an await in an async memo's body is not journaled | failed | failed | Every `await` suspends |
+
+| Excluded | Reason |
+| --- | --- |
+| an effect continuation's direct settle reaches each replay once | Fable has no async context to carry the work into a continuation. |
+| an external dispatch drained under an effect run's execution context records an External entry | Fable has no async context to carry the work into a continuation. |
+
+<details><summary>57 passed in every build and delivery that runs them</summary>
+
+- GraphOptions.Default has no journal
+- WithJournal sets the journal
+- an external write to an unkeyed signal records a non-replayable Write
+- an equal write is recorded
+- a graph without a journal records nothing and writes as before
+- writes made by a running computation are not journaled
+- a keyed write records its key and encoded value
+- Journal.key returns the signal it registers
+- a duplicate key on one graph raises, naming the key
+- a key registered in a disposed root is free again
+- a key registered in an owning memo's body is free again when the memo re-runs
+- Journal.key in a pure memo's body raises the scope error
+- a keyed node registered under a second key raises and keeps its first key
+- the same key on two graphs is allowed
+- Journal.key on a graph without a journal is a no-op
+- an Encode that raises records a non-replayable entry and the write lands
+- settles and failures of a keyed source record in graph-thread order
+- settles of an unkeyed source record non-replayable entries
+- a settle made by a running computation is not journaled
+- one Flush follows each flush pass that followed recorded entries
+- a batch of two writes gives two Write entries and one Flush
+- a write that queues nothing records no Flush
+- replay of writes, settles and failures into a fresh graph gives equal values
+- re-enactment applies an external settle once
+- Journal.replaying returns the mode while the replay runs
+- replay requires a graph with a journal
+- re-enactment re-runs the async work, and a changed async result flows through the replay
+- the entry unions print their case names
+- replay raises JournalReplayException / on a non-replayable entry
+- replay raises JournalReplayException / on a key the target graph lacks
+- replay raises JournalReplayException / on a codec name mismatch
+- replay raises JournalReplayException / on a codec version mismatch
+- replay raises JournalReplayException / on a decode error
+- replay raises JournalReplayException / on an entry kind the key's input does not take
+- Mvu.journal / an external dispatch records one Message entry and its flush
+- Mvu.journal / a dispatch from an effect records nothing
+- Mvu.journal / replay dispatches the recorded messages
+- Mvu.journal / a re-enactment applies a message a command dispatches after an await once
+- Mvu.journal / a diagnostic replay applies a message a command dispatches after an await once
+- Mvu.journal / a message a command dispatches after an await records a Produced entry
+- Mvu.journal / a diagnostic replay of a journal cut before a command dispatches applies the dispatch once
+- Mvu.journal / a diagnostic replay keeps the inputs of work started on the target before it
+- Mvu.journal / a diagnostic replay into a target that ran an extra effect first applies each message once
+- Mvu.journal / a diagnostic replay after a commanded message on the target applies each message once
+- Mvu.journal / a diagnostic replay into a fresh graph applies the dispatch of an initial command once
+- Mvu.journal / a second diagnostic replay into the same graph applies each message once
+- Mvu.journal / each replay mode applies a command's synchronous dispatch and its dispatch after an await once
+- Mvu.journal / a diagnostic replay after the gate opens applies a command's synchronous dispatch and its dispatch after an await once
+- Mvu.journal / a replay records the entries of the run it replays
+- Journal.produce / a write in a continuation records a Produced entry
+- Journal.produce / each replay mode applies a write in a continuation once
+- Journal.produce / an async memo's continuation write through Journal.produce reaches each replay once
+- Journal.produce / each replay mode applies a work's synchronous produce and its produce after an await once
+- Journal.produce / work captured with no journal runs its input
+- a traced Journal.key labels an unlabelled node with the key (traced only)
+- a traced Journal.key keeps an existing label (traced only)
+- a diagnostic replay of the traced cart gives the live run's snapshot and the why of every banner run (traced only)
 
 </details>
 

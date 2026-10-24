@@ -39,12 +39,12 @@ let tests =
                 let text = GraphOptions.Default.ToString ()
 
                 Expect.isTrue
-                    (text.EndsWith "\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None }")
+                    (text.EndsWith "\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None\n  Journal = None }")
                     "the fields after Equality"
 #if !FABLE_COMPILER
                 Expect.equal
                     text
-                    "{ Equality = Ranvier.JsIdentityPolicy\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None }"
+                    "{ Equality = Ranvier.JsIdentityPolicy\n  FlightPolicy = CancelPrevious\n  ThreadAffinity = Guarded\n  Dispatcher = None\n  Journal = None }"
                     "the record text"
 #endif
             }

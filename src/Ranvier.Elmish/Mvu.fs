@@ -29,6 +29,7 @@ type Mvu<'Model, 'Msg>
     (graph: Graph, init: 'Model, update: 'Msg -> 'Model -> 'Model, step: 'Msg -> 'Model -> 'Model * (('Msg -> unit) -> unit) list, commanded: bool) =
     let root = Signal<'Model>(graph, init)
     let mutable disposed = false
+    let mutable site: JournalSite<'Msg> = null
 
     do
         if not (obj.ReferenceEquals (getOwner (), graph.Root)) then
@@ -43,20 +44,29 @@ type Mvu<'Model, 'Msg>
                 root.Value <- model
                 this.Run commands
 
-    /// <summary>Runs <c>commands</c> in order with <c>Dispatch</c>, stopping once the owning scope is torn down.</summary>
+    /// <summary>
+    /// Runs <c>commands</c> in order with a dispatch of their shared <c>JournalWork</c>, stopping once the owning scope
+    /// is torn down.
+    /// </summary>
     member internal this.Run(commands: (('Msg -> unit) -> unit) list) =
-        let mutable rest = commands
+        if not commands.IsEmpty then
+            let work = Journal.work graph
 
-        while not disposed && not rest.IsEmpty do
-            rest.Head this.Dispatch
-            rest <- rest.Tail
+            let dispatch (msg: 'Msg) =
+                Journal.produce work (fun () -> this.Arrive msg)
+
+            let mutable rest = commands
+
+            while not disposed && not rest.IsEmpty do
+                rest.Head dispatch
+                rest <- rest.Tail
 
     /// <summary>A tracked read of the model.</summary>
     member _.Model = root.Value
 
     /// <summary>
-    /// Applies <c>update msg</c> to the model and writes the result, then runs the commands it returned, in order, with
-    /// <c>Dispatch</c> as their argument.
+    /// Applies <c>update msg</c> to the model and writes the result, then runs the commands it returned, in order. Each
+    /// command receives a dispatch that delivers as <c>Dispatch</c> does.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -72,9 +82,19 @@ type Mvu<'Model, 'Msg>
     /// </remarks>
     member this.Dispatch(msg: 'Msg) : unit =
         if graph.IsOnGraphThread then
+            this.Arrive msg
+        else
+            graph.Dispatch (fun () -> this.Arrive msg)
+
+    member private this.Arrive(msg: 'Msg) =
+        if isNull site then
             graph.Untrack (fun () -> this.Apply msg)
         else
-            graph.Dispatch (fun () -> this.Apply msg)
+            Journal.recordMessage site msg (fun () -> graph.Untrack (fun () -> this.Apply msg))
+
+    /// <summary>Registers the messages on the graph's journal under <c>key</c>.</summary>
+    member internal this.Journal(key: string, codec: JournalCodec<'Msg>) =
+        site <- Journal.messages key codec this.Dispatch graph
 
     /// <summary>A memo holding <c>select model</c>, owned by the current scope.</summary>
     /// <remarks>
@@ -110,8 +130,8 @@ module Mvu =
         Mvu<'Model, 'Msg>(Graph.Current, init, update, Unchecked.defaultof<_>, false)
 
     /// <summary>
-    /// A model from <c>init</c> whose <c>update</c> also returns commands. Each command receives <c>Dispatch</c>, after the
-    /// model write it came with.
+    /// A model from <c>init</c> whose <c>update</c> also returns commands. Each command runs after the model write it came
+    /// with, and receives a dispatch that delivers as <c>Dispatch</c> does.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -120,7 +140,7 @@ module Mvu =
     /// </para>
     /// <para>
     /// The model belongs to the current scope: once the scope is torn down, a dispatch drops its message, including a
-    /// dispatch from a command holding <c>Dispatch</c>, and a command list stops at the teardown. In the graph's root
+    /// dispatch from a command, and a command list stops at the teardown. In the graph's root
     /// scope the model stays live for the graph's lifetime.
     /// </para>
     /// </remarks>
@@ -135,4 +155,28 @@ module Mvu =
             Mvu<'Model, 'Msg>(Graph.Current, model, Unchecked.defaultof<_>, update, true)
 
         mvu.Run commands
+        mvu
+
+    /// <summary>
+    /// Registers <c>mvu</c>'s messages on its graph's journal under the application key <c>key</c>, encoded by
+    /// <c>codec</c>, and returns <c>mvu</c>. Does nothing when the graph has no journal.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A message dispatched from outside every computation records a <c>Message</c> entry. The model write and the
+    /// synchronous commands are derived from the message and record nothing. A message a command dispatches later, after
+    /// an <c>await</c>, records a <c>Produced</c> entry: <c>Reenact</c> skips it and the re-run command dispatches it
+    /// again, and under <c>Diagnostic</c> the entry is applied and the re-run command's matching dispatch is dropped. A message
+    /// dispatched by an effect or other computation records nothing.
+    /// </para>
+    /// <para>
+    /// <c>Journal.replay</c> applies a <c>Message</c> entry by dispatching the decoded message. The registration belongs
+    /// to the current scope, as <c>Journal.key</c>'s does.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="T:System.ArgumentException">
+    /// <c>key</c> is null or empty, or the graph already has an input registered under <c>key</c>.
+    /// </exception>
+    let journal (key: string) (codec: JournalCodec<'Msg>) (mvu: Mvu<'Model, 'Msg>) : Mvu<'Model, 'Msg> =
+        mvu.Journal (key, codec)
         mvu

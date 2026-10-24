@@ -37,6 +37,7 @@ const differences = {
         "a memo run inside a continuation keeps the edges it reads after settling another flight",
         "a read after an await on a completed task is tracked",
         "an async memo whose task captures a pending read is pending",
+        "a write after an await in an async memo's body is not journaled",
     ],
     "A `Queue` flight applies on a later microtask": [
         "Queue applies every result in the order the flights started",

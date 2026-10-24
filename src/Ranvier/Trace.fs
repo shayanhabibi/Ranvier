@@ -517,6 +517,23 @@ type internal TraceLog(locked: bool) =
 
             String.Concat (kind, " ", string id, named, at))
 
+    /// <summary>True when the node carries a label.</summary>
+    member _.HasLabel(id: int) : bool =
+        sync (fun () ->
+            let mutable state =
+                match dropped.TryGetValue id with
+                | true, state -> state
+                | _ -> struct ("node", null, null, -2)
+
+            for i in 0 .. events.Count - 1 do
+                let e = events[i]
+
+                if e.Node = id then
+                    state <- describeStep state e
+
+            let struct (_, _, label, _) = state
+            not (Platform.isNull label))
+
     /// <summary>Counts a run-scope discharge in progress, or ends one when <c>entering</c> is false.</summary>
     member _.Discharging(entering: bool) =
         sync (fun () -> discharges <- discharges + (if entering then 1 else -1))

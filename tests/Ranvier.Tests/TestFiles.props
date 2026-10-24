@@ -55,6 +55,7 @@
         <Compile Include="$(MSBuildThisFileDirectory)PreviousValues.fs" Link="PreviousValues.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)../TraceTextCases.fs" Link="TraceTextCases.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Texts.fs" Link="Texts.fs" />
+        <Compile Include="$(MSBuildThisFileDirectory)Journal.fs" Link="Journal.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)FailureOrigins.fs" Link="FailureOrigins.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)NullChecks.fs" Link="NullChecks.fs" />
         <Compile Include="$(MSBuildThisFileDirectory)Editables.fs" Link="Editables.fs" />
