@@ -100,7 +100,12 @@ module StyleSheets =
                 if isNull (box options) then
                     nullArg (nameof options)
 
-                if options.BaseUrl.IsSome && not supportsBaseUrl then
+                let baseUrl =
+                    match options.BaseUrl with
+                    | Some url when not (isNull url) -> Some url
+                    | _ -> None
+
+                if baseUrl.IsSome && not supportsBaseUrl then
                     raise (NotSupportedException "This browser does not support explicit stylesheet base URLs")
 
                 let media =
@@ -120,7 +125,7 @@ module StyleSheets =
                 properties.Add ("disabled", box options.Disabled)
                 properties.Add ("media", media)
 
-                match options.BaseUrl with
+                match baseUrl with
                 | Some url -> properties.Add ("baseURL", box url)
                 | None -> ()
 

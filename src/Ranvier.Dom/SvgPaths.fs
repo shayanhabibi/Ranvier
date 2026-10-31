@@ -15,13 +15,12 @@ module SvgPaths =
 
     /// <summary>Updates the authored <c>d</c> attribute for the engine to parse.</summary>
     /// <param name="path">The nonnull SVG path element.</param>
-    /// <param name="value"><c>None</c> removes the attribute; <c>Some ""</c> keeps a present empty value.</param>
-    /// <exception cref="T:System.ArgumentNullException">The path or a present string value is null.</exception>
+    /// <param name="value"><c>None</c> and <c>Some null</c> remove the attribute; <c>Some ""</c> keeps a present empty value.</param>
+    /// <exception cref="T:System.ArgumentNullException">The path is null.</exception>
     let setData (path: SVGPathElement) (value: string option) : unit =
         if isNull (box path) then
             nullArg "path"
 
         match value with
-        | None -> path.removeAttribute "d"
-        | Some data when isNull data -> nullArg "value"
-        | Some data -> path.setAttribute ("d", data)
+        | Some data when not (isNull data) -> path.setAttribute ("d", data)
+        | _ -> path.removeAttribute "d"
