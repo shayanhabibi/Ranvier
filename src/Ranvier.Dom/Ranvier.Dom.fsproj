@@ -33,6 +33,7 @@
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />
+    <Compile Include="MediaQueries.fs" />
     <Compile Include="ViewportScroll.fs" />
     <Compile Include="VisualViewport.fs" />
     <Compile Include="FormData.fs" />
