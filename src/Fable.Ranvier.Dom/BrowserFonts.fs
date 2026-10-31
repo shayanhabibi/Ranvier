@@ -31,6 +31,24 @@ module BrowserFonts =
     [<Emit("(() => { const f = $0.fonts, h = e => $1(e.type, (e.fontfaces ?? []).map(x => x.family)); for (const t of ['loading', 'loadingdone', 'loadingerror']) f.addEventListener(t, h); return { Dispose: () => { for (const t of ['loading', 'loadingdone', 'loadingerror']) f.removeEventListener(t, h); } }; })()")>]
     let private listen (document: Document) (handler: string -> string array -> unit) : IDisposable = jsNative
 
+    [<Emit("$0.fonts")>]
+    let private faceSet (document: Document) : FontFaceSet = jsNative
+
+    [<Emit("[...$0.fonts]")>]
+    let private faceValues (document: Document) : FontFace array = jsNative
+
+    [<Emit("new (($0.defaultView ?? globalThis).FontFace)($1, $2, Object.fromEntries($3))")>]
+    let private construct (document: Document) (family: string) (source: obj) (descriptors: (string * string) array) : FontFace = jsNative
+
+    [<Emit("new Uint8Array($0)")>]
+    let private bytes (data: byte array) : obj = jsNative
+
+    [<Emit("$0.load()")>]
+    let private loadFace (face: FontFace) : JS.Promise<FontFace> = jsNative
+
+    [<Emit("$0.loaded")>]
+    let private faceLoaded (face: FontFace) : JS.Promise<FontFace> = jsNative
+
     let private unquote (family: string) =
         if
             family.Length >= 2
@@ -69,6 +87,21 @@ module BrowserFonts =
 
             live.Add value |> ignore
             value
+
+        let settleFace (promise: JS.Promise<FontFace>) (terminal: ResourceOutcome<FontFace> -> unit) =
+            ensure ()
+            let operation = arbiter terminal
+
+            settled
+                promise
+                (fun face ->
+                    operation.Settle (ResourceOutcome.Succeeded face)
+                    |> ignore)
+                (fun error ->
+                    operation.Settle (ResourceOutcome.Failed (FontSetContract.faceFailure (errorName error)))
+                    |> ignore)
+
+            operation :> ResourceOperation<FontFace>
 
         { new FontSet with
             member _.Status =
@@ -141,6 +174,42 @@ module BrowserFonts =
 
                 subscriptions.Add subscription |> ignore
                 subscription
+
+            member _.Faces =
+                ensure ()
+                faceSet document
+
+            member _.Values() =
+                ensure ()
+                faceValues document |> List.ofArray
+
+            member _.Create(family, source, descriptors) =
+                ensure ()
+                FontSetContract.validateFace family source
+
+                let source =
+                    match source with
+                    | FontFaceSource.Css src -> box src
+                    | FontFaceSource.Bytes data -> bytes data
+
+                construct
+                    document
+                    family
+                    source
+                    (FontSetContract.descriptorPairs descriptors
+                     |> Array.ofList)
+
+            member _.LoadFace(face, terminal) =
+                if isNull (box face) then
+                    nullArg "face"
+
+                settleFace (loadFace face) terminal
+
+            member _.FaceLoaded(face, terminal) =
+                if isNull (box face) then
+                    nullArg "face"
+
+                settleFace (faceLoaded face) terminal
 
           interface IDisposable with
               member _.Dispose() =

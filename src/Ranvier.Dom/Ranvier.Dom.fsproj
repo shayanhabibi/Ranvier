@@ -5,7 +5,7 @@
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Dom</AssemblyName>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <Version>0.1.0-alpha.51</Version>
+    <Version>0.1.0-alpha.52</Version>
     <Description>Shared DOM contracts generated from the WebKit interfaces supported by Ranvier's native UI host.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsAotCompatible Condition="'$(TargetFramework)' == 'net10.0'">true</IsAotCompatible>
@@ -32,8 +32,11 @@
     <Compile Include="BinaryValues.fs" />
     <Compile Include="DataTransfers.fs" />
     <Compile Include="BlobUrls.fs" />
+    <Compile Include="MediaCapabilities.fs" />
+    <Compile Include="Snapshots.fs" />
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
+    <Compile Include="PointerInput.fs" />
     <Compile Include="Viewport.fs" />
     <Compile Include="MediaQueries.fs" />
     <Compile Include="ViewportScroll.fs" />
@@ -56,6 +59,7 @@
     <Compile Include="ValueFactories.fs" />
     <Compile Include="WakeLocks.fs" />
     <Compile Include="Notifications.fs" />
+    <Compile Include="Animations.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
