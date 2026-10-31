@@ -38,11 +38,14 @@ module BrowserDiagnostics =
     let private noMatchedRules =
         "Browsers expose no list of the style rules matching an element to pages."
 
+    let private noCascade =
+        "Browsers expose no cascade provenance to pages: getComputedStyle reports only the final value."
+
     /// <summary>A diagnostics service for <c>document</c>.</summary>
     /// <remarks>
     /// <c>BoxModel</c> derives the content, padding and margin boxes from <c>getBoundingClientRect</c> and the computed
     /// border, padding and margin widths, and answers <c>Unsupported</c> for a transformed element or ancestor, whose
-    /// bounding rectangle no longer determines them. The render tree and matched rules are <c>Unsupported</c>, as is a
+    /// bounding rectangle no longer determines them. The render tree, matched rules and cascade are <c>Unsupported</c>, as is a
     /// developer-tools frontend: a page cannot observe or attach one.
     /// </remarks>
     let forDocument (document: Document) : DiagnosticsService =
@@ -60,10 +63,12 @@ module BrowserDiagnostics =
                         MatchedRules = DiagnosticsAvailability.Unsupported noMatchedRules
                         BoxModel = DiagnosticsAvailability.Supported
                         DeveloperToolsFrontend = Diagnostics.noFrontend
+                        Cascade = DiagnosticsAvailability.Unsupported noCascade
                     }
                 SetEnabled = ignore
                 RenderTree = fun _ -> Error (DiagnosticsUnavailable.Unsupported noRenderTree)
                 MatchedRules = fun _ -> Error (DiagnosticsUnavailable.Unsupported noMatchedRules)
+                Cascade = fun _ -> Error (DiagnosticsUnavailable.Unsupported noCascade)
                 BoxModel =
                     fun element ->
                         match boxes element with
