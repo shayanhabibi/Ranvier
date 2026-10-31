@@ -1,9 +1,9 @@
 {
-  "checkedAtUtc": "2026-10-31T10:06:24.509860+00:00",
-  "purpose": "I08 event detail adapters Native39/ABI47, DOM alpha.42, Views 0.1.32, WebCore backend alpha.32 reservation (rehearsal; re-run after the T06/B22/G03/G04 merges)",
+  "checkedAtUtc": "2026-10-31T11:06:05.864783+00:00",
+  "purpose": "I08 event detail adapters Native39/ABI47, DOM alpha.42, Views 0.1.32, WebCore backend alpha.32 reservation re-run on the G04-merged heads",
   "abi": 47,
-  "stackedOn": "Core 522a7fa6 (D14 alpha.37), Views fc88949, native 6d5b3bd",
-  "abiNumberInUse": "host/RanvierWebCoreAbi.cpp:1248:int32_t rv_abi_version(void) { return 47; }",
+  "stackedOn": "Core 42f2e57b (G04 b59d5c56 alpha.41 merged), Views a204dd5 (G04 dbcf651 merged), native 2a9cf7d (G04 15e1bc9 merged)",
+  "abiNumberInUse": "host/RanvierWebCoreAbi.cpp:1311:int32_t rv_abi_version(void) { return 47; }",
   "packages": [
     {
       "package": "Ranvier.WebCore",
@@ -220,12 +220,6 @@
           "number": 135,
           "title": "feat(mathml): expose typed MathML elements (Native23/ABI31)",
           "url": "https://github.com/ranvier-org/Ranvier.WebCore/pull/135"
-        },
-        {
-          "headRefName": "codex/native-api-resource-completion",
-          "number": 133,
-          "title": "feat(resources): add image decode and font readiness without JavaScript (Native22/ABI30)",
-          "url": "https://github.com/ranvier-org/Ranvier.WebCore/pull/133"
         }
       ]
     },
@@ -274,18 +268,6 @@
           "number": 270,
           "title": "feat(dom): add qualified locale preference services",
           "url": "https://github.com/ranvier-org/Ranvier/pull/270"
-        },
-        {
-          "headRefName": "codex/native-api-svg-values",
-          "number": 269,
-          "title": "feat(dom): add SVG geometry and live value contracts (cohort 19)",
-          "url": "https://github.com/ranvier-org/Ranvier/pull/269"
-        },
-        {
-          "headRefName": "codex/native-api-timing",
-          "number": 268,
-          "title": "feat(dom): add shared monotonic user timing",
-          "url": "https://github.com/ranvier-org/Ranvier/pull/268"
         }
       ]
     },
