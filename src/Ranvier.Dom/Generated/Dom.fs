@@ -484,7 +484,7 @@ and [<AllowNullLiteral>] Element =
 
     /// <summary>Element.animate.</summary>
 #if FABLE_COMPILER
-    [<Fable.Core.Emit("$0.animate(((k)=>k==null?null:k.map((f)=>{const r={};for(const p of f.properties??[])r[p.name]=p.value;if(f.offset!=null)r.offset=f.offset;if(f.easing!=null)r.easing=f.easing;if(f.composite!=null)r.composite=f.composite;return r;}))($1), ((o)=>{if(o==null||typeof o!=='object')return o;const r={};for(const k of ['delay', 'endDelay', 'fill', 'iterationStart', 'iterations', 'direction', 'easing', 'iterationComposite', 'composite', 'pseudoElement', 'id', 'timeline'])if(o[k]!==undefined)r[k]=o[k];const d=o.duration;r.duration=d!=null&&typeof d==='object'&&Array.isArray(d.fields)?d.fields[0]:d;return r;})($2))")>]
+    [<Fable.Core.Emit("$0.animate(((k)=>k==null?null:k.map((f)=>{const r={};for(const p of f.properties??[])r[p.name]=p.value;if(f.offset!=null)r.offset=f.offset;if(f.easing!=null)r.easing=f.easing;if(f.composite!=null)r.composite=f.composite;return r;}))($1), ((o)=>{if(o==null||typeof o!=='object')return o;const r={};for(const k of ['delay', 'endDelay', 'fill', 'iterationStart', 'iterations', 'direction', 'easing', 'iterationComposite', 'composite', 'pseudoElement', 'id', 'timeline'])if(o[k]!==undefined)r[k]=o[k];const d=o.duration;r.duration=d!=null&&typeof d==='object'&&Array.isArray(d.fields)?d.fields[0]:d;for(const k of ['rangeStart','rangeEnd']){const u=o[k];if(u!==undefined)r[k]=u!=null&&typeof u==='object'&&Array.isArray(u.fields)?u.fields[0]:u;}return r;})($2))")>]
     abstract member __ranvier_animate: keyframes: (Keyframe) array * ?options: obj -> WebAnimation
 #else
     abstract member animate: keyframes: (Keyframe) array -> WebAnimation
@@ -5175,6 +5175,28 @@ and [<AllowNullLiteral>] WebAnimation =
 #else
     abstract member currentTime: (DoubleOrCSSNumericValue) option with get, set
 #endif
+
+    /// <summary>WebAnimation.rangeStart.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.rangeStart")>]
+    abstract member __ranvier_get_rangeStart: unit -> obj
+
+    [<Fable.Core.Emit("$0.rangeStart = $1")>]
+    abstract member __ranvier_set_rangeStart: value: obj -> unit
+#else
+    abstract member rangeStart: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString with get, set
+#endif
+
+    /// <summary>WebAnimation.rangeEnd.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.rangeEnd")>]
+    abstract member __ranvier_get_rangeEnd: unit -> obj
+
+    [<Fable.Core.Emit("$0.rangeEnd = $1")>]
+    abstract member __ranvier_set_rangeEnd: value: obj -> unit
+#else
+    abstract member rangeEnd: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString with get, set
+#endif
     /// <summary>WebAnimation.playbackRate.</summary>
     abstract member playbackRate: float with get, set
     /// <summary>WebAnimation.overallProgress.</summary>
@@ -5253,6 +5275,16 @@ and [<AllowNullLiteral>] ScrollTimeline =
     abstract member source: Element with get
     /// <summary>ScrollTimeline.axis.</summary>
     abstract member axis: ScrollAxis with get
+
+/// <summary>ViewTimeline in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ViewTimeline =
+    inherit ScrollTimeline
+    /// <summary>ViewTimeline.subject.</summary>
+    abstract member subject: Element with get
+    /// <summary>ViewTimeline.startOffset.</summary>
+    abstract member startOffset: CSSNumericValue with get
+    /// <summary>ViewTimeline.endOffset.</summary>
+    abstract member endOffset: CSSNumericValue with get
 
 /// <summary>HTMLUnknownElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLUnknownElement =
@@ -5637,6 +5669,13 @@ and [<RequireQualifiedAccess>] BooleanOrScrollIntoViewOptions =
     | Boolean of bool
     | ScrollIntoViewOptions of ScrollIntoViewOptions
 
+/// <summary>TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString in the scoped DOM interface model.</summary>
+and [<RequireQualifiedAccess>] TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+    | TimelineRangeOffset of TimelineRangeOffset
+    | CSSNumericValue of CSSNumericValue
+    | CSSOMKeywordValue of CSSKeywordValue
+    | DOMString of string
+
 /// <summary>UnrestrictedDoubleOrKeyframeAnimationOptions in the scoped DOM interface model.</summary>
 and [<RequireQualifiedAccess>] UnrestrictedDoubleOrKeyframeAnimationOptions =
     | UnrestrictedDouble of float
@@ -5834,6 +5873,18 @@ and [<AllowNullLiteral; DomDictionary>] KeyframeAnimationOptions() =
     member val pseudoElement: string = null with get, set
     member val id: string = "" with get, set
     member val timeline: (AnimationTimeline) option = None with get, set
+
+    member val rangeStart: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+        TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.DOMString "normal" with get, set
+
+    member val rangeEnd: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+        TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.DOMString "normal" with get, set
+
+
+/// <summary>TimelineRangeOffset in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral; DomDictionary>] TimelineRangeOffset() =
+    member val rangeName: (string) option = None with get, set
+    member val offset: (CSSNumericValue) option = None with get, set
 
 /// <summary>GetAnimationsOptions in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral; DomDictionary>] GetAnimationsOptions() =
@@ -6047,6 +6098,10 @@ module BrowserUnionAdapters =
     let private normalizeUSVString (_: string) : string =
         Fable.Core.Util.jsNative
 
+    [<Fable.Core.Emit("((v)=>{if(v==null||typeof v!=='object'||v.nodeType!==undefined)return false;try{globalThis.CSSStyleValue.prototype.toString.call(v);return false;}catch{return true;}})($0)")>]
+    let private isTimelineRangeOffset (_: obj) : bool =
+        Fable.Core.Util.jsNative
+
     [<Fable.Core.Emit("((v)=>{if(v==null)return false;try{globalThis.CSSNumericValue.prototype.type.call(v);return true;}catch{return false;}})($0)")>]
     let private isCSSNumericValue (_: obj) : bool =
         Fable.Core.Util.jsNative
@@ -6096,6 +6151,28 @@ module BrowserUnionAdapters =
         match value with
         | BooleanOrScrollIntoViewOptions.Boolean value -> box value
         | BooleanOrScrollIntoViewOptions.ScrollIntoViewOptions value -> box value
+
+    let private boxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString
+        (value: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString)
+        : obj =
+        match value with
+        | TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.TimelineRangeOffset value -> box value
+        | TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.CSSNumericValue value -> box value
+        | TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.CSSOMKeywordValue value -> box value
+        | TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.DOMString value -> box value
+
+    let private unboxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString
+        (value: obj)
+        : TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+        match value with
+        | arm when isTimelineRangeOffset arm ->
+            TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.TimelineRangeOffset (unbox<TimelineRangeOffset> arm)
+        | arm when isCSSNumericValue arm ->
+            TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.CSSNumericValue (unbox<CSSNumericValue> arm)
+        | arm when isCSSOMKeywordValue arm ->
+            TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.CSSOMKeywordValue (unbox<CSSKeywordValue> arm)
+        | :? string as arm -> TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString.DOMString arm
+        | _ -> failwith "Unexpected DOM union result"
 
     let private boxUnrestrictedDoubleOrKeyframeAnimationOptions (value: UnrestrictedDoubleOrKeyframeAnimationOptions) : obj =
         match value with
@@ -6595,6 +6672,20 @@ module BrowserUnionAdapters =
                     |> Option.map boxDoubleOrCSSNumericValue
                     |> Option.defaultValue null
                 )
+
+        member this.rangeStart
+            with get (): TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+                let value = this.__ranvier_get_rangeStart ()
+                unboxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString value
+            and set (value: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString) =
+                this.__ranvier_set_rangeStart (boxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString value)
+
+        member this.rangeEnd
+            with get (): TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString =
+                let value = this.__ranvier_get_rangeEnd ()
+                unboxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString value
+            and set (value: TimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString) =
+                this.__ranvier_set_rangeEnd (boxTimelineRangeOffsetOrCSSNumericValueOrCSSOMKeywordValueOrDOMString value)
 
 
     type AnimationTimeline with

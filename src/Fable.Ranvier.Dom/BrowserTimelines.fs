@@ -11,7 +11,7 @@ module BrowserTimelines =
     })()""")>]
     let private current (document: Document) : bool = jsNative
 
-    [<Emit("typeof $0.defaultView?.ScrollTimeline === 'function'")>]
+    [<Emit("typeof $0.defaultView?.ScrollTimeline === 'function' && typeof $0.defaultView?.ViewTimeline === 'function'")>]
     let private available (document: Document) : bool = jsNative
 
     [<Emit("new $0.defaultView.ScrollTimeline($1 == null ? {axis:$2} : {source:$1,axis:$2})")>]
@@ -19,6 +19,13 @@ module BrowserTimelines =
 
     [<Emit("new $0.defaultView.ScrollTimeline({source:null,axis:$1})")>]
     let private inactive (document: Document) (axis: ScrollAxis) : ScrollTimeline = jsNative
+
+    [<Emit("new $0.defaultView.ViewTimeline({subject:$1,axis:$2,inset:$3})")>]
+    let private view (document: Document) (subject: Element) (axis: ScrollAxis) (inset: obj) : ViewTimeline = jsNative
+
+    // The inset items' values, with each union case unwrapped.
+    [<Emit("$0.map((u)=>u!=null&&typeof u==='object'&&Array.isArray(u.fields)?u.fields[0]:u)")>]
+    let private items (insets: CSSNumericValueOrDOMStringOrCSSOMKeywordValue array) : obj = jsNative
 
     [<Emit("$0.name || 'Error'")>]
     let private errorName (error: obj) : string = jsNative
@@ -32,7 +39,7 @@ module BrowserTimelines =
             nullArg (nameof document)
 
         if not (current document) || not (available document) then
-            raise (NotSupportedException "Scroll timelines require an active document with the ScrollTimeline constructor")
+            raise (NotSupportedException "Timelines require an active document with the ScrollTimeline and ViewTimeline constructors")
 
         let mutable disposed = false
 
@@ -57,6 +64,18 @@ module BrowserTimelines =
             member _.CreateScrollTimelineWithoutSource?axis =
                 active ()
                 engine (fun () -> inactive document (defaultArg axis ScrollAxis.Block))
+
+            member _.CreateViewTimeline(subject, ?axis, ?inset) =
+                active ()
+                engine (fun () -> view document subject (defaultArg axis ScrollAxis.Block) (box (defaultArg inset "auto")))
+
+            member _.CreateViewTimelineWithInsets(subject, insets, ?axis) =
+                active ()
+
+                if isNull insets then
+                    nullArg (nameof insets)
+
+                engine (fun () -> view document subject (defaultArg axis ScrollAxis.Block) (items insets))
 
           interface IDisposable with
               member _.Dispose() =
