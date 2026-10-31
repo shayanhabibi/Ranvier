@@ -95,7 +95,7 @@ module BrowserBinaryValues =
                 raw?endings <- endings options.Endings
 
                 match options.LastModified with
-                | Some time -> raw?lastModified <- time
+                | Some time -> raw?lastModified <- float time
                 | None -> ()
 
                 file window (parts values) (wellFormed (BinaryValueContract.name name)) raw
