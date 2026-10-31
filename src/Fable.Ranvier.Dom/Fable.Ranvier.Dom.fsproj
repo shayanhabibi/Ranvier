@@ -5,7 +5,7 @@
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Fable.Ranvier.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Dom</AssemblyName>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <Version>0.1.0-alpha.31</Version>
+    <Version>0.1.0-alpha.32</Version>
     <Description>Fable DOM contracts sharing Ranvier.Dom's generated WebKit interface sources.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
