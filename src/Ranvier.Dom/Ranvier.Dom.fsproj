@@ -34,6 +34,7 @@
     <Compile Include="ViewportScroll.fs" />
     <Compile Include="FormData.fs" />
     <Compile Include="ToggleEvents.fs" />
+    <Compile Include="Urls.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
