@@ -2,25 +2,12 @@ namespace Ranvier.Dom
 
 open System
 
-/// <summary>A File entry of a FormData.</summary>
-/// <remarks>
-/// Opaque until binary value objects are available: the file's name, type and contents are unreadable, and
-/// <c>FormDataContract.readFile</c> raises NotSupportedException.
-/// </remarks>
-[<Sealed>]
-type FormDataFile private () =
-    static let opaque = FormDataFile ()
-
-    /// <summary>The opaque File value every provider reports.</summary>
-    static member Opaque = opaque
-
-    override _.ToString() = "File"
-
 /// <summary>A FormDataEntryValue: a string, or a File.</summary>
+/// <remarks><c>BinaryValueService.ReadBytes</c> reads the contents of a File.</remarks>
 [<RequireQualifiedAccess>]
 type FormDataEntryValue =
     | String of value: string
-    | File of file: FormDataFile
+    | File of file: File
 
 /// <summary>A FormData entry, in entry-list order.</summary>
 type FormDataEntry =
@@ -87,11 +74,3 @@ module FormDataContract =
             nullArg "eventType"
 
         value
-
-    /// <summary>The contents of a File entry.</summary>
-    /// <remarks>Raises NotSupportedException until binary value objects are available.</remarks>
-    let readFile (file: FormDataFile) : byte array =
-        if isNull (box file) then
-            nullArg "file"
-
-        raise (NotSupportedException "FormData File contents are unavailable until binary value objects are supported")
