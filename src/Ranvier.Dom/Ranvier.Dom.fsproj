@@ -30,6 +30,7 @@
     <Compile Include="Resources.fs" />
     <Compile Include="BinaryValues.fs" />
     <Compile Include="BlobUrls.fs" />
+    <Compile Include="MediaCapabilities.fs" />
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />
