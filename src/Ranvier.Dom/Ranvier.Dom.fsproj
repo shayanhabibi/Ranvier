@@ -47,6 +47,7 @@
     <Compile Include="Coordinates.fs" />
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
+    <Compile Include="Animations.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
