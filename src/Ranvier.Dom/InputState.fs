@@ -38,7 +38,8 @@ type InputChange =
 /// <remarks>
 /// Trusted <c>keydown</c> without Control, Alt or Meta, other than a modifier key itself, sets <c>Keyboard</c>; trusted
 /// <c>pointerdown</c> and <c>mousedown</c> set <c>Pointer</c>. Observers run on the dispatching thread in subscription
-/// order. Disposing the service removes its window listeners and its subscribers.
+/// order. Disposing the service removes its window listeners and its subscribers; after the window's provider is
+/// disposed it removes only the subscribers.
 /// </remarks>
 #if FABLE_COMPILER
 [<Fable.Core.Mangle>]
@@ -112,10 +113,7 @@ module InputState =
                 publish (InputChange.Modality value)
 
         let activation value (event: Event) =
-            if
-                obj.ReferenceEquals (event.target, window)
-                || event.eventPhase = 2us
-            then
+            if event.eventPhase = 2us then
                 if focused <> value then
                     focused <- value
                     publish (InputChange.Activation value)
@@ -211,7 +209,10 @@ module InputState =
                     captures.Clear ()
 
                     for eventType, listener, capture in listeners do
-                        window.removeEventListener (eventType, listener, capture)
+                        try
+                            window.removeEventListener (eventType, listener, capture)
+                        with :? ObjectDisposedException ->
+                            ()
         }
 
     /// <summary>A capability provider for <c>keys</c>, observing <c>service</c> live.</summary>
