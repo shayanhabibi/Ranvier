@@ -39,6 +39,7 @@
     <Compile Include="ToggleEvents.fs" />
     <Compile Include="Urls.fs" />
     <Compile Include="Crypto.fs" />
+    <Compile Include="Screen.fs" />
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
