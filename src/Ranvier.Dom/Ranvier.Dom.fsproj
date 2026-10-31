@@ -37,6 +37,7 @@
     <Compile Include="FormData.fs" />
     <Compile Include="FormSubmission.fs" />
     <Compile Include="ToggleEvents.fs" />
+    <Compile Include="EventDetails.fs" />
     <Compile Include="Urls.fs" />
     <Compile Include="Crypto.fs" />
     <Compile Include="Screen.fs" />
