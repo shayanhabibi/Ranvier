@@ -33,6 +33,7 @@
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />
     <Compile Include="ViewportScroll.fs" />
+    <Compile Include="VisualViewport.fs" />
     <Compile Include="FormData.fs" />
     <Compile Include="FormSubmission.fs" />
     <Compile Include="ToggleEvents.fs" />
