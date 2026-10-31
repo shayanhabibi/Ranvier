@@ -57,7 +57,8 @@ type ViewportProvider =
 /// <summary>Viewport dimensions, visibility and change delivery of one document.</summary>
 /// <remarks>
 /// Observers run on the dispatching thread in subscription order. Disposing the service removes its window
-/// listeners, releases its media query list and drops its subscribers.
+/// listeners, releases its media query list and drops its subscribers; after the window's provider is disposed it
+/// drops only the subscribers.
 /// </remarks>
 #if FABLE_COMPILER
 [<Fable.Core.Mangle>]
@@ -101,10 +102,11 @@ module Viewport =
                     observer change
 
         let atWindow (event: Event) =
-            obj.ReferenceEquals (event.target, window)
+            event.eventPhase = 2us
 
+        // Viewport scroll, scrollend and visibilitychange bubble from the document; element scroll events do not.
         let atDocument (event: Event) =
-            obj.ReferenceEquals (event.target, document)
+            event.eventPhase = 3us
 
         let mutable armed: (ViewportMediaQuery * (Event -> unit)) option = None
 
@@ -196,8 +198,11 @@ module Viewport =
                     disposed <- true
                     observers.Clear ()
 
-                    for eventType, listener in listeners do
-                        window.removeEventListener (eventType, listener)
+                    try
+                        for eventType, listener in listeners do
+                            window.removeEventListener (eventType, listener)
 
-                    disarm ()
+                        disarm ()
+                    with :? ObjectDisposedException ->
+                        armed <- None
         }
