@@ -63,7 +63,6 @@ type ManualFrameScheduler() =
     /// <summary>Advances the clock by <c>milliseconds</c> and runs each due timer in deadline order, with a
     /// microtask checkpoint after each.</summary>
     member this.Advance(milliseconds: float) =
-        live ()
         let target = now + max 0.0 milliseconds
         let mutable running = true
 
@@ -90,7 +89,6 @@ type ManualFrameScheduler() =
     /// <summary>Runs the frame callbacks requested before this call with the current time, then a microtask
     /// checkpoint.</summary>
     member this.RunFrame() =
-        live ()
         let batch = frames.ToArray ()
         frames.Clear ()
 
