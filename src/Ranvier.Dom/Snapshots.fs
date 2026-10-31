@@ -52,14 +52,14 @@ type SnapshotOptions =
         Quality: float option
     }
 
-/// <summary>A captured image; the operation owns its bytes until it is disposed.</summary>
+/// <summary>A captured image; the operation owns its data until it is disposed.</summary>
 type SnapshotImage =
     {
-        Width: int
-        Height: int
-        Encoding: ImageEncoding
-        ColorSpace: SnapshotColorSpace
-        Bytes: byte array
+        PixelWidth: int
+        PixelHeight: int
+        Format: ImageEncoding
+        PixelColorSpace: SnapshotColorSpace
+        Data: byte array
     }
 
 /// <summary>Snapshots of a host's viewport or elements (Ranvier.WebCore #98).</summary>
