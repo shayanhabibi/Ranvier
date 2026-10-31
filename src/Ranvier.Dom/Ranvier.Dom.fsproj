@@ -46,6 +46,7 @@
     <Compile Include="Diagnostics.fs" />
     <Compile Include="Coordinates.fs" />
     <Compile Include="ResizeObservation.fs" />
+    <Compile Include="IntersectionObservation.fs" />
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
