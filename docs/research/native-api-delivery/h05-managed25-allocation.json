@@ -1,0 +1,81 @@
+{
+  "checkedAtUtc": "2026-10-31T03:18:38.065766+00:00",
+  "allocation": {
+    "core": "0.1.0-alpha.25",
+    "views": "0.1.15",
+    "backend": "0.1.0-alpha.15",
+    "native": "0.1.0-preview.22 / ABI30",
+    "order": "managed22 H07 -> managed23 I01 -> managed24 SVG paint consumer -> managed25 H05",
+    "assignedBy": "coordinator 2026-10-31"
+  },
+  "packages": [
+    {
+      "package": "Ranvier.Dom",
+      "version": "0.1.0-alpha.25",
+      "published": false,
+      "latestListed": "0.1.0-alpha.17"
+    },
+    {
+      "package": "Ranvier.Dom.Traced",
+      "version": "0.1.0-alpha.25",
+      "published": false,
+      "latestListed": "0.1.0-alpha.17"
+    },
+    {
+      "package": "Fable.Ranvier.Dom",
+      "version": "0.1.0-alpha.25",
+      "published": false,
+      "latestListed": "0.1.0-alpha.17"
+    },
+    {
+      "package": "Fable.Ranvier.Dom.Traced",
+      "version": "0.1.0-alpha.25",
+      "published": false,
+      "latestListed": "0.1.0-alpha.17"
+    },
+    {
+      "package": "Ranvier.View",
+      "version": "0.1.15",
+      "published": false,
+      "latestListed": "0.1.5"
+    },
+    {
+      "package": "Ranvier.View.Dom",
+      "version": "0.1.15",
+      "published": false,
+      "latestListed": "0.1.5"
+    },
+    {
+      "package": "Ranvier.View.Anime",
+      "version": "0.1.15",
+      "published": false,
+      "latestListed": "0.1.5"
+    },
+    {
+      "package": "Fable.Ranvier.Anime",
+      "version": "0.1.15",
+      "published": false,
+      "latestListed": "0.1.5"
+    },
+    {
+      "package": "Ranvier.View.WebCore",
+      "version": "0.1.0-alpha.15",
+      "published": false,
+      "latestListed": "0.1.0-alpha.5"
+    },
+    {
+      "package": "Ranvier.View.WebCore.Sdl",
+      "version": "0.1.0-alpha.15",
+      "published": false,
+      "latestListed": "0.1.0-alpha.5"
+    }
+  ],
+  "matchingTags": {
+    "Ranvier": [],
+    "Ranvier.View": []
+  },
+  "openPullRequestsClaiming": {
+    "Ranvier": [],
+    "Ranvier.View": []
+  }
+}

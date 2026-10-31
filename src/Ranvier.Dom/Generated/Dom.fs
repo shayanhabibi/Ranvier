@@ -16,21 +16,9 @@ type internal DomDictionaryAttribute() =
     inherit Attribute()
 #endif
 
-/// <summary>SVGGradientElement in the scoped DOM interface model.</summary>
-[<AllowNullLiteral>]
-type SVGGradientElement =
-    inherit SVGElement
-
-/// <summary>SVGComponentTransferFunctionElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGComponentTransferFunctionElement =
-    inherit SVGElement
-
-/// <summary>SVGAnimationElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGAnimationElement =
-    inherit SVGElement
-
 /// <summary>HTMLMediaElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HTMLMediaElement =
+[<AllowNullLiteral>]
+type HTMLMediaElement =
     inherit HTMLElement
 
 /// <summary>EventTarget in the scoped DOM interface model.</summary>
@@ -258,12 +246,18 @@ and [<AllowNullLiteral>] Document =
     abstract member createEvent: ``type``: string -> Event
     /// <summary>Document.createRange.</summary>
     abstract member createRange: unit -> Range
+    /// <summary>Document.createNodeIterator.</summary>
+    abstract member createNodeIterator: root: Node * ?whatToShow: uint32 * ?filter: NodeFilter -> NodeIterator
+    /// <summary>Document.createTreeWalker.</summary>
+    abstract member createTreeWalker: root: Node * ?whatToShow: uint32 * ?filter: NodeFilter -> TreeWalker
     /// <summary>Document.caretRangeFromPoint.</summary>
     abstract member caretRangeFromPoint: ?x: int * ?y: int -> Range
     /// <summary>Document.ariaNotify.</summary>
     abstract member ariaNotify: announcement: string -> unit
     /// <summary>Document.ariaNotify.</summary>
     abstract member ariaNotify: announcement: string * options: AriaNotifyOptions -> unit
+    /// <summary>Document.caretPositionFromPoint.</summary>
+    abstract member caretPositionFromPoint: x: float * y: float * ?options: CaretPositionFromPointOptions -> CaretPosition
     /// <summary>Document.scrollingElement.</summary>
     abstract member scrollingElement: Element with get
     /// <summary>Document.readyState.</summary>
@@ -862,6 +856,10 @@ and [<AllowNullLiteral>] HTMLFormElement =
     abstract member namedItem: name: string -> (RadioNodeListOrElement) option
 #endif
 
+    /// <summary>HTMLFormElement.submit.</summary>
+    abstract member submit: unit -> unit
+    /// <summary>HTMLFormElement.requestSubmit.</summary>
+    abstract member requestSubmit: ?submitter: HTMLElement -> unit
     /// <summary>HTMLFormElement.reset.</summary>
     abstract member reset: unit -> unit
     /// <summary>HTMLFormElement.checkValidity.</summary>
@@ -957,6 +955,8 @@ and [<AllowNullLiteral>] HTMLInputElement =
     abstract member disabled: bool with get, set
     /// <summary>HTMLInputElement.form.</summary>
     abstract member form: HTMLFormElement with get
+    /// <summary>HTMLInputElement.files.</summary>
+    abstract member files: FileList with get, set
     /// <summary>HTMLInputElement.formAction.</summary>
     abstract member formAction: string with get, set
     /// <summary>HTMLInputElement.formEnctype.</summary>
@@ -1739,6 +1739,10 @@ and [<AllowNullLiteral>] MathMLElement =
     inherit GlobalEventHandlers
     inherit HTMLOrSVGElement
     inherit ElementCSSInlineStyle
+
+/// <summary>MathMLMathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] MathMLMathElement =
+    inherit MathMLElement
 
 /// <summary>HTMLStyleElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLStyleElement =
@@ -3040,8 +3044,92 @@ and [<AllowNullLiteral>] HTMLCollection =
     abstract member length: uint32 with get
     /// <summary>HTMLCollection.item.</summary>
     abstract member item: index: uint32 -> Element
+
     /// <summary>HTMLCollection.namedItem.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.namedItem($1)")>]
+    abstract member __ranvier_namedItem: name: string -> Element
+#else
     abstract member namedItem: name: string -> Element
+#endif
+
+/// <summary>HTMLFormControlsCollection in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HTMLFormControlsCollection =
+    inherit HTMLCollection
+
+    /// <summary>HTMLFormControlsCollection.item.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0[$1]")>]
+#endif
+    abstract member item: index: uint32 -> HTMLElement
+
+
+    /// <summary>HTMLFormControlsCollection.namedItem.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.namedItem($1)")>]
+    abstract member __ranvier_namedItem: name: string -> obj
+#else
+    abstract member namedItem: name: string -> (RadioNodeListOrElement) option
+#endif
+
+/// <summary>HTMLOptionsCollection in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HTMLOptionsCollection =
+    inherit HTMLCollection
+    /// <summary>HTMLOptionsCollection.length.</summary>
+    abstract member length: uint32 with get, set
+
+    /// <summary>HTMLOptionsCollection.setItem.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0[$1] = $2")>]
+#endif
+    abstract member setItem: index: uint32 * option: HTMLOptionElement -> unit
+
+
+    /// <summary>HTMLOptionsCollection.add.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.add($1, $2)")>]
+    abstract member __ranvier_add: element: obj * ?before: obj -> unit
+#else
+    abstract member add: element: HTMLOptionElement -> unit
+    abstract member add: element: HTMLOptionElement * before: HTMLElement -> unit
+    abstract member add: element: HTMLOptionElement * before: int -> unit
+    abstract member add: element: HTMLOptGroupElement -> unit
+    abstract member add: element: HTMLOptGroupElement * before: HTMLElement -> unit
+    abstract member add: element: HTMLOptGroupElement * before: int -> unit
+#endif
+    /// <summary>HTMLOptionsCollection.remove.</summary>
+    abstract member remove: index: int -> unit
+    /// <summary>HTMLOptionsCollection.selectedIndex.</summary>
+    abstract member selectedIndex: int with get, set
+    /// <summary>HTMLOptionsCollection.item.</summary>
+    abstract member item: index: uint32 -> HTMLOptionElement
+    /// <summary>HTMLOptionsCollection.namedItem.</summary>
+    abstract member namedItem: name: string -> HTMLOptionElement
+
+/// <summary>DOMFormData in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] DOMFormData =
+    /// <summary>DOMFormData.append.</summary>
+    abstract member append: name: string * value: string -> unit
+    /// <summary>DOMFormData.append.</summary>
+    abstract member append: name: string * blobValue: Blob * ?filename: string -> unit
+    /// <summary>DOMFormData.delete.</summary>
+    abstract member delete: name: string -> unit
+
+    /// <summary>DOMFormData.get.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.get($1)")>]
+    abstract member __ranvier_get: name: string -> obj
+#else
+    abstract member get: name: string -> (FileOrUSVString) option
+#endif
+    /// <summary>DOMFormData.getAll.</summary>
+    abstract member getAll: name: string -> (FileOrUSVString) array
+    /// <summary>DOMFormData.has.</summary>
+    abstract member has: name: string -> bool
+    /// <summary>DOMFormData.set.</summary>
+    abstract member set: name: string * value: string -> unit
+    /// <summary>DOMFormData.set.</summary>
+    abstract member set: name: string * blobValue: Blob * ?filename: string -> unit
 
 /// <summary>ValidityState in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] ValidityState =
@@ -3266,6 +3354,138 @@ and [<AllowNullLiteral>] CompositionEvent =
     inherit UIEvent
     /// <summary>CompositionEvent.data.</summary>
     abstract member data: string with get
+
+/// <summary>SubmitEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SubmitEvent =
+    inherit Event
+    /// <summary>SubmitEvent.submitter.</summary>
+    abstract member submitter: HTMLElement with get
+
+/// <summary>FormDataEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] FormDataEvent =
+    inherit Event
+    /// <summary>FormDataEvent.formData.</summary>
+    abstract member formData: DOMFormData with get
+
+/// <summary>ToggleEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ToggleEvent =
+    inherit Event
+    /// <summary>ToggleEvent.oldState.</summary>
+    abstract member oldState: string with get
+    /// <summary>ToggleEvent.newState.</summary>
+    abstract member newState: string with get
+    /// <summary>ToggleEvent.source.</summary>
+    abstract member source: Element with get
+
+/// <summary>CommandEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] CommandEvent =
+    inherit Event
+    /// <summary>CommandEvent.source.</summary>
+    abstract member source: Element with get
+    /// <summary>CommandEvent.command.</summary>
+    abstract member command: string with get
+
+/// <summary>ErrorEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ErrorEvent =
+    inherit Event
+    /// <summary>ErrorEvent.message.</summary>
+    abstract member message: string with get
+    /// <summary>ErrorEvent.filename.</summary>
+    abstract member filename: string with get
+    /// <summary>ErrorEvent.lineno.</summary>
+    abstract member lineno: uint32 with get
+    /// <summary>ErrorEvent.colno.</summary>
+    abstract member colno: uint32 with get
+
+/// <summary>ProgressEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ProgressEvent =
+    inherit Event
+    /// <summary>ProgressEvent.lengthComputable.</summary>
+    abstract member lengthComputable: bool with get
+    /// <summary>ProgressEvent.loaded.</summary>
+    abstract member loaded: float with get
+    /// <summary>ProgressEvent.total.</summary>
+    abstract member total: float with get
+
+/// <summary>AnimationEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] AnimationEvent =
+    inherit Event
+    /// <summary>AnimationEvent.animationName.</summary>
+    abstract member animationName: string with get
+    /// <summary>AnimationEvent.elapsedTime.</summary>
+    abstract member elapsedTime: float with get
+    /// <summary>AnimationEvent.pseudoElement.</summary>
+    abstract member pseudoElement: string with get
+
+/// <summary>TransitionEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] TransitionEvent =
+    inherit Event
+    /// <summary>TransitionEvent.propertyName.</summary>
+    abstract member propertyName: string with get
+    /// <summary>TransitionEvent.elapsedTime.</summary>
+    abstract member elapsedTime: float with get
+    /// <summary>TransitionEvent.pseudoElement.</summary>
+    abstract member pseudoElement: string with get
+
+/// <summary>ContentVisibilityAutoStateChangeEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ContentVisibilityAutoStateChangeEvent =
+    inherit Event
+    /// <summary>ContentVisibilityAutoStateChangeEvent.skipped.</summary>
+    abstract member skipped: bool with get
+
+/// <summary>AnimationPlaybackEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] AnimationPlaybackEvent =
+    inherit Event
+
+    /// <summary>AnimationPlaybackEvent.currentTime.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.currentTime")>]
+    abstract member __ranvier_get_currentTime: unit -> obj
+#else
+    abstract member currentTime: (DoubleOrCSSNumericValue) option with get
+#endif
+
+    /// <summary>AnimationPlaybackEvent.timelineTime.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.timelineTime")>]
+    abstract member __ranvier_get_timelineTime: unit -> obj
+#else
+    abstract member timelineTime: (DoubleOrCSSNumericValue) option with get
+#endif
+
+/// <summary>PageTransitionEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] PageTransitionEvent =
+    inherit Event
+    /// <summary>PageTransitionEvent.persisted.</summary>
+    abstract member persisted: bool with get
+
+/// <summary>HashChangeEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HashChangeEvent =
+    inherit Event
+    /// <summary>HashChangeEvent.oldURL.</summary>
+    abstract member oldURL: string with get
+    /// <summary>HashChangeEvent.newURL.</summary>
+    abstract member newURL: string with get
+
+/// <summary>MediaQueryListEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] MediaQueryListEvent =
+    inherit Event
+    /// <summary>MediaQueryListEvent.media.</summary>
+    abstract member media: string with get
+    /// <summary>MediaQueryListEvent.matches.</summary>
+    abstract member matches: bool with get
+
+/// <summary>PopStateEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] PopStateEvent =
+    inherit Event
+    /// <summary>PopStateEvent.hasUAVisualTransition.</summary>
+    abstract member hasUAVisualTransition: bool with get
+
+/// <summary>BeforeUnloadEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] BeforeUnloadEvent =
+    inherit Event
+    /// <summary>BeforeUnloadEvent.returnValue.</summary>
+    abstract member returnValue: string with get, set
 
 /// <summary>SVGGraphicsElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] SVGGraphicsElement =
@@ -3872,6 +4092,1040 @@ and [<AllowNullLiteral>] SVGTextPositioningElement =
     /// <summary>SVGTextPositioningElement.rotate.</summary>
     abstract member rotate: SVGAnimatedNumberList with get
 
+/// <summary>SVGCircleElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGCircleElement =
+    inherit SVGGeometryElement
+    /// <summary>SVGCircleElement.cx.</summary>
+    abstract member cx: SVGAnimatedLength with get
+    /// <summary>SVGCircleElement.cy.</summary>
+    abstract member cy: SVGAnimatedLength with get
+    /// <summary>SVGCircleElement.r.</summary>
+    abstract member r: SVGAnimatedLength with get
+
+/// <summary>SVGEllipseElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGEllipseElement =
+    inherit SVGGeometryElement
+    /// <summary>SVGEllipseElement.cx.</summary>
+    abstract member cx: SVGAnimatedLength with get
+    /// <summary>SVGEllipseElement.cy.</summary>
+    abstract member cy: SVGAnimatedLength with get
+    /// <summary>SVGEllipseElement.rx.</summary>
+    abstract member rx: SVGAnimatedLength with get
+    /// <summary>SVGEllipseElement.ry.</summary>
+    abstract member ry: SVGAnimatedLength with get
+
+/// <summary>SVGLineElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGLineElement =
+    inherit SVGGeometryElement
+    /// <summary>SVGLineElement.x1.</summary>
+    abstract member x1: SVGAnimatedLength with get
+    /// <summary>SVGLineElement.y1.</summary>
+    abstract member y1: SVGAnimatedLength with get
+    /// <summary>SVGLineElement.x2.</summary>
+    abstract member x2: SVGAnimatedLength with get
+    /// <summary>SVGLineElement.y2.</summary>
+    abstract member y2: SVGAnimatedLength with get
+
+/// <summary>SVGRectElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGRectElement =
+    inherit SVGGeometryElement
+    /// <summary>SVGRectElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGRectElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGRectElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGRectElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGRectElement.rx.</summary>
+    abstract member rx: SVGAnimatedLength with get
+    /// <summary>SVGRectElement.ry.</summary>
+    abstract member ry: SVGAnimatedLength with get
+
+/// <summary>SVGPathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGPathElement =
+    inherit SVGGeometryElement
+
+/// <summary>SVGTextElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGTextElement =
+    inherit SVGTextPositioningElement
+
+/// <summary>SVGTSpanElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGTSpanElement =
+    inherit SVGTextPositioningElement
+
+/// <summary>SVGTextPathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGTextPathElement =
+    inherit SVGTextContentElement
+    /// <summary>SVGTextPathElement.startOffset.</summary>
+    abstract member startOffset: SVGAnimatedLength with get
+    /// <summary>SVGTextPathElement.method.</summary>
+    abstract member method: SVGAnimatedEnumeration with get
+    /// <summary>SVGTextPathElement.spacing.</summary>
+    abstract member spacing: SVGAnimatedEnumeration with get
+    /// <summary>SVGTextPathElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGAnimationElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAnimationElement =
+    inherit SVGElement
+    /// <summary>SVGAnimationElement.targetElement.</summary>
+    abstract member targetElement: SVGElement with get
+    /// <summary>SVGAnimationElement.getStartTime.</summary>
+    abstract member getStartTime: unit -> float32
+    /// <summary>SVGAnimationElement.getCurrentTime.</summary>
+    abstract member getCurrentTime: unit -> float32
+    /// <summary>SVGAnimationElement.getSimpleDuration.</summary>
+    abstract member getSimpleDuration: unit -> float32
+    /// <summary>SVGAnimationElement.beginElement.</summary>
+    abstract member beginElement: unit -> unit
+    /// <summary>SVGAnimationElement.beginElementAt.</summary>
+    abstract member beginElementAt: offset: float32 -> unit
+    /// <summary>SVGAnimationElement.endElement.</summary>
+    abstract member endElement: unit -> unit
+    /// <summary>SVGAnimationElement.endElementAt.</summary>
+    abstract member endElementAt: offset: float32 -> unit
+    /// <summary>SVGAnimationElement.requiredExtensions.</summary>
+    abstract member requiredExtensions: SVGStringList with get
+    /// <summary>SVGAnimationElement.systemLanguage.</summary>
+    abstract member systemLanguage: SVGStringList with get
+
+/// <summary>SVGAnimateElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAnimateElement =
+    inherit SVGAnimationElement
+
+/// <summary>SVGAnimateMotionElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAnimateMotionElement =
+    inherit SVGAnimationElement
+
+/// <summary>SVGAnimateTransformElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAnimateTransformElement =
+    inherit SVGAnimationElement
+
+/// <summary>SVGSetElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGSetElement =
+    inherit SVGAnimationElement
+
+/// <summary>SVGMPathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGMPathElement =
+    inherit SVGElement
+    /// <summary>SVGMPathElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGFEConvolveMatrixElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEConvolveMatrixElement =
+    inherit SVGElement
+    /// <summary>SVGFEConvolveMatrixElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEConvolveMatrixElement.orderX.</summary>
+    abstract member orderX: SVGAnimatedInteger with get
+    /// <summary>SVGFEConvolveMatrixElement.orderY.</summary>
+    abstract member orderY: SVGAnimatedInteger with get
+    /// <summary>SVGFEConvolveMatrixElement.kernelMatrix.</summary>
+    abstract member kernelMatrix: SVGAnimatedNumberList with get
+    /// <summary>SVGFEConvolveMatrixElement.divisor.</summary>
+    abstract member divisor: SVGAnimatedNumber with get
+    /// <summary>SVGFEConvolveMatrixElement.bias.</summary>
+    abstract member bias: SVGAnimatedNumber with get
+    /// <summary>SVGFEConvolveMatrixElement.targetX.</summary>
+    abstract member targetX: SVGAnimatedInteger with get
+    /// <summary>SVGFEConvolveMatrixElement.targetY.</summary>
+    abstract member targetY: SVGAnimatedInteger with get
+    /// <summary>SVGFEConvolveMatrixElement.edgeMode.</summary>
+    abstract member edgeMode: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEConvolveMatrixElement.kernelUnitLengthX.</summary>
+    abstract member kernelUnitLengthX: SVGAnimatedNumber with get
+    /// <summary>SVGFEConvolveMatrixElement.kernelUnitLengthY.</summary>
+    abstract member kernelUnitLengthY: SVGAnimatedNumber with get
+    /// <summary>SVGFEConvolveMatrixElement.preserveAlpha.</summary>
+    abstract member preserveAlpha: SVGAnimatedBoolean with get
+    /// <summary>SVGFEConvolveMatrixElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEConvolveMatrixElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEConvolveMatrixElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEConvolveMatrixElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEConvolveMatrixElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGAnimatedInteger in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAnimatedInteger =
+    /// <summary>SVGAnimatedInteger.baseVal.</summary>
+    abstract member baseVal: int with get, set
+    /// <summary>SVGAnimatedInteger.animVal.</summary>
+    abstract member animVal: int with get
+
+/// <summary>SVGGradientElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGGradientElement =
+    inherit SVGElement
+    /// <summary>SVGGradientElement.gradientUnits.</summary>
+    abstract member gradientUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGGradientElement.gradientTransform.</summary>
+    abstract member gradientTransform: SVGAnimatedTransformList with get
+    /// <summary>SVGGradientElement.spreadMethod.</summary>
+    abstract member spreadMethod: SVGAnimatedEnumeration with get
+    /// <summary>SVGGradientElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGLinearGradientElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGLinearGradientElement =
+    inherit SVGGradientElement
+    /// <summary>SVGLinearGradientElement.x1.</summary>
+    abstract member x1: SVGAnimatedLength with get
+    /// <summary>SVGLinearGradientElement.y1.</summary>
+    abstract member y1: SVGAnimatedLength with get
+    /// <summary>SVGLinearGradientElement.x2.</summary>
+    abstract member x2: SVGAnimatedLength with get
+    /// <summary>SVGLinearGradientElement.y2.</summary>
+    abstract member y2: SVGAnimatedLength with get
+
+/// <summary>SVGRadialGradientElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGRadialGradientElement =
+    inherit SVGGradientElement
+    /// <summary>SVGRadialGradientElement.cx.</summary>
+    abstract member cx: SVGAnimatedLength with get
+    /// <summary>SVGRadialGradientElement.cy.</summary>
+    abstract member cy: SVGAnimatedLength with get
+    /// <summary>SVGRadialGradientElement.r.</summary>
+    abstract member r: SVGAnimatedLength with get
+    /// <summary>SVGRadialGradientElement.fx.</summary>
+    abstract member fx: SVGAnimatedLength with get
+    /// <summary>SVGRadialGradientElement.fy.</summary>
+    abstract member fy: SVGAnimatedLength with get
+    /// <summary>SVGRadialGradientElement.fr.</summary>
+    abstract member fr: SVGAnimatedLength with get
+
+/// <summary>SVGStopElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGStopElement =
+    inherit SVGElement
+    /// <summary>SVGStopElement.offset.</summary>
+    abstract member offset: SVGAnimatedNumber with get
+
+/// <summary>SVGFEBlendElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEBlendElement =
+    inherit SVGElement
+    /// <summary>SVGFEBlendElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEBlendElement.in2.</summary>
+    abstract member in2: SVGAnimatedString with get
+    /// <summary>SVGFEBlendElement.mode.</summary>
+    abstract member mode: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEBlendElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEBlendElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEBlendElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEBlendElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEBlendElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEColorMatrixElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEColorMatrixElement =
+    inherit SVGElement
+    /// <summary>SVGFEColorMatrixElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEColorMatrixElement.type.</summary>
+    abstract member ``type``: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEColorMatrixElement.values.</summary>
+    abstract member values: SVGAnimatedNumberList with get
+    /// <summary>SVGFEColorMatrixElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEColorMatrixElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEColorMatrixElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEColorMatrixElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEColorMatrixElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEComponentTransferElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEComponentTransferElement =
+    inherit SVGElement
+    /// <summary>SVGFEComponentTransferElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEComponentTransferElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEComponentTransferElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEComponentTransferElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEComponentTransferElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEComponentTransferElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFECompositeElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFECompositeElement =
+    inherit SVGElement
+    /// <summary>SVGFECompositeElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFECompositeElement.in2.</summary>
+    abstract member in2: SVGAnimatedString with get
+    /// <summary>SVGFECompositeElement.operator.</summary>
+    abstract member operator: SVGAnimatedEnumeration with get
+    /// <summary>SVGFECompositeElement.k1.</summary>
+    abstract member k1: SVGAnimatedNumber with get
+    /// <summary>SVGFECompositeElement.k2.</summary>
+    abstract member k2: SVGAnimatedNumber with get
+    /// <summary>SVGFECompositeElement.k3.</summary>
+    abstract member k3: SVGAnimatedNumber with get
+    /// <summary>SVGFECompositeElement.k4.</summary>
+    abstract member k4: SVGAnimatedNumber with get
+    /// <summary>SVGFECompositeElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFECompositeElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFECompositeElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFECompositeElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFECompositeElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEDiffuseLightingElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEDiffuseLightingElement =
+    inherit SVGElement
+    /// <summary>SVGFEDiffuseLightingElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEDiffuseLightingElement.surfaceScale.</summary>
+    abstract member surfaceScale: SVGAnimatedNumber with get
+    /// <summary>SVGFEDiffuseLightingElement.diffuseConstant.</summary>
+    abstract member diffuseConstant: SVGAnimatedNumber with get
+    /// <summary>SVGFEDiffuseLightingElement.kernelUnitLengthX.</summary>
+    abstract member kernelUnitLengthX: SVGAnimatedNumber with get
+    /// <summary>SVGFEDiffuseLightingElement.kernelUnitLengthY.</summary>
+    abstract member kernelUnitLengthY: SVGAnimatedNumber with get
+    /// <summary>SVGFEDiffuseLightingElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEDiffuseLightingElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEDiffuseLightingElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEDiffuseLightingElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEDiffuseLightingElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEDisplacementMapElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEDisplacementMapElement =
+    inherit SVGElement
+    /// <summary>SVGFEDisplacementMapElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEDisplacementMapElement.in2.</summary>
+    abstract member in2: SVGAnimatedString with get
+    /// <summary>SVGFEDisplacementMapElement.scale.</summary>
+    abstract member scale: SVGAnimatedNumber with get
+    /// <summary>SVGFEDisplacementMapElement.xChannelSelector.</summary>
+    abstract member xChannelSelector: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEDisplacementMapElement.yChannelSelector.</summary>
+    abstract member yChannelSelector: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEDisplacementMapElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEDisplacementMapElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEDisplacementMapElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEDisplacementMapElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEDisplacementMapElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEDistantLightElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEDistantLightElement =
+    inherit SVGElement
+    /// <summary>SVGFEDistantLightElement.azimuth.</summary>
+    abstract member azimuth: SVGAnimatedNumber with get
+    /// <summary>SVGFEDistantLightElement.elevation.</summary>
+    abstract member elevation: SVGAnimatedNumber with get
+
+/// <summary>SVGFEDropShadowElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEDropShadowElement =
+    inherit SVGElement
+    /// <summary>SVGFEDropShadowElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEDropShadowElement.dx.</summary>
+    abstract member dx: SVGAnimatedNumber with get
+    /// <summary>SVGFEDropShadowElement.dy.</summary>
+    abstract member dy: SVGAnimatedNumber with get
+    /// <summary>SVGFEDropShadowElement.stdDeviationX.</summary>
+    abstract member stdDeviationX: SVGAnimatedNumber with get
+    /// <summary>SVGFEDropShadowElement.stdDeviationY.</summary>
+    abstract member stdDeviationY: SVGAnimatedNumber with get
+    /// <summary>SVGFEDropShadowElement.setStdDeviation.</summary>
+    abstract member setStdDeviation: stdDeviationX: float32 * stdDeviationY: float32 -> unit
+    /// <summary>SVGFEDropShadowElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEDropShadowElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEDropShadowElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEDropShadowElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEDropShadowElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEFloodElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEFloodElement =
+    inherit SVGElement
+    /// <summary>SVGFEFloodElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEFloodElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEFloodElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEFloodElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEFloodElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEFuncAElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEFuncAElement =
+    inherit SVGComponentTransferFunctionElement
+
+/// <summary>SVGFEFuncBElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEFuncBElement =
+    inherit SVGComponentTransferFunctionElement
+
+/// <summary>SVGFEFuncGElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEFuncGElement =
+    inherit SVGComponentTransferFunctionElement
+
+/// <summary>SVGFEFuncRElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEFuncRElement =
+    inherit SVGComponentTransferFunctionElement
+
+/// <summary>SVGFEGaussianBlurElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEGaussianBlurElement =
+    inherit SVGElement
+    /// <summary>SVGFEGaussianBlurElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEGaussianBlurElement.stdDeviationX.</summary>
+    abstract member stdDeviationX: SVGAnimatedNumber with get
+    /// <summary>SVGFEGaussianBlurElement.stdDeviationY.</summary>
+    abstract member stdDeviationY: SVGAnimatedNumber with get
+    /// <summary>SVGFEGaussianBlurElement.edgeMode.</summary>
+    abstract member edgeMode: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEGaussianBlurElement.setStdDeviation.</summary>
+    abstract member setStdDeviation: stdDeviationX: float32 * stdDeviationY: float32 -> unit
+    /// <summary>SVGFEGaussianBlurElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEGaussianBlurElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEGaussianBlurElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEGaussianBlurElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEGaussianBlurElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEImageElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEImageElement =
+    inherit SVGElement
+    /// <summary>SVGFEImageElement.preserveAspectRatio.</summary>
+    abstract member preserveAspectRatio: SVGAnimatedPreserveAspectRatio with get
+    /// <summary>SVGFEImageElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEImageElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEImageElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEImageElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEImageElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+    /// <summary>SVGFEImageElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGFEMergeElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEMergeElement =
+    inherit SVGElement
+    /// <summary>SVGFEMergeElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEMergeElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEMergeElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEMergeElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEMergeElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEMergeNodeElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEMergeNodeElement =
+    inherit SVGElement
+    /// <summary>SVGFEMergeNodeElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+
+/// <summary>SVGFEMorphologyElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEMorphologyElement =
+    inherit SVGElement
+    /// <summary>SVGFEMorphologyElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEMorphologyElement.operator.</summary>
+    abstract member operator: SVGAnimatedEnumeration with get
+    /// <summary>SVGFEMorphologyElement.radiusX.</summary>
+    abstract member radiusX: SVGAnimatedNumber with get
+    /// <summary>SVGFEMorphologyElement.radiusY.</summary>
+    abstract member radiusY: SVGAnimatedNumber with get
+    /// <summary>SVGFEMorphologyElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEMorphologyElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEMorphologyElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEMorphologyElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEMorphologyElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEOffsetElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEOffsetElement =
+    inherit SVGElement
+    /// <summary>SVGFEOffsetElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFEOffsetElement.dx.</summary>
+    abstract member dx: SVGAnimatedNumber with get
+    /// <summary>SVGFEOffsetElement.dy.</summary>
+    abstract member dy: SVGAnimatedNumber with get
+    /// <summary>SVGFEOffsetElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFEOffsetElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFEOffsetElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFEOffsetElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFEOffsetElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFEPointLightElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFEPointLightElement =
+    inherit SVGElement
+    /// <summary>SVGFEPointLightElement.x.</summary>
+    abstract member x: SVGAnimatedNumber with get
+    /// <summary>SVGFEPointLightElement.y.</summary>
+    abstract member y: SVGAnimatedNumber with get
+    /// <summary>SVGFEPointLightElement.z.</summary>
+    abstract member z: SVGAnimatedNumber with get
+
+/// <summary>SVGFESpecularLightingElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFESpecularLightingElement =
+    inherit SVGElement
+    /// <summary>SVGFESpecularLightingElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFESpecularLightingElement.surfaceScale.</summary>
+    abstract member surfaceScale: SVGAnimatedNumber with get
+    /// <summary>SVGFESpecularLightingElement.specularConstant.</summary>
+    abstract member specularConstant: SVGAnimatedNumber with get
+    /// <summary>SVGFESpecularLightingElement.specularExponent.</summary>
+    abstract member specularExponent: SVGAnimatedNumber with get
+    /// <summary>SVGFESpecularLightingElement.kernelUnitLengthX.</summary>
+    abstract member kernelUnitLengthX: SVGAnimatedNumber with get
+    /// <summary>SVGFESpecularLightingElement.kernelUnitLengthY.</summary>
+    abstract member kernelUnitLengthY: SVGAnimatedNumber with get
+    /// <summary>SVGFESpecularLightingElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFESpecularLightingElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFESpecularLightingElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFESpecularLightingElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFESpecularLightingElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFESpotLightElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFESpotLightElement =
+    inherit SVGElement
+    /// <summary>SVGFESpotLightElement.x.</summary>
+    abstract member x: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.y.</summary>
+    abstract member y: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.z.</summary>
+    abstract member z: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.pointsAtX.</summary>
+    abstract member pointsAtX: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.pointsAtY.</summary>
+    abstract member pointsAtY: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.pointsAtZ.</summary>
+    abstract member pointsAtZ: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.specularExponent.</summary>
+    abstract member specularExponent: SVGAnimatedNumber with get
+    /// <summary>SVGFESpotLightElement.limitingConeAngle.</summary>
+    abstract member limitingConeAngle: SVGAnimatedNumber with get
+
+/// <summary>SVGFETileElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFETileElement =
+    inherit SVGElement
+    /// <summary>SVGFETileElement.in1.</summary>
+    abstract member in1: SVGAnimatedString with get
+    /// <summary>SVGFETileElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFETileElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFETileElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFETileElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFETileElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFETurbulenceElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFETurbulenceElement =
+    inherit SVGElement
+    /// <summary>SVGFETurbulenceElement.baseFrequencyX.</summary>
+    abstract member baseFrequencyX: SVGAnimatedNumber with get
+    /// <summary>SVGFETurbulenceElement.baseFrequencyY.</summary>
+    abstract member baseFrequencyY: SVGAnimatedNumber with get
+    /// <summary>SVGFETurbulenceElement.numOctaves.</summary>
+    abstract member numOctaves: SVGAnimatedInteger with get
+    /// <summary>SVGFETurbulenceElement.seed.</summary>
+    abstract member seed: SVGAnimatedNumber with get
+    /// <summary>SVGFETurbulenceElement.stitchTiles.</summary>
+    abstract member stitchTiles: SVGAnimatedEnumeration with get
+    /// <summary>SVGFETurbulenceElement.type.</summary>
+    abstract member ``type``: SVGAnimatedEnumeration with get
+    /// <summary>SVGFETurbulenceElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFETurbulenceElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFETurbulenceElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFETurbulenceElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFETurbulenceElement.result.</summary>
+    abstract member result: SVGAnimatedString with get
+
+/// <summary>SVGFilterElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGFilterElement =
+    inherit SVGElement
+    /// <summary>SVGFilterElement.filterUnits.</summary>
+    abstract member filterUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGFilterElement.primitiveUnits.</summary>
+    abstract member primitiveUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGFilterElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGFilterElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGFilterElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGFilterElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGFilterElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGComponentTransferFunctionElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGComponentTransferFunctionElement =
+    inherit SVGElement
+    /// <summary>SVGComponentTransferFunctionElement.type.</summary>
+    abstract member ``type``: SVGAnimatedEnumeration with get
+    /// <summary>SVGComponentTransferFunctionElement.tableValues.</summary>
+    abstract member tableValues: SVGAnimatedNumberList with get
+    /// <summary>SVGComponentTransferFunctionElement.slope.</summary>
+    abstract member slope: SVGAnimatedNumber with get
+    /// <summary>SVGComponentTransferFunctionElement.intercept.</summary>
+    abstract member intercept: SVGAnimatedNumber with get
+    /// <summary>SVGComponentTransferFunctionElement.amplitude.</summary>
+    abstract member amplitude: SVGAnimatedNumber with get
+    /// <summary>SVGComponentTransferFunctionElement.exponent.</summary>
+    abstract member exponent: SVGAnimatedNumber with get
+    /// <summary>SVGComponentTransferFunctionElement.offset.</summary>
+    abstract member offset: SVGAnimatedNumber with get
+
+/// <summary>SVGClipPathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGClipPathElement =
+    inherit SVGElement
+    /// <summary>SVGClipPathElement.clipPathUnits.</summary>
+    abstract member clipPathUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGClipPathElement.transform.</summary>
+    abstract member transform: SVGAnimatedTransformList with get
+
+/// <summary>SVGMaskElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGMaskElement =
+    inherit SVGElement
+    /// <summary>SVGMaskElement.maskUnits.</summary>
+    abstract member maskUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGMaskElement.maskContentUnits.</summary>
+    abstract member maskContentUnits: SVGAnimatedEnumeration with get
+    /// <summary>SVGMaskElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGMaskElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGMaskElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGMaskElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGMaskElement.requiredExtensions.</summary>
+    abstract member requiredExtensions: SVGStringList with get
+    /// <summary>SVGMaskElement.systemLanguage.</summary>
+    abstract member systemLanguage: SVGStringList with get
+
+/// <summary>SVGAElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGAElement =
+    inherit SVGGraphicsElement
+    /// <summary>SVGAElement.target.</summary>
+    abstract member target: SVGAnimatedString with get
+    /// <summary>SVGAElement.hreflang.</summary>
+    abstract member hreflang: string with get, set
+    /// <summary>SVGAElement.rel.</summary>
+    abstract member rel: string with get, set
+    /// <summary>SVGAElement.relList.</summary>
+    abstract member relList: DOMTokenList with get
+    /// <summary>SVGAElement.type.</summary>
+    abstract member ``type``: string with get, set
+    /// <summary>SVGAElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGDefsElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGDefsElement =
+    inherit SVGGraphicsElement
+
+/// <summary>SVGDescElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGDescElement =
+    inherit SVGElement
+
+/// <summary>SVGForeignObjectElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGForeignObjectElement =
+    inherit SVGGraphicsElement
+    /// <summary>SVGForeignObjectElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGForeignObjectElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGForeignObjectElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGForeignObjectElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+
+/// <summary>SVGGElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGGElement =
+    inherit SVGGraphicsElement
+
+/// <summary>SVGImageElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGImageElement =
+    inherit SVGGraphicsElement
+    /// <summary>SVGImageElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGImageElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGImageElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGImageElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGImageElement.preserveAspectRatio.</summary>
+    abstract member preserveAspectRatio: SVGAnimatedPreserveAspectRatio with get
+    /// <summary>SVGImageElement.crossOrigin.</summary>
+    abstract member crossOrigin: string with get, set
+    /// <summary>SVGImageElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGMetadataElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGMetadataElement =
+    inherit SVGElement
+
+/// <summary>SVGScriptElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGScriptElement =
+    inherit SVGElement
+    /// <summary>SVGScriptElement.type.</summary>
+    abstract member ``type``: string with get, set
+    /// <summary>SVGScriptElement.async.</summary>
+    abstract member async: bool with get, set
+    /// <summary>SVGScriptElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>SVGSwitchElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGSwitchElement =
+    inherit SVGGraphicsElement
+
+/// <summary>SVGTitleElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGTitleElement =
+    inherit SVGElement
+
+/// <summary>SVGUseElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SVGUseElement =
+    inherit SVGGraphicsElement
+    /// <summary>SVGUseElement.x.</summary>
+    abstract member x: SVGAnimatedLength with get
+    /// <summary>SVGUseElement.y.</summary>
+    abstract member y: SVGAnimatedLength with get
+    /// <summary>SVGUseElement.width.</summary>
+    abstract member width: SVGAnimatedLength with get
+    /// <summary>SVGUseElement.height.</summary>
+    abstract member height: SVGAnimatedLength with get
+    /// <summary>SVGUseElement.href.</summary>
+    abstract member href: SVGAnimatedString with get
+
+/// <summary>NodeIterator in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] NodeIterator =
+    /// <summary>NodeIterator.root.</summary>
+    abstract member root: Node with get
+    /// <summary>NodeIterator.referenceNode.</summary>
+    abstract member referenceNode: Node with get
+    /// <summary>NodeIterator.pointerBeforeReferenceNode.</summary>
+    abstract member pointerBeforeReferenceNode: bool with get
+    /// <summary>NodeIterator.whatToShow.</summary>
+    abstract member whatToShow: uint32 with get
+    /// <summary>NodeIterator.filter.</summary>
+    abstract member filter: (NodeFilter) option with get
+    /// <summary>NodeIterator.nextNode.</summary>
+    abstract member nextNode: unit -> Node
+    /// <summary>NodeIterator.previousNode.</summary>
+    abstract member previousNode: unit -> Node
+    /// <summary>NodeIterator.detach.</summary>
+    abstract member detach: unit -> unit
+
+/// <summary>TreeWalker in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] TreeWalker =
+    /// <summary>TreeWalker.root.</summary>
+    abstract member root: Node with get
+    /// <summary>TreeWalker.whatToShow.</summary>
+    abstract member whatToShow: uint32 with get
+    /// <summary>TreeWalker.filter.</summary>
+    abstract member filter: (NodeFilter) option with get
+    /// <summary>TreeWalker.currentNode.</summary>
+    abstract member currentNode: Node with get, set
+    /// <summary>TreeWalker.parentNode.</summary>
+    abstract member parentNode: unit -> Node
+    /// <summary>TreeWalker.firstChild.</summary>
+    abstract member firstChild: unit -> Node
+    /// <summary>TreeWalker.lastChild.</summary>
+    abstract member lastChild: unit -> Node
+    /// <summary>TreeWalker.previousSibling.</summary>
+    abstract member previousSibling: unit -> Node
+    /// <summary>TreeWalker.nextSibling.</summary>
+    abstract member nextSibling: unit -> Node
+    /// <summary>TreeWalker.previousNode.</summary>
+    abstract member previousNode: unit -> Node
+    /// <summary>TreeWalker.nextNode.</summary>
+    abstract member nextNode: unit -> Node
+
+/// <summary>Blob in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] Blob =
+
+    /// <summary>Blob.size.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("BigInt($0.size)")>]
+#endif
+    abstract member size: uint64 with get
+
+    /// <summary>Blob.type.</summary>
+    abstract member ``type``: string with get
+
+    /// <summary>Blob.slice.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("((o,a0,a1,a2)=>o.slice(a0===void 0?void 0:Number(a0),a1===void 0?void 0:Number(a1),a2))($0,$1,$2,$3)")>]
+#endif
+    abstract member slice: ?start: int64 * ?``end``: int64 * ?contentType: string -> Blob
+
+
+/// <summary>File in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] File =
+    inherit Blob
+    /// <summary>File.name.</summary>
+    abstract member name: string with get
+
+    /// <summary>File.lastModified.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("BigInt($0.lastModified)")>]
+#endif
+    abstract member lastModified: int64 with get
+
+
+/// <summary>FileList in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] FileList =
+    /// <summary>FileList.length.</summary>
+    abstract member length: uint32 with get
+    /// <summary>FileList.item.</summary>
+    abstract member item: index: uint32 -> File
+
+/// <summary>CaretPosition in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] CaretPosition =
+    /// <summary>CaretPosition.offsetNode.</summary>
+    abstract member offsetNode: Node with get
+    /// <summary>CaretPosition.offset.</summary>
+    abstract member offset: uint32 with get
+    /// <summary>CaretPosition.getClientRect.</summary>
+    abstract member getClientRect: unit -> DOMRect
+
+/// <summary>URL in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] URL =
+
+    /// <summary>URL.href.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.href{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member href: string with get, set
+
+    /// <summary>URL.origin.</summary>
+    abstract member origin: string with get
+
+    /// <summary>URL.protocol.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.protocol{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member protocol: string with get, set
+
+
+    /// <summary>URL.username.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.username{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member username: string with get, set
+
+
+    /// <summary>URL.password.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.password{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member password: string with get, set
+
+
+    /// <summary>URL.host.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.host{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member host: string with get, set
+
+
+    /// <summary>URL.hostname.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.hostname{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member hostname: string with get, set
+
+
+    /// <summary>URL.port.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.port{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member port: string with get, set
+
+
+    /// <summary>URL.pathname.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.pathname{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member pathname: string with get, set
+
+
+    /// <summary>URL.hash.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.hash{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member hash: string with get, set
+
+
+    /// <summary>URL.search.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.search{{=((v)=>String(v==null?'null':v).toWellFormed())($1)}}")>]
+#endif
+    abstract member search: string with get, set
+
+    /// <summary>URL.searchParams.</summary>
+    abstract member searchParams: URLSearchParams with get
+    /// <summary>URL.toJSON.</summary>
+    abstract member toJSON: unit -> string
+
+/// <summary>URLSearchParams in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] URLSearchParams =
+    /// <summary>URLSearchParams.size.</summary>
+    abstract member size: uint32 with get
+    /// <summary>URLSearchParams.append.</summary>
+    abstract member append: name: string * value: string -> unit
+    /// <summary>URLSearchParams.delete.</summary>
+    abstract member delete: name: string * ?value: string -> unit
+    /// <summary>URLSearchParams.get.</summary>
+    abstract member get: name: string -> string
+    /// <summary>URLSearchParams.getAll.</summary>
+    abstract member getAll: name: string -> (string) array
+    /// <summary>URLSearchParams.has.</summary>
+    abstract member has: name: string * ?value: string -> bool
+    /// <summary>URLSearchParams.set.</summary>
+    abstract member set: name: string * value: string -> unit
+    /// <summary>URLSearchParams.sort.</summary>
+    abstract member sort: unit -> unit
+    /// <summary>URLSearchParams.toString.</summary>
+    abstract member toString: unit -> string
+
+/// <summary>URLPattern in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] URLPattern =
+
+    /// <summary>URLPattern.test.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.test($1, $2)")>]
+    abstract member __ranvier_test: ?input: obj * ?baseURL: string -> bool
+#else
+    abstract member test: unit -> bool
+    abstract member test: input: string * ?baseURL: string -> bool
+    abstract member test: input: URLPatternInit * ?baseURL: string -> bool
+#endif
+    /// <summary>URLPattern.protocol.</summary>
+    abstract member protocol: string with get
+    /// <summary>URLPattern.username.</summary>
+    abstract member username: string with get
+    /// <summary>URLPattern.password.</summary>
+    abstract member password: string with get
+    /// <summary>URLPattern.hostname.</summary>
+    abstract member hostname: string with get
+    /// <summary>URLPattern.port.</summary>
+    abstract member port: string with get
+    /// <summary>URLPattern.pathname.</summary>
+    abstract member pathname: string with get
+    /// <summary>URLPattern.search.</summary>
+    abstract member search: string with get
+    /// <summary>URLPattern.hash.</summary>
+    abstract member hash: string with get
+    /// <summary>URLPattern.hasRegExpGroups.</summary>
+    abstract member hasRegExpGroups: bool with get
+
+/// <summary>VisualViewport in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] VisualViewport =
+    inherit EventTarget
+    /// <summary>VisualViewport.offsetLeft.</summary>
+    abstract member offsetLeft: float with get
+    /// <summary>VisualViewport.offsetTop.</summary>
+    abstract member offsetTop: float with get
+    /// <summary>VisualViewport.pageLeft.</summary>
+    abstract member pageLeft: float with get
+    /// <summary>VisualViewport.pageTop.</summary>
+    abstract member pageTop: float with get
+    /// <summary>VisualViewport.width.</summary>
+    abstract member width: float with get
+    /// <summary>VisualViewport.height.</summary>
+    abstract member height: float with get
+    /// <summary>VisualViewport.scale.</summary>
+    abstract member scale: float with get
+
+/// <summary>Highlight in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] Highlight =
+    /// <summary>Highlight.priority.</summary>
+    abstract member priority: int with get, set
+    /// <summary>Highlight.type.</summary>
+    abstract member ``type``: HighlightType with get, set
+
+/// <summary>HighlightRegistry in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HighlightRegistry = interface end
+
+/// <summary>FileReader in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] FileReader =
+    inherit EventTarget
+    /// <summary>FileReader.readyState.</summary>
+    abstract member readyState: uint16 with get
+    /// <summary>FileReader.readAsArrayBuffer.</summary>
+    abstract member readAsArrayBuffer: blob: Blob -> unit
+    /// <summary>FileReader.readAsBinaryString.</summary>
+    abstract member readAsBinaryString: blob: Blob -> unit
+    /// <summary>FileReader.readAsText.</summary>
+    abstract member readAsText: blob: Blob * ?encoding: string -> unit
+    /// <summary>FileReader.readAsDataURL.</summary>
+    abstract member readAsDataURL: blob: Blob -> unit
+    /// <summary>FileReader.abort.</summary>
+    abstract member abort: unit -> unit
+
 /// <summary>HTMLUnknownElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLUnknownElement =
     inherit HTMLElement
@@ -3924,238 +5178,6 @@ and [<AllowNullLiteral>] HTMLTrackElement =
 and [<AllowNullLiteral>] HTMLVideoElement =
     inherit HTMLMediaElement
 
-/// <summary>SVGAElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGAElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGAnimateElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGAnimateElement =
-    inherit SVGAnimationElement
-
-/// <summary>SVGAnimateMotionElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGAnimateMotionElement =
-    inherit SVGAnimationElement
-
-/// <summary>SVGAnimateTransformElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGAnimateTransformElement =
-    inherit SVGAnimationElement
-
-/// <summary>SVGSetElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGSetElement =
-    inherit SVGAnimationElement
-
-/// <summary>SVGCircleElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGCircleElement =
-    inherit SVGGeometryElement
-
-/// <summary>SVGClipPathElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGClipPathElement =
-    inherit SVGElement
-
-/// <summary>SVGDefsElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGDefsElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGDescElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGDescElement =
-    inherit SVGElement
-
-/// <summary>SVGEllipseElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGEllipseElement =
-    inherit SVGGeometryElement
-
-/// <summary>SVGFEBlendElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEBlendElement =
-    inherit SVGElement
-
-/// <summary>SVGFEColorMatrixElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEColorMatrixElement =
-    inherit SVGElement
-
-/// <summary>SVGFEComponentTransferElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEComponentTransferElement =
-    inherit SVGElement
-
-/// <summary>SVGFECompositeElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFECompositeElement =
-    inherit SVGElement
-
-/// <summary>SVGFEConvolveMatrixElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEConvolveMatrixElement =
-    inherit SVGElement
-
-/// <summary>SVGFEDiffuseLightingElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEDiffuseLightingElement =
-    inherit SVGElement
-
-/// <summary>SVGFEDisplacementMapElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEDisplacementMapElement =
-    inherit SVGElement
-
-/// <summary>SVGFEDistantLightElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEDistantLightElement =
-    inherit SVGElement
-
-/// <summary>SVGFEDropShadowElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEDropShadowElement =
-    inherit SVGElement
-
-/// <summary>SVGFEFloodElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEFloodElement =
-    inherit SVGElement
-
-/// <summary>SVGFEFuncAElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEFuncAElement =
-    inherit SVGComponentTransferFunctionElement
-
-/// <summary>SVGFEFuncBElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEFuncBElement =
-    inherit SVGComponentTransferFunctionElement
-
-/// <summary>SVGFEFuncGElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEFuncGElement =
-    inherit SVGComponentTransferFunctionElement
-
-/// <summary>SVGFEFuncRElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEFuncRElement =
-    inherit SVGComponentTransferFunctionElement
-
-/// <summary>SVGFEGaussianBlurElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEGaussianBlurElement =
-    inherit SVGElement
-
-/// <summary>SVGFEImageElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEImageElement =
-    inherit SVGElement
-
-/// <summary>SVGFEMergeElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEMergeElement =
-    inherit SVGElement
-
-/// <summary>SVGFEMergeNodeElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEMergeNodeElement =
-    inherit SVGElement
-
-/// <summary>SVGFEMorphologyElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEMorphologyElement =
-    inherit SVGElement
-
-/// <summary>SVGFEOffsetElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEOffsetElement =
-    inherit SVGElement
-
-/// <summary>SVGFEPointLightElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFEPointLightElement =
-    inherit SVGElement
-
-/// <summary>SVGFESpecularLightingElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFESpecularLightingElement =
-    inherit SVGElement
-
-/// <summary>SVGFESpotLightElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFESpotLightElement =
-    inherit SVGElement
-
-/// <summary>SVGFETileElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFETileElement =
-    inherit SVGElement
-
-/// <summary>SVGFETurbulenceElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFETurbulenceElement =
-    inherit SVGElement
-
-/// <summary>SVGFilterElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGFilterElement =
-    inherit SVGElement
-
-/// <summary>SVGForeignObjectElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGForeignObjectElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGGElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGGElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGImageElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGImageElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGLineElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGLineElement =
-    inherit SVGGeometryElement
-
-/// <summary>SVGLinearGradientElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGLinearGradientElement =
-    inherit SVGGradientElement
-
-/// <summary>SVGMaskElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGMaskElement =
-    inherit SVGElement
-
-/// <summary>SVGMetadataElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGMetadataElement =
-    inherit SVGElement
-
-/// <summary>SVGMPathElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGMPathElement =
-    inherit SVGElement
-
-/// <summary>SVGPathElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGPathElement =
-    inherit SVGGeometryElement
-
-/// <summary>SVGRadialGradientElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGRadialGradientElement =
-    inherit SVGGradientElement
-
-/// <summary>SVGRectElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGRectElement =
-    inherit SVGGeometryElement
-
-/// <summary>SVGScriptElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGScriptElement =
-    inherit SVGElement
-
-/// <summary>SVGStopElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGStopElement =
-    inherit SVGElement
-
-/// <summary>SVGSwitchElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGSwitchElement =
-    inherit SVGGraphicsElement
-
-/// <summary>SVGTextElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGTextElement =
-    inherit SVGTextPositioningElement
-
-/// <summary>SVGTextPathElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGTextPathElement =
-    inherit SVGTextContentElement
-
-/// <summary>SVGTitleElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGTitleElement =
-    inherit SVGElement
-
-/// <summary>SVGTSpanElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGTSpanElement =
-    inherit SVGTextPositioningElement
-
-/// <summary>SVGUseElement in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SVGUseElement =
-    inherit SVGGraphicsElement
-
-/// <summary>AnimationEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] AnimationEvent =
-    inherit Event
-
-/// <summary>TransitionEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] TransitionEvent =
-    inherit Event
-
-/// <summary>BeforeUnloadEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] BeforeUnloadEvent =
-    inherit Event
-
 /// <summary>CustomElementRegistry in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] CustomElementRegistry = interface end
 
@@ -4167,31 +5189,8 @@ and [<AllowNullLiteral>] ClipboardEvent =
 and [<AllowNullLiteral>] DragEvent =
     inherit MouseEvent
 
-/// <summary>ErrorEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] ErrorEvent =
-    inherit Event
-
-/// <summary>FileList in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] FileList = interface end
-
-/// <summary>FormDataEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] FormDataEvent =
-    inherit Event
-
 /// <summary>GamepadEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] GamepadEvent =
-    inherit Event
-
-/// <summary>HTMLFormControlsCollection in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HTMLFormControlsCollection =
-    inherit HTMLCollection
-
-/// <summary>HTMLOptionsCollection in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HTMLOptionsCollection =
-    inherit HTMLCollection
-
-/// <summary>HashChangeEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HashChangeEvent =
     inherit Event
 
 /// <summary>MediaEncryptedEvent in the scoped DOM interface model.</summary>
@@ -4212,20 +5211,8 @@ and [<AllowNullLiteral>] PageRevealEvent =
 and [<AllowNullLiteral>] PageSwapEvent =
     inherit Event
 
-/// <summary>PageTransitionEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] PageTransitionEvent =
-    inherit Event
-
 /// <summary>PictureInPictureEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] PictureInPictureEvent =
-    inherit Event
-
-/// <summary>PopStateEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] PopStateEvent =
-    inherit Event
-
-/// <summary>ProgressEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] ProgressEvent =
     inherit Event
 
 /// <summary>PromiseRejectionEvent in the scoped DOM interface model.</summary>
@@ -4244,10 +5231,6 @@ and [<AllowNullLiteral>] SecurityPolicyViolationEvent =
 and [<AllowNullLiteral>] StorageEvent =
     inherit Event
 
-/// <summary>SubmitEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SubmitEvent =
-    inherit Event
-
 /// <summary>TextTrack in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] TextTrack =
     inherit EventTarget
@@ -4259,10 +5242,6 @@ and [<AllowNullLiteral>] TextTrackList =
 /// <summary>TimeRanges in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] TimeRanges = interface end
 
-/// <summary>ToggleEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] ToggleEvent =
-    inherit Event
-
 /// <summary>TouchEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] TouchEvent =
     inherit UIEvent
@@ -4271,6 +5250,8 @@ and [<AllowNullLiteral>] TouchEvent =
 and [<AllowNullLiteral>] ARIAMixin =
     /// <summary>ARIAMixin.ariaActiveDescendantElement.</summary>
     abstract member ariaActiveDescendantElement: Element with get, set
+    /// <summary>ARIAMixin.ariaActionsElements.</summary>
+    abstract member ariaActionsElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaAtomic.</summary>
     abstract member ariaAtomic: string with get, set
     /// <summary>ARIAMixin.ariaAutoComplete.</summary>
@@ -4291,14 +5272,24 @@ and [<AllowNullLiteral>] ARIAMixin =
     abstract member ariaColIndexText: string with get, set
     /// <summary>ARIAMixin.ariaColSpan.</summary>
     abstract member ariaColSpan: string with get, set
+    /// <summary>ARIAMixin.ariaControlsElements.</summary>
+    abstract member ariaControlsElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaCurrent.</summary>
     abstract member ariaCurrent: string with get, set
+    /// <summary>ARIAMixin.ariaDescribedByElements.</summary>
+    abstract member ariaDescribedByElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaDescription.</summary>
     abstract member ariaDescription: string with get, set
+    /// <summary>ARIAMixin.ariaDetailsElements.</summary>
+    abstract member ariaDetailsElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaDisabled.</summary>
     abstract member ariaDisabled: string with get, set
+    /// <summary>ARIAMixin.ariaErrorMessageElements.</summary>
+    abstract member ariaErrorMessageElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaExpanded.</summary>
     abstract member ariaExpanded: string with get, set
+    /// <summary>ARIAMixin.ariaFlowToElements.</summary>
+    abstract member ariaFlowToElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaHasPopup.</summary>
     abstract member ariaHasPopup: string with get, set
     /// <summary>ARIAMixin.ariaHidden.</summary>
@@ -4309,6 +5300,8 @@ and [<AllowNullLiteral>] ARIAMixin =
     abstract member ariaKeyShortcuts: string with get, set
     /// <summary>ARIAMixin.ariaLabel.</summary>
     abstract member ariaLabel: string with get, set
+    /// <summary>ARIAMixin.ariaLabelledByElements.</summary>
+    abstract member ariaLabelledByElements: (Element) array with get, set
     /// <summary>ARIAMixin.ariaLevel.</summary>
     abstract member ariaLevel: string with get, set
     /// <summary>ARIAMixin.ariaLive.</summary>
@@ -4572,6 +5565,16 @@ and [<RequireQualifiedAccess>] ShadowRootOrGetComposedRangesOptions =
     | ShadowRoot of ShadowRoot
     | GetComposedRangesOptions of GetComposedRangesOptions
 
+/// <summary>FileOrUSVString in the scoped DOM interface model.</summary>
+and [<RequireQualifiedAccess>] FileOrUSVString =
+    | File of File
+    | USVString of string
+
+/// <summary>USVStringOrURLPatternInit in the scoped DOM interface model.</summary>
+and [<RequireQualifiedAccess>] USVStringOrURLPatternInit =
+    | USVString of string
+    | URLPatternInit of URLPatternInit
+
 /// <summary>NodeOrDOMString in the scoped DOM interface model.</summary>
 and [<RequireQualifiedAccess>] NodeOrDOMString =
     | Node of Node
@@ -4608,6 +5611,10 @@ and [<AllowNullLiteral; DomDictionary>] ImportNodeOptions() =
 and [<AllowNullLiteral; DomDictionary>] AriaNotifyOptions() =
     member val priority: (AriaNotificationPriority) option = None with get, set
     member val interrupt: (AriaNotificationInterrupt) option = None with get, set
+
+/// <summary>CaretPositionFromPointOptions in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral; DomDictionary>] CaretPositionFromPointOptions() =
+    member val shadowRoots: (ShadowRoot) array = [||] with get, set
 
 /// <summary>ShadowRootInit in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral; DomDictionary>] ShadowRootInit() =
@@ -4702,6 +5709,18 @@ and [<AllowNullLiteral; DomDictionary>] DOMMatrix2DInit() =
     member val m41: (float) option = None with get, set
     member val m42: (float) option = None with get, set
 
+/// <summary>URLPatternInit in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral; DomDictionary>] URLPatternInit() =
+    member val protocol: (string) option = None with get, set
+    member val username: (string) option = None with get, set
+    member val password: (string) option = None with get, set
+    member val hostname: (string) option = None with get, set
+    member val port: (string) option = None with get, set
+    member val pathname: (string) option = None with get, set
+    member val search: (string) option = None with get, set
+    member val hash: (string) option = None with get, set
+    member val baseURL: (string) option = None with get, set
+
 /// <summary>FocusOptions in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral; DomDictionary>] FocusOptions() =
     member val preventScroll: bool = false with get, set
@@ -4713,6 +5732,15 @@ and EventListener = Event -> unit
 /// <summary>EventListenerObject in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] EventListenerObject =
     abstract member handleEvent: event: Event -> unit
+
+/// <summary>NodeFilter in the scoped DOM interface model.</summary>
+and NodeFilter = Node -> NodeFilterResult
+
+/// <summary>NodeFilterResult in the scoped DOM interface model.</summary>
+and NodeFilterResult =
+    | Accept = 1
+    | Reject = 2
+    | Skip = 3
 
 /// <summary>AriaNotificationPriority in the scoped DOM interface model.</summary>
 and [<DomStringEnum; RequireQualifiedAccess>] AriaNotificationPriority =
@@ -4746,6 +5774,12 @@ and [<DomStringEnum; RequireQualifiedAccess>] SlotAssignmentMode =
 and [<DomStringEnum; RequireQualifiedAccess>] VisibilityState =
     | [<CompiledName("hidden")>] Hidden
     | [<CompiledName("visible")>] Visible
+
+/// <summary>HighlightType in the scoped DOM interface model.</summary>
+and [<DomStringEnum; RequireQualifiedAccess>] HighlightType =
+    | [<CompiledName("highlight")>] Highlight
+    | [<CompiledName("spelling-error")>] SpellingError
+    | [<CompiledName("grammar-error")>] GrammarError
 
 /// <summary>ScrollBehavior in the scoped DOM interface model.</summary>
 and [<DomStringEnum; RequireQualifiedAccess>] ScrollBehavior =
@@ -4790,6 +5824,10 @@ module BrowserUnionAdapters =
 
     [<Fable.Core.Emit("$0 != null && $0.nodeType === 1")>]
     let private isElement (_: obj) : bool =
+        Fable.Core.Util.jsNative
+
+    [<Fable.Core.Emit("Object.prototype.toString.call($0) === '[object File]'")>]
+    let private isFile (_: obj) : bool =
         Fable.Core.Util.jsNative
 
     [<Fable.Core.Emit("Object.prototype.toString.call($0) === '[object RadioNodeList]'")>]
@@ -4959,6 +5997,35 @@ module BrowserUnionAdapters =
         match value with
         | ShadowRootOrGetComposedRangesOptions.ShadowRoot value -> box value
         | ShadowRootOrGetComposedRangesOptions.GetComposedRangesOptions value -> box value
+
+    let private boxFileOrUSVString (value: FileOrUSVString) : obj =
+        if isNull (box value) then
+            nullArg "value"
+
+        match value with
+        | FileOrUSVString.File value ->
+            if isNull (box value) then
+                nullArg "value"
+
+            if not (isFile (box value)) then
+                invalidArg "value" "Expected a File."
+
+            box value
+        | FileOrUSVString.USVString value -> box (normalizeUSVString value)
+
+    let private unboxFileOrUSVString (value: obj) : FileOrUSVString =
+        match value with
+        | arm when isFile arm -> FileOrUSVString.File (unbox<File> arm)
+        | :? string as arm -> FileOrUSVString.USVString arm
+        | _ -> failwith "Unexpected DOM union result"
+
+    let private boxUSVStringOrURLPatternInit (value: USVStringOrURLPatternInit) : obj =
+        if isNull (box value) then
+            nullArg "value"
+
+        match value with
+        | USVStringOrURLPatternInit.USVString value -> box (normalizeUSVString value)
+        | USVStringOrURLPatternInit.URLPatternInit value -> box value
 
     let private boxNodeOrDOMString (value: NodeOrDOMString) : obj =
         match value with
@@ -5161,6 +6228,80 @@ module BrowserUnionAdapters =
 
         member this.getComposedRanges(options: GetComposedRangesOptions, [<System.ParamArray>] shadowRoots: ShadowRoot array) : (StaticRange) array =
             this.__ranvier_getComposedRanges (?options = Some (box options), shadowRoots = shadowRoots)
+
+
+    type HTMLCollection with
+        member this.namedItem(name: string) : Element =
+            this.__ranvier_namedItem (name)
+
+
+    type HTMLFormControlsCollection with
+        member this.namedItem(name: string) : (RadioNodeListOrElement) option =
+            let value = this.__ranvier_namedItem (name)
+
+            if isNull value then
+                None
+            else
+                Some (unboxRadioNodeListOrElement value)
+
+
+    type HTMLOptionsCollection with
+        member this.add(element: HTMLOptionElement) : unit =
+            this.__ranvier_add (box element, ?before = None)
+
+        member this.add(element: HTMLOptionElement, before: HTMLElement) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptionElement, before: int) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptGroupElement) : unit =
+            this.__ranvier_add (box element, ?before = None)
+
+        member this.add(element: HTMLOptGroupElement, before: HTMLElement) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptGroupElement, before: int) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+
+    type DOMFormData with
+        member this.get(name: string) : (FileOrUSVString) option =
+            let value = this.__ranvier_get (name)
+
+            if isNull value then
+                None
+            else
+                Some (unboxFileOrUSVString value)
+
+
+    type AnimationPlaybackEvent with
+        member this.currentTime: (DoubleOrCSSNumericValue) option =
+            let value = this.__ranvier_get_currentTime ()
+
+            if isNull value then
+                None
+            else
+                Some (unboxDoubleOrCSSNumericValue value)
+
+        member this.timelineTime: (DoubleOrCSSNumericValue) option =
+            let value = this.__ranvier_get_timelineTime ()
+
+            if isNull value then
+                None
+            else
+                Some (unboxDoubleOrCSSNumericValue value)
+
+
+    type URLPattern with
+        member this.test() : bool =
+            this.__ranvier_test (?input = None, ?baseURL = None)
+
+        member this.test(input: string, ?baseURL: string) : bool =
+            this.__ranvier_test (?input = Some (box (normalizeUSVString input)), ?baseURL = baseURL)
+
+        member this.test(input: URLPatternInit, ?baseURL: string) : bool =
+            this.__ranvier_test (?input = Some (box input), ?baseURL = baseURL)
 
 
     type ChildNode with

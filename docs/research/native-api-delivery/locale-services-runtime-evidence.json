@@ -1,0 +1,273 @@
+{
+  "schemaVersion": 1,
+  "group": "H06",
+  "status": "private-cohort20-verification",
+  "sourceBodies": {
+    "core": "99aad345",
+    "views": "41b0331",
+    "coreIntegrated": "0f6cf7dc601fee47a5ac6dd2be52465ffa3248f0",
+    "viewsIntegrated": "f47479561dc258f8e384368ec937f1c3f56ae67a"
+  },
+  "allocation": {
+    "coreDom": "0.1.0-alpha.20",
+    "views": "0.1.10",
+    "backendAndSdl": "0.1.0-alpha.10",
+    "freshAbsenceAudit": "C:/wk/rv-next19-21-allocation-check.json"
+  },
+  "sourceFiles": [
+    {
+      "path": "C:\\Users\\shaya\\.codex\\worktrees\\native-api-locale\\Ranvier\\src\\Ranvier.Dom\\Locales.fs",
+      "sha256": "bcca05f98bcad975b817ce3666362b5f867435acc3812c3063b35989fc2e0d4d"
+    },
+    {
+      "path": "C:\\Users\\shaya\\.codex\\worktrees\\native-api-locale\\Ranvier\\src\\Fable.Ranvier.Dom\\BrowserLocales.fs",
+      "sha256": "c16b97f1e9866837ebba9032914c9fe79647c36e6415f499a10981d33526dbce"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-views\\src\\Ranvier.View.WebCore\\Locales.fs",
+      "sha256": "cffc99f75cbf2e898bb41710950a70684cc04cc1fb4ad7239f3c32549e24566a"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-views\\tests\\NativeApi.Conformance\\LocalePreferences.fs",
+      "sha256": "bb27f0b65951693934c1e57e917e505875560aae16f362bdbd5189a1b1f2570e"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-views\\tests\\NativeApi.Conformance\\LocaleLifecycle.fs",
+      "sha256": "5024f39a389a25669aec7c2a0ad6a52814e02ba0af2d9662bbcc9c010f8e3ddd"
+    }
+  ],
+  "moduleMaps": {
+    "jit": {
+      "H06": 35,
+      "H06_DETERMINISTIC": 14,
+      "H06 LIFETIME": 26,
+      "SVG LIFETIME": 37,
+      "H02": 180,
+      "C16 LIFETIME": 47,
+      "G08 LIFETIME": 23,
+      "G07 LIFETIME": 26,
+      "C13 LIFETIME": 33,
+      "C14 LIFETIME": 19,
+      "C12 LIFETIME": 10,
+      "S01_S02": 126,
+      "S04_REACHABLE": 361,
+      "C16": 471,
+      "G08": 710,
+      "G07": 177,
+      "D10_VIEW": 29,
+      "D11_VIEW_HYPERLINKS": 50,
+      "C05": 45,
+      "C03": 32,
+      "C01_C02": 42,
+      "C12": 50,
+      "C14": 99,
+      "C13": 127,
+      "C08": 131,
+      "C04": 39,
+      "G06": 61,
+      "C18": 51,
+      "C22": 23,
+      "C21": 44,
+      "C19": 64,
+      "C11": 82,
+      "D10": 30,
+      "HYPERLINKS": 60,
+      "D11": 205,
+      "D09": 24,
+      "D09_VIEWPORT": 30,
+      "SVG_CSSOM": 31,
+      "CSSOM": 58,
+      "C09": 44,
+      "C10": 91,
+      "D11_OPERATIONS": 26,
+      "D12": 109,
+      "C07": 78,
+      "G06 LIFETIME": 8,
+      "C03 LIFETIME": 4,
+      "C01_C02 LIFETIME": 7,
+      "C04 LIFETIME": 2,
+      "C07 LIFETIME": 4
+    },
+    "aot": {
+      "H06": 35,
+      "H06_DETERMINISTIC": 14,
+      "H06 LIFETIME": 26,
+      "SVG LIFETIME": 37,
+      "H02": 180,
+      "C16 LIFETIME": 47,
+      "G08 LIFETIME": 23,
+      "G07 LIFETIME": 26,
+      "C13 LIFETIME": 33,
+      "C14 LIFETIME": 19,
+      "C12 LIFETIME": 10,
+      "S01_S02": 126,
+      "S04_REACHABLE": 361,
+      "C16": 471,
+      "G08": 710,
+      "G07": 177,
+      "D10_VIEW": 29,
+      "D11_VIEW_HYPERLINKS": 50,
+      "C05": 45,
+      "C03": 32,
+      "C01_C02": 42,
+      "C12": 50,
+      "C14": 99,
+      "C13": 127,
+      "C08": 131,
+      "C04": 39,
+      "G06": 61,
+      "C18": 51,
+      "C22": 23,
+      "C21": 44,
+      "C19": 64,
+      "C11": 82,
+      "D10": 30,
+      "HYPERLINKS": 60,
+      "D11": 205,
+      "D09": 24,
+      "D09_VIEWPORT": 30,
+      "SVG_CSSOM": 31,
+      "CSSOM": 58,
+      "C09": 44,
+      "C10": 91,
+      "D11_OPERATIONS": 26,
+      "D12": 109,
+      "C07": 78,
+      "G06 LIFETIME": 8,
+      "C03 LIFETIME": 4,
+      "C01_C02 LIFETIME": 7,
+      "C04 LIFETIME": 2,
+      "C07 LIFETIME": 4
+    },
+    "browser": {
+      "C12": 50,
+      "C12 CONTEXT": 3,
+      "H06": 35,
+      "H06_DETERMINISTIC": 14,
+      "H06 CONTEXT": 6,
+      "S01_S02": 126,
+      "S04_REACHABLE": 361,
+      "SVG CONTEXT": 54,
+      "C16": 471,
+      "C16 CONTEXT": 3,
+      "G08": 710,
+      "G08 CONTEXT": 3,
+      "G07": 177,
+      "G07 CONTEXT": 3,
+      "C13": 127,
+      "C13 CONTEXT": 3,
+      "C14": 99,
+      "C14 CONTEXT": 3,
+      "D10": 30,
+      "H02": 180,
+      "D10_VIEW": 29,
+      "D11_VIEW_HYPERLINKS": 50,
+      "C05": 45,
+      "C03": 32,
+      "C03 CONTEXT": 2,
+      "C01_C02": 42,
+      "G06": 74,
+      "C18": 49,
+      "C22": 23,
+      "C21": 44,
+      "C19": 64,
+      "C11": 82,
+      "C09": 44,
+      "C10": 93,
+      "C04": 39,
+      "C01_C02 CONTEXT": 2,
+      "D11": 205,
+      "D09": 24,
+      "D09_VIEWPORT": 30,
+      "D11_OPERATIONS": 26,
+      "CSSOM": 58,
+      "C08": 131,
+      "SVG_CSSOM": 31,
+      "HYPERLINKS": 60,
+      "C07": 78,
+      "D12": 109
+    }
+  },
+  "counts": {
+    "nativeShared": 3815,
+    "browserShared": 3828,
+    "h06Shared": 35,
+    "h06Deterministic": 14,
+    "nativeSeparatelyMarkedLifetime": 246,
+    "browserContext": 82,
+    "h06Lifetime": 26,
+    "h06BrowserContext": 6,
+    "h02AdditionalDeterministic": 181,
+    "h02AdditionalLifecycle": 25,
+    "h02Concurrent": 500
+  },
+  "runtime": {
+    "abi": 26,
+    "stage": "C:\\wk\\rv-locale-views\\artifacts\\locale-runtime-stage",
+    "manifest": "C:\\wk\\rv-locale-views\\artifacts\\locale-runtime-manifest.json",
+    "preExecutionPayloadsPerRun": 24,
+    "jit": {
+      "path": "C:\\wk\\rv-locale-probe\\native-cohort20-jit-preexec.json",
+      "sha256": "3cdfa53a603b931db28be8c7d92068396df046b0797cc63a48fb2753f9697156"
+    },
+    "aot": {
+      "path": "C:\\wk\\rv-locale-probe\\native-cohort20-aot-preexec.json",
+      "sha256": "c2208e04c5e471efab29ee89a1bfe46aca081f3a9411908b59121f6a6ed2d7fe"
+    },
+    "actualIlcCodegen": true
+  },
+  "receipts": [
+    {
+      "path": "C:\\wk\\rv-locale-probe\\native-cohort20-jit-full.log",
+      "sha256": "dceb89df7a128639532649e6d156857b01288083814010381a2116df462fe55e"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\native-cohort20-aot-full.log",
+      "sha256": "dceb89df7a128639532649e6d156857b01288083814010381a2116df462fe55e"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\native-cohort20-aot-publish.log",
+      "sha256": "c9ed49d98d5abd128d2f6df9ff9044fcf30f9c6add7e53c1b55c003f794606ef"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\browser-cohort20-full.log",
+      "sha256": "91de632fca3a63293a77276b1ddc18bd591e0228f6e7cbff57dad7c93fcc4dbf"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\browser-cohort20-compile.json",
+      "sha256": "b5527ba3342869388bc8529116fe92a561d294bf1d08f2ea522eb9441e546b90"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\configured-gates.json",
+      "sha256": "1393ce3dda40fd5f454238a23e44678d8ef94fa27132ce3ac7b0bd4778edfd12"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\final-fcs-checks.json",
+      "sha256": "f32ae0d74dd6af2cb5412e19f9f0ec3ac40bb31433da395adcaf9e2267b26982"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\xml-audit.log",
+      "sha256": "41825056c20f94090e60b3472cfd58591e3a86071d77261de5e1d9831f90f401"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\final-format-check.log",
+      "sha256": "a4ed4c2c830adf807283a578ea7ee8b2f659416a86da69815d6147237e7d7f36"
+    },
+    {
+      "path": "C:\\wk\\rv-locale-probe\\lease-deviation-and-correction.json",
+      "sha256": "8fa8b64e3318e75051825db09ba5780ebbe040fe678d26828561ad77d848d4a6"
+    }
+  ],
+  "qualifications": [
+    "All coherent cohort20 runtime proof is private; no official20 or platform-complete claim.",
+    "Browser facade uses Intl and navigator.languages; native facade uses .NET CultureInfo/TimeZoneInfo and exposes CurrentUICulture as a singleton, not an OS preferred-language list.",
+    "Application overrides never mutate navigator, process cultures, OS preferences or system time zone.",
+    "Canonicalization is provider qualified: native may preserve iw-IL and US/Eastern; Chromium normalizes them to he-IL and America/New_York.",
+    "Sage bare session globalization is invariant; actual .NET provider behavior was checked through compiler/native CLI fallback.",
+    "Initial AOT setup errors NETSDK1207 and unset MSBuild OS were corrected by target-framework narrowing and child-only OS=Windows_NT; no global environment change.",
+    "AOT retains dependency/trim warnings from FSharp.Core and existing SameValueZero reflection; native JIT build is 0 warnings and 0 errors.",
+    "The configured analyzer pipeline initially lacked existing private build/docs dependencies. Exact cached artifacts were copied and hashed into an owned feed; no source or tool versions changed.",
+    "The first full Chromium execution followed a refused test-suite lease while the build lease was held. The completed valid runtime result is retained; actual granted-only callback guard/refused sentinel proof and subsequent proper lease handling are explicit in the deviation receipt.",
+    "Official producer pin replacement, four-platform hosted source gates and normal/traced official package execution remain required before H06 acceptance."
+  ]
+}

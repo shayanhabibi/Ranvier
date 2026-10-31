@@ -44,7 +44,7 @@ module Timing =
     let private field (target: obj) (name: string) : obj = jsNative
 
     [<Emit("$0 == null ? 'null' : Array.isArray($0) ? 'array' : typeof $0")>]
-    let private detailKind (value: obj) : string = jsNative
+    let internal detailKind (value: obj) : string = jsNative
 
     [<Emit("Object.keys($0)")>]
     let private keys (value: obj) : string array = jsNative
@@ -53,9 +53,9 @@ module Timing =
     let private objectFields (values: (string * obj) array) : obj = jsNative
 
     [<Emit("Object.prototype.toString.call($0) === '[object Object]'")>]
-    let private plainObject (value: obj) : bool = jsNative
+    let internal plainObject (value: obj) : bool = jsNative
 
-    let rec private toRaw =
+    let rec internal toRaw =
         function
         | TimingDetail.Null -> null
         | TimingDetail.Boolean value -> box value
@@ -67,7 +67,7 @@ module Timing =
             |> Array.map (fun (key, value) -> key, toRaw value)
             |> objectFields
 
-    let private fromRaw value =
+    let internal fromRaw value =
         let active = HashSet<obj>(HashIdentity.Reference)
 
         let container value action =

@@ -1,0 +1,3822 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    "S08",
+    "S09",
+    "S10",
+    "S11"
+  ],
+  "canonicalSha256": "3986d93f74a4b926fbfdcf170683cb6ba14ee215fc1ddbd1073cc35b729a1de6",
+  "producer": "Ranvier.WebCore PR132 source e55d222 (handoff receipt 0ca46a52)",
+  "baseline": {
+    "source": "svg-surfaces-public-api.json after",
+    "entityCount": 97,
+    "memberCount": 281
+  },
+  "after": {
+    "entityCount": 100,
+    "memberCount": 508,
+    "entities": [
+      {
+        "fullName": "Ranvier.Dom.SVGAElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "hreflang",
+            "kind": "property",
+            "signature": "hreflang() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "rel",
+            "kind": "property",
+            "signature": "rel() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "relList",
+            "kind": "property",
+            "signature": "relList() -> Ranvier.Dom.DOMTokenList",
+            "accessibility": "public"
+          },
+          {
+            "name": "target",
+            "kind": "property",
+            "signature": "target() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> string",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAngle",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "convertToSpecifiedUnits",
+            "kind": "method",
+            "signature": "convertToSpecifiedUnits(unitType: uint16) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "newValueSpecifiedUnits",
+            "kind": "method",
+            "signature": "newValueSpecifiedUnits(unitType: uint16, valueInSpecifiedUnits: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "unitType",
+            "kind": "property",
+            "signature": "unitType() -> uint16",
+            "accessibility": "public"
+          },
+          {
+            "name": "value",
+            "kind": "property",
+            "signature": "value() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "valueAsString",
+            "kind": "property",
+            "signature": "valueAsString() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "valueInSpecifiedUnits",
+            "kind": "property",
+            "signature": "valueInSpecifiedUnits() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimateElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimateMotionElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimateTransformElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedAngle",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGAngle",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGAngle",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedBoolean",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> bool",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedEnumeration",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> uint16",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedInteger",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> int",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> int",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedLength",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedLengthList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGLengthList",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGLengthList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedNumber",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedNumberList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGNumberList",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGNumberList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGPreserveAspectRatio",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedRect",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGRect",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedString",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> string",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimatedTransformList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animVal",
+            "kind": "property",
+            "signature": "animVal() -> Ranvier.Dom.SVGTransformList",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseVal",
+            "kind": "property",
+            "signature": "baseVal() -> Ranvier.Dom.SVGTransformList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGAnimationElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "beginElement",
+            "kind": "method",
+            "signature": "beginElement() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "beginElementAt",
+            "kind": "method",
+            "signature": "beginElementAt(offset: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "endElement",
+            "kind": "method",
+            "signature": "endElement() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "endElementAt",
+            "kind": "method",
+            "signature": "endElementAt(offset: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getCurrentTime",
+            "kind": "method",
+            "signature": "getCurrentTime() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "getSimpleDuration",
+            "kind": "method",
+            "signature": "getSimpleDuration() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "getStartTime",
+            "kind": "method",
+            "signature": "getStartTime() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "requiredExtensions",
+            "kind": "property",
+            "signature": "requiredExtensions() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "systemLanguage",
+            "kind": "property",
+            "signature": "systemLanguage() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "targetElement",
+            "kind": "property",
+            "signature": "targetElement() -> Ranvier.Dom.SVGElement",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGCircleElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "cx",
+            "kind": "property",
+            "signature": "cx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "cy",
+            "kind": "property",
+            "signature": "cy() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "r",
+            "kind": "property",
+            "signature": "r() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGClipPathElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "clipPathUnits",
+            "kind": "property",
+            "signature": "clipPathUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "transform",
+            "kind": "property",
+            "signature": "transform() -> Ranvier.Dom.SVGAnimatedTransformList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGComponentTransferFunctionElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "amplitude",
+            "kind": "property",
+            "signature": "amplitude() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "exponent",
+            "kind": "property",
+            "signature": "exponent() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "intercept",
+            "kind": "property",
+            "signature": "intercept() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "offset",
+            "kind": "property",
+            "signature": "offset() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "slope",
+            "kind": "property",
+            "signature": "slope() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "tableValues",
+            "kind": "property",
+            "signature": "tableValues() -> Ranvier.Dom.SVGAnimatedNumberList",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGDefsElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGDescElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "className",
+            "kind": "property",
+            "signature": "className() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "ownerSVGElement",
+            "kind": "property",
+            "signature": "ownerSVGElement() -> Ranvier.Dom.SVGSVGElement",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewportElement",
+            "kind": "property",
+            "signature": "viewportElement() -> Ranvier.Dom.SVGElement",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGEllipseElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "cx",
+            "kind": "property",
+            "signature": "cx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "cy",
+            "kind": "property",
+            "signature": "cy() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "rx",
+            "kind": "property",
+            "signature": "rx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "ry",
+            "kind": "property",
+            "signature": "ry() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEBlendElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "in2",
+            "kind": "property",
+            "signature": "in2() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "mode",
+            "kind": "property",
+            "signature": "mode() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEColorMatrixElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "values",
+            "kind": "property",
+            "signature": "values() -> Ranvier.Dom.SVGAnimatedNumberList",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEComponentTransferElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFECompositeElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "in2",
+            "kind": "property",
+            "signature": "in2() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "k1",
+            "kind": "property",
+            "signature": "k1() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "k2",
+            "kind": "property",
+            "signature": "k2() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "k3",
+            "kind": "property",
+            "signature": "k3() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "k4",
+            "kind": "property",
+            "signature": "k4() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "operator",
+            "kind": "property",
+            "signature": "operator() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEConvolveMatrixElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "bias",
+            "kind": "property",
+            "signature": "bias() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "divisor",
+            "kind": "property",
+            "signature": "divisor() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "edgeMode",
+            "kind": "property",
+            "signature": "edgeMode() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelMatrix",
+            "kind": "property",
+            "signature": "kernelMatrix() -> Ranvier.Dom.SVGAnimatedNumberList",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthX",
+            "kind": "property",
+            "signature": "kernelUnitLengthX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthY",
+            "kind": "property",
+            "signature": "kernelUnitLengthY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "orderX",
+            "kind": "property",
+            "signature": "orderX() -> Ranvier.Dom.SVGAnimatedInteger",
+            "accessibility": "public"
+          },
+          {
+            "name": "orderY",
+            "kind": "property",
+            "signature": "orderY() -> Ranvier.Dom.SVGAnimatedInteger",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAlpha",
+            "kind": "property",
+            "signature": "preserveAlpha() -> Ranvier.Dom.SVGAnimatedBoolean",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "targetX",
+            "kind": "property",
+            "signature": "targetX() -> Ranvier.Dom.SVGAnimatedInteger",
+            "accessibility": "public"
+          },
+          {
+            "name": "targetY",
+            "kind": "property",
+            "signature": "targetY() -> Ranvier.Dom.SVGAnimatedInteger",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEDiffuseLightingElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "diffuseConstant",
+            "kind": "property",
+            "signature": "diffuseConstant() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthX",
+            "kind": "property",
+            "signature": "kernelUnitLengthX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthY",
+            "kind": "property",
+            "signature": "kernelUnitLengthY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "surfaceScale",
+            "kind": "property",
+            "signature": "surfaceScale() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEDisplacementMapElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "in2",
+            "kind": "property",
+            "signature": "in2() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "scale",
+            "kind": "property",
+            "signature": "scale() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "xChannelSelector",
+            "kind": "property",
+            "signature": "xChannelSelector() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "yChannelSelector",
+            "kind": "property",
+            "signature": "yChannelSelector() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEDistantLightElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "azimuth",
+            "kind": "property",
+            "signature": "azimuth() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "elevation",
+            "kind": "property",
+            "signature": "elevation() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEDropShadowElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "dx",
+            "kind": "property",
+            "signature": "dx() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "dy",
+            "kind": "property",
+            "signature": "dy() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "setStdDeviation",
+            "kind": "method",
+            "signature": "setStdDeviation(stdDeviationX: float32, stdDeviationY: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "stdDeviationX",
+            "kind": "property",
+            "signature": "stdDeviationX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "stdDeviationY",
+            "kind": "property",
+            "signature": "stdDeviationY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEFloodElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEFuncAElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEFuncBElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEFuncGElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEFuncRElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEGaussianBlurElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "edgeMode",
+            "kind": "property",
+            "signature": "edgeMode() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "setStdDeviation",
+            "kind": "method",
+            "signature": "setStdDeviation(stdDeviationX: float32, stdDeviationY: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "stdDeviationX",
+            "kind": "property",
+            "signature": "stdDeviationX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "stdDeviationY",
+            "kind": "property",
+            "signature": "stdDeviationY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEImageElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEMergeElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEMergeNodeElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEMorphologyElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "operator",
+            "kind": "property",
+            "signature": "operator() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "radiusX",
+            "kind": "property",
+            "signature": "radiusX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "radiusY",
+            "kind": "property",
+            "signature": "radiusY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEOffsetElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "dx",
+            "kind": "property",
+            "signature": "dx() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "dy",
+            "kind": "property",
+            "signature": "dy() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFEPointLightElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "z",
+            "kind": "property",
+            "signature": "z() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFESpecularLightingElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthX",
+            "kind": "property",
+            "signature": "kernelUnitLengthX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "kernelUnitLengthY",
+            "kind": "property",
+            "signature": "kernelUnitLengthY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "specularConstant",
+            "kind": "property",
+            "signature": "specularConstant() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "specularExponent",
+            "kind": "property",
+            "signature": "specularExponent() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "surfaceScale",
+            "kind": "property",
+            "signature": "surfaceScale() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFESpotLightElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "limitingConeAngle",
+            "kind": "property",
+            "signature": "limitingConeAngle() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "pointsAtX",
+            "kind": "property",
+            "signature": "pointsAtX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "pointsAtY",
+            "kind": "property",
+            "signature": "pointsAtY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "pointsAtZ",
+            "kind": "property",
+            "signature": "pointsAtZ() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "specularExponent",
+            "kind": "property",
+            "signature": "specularExponent() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "z",
+            "kind": "property",
+            "signature": "z() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFETileElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "in1",
+            "kind": "property",
+            "signature": "in1() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFETurbulenceElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "baseFrequencyX",
+            "kind": "property",
+            "signature": "baseFrequencyX() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "baseFrequencyY",
+            "kind": "property",
+            "signature": "baseFrequencyY() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "numOctaves",
+            "kind": "property",
+            "signature": "numOctaves() -> Ranvier.Dom.SVGAnimatedInteger",
+            "accessibility": "public"
+          },
+          {
+            "name": "result",
+            "kind": "property",
+            "signature": "result() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "seed",
+            "kind": "property",
+            "signature": "seed() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "stitchTiles",
+            "kind": "property",
+            "signature": "stitchTiles() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGFilterElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "filterUnits",
+            "kind": "property",
+            "signature": "filterUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "primitiveUnits",
+            "kind": "property",
+            "signature": "primitiveUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGForeignObjectElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGGElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGGeometryElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "getPointAtLength",
+            "kind": "method",
+            "signature": "getPointAtLength(distance: float32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "getTotalLength",
+            "kind": "method",
+            "signature": "getTotalLength() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "isPointInFill",
+            "kind": "method",
+            "signature": "isPointInFill(point: Ranvier.Dom.DOMPointInit option) -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "isPointInStroke",
+            "kind": "method",
+            "signature": "isPointInStroke(point: Ranvier.Dom.DOMPointInit option) -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "pathLength",
+            "kind": "property",
+            "signature": "pathLength() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGGradientElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "gradientTransform",
+            "kind": "property",
+            "signature": "gradientTransform() -> Ranvier.Dom.SVGAnimatedTransformList",
+            "accessibility": "public"
+          },
+          {
+            "name": "gradientUnits",
+            "kind": "property",
+            "signature": "gradientUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "spreadMethod",
+            "kind": "property",
+            "signature": "spreadMethod() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGGraphicsElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "getBBox",
+            "kind": "method",
+            "signature": "getBBox() -> Ranvier.Dom.SVGRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "getCTM",
+            "kind": "method",
+            "signature": "getCTM() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "getScreenCTM",
+            "kind": "method",
+            "signature": "getScreenCTM() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "requiredExtensions",
+            "kind": "property",
+            "signature": "requiredExtensions() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "systemLanguage",
+            "kind": "property",
+            "signature": "systemLanguage() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "transform",
+            "kind": "property",
+            "signature": "transform() -> Ranvier.Dom.SVGAnimatedTransformList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGImageElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "crossOrigin",
+            "kind": "property",
+            "signature": "crossOrigin() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGLength",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "convertToSpecifiedUnits",
+            "kind": "method",
+            "signature": "convertToSpecifiedUnits(unitType: uint16) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "newValueSpecifiedUnits",
+            "kind": "method",
+            "signature": "newValueSpecifiedUnits(unitType: uint16, valueInSpecifiedUnits: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "unitType",
+            "kind": "property",
+            "signature": "unitType() -> uint16",
+            "accessibility": "public"
+          },
+          {
+            "name": "value",
+            "kind": "property",
+            "signature": "value() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "valueAsString",
+            "kind": "property",
+            "signature": "valueAsString() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "valueInSpecifiedUnits",
+            "kind": "property",
+            "signature": "valueInSpecifiedUnits() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGLengthList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "appendItem",
+            "kind": "method",
+            "signature": "appendItem(newItem: Ranvier.Dom.SVGLength) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "signature": "clear() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getItem",
+            "kind": "method",
+            "signature": "getItem(index: uint32) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "initialize",
+            "kind": "method",
+            "signature": "initialize(newItem: Ranvier.Dom.SVGLength) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "insertItemBefore",
+            "kind": "method",
+            "signature": "insertItemBefore(newItem: Ranvier.Dom.SVGLength, index: uint32) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "length",
+            "kind": "property",
+            "signature": "length() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "numberOfItems",
+            "kind": "property",
+            "signature": "numberOfItems() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "removeItem",
+            "kind": "method",
+            "signature": "removeItem(index: uint32) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "replaceItem",
+            "kind": "method",
+            "signature": "replaceItem(newItem: Ranvier.Dom.SVGLength, index: uint32) -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "setItem",
+            "kind": "method",
+            "signature": "setItem(index: uint32, newItem: Ranvier.Dom.SVGLength) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGLineElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "x1",
+            "kind": "property",
+            "signature": "x1() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x2",
+            "kind": "property",
+            "signature": "x2() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y1",
+            "kind": "property",
+            "signature": "y1() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y2",
+            "kind": "property",
+            "signature": "y2() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGLinearGradientElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "x1",
+            "kind": "property",
+            "signature": "x1() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x2",
+            "kind": "property",
+            "signature": "x2() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y1",
+            "kind": "property",
+            "signature": "y1() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y2",
+            "kind": "property",
+            "signature": "y2() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGMPathElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGMarkerElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "markerHeight",
+            "kind": "property",
+            "signature": "markerHeight() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "markerUnits",
+            "kind": "property",
+            "signature": "markerUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "markerWidth",
+            "kind": "property",
+            "signature": "markerWidth() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "orient",
+            "kind": "property",
+            "signature": "orient() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "orientAngle",
+            "kind": "property",
+            "signature": "orientAngle() -> Ranvier.Dom.SVGAnimatedAngle",
+            "accessibility": "public"
+          },
+          {
+            "name": "orientType",
+            "kind": "property",
+            "signature": "orientType() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "refX",
+            "kind": "property",
+            "signature": "refX() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "refY",
+            "kind": "property",
+            "signature": "refY() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "setOrientToAngle",
+            "kind": "method",
+            "signature": "setOrientToAngle(angle: Ranvier.Dom.SVGAngle) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setOrientToAuto",
+            "kind": "method",
+            "signature": "setOrientToAuto() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGMaskElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "maskContentUnits",
+            "kind": "property",
+            "signature": "maskContentUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "maskUnits",
+            "kind": "property",
+            "signature": "maskUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "requiredExtensions",
+            "kind": "property",
+            "signature": "requiredExtensions() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "systemLanguage",
+            "kind": "property",
+            "signature": "systemLanguage() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGMatrix",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "a",
+            "kind": "property",
+            "signature": "a() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "b",
+            "kind": "property",
+            "signature": "b() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "c",
+            "kind": "property",
+            "signature": "c() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "d",
+            "kind": "property",
+            "signature": "d() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "e",
+            "kind": "property",
+            "signature": "e() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "f",
+            "kind": "property",
+            "signature": "f() -> float",
+            "accessibility": "public"
+          },
+          {
+            "name": "flipX",
+            "kind": "method",
+            "signature": "flipX() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "flipY",
+            "kind": "method",
+            "signature": "flipY() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "inverse",
+            "kind": "method",
+            "signature": "inverse() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "multiply",
+            "kind": "method",
+            "signature": "multiply(secondMatrix: Ranvier.Dom.SVGMatrix) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "rotate",
+            "kind": "method",
+            "signature": "rotate(angle: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "rotateFromVector",
+            "kind": "method",
+            "signature": "rotateFromVector(x: float32, y: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "scale",
+            "kind": "method",
+            "signature": "scale(scaleFactor: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "scaleNonUniform",
+            "kind": "method",
+            "signature": "scaleNonUniform(scaleFactorX: float32, scaleFactorY: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "skewX",
+            "kind": "method",
+            "signature": "skewX(angle: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "skewY",
+            "kind": "method",
+            "signature": "skewY(angle: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "translate",
+            "kind": "method",
+            "signature": "translate(x: float32, y: float32) -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGMetadataElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGNumber",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "value",
+            "kind": "property",
+            "signature": "value() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGNumberList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "appendItem",
+            "kind": "method",
+            "signature": "appendItem(newItem: Ranvier.Dom.SVGNumber) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "signature": "clear() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getItem",
+            "kind": "method",
+            "signature": "getItem(index: uint32) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "initialize",
+            "kind": "method",
+            "signature": "initialize(newItem: Ranvier.Dom.SVGNumber) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "insertItemBefore",
+            "kind": "method",
+            "signature": "insertItemBefore(newItem: Ranvier.Dom.SVGNumber, index: uint32) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "length",
+            "kind": "property",
+            "signature": "length() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "numberOfItems",
+            "kind": "property",
+            "signature": "numberOfItems() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "removeItem",
+            "kind": "method",
+            "signature": "removeItem(index: uint32) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "replaceItem",
+            "kind": "method",
+            "signature": "replaceItem(newItem: Ranvier.Dom.SVGNumber, index: uint32) -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "setItem",
+            "kind": "method",
+            "signature": "setItem(index: uint32, newItem: Ranvier.Dom.SVGNumber) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPathElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPatternElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "patternContentUnits",
+            "kind": "property",
+            "signature": "patternContentUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "patternTransform",
+            "kind": "property",
+            "signature": "patternTransform() -> Ranvier.Dom.SVGAnimatedTransformList",
+            "accessibility": "public"
+          },
+          {
+            "name": "patternUnits",
+            "kind": "property",
+            "signature": "patternUnits() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "requiredExtensions",
+            "kind": "property",
+            "signature": "requiredExtensions() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "systemLanguage",
+            "kind": "property",
+            "signature": "systemLanguage() -> Ranvier.Dom.SVGStringList",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPoint",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "matrixTransform",
+            "kind": "method",
+            "signature": "matrixTransform(matrix: Ranvier.Dom.SVGMatrix) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPointList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "appendItem",
+            "kind": "method",
+            "signature": "appendItem(newItem: Ranvier.Dom.SVGPoint) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "signature": "clear() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getItem",
+            "kind": "method",
+            "signature": "getItem(index: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "initialize",
+            "kind": "method",
+            "signature": "initialize(newItem: Ranvier.Dom.SVGPoint) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "insertItemBefore",
+            "kind": "method",
+            "signature": "insertItemBefore(newItem: Ranvier.Dom.SVGPoint, index: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "length",
+            "kind": "property",
+            "signature": "length() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "numberOfItems",
+            "kind": "property",
+            "signature": "numberOfItems() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "removeItem",
+            "kind": "method",
+            "signature": "removeItem(index: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "replaceItem",
+            "kind": "method",
+            "signature": "replaceItem(newItem: Ranvier.Dom.SVGPoint, index: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "setItem",
+            "kind": "method",
+            "signature": "setItem(index: uint32, newItem: Ranvier.Dom.SVGPoint) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPolygonElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animatedPoints",
+            "kind": "property",
+            "signature": "animatedPoints() -> Ranvier.Dom.SVGPointList",
+            "accessibility": "public"
+          },
+          {
+            "name": "points",
+            "kind": "property",
+            "signature": "points() -> Ranvier.Dom.SVGPointList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPolylineElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animatedPoints",
+            "kind": "property",
+            "signature": "animatedPoints() -> Ranvier.Dom.SVGPointList",
+            "accessibility": "public"
+          },
+          {
+            "name": "points",
+            "kind": "property",
+            "signature": "points() -> Ranvier.Dom.SVGPointList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGPreserveAspectRatio",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "align",
+            "kind": "property",
+            "signature": "align() -> uint16",
+            "accessibility": "public"
+          },
+          {
+            "name": "meetOrSlice",
+            "kind": "property",
+            "signature": "meetOrSlice() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGRadialGradientElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "cx",
+            "kind": "property",
+            "signature": "cx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "cy",
+            "kind": "property",
+            "signature": "cy() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "fr",
+            "kind": "property",
+            "signature": "fr() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "fx",
+            "kind": "property",
+            "signature": "fx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "fy",
+            "kind": "property",
+            "signature": "fy() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "r",
+            "kind": "property",
+            "signature": "r() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGRect",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> float32",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGRectElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "rx",
+            "kind": "property",
+            "signature": "rx() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "ry",
+            "kind": "property",
+            "signature": "ry() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGSVGElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "animationsPaused",
+            "kind": "method",
+            "signature": "animationsPaused() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "checkEnclosure",
+            "kind": "method",
+            "signature": "checkEnclosure(element: Ranvier.Dom.SVGElement, rect: Ranvier.Dom.SVGRect) -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "checkIntersection",
+            "kind": "method",
+            "signature": "checkIntersection(element: Ranvier.Dom.SVGElement, rect: Ranvier.Dom.SVGRect) -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGAngle",
+            "kind": "method",
+            "signature": "createSVGAngle() -> Ranvier.Dom.SVGAngle",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGLength",
+            "kind": "method",
+            "signature": "createSVGLength() -> Ranvier.Dom.SVGLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGMatrix",
+            "kind": "method",
+            "signature": "createSVGMatrix() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGNumber",
+            "kind": "method",
+            "signature": "createSVGNumber() -> Ranvier.Dom.SVGNumber",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGPoint",
+            "kind": "method",
+            "signature": "createSVGPoint() -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGRect",
+            "kind": "method",
+            "signature": "createSVGRect() -> Ranvier.Dom.SVGRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGTransform",
+            "kind": "method",
+            "signature": "createSVGTransform() -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGTransformFromMatrix",
+            "kind": "method",
+            "signature": "createSVGTransformFromMatrix(matrix: Ranvier.Dom.DOMMatrix2DInit option) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "currentScale",
+            "kind": "property",
+            "signature": "currentScale() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "currentTranslate",
+            "kind": "property",
+            "signature": "currentTranslate() -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "currentView",
+            "kind": "property",
+            "signature": "currentView() -> Ranvier.Dom.SVGViewSpec",
+            "accessibility": "public"
+          },
+          {
+            "name": "deselectAll",
+            "kind": "method",
+            "signature": "deselectAll() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "forceRedraw",
+            "kind": "method",
+            "signature": "forceRedraw() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getCurrentTime",
+            "kind": "method",
+            "signature": "getCurrentTime() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "getElementById",
+            "kind": "method",
+            "signature": "getElementById(elementId: string) -> Ranvier.Dom.Element",
+            "accessibility": "public"
+          },
+          {
+            "name": "getEnclosureList",
+            "kind": "method",
+            "signature": "getEnclosureList(rect: Ranvier.Dom.SVGRect, referenceElement: Ranvier.Dom.SVGElement) -> Ranvier.Dom.NodeList",
+            "accessibility": "public"
+          },
+          {
+            "name": "getIntersectionList",
+            "kind": "method",
+            "signature": "getIntersectionList(rect: Ranvier.Dom.SVGRect, referenceElement: Ranvier.Dom.SVGElement) -> Ranvier.Dom.NodeList",
+            "accessibility": "public"
+          },
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "pauseAnimations",
+            "kind": "method",
+            "signature": "pauseAnimations() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "setCurrentTime",
+            "kind": "method",
+            "signature": "setCurrentTime(seconds: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "suspendRedraw",
+            "kind": "method",
+            "signature": "suspendRedraw(maxWaitMilliseconds: uint32) -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "unpauseAnimations",
+            "kind": "method",
+            "signature": "unpauseAnimations() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "unsuspendRedraw",
+            "kind": "method",
+            "signature": "unsuspendRedraw(suspendHandleId: uint32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "unsuspendRedrawAll",
+            "kind": "method",
+            "signature": "unsuspendRedrawAll() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "useCurrentView",
+            "kind": "property",
+            "signature": "useCurrentView() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "zoomAndPan",
+            "kind": "property",
+            "signature": "zoomAndPan() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGScriptElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "async",
+            "kind": "property",
+            "signature": "async() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> string",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGSetElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGStopElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "offset",
+            "kind": "property",
+            "signature": "offset() -> Ranvier.Dom.SVGAnimatedNumber",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGStringList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "appendItem",
+            "kind": "method",
+            "signature": "appendItem(newItem: string) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "signature": "clear() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "getItem",
+            "kind": "method",
+            "signature": "getItem(index: uint32) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "initialize",
+            "kind": "method",
+            "signature": "initialize(newItem: string) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "insertItemBefore",
+            "kind": "method",
+            "signature": "insertItemBefore(newItem: string, index: uint32) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "length",
+            "kind": "property",
+            "signature": "length() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "numberOfItems",
+            "kind": "property",
+            "signature": "numberOfItems() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "removeItem",
+            "kind": "method",
+            "signature": "removeItem(index: uint32) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "replaceItem",
+            "kind": "method",
+            "signature": "replaceItem(newItem: string, index: uint32) -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "setItem",
+            "kind": "method",
+            "signature": "setItem(index: uint32, newItem: string) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGStyleElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "disabled",
+            "kind": "property",
+            "signature": "disabled() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "media",
+            "kind": "property",
+            "signature": "media() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "title",
+            "kind": "property",
+            "signature": "title() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> string",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGSwitchElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGSymbolElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTSpanElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTextContentElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "getCharNumAtPosition",
+            "kind": "method",
+            "signature": "getCharNumAtPosition(point: Ranvier.Dom.DOMPointInit option) -> int",
+            "accessibility": "public"
+          },
+          {
+            "name": "getComputedTextLength",
+            "kind": "method",
+            "signature": "getComputedTextLength() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "getEndPositionOfChar",
+            "kind": "method",
+            "signature": "getEndPositionOfChar(charnum: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "getExtentOfChar",
+            "kind": "method",
+            "signature": "getExtentOfChar(charnum: uint32) -> Ranvier.Dom.SVGRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "getNumberOfChars",
+            "kind": "method",
+            "signature": "getNumberOfChars() -> int",
+            "accessibility": "public"
+          },
+          {
+            "name": "getRotationOfChar",
+            "kind": "method",
+            "signature": "getRotationOfChar(charnum: uint32) -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "getStartPositionOfChar",
+            "kind": "method",
+            "signature": "getStartPositionOfChar(charnum: uint32) -> Ranvier.Dom.SVGPoint",
+            "accessibility": "public"
+          },
+          {
+            "name": "getSubStringLength",
+            "kind": "method",
+            "signature": "getSubStringLength(charnum: uint32, nchars: uint32) -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "lengthAdjust",
+            "kind": "property",
+            "signature": "lengthAdjust() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "selectSubString",
+            "kind": "method",
+            "signature": "selectSubString(charnum: uint32, nchars: uint32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "textLength",
+            "kind": "property",
+            "signature": "textLength() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTextElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTextPathElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "method",
+            "kind": "property",
+            "signature": "method() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "spacing",
+            "kind": "property",
+            "signature": "spacing() -> Ranvier.Dom.SVGAnimatedEnumeration",
+            "accessibility": "public"
+          },
+          {
+            "name": "startOffset",
+            "kind": "property",
+            "signature": "startOffset() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTextPositioningElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "dx",
+            "kind": "property",
+            "signature": "dx() -> Ranvier.Dom.SVGAnimatedLengthList",
+            "accessibility": "public"
+          },
+          {
+            "name": "dy",
+            "kind": "property",
+            "signature": "dy() -> Ranvier.Dom.SVGAnimatedLengthList",
+            "accessibility": "public"
+          },
+          {
+            "name": "rotate",
+            "kind": "property",
+            "signature": "rotate() -> Ranvier.Dom.SVGAnimatedNumberList",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLengthList",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLengthList",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTitleElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": []
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTransform",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "angle",
+            "kind": "property",
+            "signature": "angle() -> float32",
+            "accessibility": "public"
+          },
+          {
+            "name": "matrix",
+            "kind": "property",
+            "signature": "matrix() -> Ranvier.Dom.SVGMatrix",
+            "accessibility": "public"
+          },
+          {
+            "name": "setMatrix",
+            "kind": "method",
+            "signature": "setMatrix(matrix: Ranvier.Dom.DOMMatrix2DInit option) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setRotate",
+            "kind": "method",
+            "signature": "setRotate(angle: float32, cx: float32, cy: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setScale",
+            "kind": "method",
+            "signature": "setScale(sx: float32, sy: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setSkewX",
+            "kind": "method",
+            "signature": "setSkewX(angle: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setSkewY",
+            "kind": "method",
+            "signature": "setSkewY(angle: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "setTranslate",
+            "kind": "method",
+            "signature": "setTranslate(tx: float32, ty: float32) -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "type",
+            "kind": "property",
+            "signature": "type() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGTransformList",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "appendItem",
+            "kind": "method",
+            "signature": "appendItem(newItem: Ranvier.Dom.SVGTransform) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "clear",
+            "kind": "method",
+            "signature": "clear() -> unit",
+            "accessibility": "public"
+          },
+          {
+            "name": "consolidate",
+            "kind": "method",
+            "signature": "consolidate() -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "createSVGTransformFromMatrix",
+            "kind": "method",
+            "signature": "createSVGTransformFromMatrix(matrix: Ranvier.Dom.DOMMatrix2DInit option) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "getItem",
+            "kind": "method",
+            "signature": "getItem(index: uint32) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "initialize",
+            "kind": "method",
+            "signature": "initialize(newItem: Ranvier.Dom.SVGTransform) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "insertItemBefore",
+            "kind": "method",
+            "signature": "insertItemBefore(newItem: Ranvier.Dom.SVGTransform, index: uint32) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "length",
+            "kind": "property",
+            "signature": "length() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "numberOfItems",
+            "kind": "property",
+            "signature": "numberOfItems() -> uint32",
+            "accessibility": "public"
+          },
+          {
+            "name": "removeItem",
+            "kind": "method",
+            "signature": "removeItem(index: uint32) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "replaceItem",
+            "kind": "method",
+            "signature": "replaceItem(newItem: Ranvier.Dom.SVGTransform, index: uint32) -> Ranvier.Dom.SVGTransform",
+            "accessibility": "public"
+          },
+          {
+            "name": "setItem",
+            "kind": "method",
+            "signature": "setItem(index: uint32, newItem: Ranvier.Dom.SVGTransform) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGUseElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "height",
+            "kind": "property",
+            "signature": "height() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "href",
+            "kind": "property",
+            "signature": "href() -> Ranvier.Dom.SVGAnimatedString",
+            "accessibility": "public"
+          },
+          {
+            "name": "width",
+            "kind": "property",
+            "signature": "width() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "x",
+            "kind": "property",
+            "signature": "x() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          },
+          {
+            "name": "y",
+            "kind": "property",
+            "signature": "y() -> Ranvier.Dom.SVGAnimatedLength",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGViewElement",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "zoomAndPan",
+            "kind": "property",
+            "signature": "zoomAndPan() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SVGViewSpec",
+        "kind": "interface",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "preserveAspectRatio",
+            "kind": "property",
+            "signature": "preserveAspectRatio() -> Ranvier.Dom.SVGAnimatedPreserveAspectRatio",
+            "accessibility": "public"
+          },
+          {
+            "name": "preserveAspectRatioString",
+            "kind": "property",
+            "signature": "preserveAspectRatioString() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "transform",
+            "kind": "property",
+            "signature": "transform() -> Ranvier.Dom.SVGTransformList",
+            "accessibility": "public"
+          },
+          {
+            "name": "transformString",
+            "kind": "property",
+            "signature": "transformString() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBox",
+            "kind": "property",
+            "signature": "viewBox() -> Ranvier.Dom.SVGAnimatedRect",
+            "accessibility": "public"
+          },
+          {
+            "name": "viewBoxString",
+            "kind": "property",
+            "signature": "viewBoxString() -> string",
+            "accessibility": "public"
+          },
+          {
+            "name": "zoomAndPan",
+            "kind": "property",
+            "signature": "zoomAndPan() -> uint16",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SvgPaths",
+        "kind": "module",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "getData",
+            "kind": "function",
+            "signature": "getData(path: Ranvier.Dom.SVGPathElement) -> string option",
+            "accessibility": "public"
+          },
+          {
+            "name": "setData",
+            "kind": "function",
+            "signature": "setData(path: Ranvier.Dom.SVGPathElement, value: string option) -> unit",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SvgViewAvailability`1",
+        "kind": "union",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "Available",
+            "kind": "union-case",
+            "signature": "Available of 'T",
+            "accessibility": "public"
+          },
+          {
+            "name": "IsAvailable",
+            "kind": "property",
+            "signature": "IsAvailable() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "IsNotExposed",
+            "kind": "property",
+            "signature": "IsNotExposed() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "IsUnknown",
+            "kind": "property",
+            "signature": "IsUnknown() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "IsUnsupported",
+            "kind": "property",
+            "signature": "IsUnsupported() -> bool",
+            "accessibility": "public"
+          },
+          {
+            "name": "NotExposed",
+            "kind": "union-case",
+            "signature": "NotExposed",
+            "accessibility": "public"
+          },
+          {
+            "name": "Unknown",
+            "kind": "union-case",
+            "signature": "Unknown of string",
+            "accessibility": "public"
+          },
+          {
+            "name": "Unsupported",
+            "kind": "union-case",
+            "signature": "Unsupported of string",
+            "accessibility": "public"
+          }
+        ]
+      },
+      {
+        "fullName": "Ranvier.Dom.SvgViewState",
+        "kind": "record",
+        "accessibility": "public",
+        "members": [
+          {
+            "name": "CurrentView",
+            "kind": "field",
+            "signature": "CurrentView: Ranvier.Dom.SvgViewAvailability<Ranvier.Dom.SVGViewSpec>",
+            "accessibility": "public"
+          },
+          {
+            "name": "UseCurrentView",
+            "kind": "field",
+            "signature": "UseCurrentView: Ranvier.Dom.SvgViewAvailability<bool>",
+            "accessibility": "public"
+          }
+        ]
+      }
+    ]
+  },
+  "delta": {
+    "added": [
+      "Ranvier.Dom.SvgPaths",
+      "Ranvier.Dom.SvgViewAvailability`1",
+      "Ranvier.Dom.SvgViewState"
+    ],
+    "changed": [
+      "Ranvier.Dom.SVGAElement",
+      "Ranvier.Dom.SVGClipPathElement",
+      "Ranvier.Dom.SVGComponentTransferFunctionElement",
+      "Ranvier.Dom.SVGFEBlendElement",
+      "Ranvier.Dom.SVGFEColorMatrixElement",
+      "Ranvier.Dom.SVGFEComponentTransferElement",
+      "Ranvier.Dom.SVGFECompositeElement",
+      "Ranvier.Dom.SVGFEDiffuseLightingElement",
+      "Ranvier.Dom.SVGFEDisplacementMapElement",
+      "Ranvier.Dom.SVGFEDistantLightElement",
+      "Ranvier.Dom.SVGFEDropShadowElement",
+      "Ranvier.Dom.SVGFEFloodElement",
+      "Ranvier.Dom.SVGFEGaussianBlurElement",
+      "Ranvier.Dom.SVGFEImageElement",
+      "Ranvier.Dom.SVGFEMergeElement",
+      "Ranvier.Dom.SVGFEMergeNodeElement",
+      "Ranvier.Dom.SVGFEMorphologyElement",
+      "Ranvier.Dom.SVGFEOffsetElement",
+      "Ranvier.Dom.SVGFEPointLightElement",
+      "Ranvier.Dom.SVGFESpecularLightingElement",
+      "Ranvier.Dom.SVGFESpotLightElement",
+      "Ranvier.Dom.SVGFETileElement",
+      "Ranvier.Dom.SVGFETurbulenceElement",
+      "Ranvier.Dom.SVGFilterElement",
+      "Ranvier.Dom.SVGForeignObjectElement",
+      "Ranvier.Dom.SVGGradientElement",
+      "Ranvier.Dom.SVGImageElement",
+      "Ranvier.Dom.SVGLinearGradientElement",
+      "Ranvier.Dom.SVGMaskElement",
+      "Ranvier.Dom.SVGRadialGradientElement",
+      "Ranvier.Dom.SVGScriptElement",
+      "Ranvier.Dom.SVGStopElement",
+      "Ranvier.Dom.SVGUseElement"
+    ],
+    "removed": []
+  },
+  "freshCheck": {
+    "status": "succeeded",
+    "verdict": "clean",
+    "analyzed": true,
+    "scope": "project",
+    "speed": "trusted",
+    "errorCount": 0,
+    "warningCount": 0,
+    "diagnosticsFileCount": 0,
+    "files": [],
+    "diagnostics": [],
+    "diagnosticsTruncated": false,
+    "escalated": "fcs-reanalyze",
+    "via": "fcs",
+    "fresh": true,
+    "groundTruth": true,
+    "totalDiagnostics": 0,
+    "infoCount": 0,
+    "belowSeverityFloorCount": 0,
+    "diagnosticsNote": null,
+    "reason": null,
+    "projectFileName": "C:\\Users\\shaya\\.codex\\worktrees\\native-api-svg-paint\\Ranvier\\src\\Ranvier.Dom\\Ranvier.Dom.fsproj",
+    "optionsSource": "ionide-proj-info",
+    "projectsSwept": 1
+  },
+  "runtime": "Native21/ABI29 private win-x64 JIT, NativeAOT and packaged Fable/Chromium results are recorded in Ranvier.Views docs/research/native-api-delivery/svg-paint-runtime-evidence.json; no acceptance claim."
+}

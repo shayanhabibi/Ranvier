@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "group": "H06",
+  "route": "qualified-application-preferences",
+  "contract": {
+    "read": [
+      "Current",
+      "Host",
+      "Overrides",
+      "ProviderName",
+      "LocaleCanonicalization",
+      "TimeZoneCanonicalization"
+    ],
+    "update": [
+      "SetOverrides",
+      "ClearOverrides",
+      "RefreshHost"
+    ],
+    "canonicalize": [
+      "CanonicalizeLocale",
+      "CanonicalizeTimeZone"
+    ],
+    "facades": [
+      "Ranvier.Dom.Locales.forDocument",
+      "Ranvier.View.WebCore.Locales.forHost"
+    ]
+  },
+  "semantics": {
+    "overrides": "Application-owned; HostDefault follows the latest explicit host snapshot.",
+    "updates": "Normalize every field before commit; rejected overrides or refresh leave state unchanged.",
+    "languages": "Canonicalize and deduplicate stably; explicit empty list remains empty.",
+    "unavailable": "Reported explicitly per field with provider reason; no fabricated locale or languages.",
+    "ownership": "Native factory and every operation validate host creating-thread/lifetime; browser operations validate active document Window identity.",
+    "providers": {
+      "native": ".NET CurrentCulture, CurrentUICulture singleton, TimeZoneInfo.Local",
+      "browser": "Document Window Intl default locale/time zone and navigator.languages"
+    }
+  },
+  "evidence": "locale-services-runtime-evidence.json",
+  "acceptance": "Open pending ordered official package and supported-platform verification."
+}
