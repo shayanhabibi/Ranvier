@@ -34,6 +34,7 @@
     <Compile Include="BlobUrls.fs" />
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
+    <Compile Include="PointerInput.fs" />
     <Compile Include="Viewport.fs" />
     <Compile Include="MediaQueries.fs" />
     <Compile Include="ViewportScroll.fs" />
