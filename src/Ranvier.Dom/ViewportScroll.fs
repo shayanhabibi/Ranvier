@@ -21,8 +21,7 @@ type ScrollRequest =
 /// <remarks>
 /// Targets clamp to the scrollable range. A scroll that moves the viewport dispatches <c>scroll</c> and then
 /// <c>scrollend</c> in a later rendering update, which <see cref="T:Ranvier.Dom.ViewportService"/> reports as
-/// <c>Scrolled</c> and <c>ScrollEnded</c>. After the document leaves its window, reads return the origin and
-/// scrolls have no effect.
+/// <c>Scrolled</c> and <c>ScrollEnded</c>.
 /// </remarks>
 #if FABLE_COMPILER
 [<Fable.Core.Mangle>]
