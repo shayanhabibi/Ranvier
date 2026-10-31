@@ -31,6 +31,7 @@
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />
+    <Compile Include="ViewportScroll.fs" />
     <Compile Include="FormData.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
