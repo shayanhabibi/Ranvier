@@ -47,6 +47,22 @@ module BrowserAnimations =
     [<Emit("$0.name || 'Error'")>]
     let private errorName (error: obj) : string = jsNative
 
+    [<Emit("$0.ready")>]
+    let private readyPromise (animation: WebAnimation) : JS.Promise<WebAnimation> = jsNative
+
+    [<Emit("$0.finished")>]
+    let private finishedPromise (animation: WebAnimation) : JS.Promise<WebAnimation> = jsNative
+
+    // An animation of the document's realm, as the native host compares the animation's document.
+    [<Emit("(() => { try { return $0 instanceof $1.defaultView.Animation; } catch { return false; } })()")>]
+    let private belongs (animation: WebAnimation) (document: Document) : bool = jsNative
+
+    [<Emit("queueMicrotask($0)")>]
+    let private post (action: unit -> unit) : unit = jsNative
+
+    [<Emit("$0.then(value => $1(value), error => $2(error))")>]
+    let private settled (promise: JS.Promise<'T>) (ok: 'T -> unit) (error: obj -> unit) : unit = jsNative
+
     [<Emit("$0.message || String($0)")>]
     let private errorMessage (error: obj) : string = jsNative
 
@@ -59,6 +75,7 @@ module BrowserAnimations =
             raise (NotSupportedException "Web Animations require an active document with the animation constructors")
 
         let mutable disposed = false
+        let live = Collections.Generic.HashSet<IDisposable>(HashIdentity.Reference)
 
         let active () =
             if disposed then
@@ -72,6 +89,41 @@ module BrowserAnimations =
                 action ()
             with error ->
                 raise (AnimationException (errorName (box error), errorMessage (box error)))
+
+        // Settles once with the promise's outcome; a rejection is the engine's AbortError.
+        let observe (animation: WebAnimation) (promise: WebAnimation -> JS.Promise<WebAnimation>) terminal : ResourceOperation<WebAnimation> =
+            active ()
+
+            if isNull (box animation) then
+                nullArg (nameof animation)
+
+            if not (belongs animation document) then
+                invalidArg (nameof animation) "The animation belongs to another document"
+
+            let mutable arbiter = Unchecked.defaultof<ResourceArbiter<WebAnimation>>
+
+            arbiter <-
+                new ResourceArbiter<WebAnimation> (
+                    post,
+                    (fun outcome ->
+                        live.Remove arbiter |> ignore
+                        terminal outcome),
+                    ignore,
+                    ignore
+                )
+
+            live.Add arbiter |> ignore
+
+            settled
+                (promise animation)
+                (fun value ->
+                    arbiter.Settle (ResourceOutcome.Succeeded value)
+                    |> ignore)
+                (fun error ->
+                    arbiter.Settle (ResourceOutcome.Failed (ResourceFailure.Aborted (errorName error)))
+                    |> ignore)
+
+            arbiter :> ResourceOperation<_>
 
         { new AnimationService with
             member _.CreateKeyframeEffect(target, frames, ?options) =
@@ -106,7 +158,19 @@ module BrowserAnimations =
                 active ()
                 engine (fun () -> timeline document (defaultArg originTime 0.))
 
+            member _.Ready(animation, terminal) =
+                observe animation readyPromise terminal
+
+            member _.Finished(animation, terminal) =
+                observe animation finishedPromise terminal
+
           interface IDisposable with
               member _.Dispose() =
-                  disposed <- true
+                  if not disposed then
+                      disposed <- true
+
+                      for operation in List.ofSeq live do
+                          operation.Dispose ()
+
+                      live.Clear ()
         }

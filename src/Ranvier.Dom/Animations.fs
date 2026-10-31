@@ -11,7 +11,8 @@ exception AnimationException of name: string * detail: string with
 /// properties. <c>Element.animate</c>, <c>getAnimations</c>, <c>Document.timeline</c> and the members of the created
 /// objects are the shared DOM interfaces. Engine errors raise <see cref="T:Ranvier.Dom.AnimationException"/> with the
 /// WebIDL name: TypeError for unsorted or out-of-range offsets and invalid easing or composite strings. Disposal
-/// invalidates the service; created objects stay valid. Native objects require their live host and owning thread.
+/// invalidates the service and cancels its pending <c>Ready</c> and <c>Finished</c> operations; created objects stay
+/// valid. Native objects require their live host and owning thread.
 /// </remarks>
 #if FABLE_COMPILER
 [<Fable.Core.Mangle>]
@@ -36,3 +37,15 @@ type AnimationService =
 
     /// <summary>Constructs a document timeline whose zero is originTime milliseconds after the document's, by default 0.</summary>
     abstract CreateDocumentTimeline: ?originTime: float -> DocumentTimeline
+
+    /// <summary><c>Animation.ready</c>: settles with the animation when the ready promise current at the call resolves.</summary>
+    /// <remarks>
+    /// <c>ResourceFailure.Aborted "AbortError"</c> when the engine rejects that promise (<c>cancel()</c>, or a reset of the
+    /// pending tasks); <c>Cancelled</c> on <c>Cancel</c>, <c>Dispose</c> or service disposal; <c>Invalidated</c> when the
+    /// animation's document is replaced or destroyed. The terminal callback runs on the service's owner context, never
+    /// inside the call. An animation of another document raises <see cref="T:System.ArgumentException"/>.
+    /// </remarks>
+    abstract Ready: animation: WebAnimation * terminal: (ResourceOutcome<WebAnimation> -> unit) -> ResourceOperation<WebAnimation>
+
+    /// <summary><c>Animation.finished</c>: settles as <c>Ready</c> does, for the finished promise current at the call.</summary>
+    abstract Finished: animation: WebAnimation * terminal: (ResourceOutcome<WebAnimation> -> unit) -> ResourceOperation<WebAnimation>
