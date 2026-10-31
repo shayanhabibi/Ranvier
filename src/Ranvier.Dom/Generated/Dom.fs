@@ -256,6 +256,8 @@ and [<AllowNullLiteral>] Document =
     abstract member ariaNotify: announcement: string -> unit
     /// <summary>Document.ariaNotify.</summary>
     abstract member ariaNotify: announcement: string * options: AriaNotifyOptions -> unit
+    /// <summary>Document.caretPositionFromPoint.</summary>
+    abstract member caretPositionFromPoint: x: float * y: float * ?options: CaretPositionFromPointOptions -> CaretPosition
     /// <summary>Document.scrollingElement.</summary>
     abstract member scrollingElement: Element with get
     /// <summary>Document.readyState.</summary>
@@ -953,6 +955,8 @@ and [<AllowNullLiteral>] HTMLInputElement =
     abstract member disabled: bool with get, set
     /// <summary>HTMLInputElement.form.</summary>
     abstract member form: HTMLFormElement with get
+    /// <summary>HTMLInputElement.files.</summary>
+    abstract member files: FileList with get, set
     /// <summary>HTMLInputElement.formAction.</summary>
     abstract member formAction: string with get, set
     /// <summary>HTMLInputElement.formEnctype.</summary>
@@ -2811,6 +2815,15 @@ and [<AllowNullLiteral>] DOMRectReadOnly =
     /// <summary>DOMRectReadOnly.left.</summary>
     abstract member left: float with get
 
+/// <summary>CaretPosition in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] CaretPosition =
+    /// <summary>CaretPosition.offsetNode.</summary>
+    abstract member offsetNode: Node with get
+    /// <summary>CaretPosition.offset.</summary>
+    abstract member offset: uint32 with get
+    /// <summary>CaretPosition.getClientRect.</summary>
+    abstract member getClientRect: unit -> DOMRect
+
 /// <summary>DOMRect in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] DOMRect =
     inherit DOMRectReadOnly
@@ -3106,12 +3119,26 @@ and [<AllowNullLiteral>] HTMLOptionsCollection =
 and [<AllowNullLiteral>] DOMFormData =
     /// <summary>DOMFormData.append.</summary>
     abstract member append: name: string * value: string -> unit
+    /// <summary>DOMFormData.append.</summary>
+    abstract member append: name: string * blobValue: Blob * ?filename: string -> unit
     /// <summary>DOMFormData.delete.</summary>
     abstract member delete: name: string -> unit
+
+    /// <summary>DOMFormData.get.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.get($1)")>]
+    abstract member __ranvier_get: name: string -> obj
+#else
+    abstract member get: name: string -> (FileOrUSVString) option
+#endif
+    /// <summary>DOMFormData.getAll.</summary>
+    abstract member getAll: name: string -> (FileOrUSVString) array
     /// <summary>DOMFormData.has.</summary>
     abstract member has: name: string -> bool
     /// <summary>DOMFormData.set.</summary>
     abstract member set: name: string * value: string -> unit
+    /// <summary>DOMFormData.set.</summary>
+    abstract member set: name: string * blobValue: Blob * ?filename: string -> unit
 
 /// <summary>ValidityState in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] ValidityState =
@@ -4783,6 +4810,30 @@ and [<AllowNullLiteral>] TreeWalker =
     /// <summary>TreeWalker.nextNode.</summary>
     abstract member nextNode: unit -> Node
 
+/// <summary>Blob in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] Blob =
+    /// <summary>Blob.size.</summary>
+    abstract member size: uint64 with get
+    /// <summary>Blob.type.</summary>
+    abstract member ``type``: string with get
+    /// <summary>Blob.slice.</summary>
+    abstract member slice: ?start: int64 * ?``end``: int64 * ?contentType: string -> Blob
+
+/// <summary>File in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] File =
+    inherit Blob
+    /// <summary>File.name.</summary>
+    abstract member name: string with get
+    /// <summary>File.lastModified.</summary>
+    abstract member lastModified: int64 with get
+
+/// <summary>FileList in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] FileList =
+    /// <summary>FileList.length.</summary>
+    abstract member length: uint32 with get
+    /// <summary>FileList.item.</summary>
+    abstract member item: index: uint32 -> File
+
 /// <summary>HTMLUnknownElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLUnknownElement =
     inherit HTMLElement
@@ -4861,9 +4912,6 @@ and [<AllowNullLiteral>] DragEvent =
 /// <summary>ErrorEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] ErrorEvent =
     inherit Event
-
-/// <summary>FileList in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] FileList = interface end
 
 /// <summary>GamepadEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] GamepadEvent =
@@ -5243,6 +5291,11 @@ and [<RequireQualifiedAccess>] ShadowRootOrGetComposedRangesOptions =
     | ShadowRoot of ShadowRoot
     | GetComposedRangesOptions of GetComposedRangesOptions
 
+/// <summary>FileOrUSVString in the scoped DOM interface model.</summary>
+and [<RequireQualifiedAccess>] FileOrUSVString =
+    | File of File
+    | USVString of string
+
 /// <summary>NodeOrDOMString in the scoped DOM interface model.</summary>
 and [<RequireQualifiedAccess>] NodeOrDOMString =
     | Node of Node
@@ -5279,6 +5332,10 @@ and [<AllowNullLiteral; DomDictionary>] ImportNodeOptions() =
 and [<AllowNullLiteral; DomDictionary>] AriaNotifyOptions() =
     member val priority: (AriaNotificationPriority) option = None with get, set
     member val interrupt: (AriaNotificationInterrupt) option = None with get, set
+
+/// <summary>CaretPositionFromPointOptions in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral; DomDictionary>] CaretPositionFromPointOptions() =
+    member val shadowRoots: (ShadowRoot) array = [||] with get, set
 
 /// <summary>ShadowRootInit in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral; DomDictionary>] ShadowRootInit() =
@@ -5472,6 +5529,10 @@ module BrowserUnionAdapters =
     let private isElement (_: obj) : bool =
         Fable.Core.Util.jsNative
 
+    [<Fable.Core.Emit("Object.prototype.toString.call($0) === '[object File]'")>]
+    let private isFile (_: obj) : bool =
+        Fable.Core.Util.jsNative
+
     [<Fable.Core.Emit("Object.prototype.toString.call($0) === '[object RadioNodeList]'")>]
     let private isRadioNodeList (_: obj) : bool =
         Fable.Core.Util.jsNative
@@ -5639,6 +5700,27 @@ module BrowserUnionAdapters =
         match value with
         | ShadowRootOrGetComposedRangesOptions.ShadowRoot value -> box value
         | ShadowRootOrGetComposedRangesOptions.GetComposedRangesOptions value -> box value
+
+    let private boxFileOrUSVString (value: FileOrUSVString) : obj =
+        if isNull (box value) then
+            nullArg "value"
+
+        match value with
+        | FileOrUSVString.File value ->
+            if isNull (box value) then
+                nullArg "value"
+
+            if not (isFile (box value)) then
+                invalidArg "value" "Expected a File."
+
+            box value
+        | FileOrUSVString.USVString value -> box (normalizeUSVString value)
+
+    let private unboxFileOrUSVString (value: obj) : FileOrUSVString =
+        match value with
+        | arm when isFile arm -> FileOrUSVString.File (unbox<File> arm)
+        | :? string as arm -> FileOrUSVString.USVString arm
+        | _ -> failwith "Unexpected DOM union result"
 
     let private boxNodeOrDOMString (value: NodeOrDOMString) : obj =
         match value with
@@ -5876,6 +5958,16 @@ module BrowserUnionAdapters =
 
         member this.add(element: HTMLOptGroupElement, before: int) : unit =
             this.__ranvier_add (box element, ?before = Some (box before))
+
+
+    type DOMFormData with
+        member this.get(name: string) : (FileOrUSVString) option =
+            let value = this.__ranvier_get (name)
+
+            if isNull value then
+                None
+            else
+                Some (unboxFileOrUSVString value)
 
 
     type ChildNode with
