@@ -5,7 +5,7 @@
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Dom</AssemblyName>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <Version>0.1.0-alpha.38</Version>
+    <Version>0.1.0-alpha.39</Version>
     <Description>Shared DOM contracts generated from the WebKit interfaces supported by Ranvier's native UI host.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsAotCompatible Condition="'$(TargetFramework)' == 'net10.0'">true</IsAotCompatible>
@@ -37,6 +37,7 @@
     <Compile Include="FormSubmission.fs" />
     <Compile Include="ToggleEvents.fs" />
     <Compile Include="Urls.fs" />
+    <Compile Include="Crypto.fs" />
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
