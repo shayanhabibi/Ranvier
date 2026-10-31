@@ -44,6 +44,7 @@
     <Compile Include="Screen.fs" />
     <Compile Include="Highlights.fs" />
     <Compile Include="Diagnostics.fs" />
+    <Compile Include="Coordinates.fs" />
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
