@@ -56,6 +56,8 @@
     <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <Compile Include="Canvas.fs" />
+    <Compile Include="CanvasPixels.fs" />
+    <Compile Include="CanvasExport.fs" />
     <Compile Include="ValueFactories.fs" />
     <Compile Include="WakeLocks.fs" />
     <Compile Include="Notifications.fs" />
