@@ -17,6 +17,12 @@ module BrowserCanvas =
     [<Emit("(() => { const a = $0.getContextAttributes(); return [a.alpha !== false, !!a.desynchronized, !!a.willReadFrequently, String(a.colorSpace ?? 'srgb'), String(a.colorType ?? 'unorm8')]; })()")>]
     let private attributes (context: CanvasRenderingContext2D) : obj array = jsNative
 
+    [<Emit("new ($0.defaultView.Path2D)()")>]
+    let private emptyPath (document: Document) : Path2D = jsNative
+
+    [<Emit("new ($0.defaultView.Path2D)($1)")>]
+    let private pathFrom (document: Document) (source: obj) : Path2D = jsNative
+
     /// <summary>A canvas context service for canvases of <c>document</c>.</summary>
     /// <remarks>Raises NotSupportedException without an active document Window, and ArgumentException for a canvas of another document.</remarks>
     let forDocument (document: Document) : CanvasContextService =
@@ -75,6 +81,26 @@ module BrowserCanvas =
                          else
                              CanvasColorType.Unorm8)
                 }
+
+            member _.CreatePath() =
+                check ()
+                emptyPath document
+
+            member _.CopyPath path =
+                check ()
+
+                if isNull (box path) then
+                    nullArg "path"
+
+                pathFrom document (box path)
+
+            member _.ParsePath data =
+                check ()
+
+                if isNull data then
+                    nullArg "data"
+
+                pathFrom document (box data)
 
           interface IDisposable with
               member _.Dispose() =

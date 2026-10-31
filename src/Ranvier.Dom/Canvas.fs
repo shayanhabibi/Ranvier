@@ -50,7 +50,7 @@ type CanvasContextOutcome =
     /// <summary>The provider renders no context of the requested type or settings; the canvas is unchanged.</summary>
     | Unsupported of reason: string
 
-/// <summary>Canvas context creation for one document.</summary>
+/// <summary>Canvas context and Path2D creation for one document.</summary>
 /// <remarks>
 /// Every provider renders 2D contexts only, with alpha, sRGB and unorm8. Other context types and settings read as
 /// <c>CanvasContextOutcome.Unsupported</c> on every provider, before the canvas is touched, so a canvas keeps no
@@ -66,6 +66,12 @@ type CanvasContextService =
     abstract GetContext: canvas: HTMLCanvasElement * contextType: CanvasContextType * settings: Canvas2DSettings -> CanvasContextOutcome
     /// <summary>CanvasRenderingContext2D.getContextAttributes.</summary>
     abstract Attributes: context: CanvasRenderingContext2D -> Canvas2DSettings
+    /// <summary><c>new Path2D()</c>: an empty path.</summary>
+    abstract CreatePath: unit -> Path2D
+    /// <summary><c>new Path2D(path)</c>: a copy of <c>path</c>, unaffected by later changes to it.</summary>
+    abstract CopyPath: path: Path2D -> Path2D
+    /// <summary><c>new Path2D(data)</c>: the path of SVG path data, which stops at the first error.</summary>
+    abstract ParsePath: data: string -> Path2D
 
 /// <summary>The supported canvas profile shared by canvas providers.</summary>
 module CanvasContract =
