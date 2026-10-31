@@ -32,6 +32,8 @@
     <Compile Include="BinaryValues.fs" />
     <Compile Include="DataTransfers.fs" />
     <Compile Include="BlobUrls.fs" />
+    <Compile Include="MediaCapabilities.fs" />
+    <Compile Include="Snapshots.fs" />
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
     <Compile Include="PointerInput.fs" />
