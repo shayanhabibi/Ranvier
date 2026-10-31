@@ -51,7 +51,7 @@ type URLPatternMatch =
 #endif
 type UrlService =
     inherit IDisposable
-    /// <summary><c>new URL(url, baseUrl)</c>; <c>None</c> parses <c>url</c> as an absolute URL.</summary>
+    /// <summary><c>new URL(url, baseUrl)</c>; <c>None</c> or <c>Some null</c> parses <c>url</c> as an absolute URL.</summary>
     abstract Create: url: string * baseUrl: string option -> URL
     /// <summary><c>URL.parse(url, baseUrl)</c>: the URL, or <c>None</c> when it fails to parse.</summary>
     abstract Parse: url: string * baseUrl: string option -> URL option
@@ -78,11 +78,11 @@ module UrlContract =
 
         value
 
-    /// <summary>Raises ArgumentNullException for <c>Some null</c>.</summary>
+    /// <summary>The base URL, with <c>Some null</c> read as <c>None</c>.</summary>
     let baseUrl (value: string option) =
         match value with
-        | Some null -> nullArg "baseUrl"
-        | _ -> value
+        | Some text when not (isNull text) -> value
+        | _ -> None
 
     /// <summary>Raises ArgumentNullException for a null init, query, pair array or pair member.</summary>
     let searchParamsInit (value: UrlSearchParamsInit) =
