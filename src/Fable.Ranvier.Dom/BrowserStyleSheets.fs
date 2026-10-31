@@ -121,11 +121,7 @@ module StyleSheets =
                 properties.Add ("media", media)
 
                 match options.BaseUrl with
-                | Some url ->
-                    if isNull url then
-                        nullArg "options.BaseUrl"
-
-                    properties.Add ("baseURL", box url)
+                | Some url -> properties.Add ("baseURL", box url)
                 | None -> ()
 
                 run (fun () -> construct document (createObj properties))

@@ -418,7 +418,7 @@ type TraceExport internal (graph: Graph, sink: ITraceSink, policy: SinkPolicy) =
         TaskCompletionSource<unit> TaskCreationOptions.RunContinuationsAsynchronously
 #endif
 
-    // Settles Completion once, from a flag and an error: under Fable, ValueSome null is ValueNone.
+    // Settles Completion once, from a flag and an error.
     member private _.Settle() =
         let struct (finished, error) =
             lock gate (fun () ->
