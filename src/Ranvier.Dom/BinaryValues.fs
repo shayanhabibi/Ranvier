@@ -56,7 +56,7 @@ type FileOptions =
 /// <summary>Constructs Blob, File and FileList values in one document, and reads their bytes.</summary>
 /// <remarks>
 /// The values are immutable. <c>Blob.slice</c>, <c>File.name</c> and <c>File.lastModified</c> are members of the values
-/// themselves. A value outlives the service and its document.
+/// themselves. A value outlives the service that created it, and a native value lives until its host is disposed.
 /// </remarks>
 #if FABLE_COMPILER
 [<Fable.Core.Mangle>]
