@@ -5,7 +5,7 @@
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Dom</AssemblyName>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <Version>0.1.0-alpha.33</Version>
+    <Version>0.1.0-alpha.34</Version>
     <Description>Shared DOM contracts generated from the WebKit interfaces supported by Ranvier's native UI host.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsAotCompatible Condition="'$(TargetFramework)' == 'net10.0'">true</IsAotCompatible>
