@@ -39,6 +39,8 @@ type ResourceFailure =
     | Cancelled
     /// <summary>The source, target or document the operation observed was replaced or became inactive.</summary>
     | Invalidated of reason: string
+    /// <summary>The engine rejected the operation with the named DOMException, such as AbortError.</summary>
+    | Aborted of name: string
 
 /// <summary>The single terminal outcome of an operation.</summary>
 [<RequireQualifiedAccess>]
