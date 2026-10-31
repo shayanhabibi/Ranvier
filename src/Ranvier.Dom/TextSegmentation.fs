@@ -49,7 +49,7 @@ type SegmentationResult =
 type TextSegmenter =
     inherit IDisposable
     /// <summary>
-    /// The segments of <c>text</c>; <c>locale</c> is a BCP 47 language tag, or <c>None</c> for the provider's default.
+    /// The segments of <c>text</c>; <c>locale</c> is a BCP 47 language tag, or <c>None</c> or <c>Some null</c> for the provider's default.
     /// A tag that is not well formed raises a RangeError.
     /// </summary>
     abstract Segment: text: string * granularity: SegmentGranularity * locale: string option -> SegmentationResult
@@ -62,3 +62,9 @@ module TextSegmentationContract =
             nullArg "text"
 
         value
+
+    /// <summary>The locale, with <c>Some null</c> read as <c>None</c>.</summary>
+    let locale (value: string option) =
+        match value with
+        | Some tag when not (isNull tag) -> value
+        | _ -> None

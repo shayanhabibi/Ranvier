@@ -8,7 +8,7 @@ type StyleSheetMedia =
 /// <summary>Options for a sheet constructed in the service's document.</summary>
 type StyleSheetOptions =
     {
-        /// <summary>The base URL for relative resources; None uses the document's base URL.</summary>
+        /// <summary>The base URL for relative resources; None or Some null uses the document's base URL.</summary>
         BaseUrl: string option
         /// <summary>The initial media query list.</summary>
         Media: StyleSheetMedia

@@ -58,6 +58,7 @@ module BrowserTextSegmentation =
             member _.Segment(text, granularity, locale) =
                 check ()
                 let text = TextSegmentationContract.text text
+                let locale = TextSegmentationContract.locale locale
 
                 match granularity with
                 | SegmentGranularity.Line when not (hasLineIterator ()) -> SegmentationResult.NotSupported granularity
