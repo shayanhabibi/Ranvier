@@ -5224,7 +5224,18 @@ and [<AllowNullLiteral>] ImageData =
     abstract member height: uint32 with get
 
 /// <summary>ImageBitmap in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] ImageBitmap = interface end
+and [<AllowNullLiteral>] ImageBitmap =
+    /// <summary>ImageBitmap.width.</summary>
+    abstract member width: uint32 with get
+    /// <summary>ImageBitmap.height.</summary>
+    abstract member height: uint32 with get
+    /// <summary>ImageBitmap.close.</summary>
+    abstract member close: unit -> unit
+
+/// <summary>ImageBitmapRenderingContext in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] ImageBitmapRenderingContext =
+    /// <summary>ImageBitmapRenderingContext.transferFromImageBitmap.</summary>
+    abstract member transferFromImageBitmap: bitmap: ImageBitmap -> unit
 
 /// <summary>HTMLUnknownElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLUnknownElement =
