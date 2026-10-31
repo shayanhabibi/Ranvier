@@ -28,6 +28,7 @@
     <Compile Include="Capabilities.fs" />
     <Compile Include="Cancellation.fs" />
     <Compile Include="Resources.fs" />
+    <Compile Include="BinaryValues.fs" />
     <Compile Include="EventConstruction.fs" />
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />

@@ -37,7 +37,7 @@ module BrowserForms =
         if isString raw then
             FormDataEntryValue.String (unbox<string> raw)
         else
-            FormDataEntryValue.File FormDataFile.Opaque
+            FormDataEntryValue.File (unbox<File> raw)
 
     let private options (value: EventOptions) =
         let raw = createEmpty<obj>
