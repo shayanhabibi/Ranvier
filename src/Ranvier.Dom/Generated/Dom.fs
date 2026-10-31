@@ -246,6 +246,10 @@ and [<AllowNullLiteral>] Document =
     abstract member createEvent: ``type``: string -> Event
     /// <summary>Document.createRange.</summary>
     abstract member createRange: unit -> Range
+    /// <summary>Document.createNodeIterator.</summary>
+    abstract member createNodeIterator: root: Node * ?whatToShow: uint32 * ?filter: NodeFilter -> NodeIterator
+    /// <summary>Document.createTreeWalker.</summary>
+    abstract member createTreeWalker: root: Node * ?whatToShow: uint32 * ?filter: NodeFilter -> TreeWalker
     /// <summary>Document.caretRangeFromPoint.</summary>
     abstract member caretRangeFromPoint: ?x: int * ?y: int -> Range
     /// <summary>Document.ariaNotify.</summary>
@@ -850,6 +854,10 @@ and [<AllowNullLiteral>] HTMLFormElement =
     abstract member namedItem: name: string -> (RadioNodeListOrElement) option
 #endif
 
+    /// <summary>HTMLFormElement.submit.</summary>
+    abstract member submit: unit -> unit
+    /// <summary>HTMLFormElement.requestSubmit.</summary>
+    abstract member requestSubmit: ?submitter: HTMLElement -> unit
     /// <summary>HTMLFormElement.reset.</summary>
     abstract member reset: unit -> unit
     /// <summary>HTMLFormElement.checkValidity.</summary>
@@ -1727,6 +1735,10 @@ and [<AllowNullLiteral>] MathMLElement =
     inherit GlobalEventHandlers
     inherit HTMLOrSVGElement
     inherit ElementCSSInlineStyle
+
+/// <summary>MathMLMathElement in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] MathMLMathElement =
+    inherit MathMLElement
 
 /// <summary>HTMLStyleElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLStyleElement =
@@ -3031,6 +3043,70 @@ and [<AllowNullLiteral>] HTMLCollection =
     /// <summary>HTMLCollection.namedItem.</summary>
     abstract member namedItem: name: string -> Element
 
+/// <summary>HTMLFormControlsCollection in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HTMLFormControlsCollection =
+    inherit HTMLCollection
+
+    /// <summary>HTMLFormControlsCollection.item.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0[$1]")>]
+#endif
+    abstract member item: index: uint32 -> HTMLElement
+
+
+    /// <summary>HTMLFormControlsCollection.namedItem.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.namedItem($1)")>]
+    abstract member __ranvier_namedItem: name: string -> obj
+#else
+    abstract member namedItem: name: string -> (RadioNodeListOrElement) option
+#endif
+
+/// <summary>HTMLOptionsCollection in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] HTMLOptionsCollection =
+    inherit HTMLCollection
+    /// <summary>HTMLOptionsCollection.length.</summary>
+    abstract member length: uint32 with get, set
+
+    /// <summary>HTMLOptionsCollection.setItem.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0[$1] = $2")>]
+#endif
+    abstract member setItem: index: uint32 * option: HTMLOptionElement -> unit
+
+
+    /// <summary>HTMLOptionsCollection.add.</summary>
+#if FABLE_COMPILER
+    [<Fable.Core.Emit("$0.add($1, $2)")>]
+    abstract member __ranvier_add: element: obj * ?before: obj -> unit
+#else
+    abstract member add: element: HTMLOptionElement -> unit
+    abstract member add: element: HTMLOptionElement * before: HTMLElement -> unit
+    abstract member add: element: HTMLOptionElement * before: int -> unit
+    abstract member add: element: HTMLOptGroupElement -> unit
+    abstract member add: element: HTMLOptGroupElement * before: HTMLElement -> unit
+    abstract member add: element: HTMLOptGroupElement * before: int -> unit
+#endif
+    /// <summary>HTMLOptionsCollection.remove.</summary>
+    abstract member remove: index: int -> unit
+    /// <summary>HTMLOptionsCollection.selectedIndex.</summary>
+    abstract member selectedIndex: int with get, set
+    /// <summary>HTMLOptionsCollection.item.</summary>
+    abstract member item: index: uint32 -> HTMLOptionElement
+    /// <summary>HTMLOptionsCollection.namedItem.</summary>
+    abstract member namedItem: name: string -> HTMLOptionElement
+
+/// <summary>DOMFormData in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] DOMFormData =
+    /// <summary>DOMFormData.append.</summary>
+    abstract member append: name: string * value: string -> unit
+    /// <summary>DOMFormData.delete.</summary>
+    abstract member delete: name: string -> unit
+    /// <summary>DOMFormData.has.</summary>
+    abstract member has: name: string -> bool
+    /// <summary>DOMFormData.set.</summary>
+    abstract member set: name: string * value: string -> unit
+
 /// <summary>ValidityState in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] ValidityState =
     /// <summary>ValidityState.valueMissing.</summary>
@@ -3254,6 +3330,18 @@ and [<AllowNullLiteral>] CompositionEvent =
     inherit UIEvent
     /// <summary>CompositionEvent.data.</summary>
     abstract member data: string with get
+
+/// <summary>SubmitEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] SubmitEvent =
+    inherit Event
+    /// <summary>SubmitEvent.submitter.</summary>
+    abstract member submitter: HTMLElement with get
+
+/// <summary>FormDataEvent in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] FormDataEvent =
+    inherit Event
+    /// <summary>FormDataEvent.formData.</summary>
+    abstract member formData: DOMFormData with get
 
 /// <summary>SVGGraphicsElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] SVGGraphicsElement =
@@ -4627,6 +4715,50 @@ and [<AllowNullLiteral>] SVGUseElement =
     /// <summary>SVGUseElement.href.</summary>
     abstract member href: SVGAnimatedString with get
 
+/// <summary>NodeIterator in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] NodeIterator =
+    /// <summary>NodeIterator.root.</summary>
+    abstract member root: Node with get
+    /// <summary>NodeIterator.referenceNode.</summary>
+    abstract member referenceNode: Node with get
+    /// <summary>NodeIterator.pointerBeforeReferenceNode.</summary>
+    abstract member pointerBeforeReferenceNode: bool with get
+    /// <summary>NodeIterator.whatToShow.</summary>
+    abstract member whatToShow: uint32 with get
+    /// <summary>NodeIterator.filter.</summary>
+    abstract member filter: (NodeFilter) option with get
+    /// <summary>NodeIterator.nextNode.</summary>
+    abstract member nextNode: unit -> Node
+    /// <summary>NodeIterator.previousNode.</summary>
+    abstract member previousNode: unit -> Node
+    /// <summary>NodeIterator.detach.</summary>
+    abstract member detach: unit -> unit
+
+/// <summary>TreeWalker in the scoped DOM interface model.</summary>
+and [<AllowNullLiteral>] TreeWalker =
+    /// <summary>TreeWalker.root.</summary>
+    abstract member root: Node with get
+    /// <summary>TreeWalker.whatToShow.</summary>
+    abstract member whatToShow: uint32 with get
+    /// <summary>TreeWalker.filter.</summary>
+    abstract member filter: (NodeFilter) option with get
+    /// <summary>TreeWalker.currentNode.</summary>
+    abstract member currentNode: Node with get, set
+    /// <summary>TreeWalker.parentNode.</summary>
+    abstract member parentNode: unit -> Node
+    /// <summary>TreeWalker.firstChild.</summary>
+    abstract member firstChild: unit -> Node
+    /// <summary>TreeWalker.lastChild.</summary>
+    abstract member lastChild: unit -> Node
+    /// <summary>TreeWalker.previousSibling.</summary>
+    abstract member previousSibling: unit -> Node
+    /// <summary>TreeWalker.nextSibling.</summary>
+    abstract member nextSibling: unit -> Node
+    /// <summary>TreeWalker.previousNode.</summary>
+    abstract member previousNode: unit -> Node
+    /// <summary>TreeWalker.nextNode.</summary>
+    abstract member nextNode: unit -> Node
+
 /// <summary>HTMLUnknownElement in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HTMLUnknownElement =
     inherit HTMLElement
@@ -4709,21 +4841,9 @@ and [<AllowNullLiteral>] ErrorEvent =
 /// <summary>FileList in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] FileList = interface end
 
-/// <summary>FormDataEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] FormDataEvent =
-    inherit Event
-
 /// <summary>GamepadEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] GamepadEvent =
     inherit Event
-
-/// <summary>HTMLFormControlsCollection in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HTMLFormControlsCollection =
-    inherit HTMLCollection
-
-/// <summary>HTMLOptionsCollection in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] HTMLOptionsCollection =
-    inherit HTMLCollection
 
 /// <summary>HashChangeEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] HashChangeEvent =
@@ -4777,10 +4897,6 @@ and [<AllowNullLiteral>] SecurityPolicyViolationEvent =
 
 /// <summary>StorageEvent in the scoped DOM interface model.</summary>
 and [<AllowNullLiteral>] StorageEvent =
-    inherit Event
-
-/// <summary>SubmitEvent in the scoped DOM interface model.</summary>
-and [<AllowNullLiteral>] SubmitEvent =
     inherit Event
 
 /// <summary>TextTrack in the scoped DOM interface model.</summary>
@@ -5249,6 +5365,15 @@ and EventListener = Event -> unit
 and [<AllowNullLiteral>] EventListenerObject =
     abstract member handleEvent: event: Event -> unit
 
+/// <summary>NodeFilter in the scoped DOM interface model.</summary>
+and NodeFilter = Node -> NodeFilterResult
+
+/// <summary>NodeFilterResult in the scoped DOM interface model.</summary>
+and NodeFilterResult =
+    | Accept = 1
+    | Reject = 2
+    | Skip = 3
+
 /// <summary>AriaNotificationPriority in the scoped DOM interface model.</summary>
 and [<DomStringEnum; RequireQualifiedAccess>] AriaNotificationPriority =
     | [<CompiledName("normal")>] Normal
@@ -5696,6 +5821,36 @@ module BrowserUnionAdapters =
 
         member this.getComposedRanges(options: GetComposedRangesOptions, [<System.ParamArray>] shadowRoots: ShadowRoot array) : (StaticRange) array =
             this.__ranvier_getComposedRanges (?options = Some (box options), shadowRoots = shadowRoots)
+
+
+    type HTMLFormControlsCollection with
+        member this.namedItem(name: string) : (RadioNodeListOrElement) option =
+            let value = this.__ranvier_namedItem (name)
+
+            if isNull value then
+                None
+            else
+                Some (unboxRadioNodeListOrElement value)
+
+
+    type HTMLOptionsCollection with
+        member this.add(element: HTMLOptionElement) : unit =
+            this.__ranvier_add (box element, ?before = None)
+
+        member this.add(element: HTMLOptionElement, before: HTMLElement) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptionElement, before: int) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptGroupElement) : unit =
+            this.__ranvier_add (box element, ?before = None)
+
+        member this.add(element: HTMLOptGroupElement, before: HTMLElement) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
+
+        member this.add(element: HTMLOptGroupElement, before: int) : unit =
+            this.__ranvier_add (box element, ?before = Some (box before))
 
 
     type ChildNode with
