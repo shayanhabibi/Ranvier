@@ -33,11 +33,14 @@
     <Compile Include="InputState.fs" />
     <Compile Include="Viewport.fs" />
     <Compile Include="ViewportScroll.fs" />
+    <Compile Include="VisualViewport.fs" />
     <Compile Include="FormData.fs" />
     <Compile Include="FormSubmission.fs" />
     <Compile Include="ToggleEvents.fs" />
     <Compile Include="EventDetails.fs" />
     <Compile Include="Urls.fs" />
+    <Compile Include="Crypto.fs" />
+    <Compile Include="TextSegmentation.fs" />
     <Compile Include="Frames.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
