@@ -147,9 +147,9 @@ module EventDetailContract =
 
         value
 
-    /// <summary>Raises ArgumentOutOfRangeException for NaN or an infinity, which an IDL double rejects.</summary>
+    /// <summary>Raises ArgumentException for NaN or an infinity, which an IDL double rejects.</summary>
     let finite (name: string) (value: float) =
         if Double.IsNaN value || Double.IsInfinity value then
-            raise (ArgumentOutOfRangeException (name, value, "An IDL double is finite"))
+            invalidArg name "An IDL double is finite"
 
         value
