@@ -2,6 +2,11 @@ name: Docs
 
 on:
   workflow_dispatch:
+    inputs:
+      compiler_diagnostic:
+        description: Compare the two live-compiler tests with 2 and 1 workers without deploying
+        type: boolean
+        default: false
   workflow_run:
     workflows: [Perf report]
     types: [completed]
@@ -85,17 +90,42 @@ jobs:
         run: .github/scripts/view-sibling.sh
       - name: Build the site
         run: dotnet fsi build.fsx -- docs
-      - name: Check the signal maps in a browser
+      - name: Install browser test dependencies
         working-directory: docs/maps/tests/browser
         run: |
           npm ci
           npx playwright install --with-deps chromium
+      - name: Check the signal maps in a browser
+        if: inputs.compiler_diagnostic != true
+        working-directory: docs/maps/tests/browser
+        run: |
           npx playwright test
+      - name: Compare live compiler worker counts
+        if: inputs.compiler_diagnostic == true
+        working-directory: docs/maps/tests/browser
+        run: node diagnose-live-compiler.mjs
+      - uses: actions/upload-artifact@v7
+        if: always() && inputs.compiler_diagnostic == true
+        with:
+          name: docs-compiler-diagnostic
+          path: docs/maps/tests/browser/test-results/compiler-diagnostic
+      - uses: actions/upload-artifact@v7
+        if: always() && inputs.compiler_diagnostic == true
+        with:
+          name: docs-compiler-site
+          path: docs/output
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: docs-browser-failure
+          path: docs/maps/tests/browser/test-results
       - uses: actions/upload-pages-artifact@v5
+        if: inputs.compiler_diagnostic != true
         with:
           path: docs/output
 
   deploy:
+    if: github.ref == 'refs/heads/master' && inputs.compiler_diagnostic != true
     needs: [resolve, build]
     runs-on: ubuntu-latest
     concurrency:
