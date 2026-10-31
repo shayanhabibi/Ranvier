@@ -218,7 +218,7 @@ module InputState =
     /// <summary>A capability provider for <c>keys</c>, observing <c>service</c> live.</summary>
     /// <remarks>
     /// <c>touchDelivery</c> is the Implemented fact of touch points. Touch points are Available when the capacity is
-    /// positive and touch delivery is implemented. A disposed service reports every key as unknown.
+    /// positive and touch delivery is implemented. A disposed or unreadable service reports every key as unknown.
     /// </remarks>
     let capabilities (providerId: string) (mechanism: string) (touchDelivery: CapabilityFact) (service: InputStateService) : CapabilityProvider =
         if isNull (box service) then
@@ -245,10 +245,10 @@ module InputState =
                 match
                     (try
                         Ok (service.Current ())
-                     with :? ObjectDisposedException ->
-                         Error ())
+                     with error ->
+                         Error error.Message)
                 with
-                | Error () -> Some (unknown "The input state service is disposed.")
+                | Error message -> Some (unknown $"The input state service is unreadable: {message}")
                 | Ok snapshot ->
                     let present =
                         yes "The provider observes the input state through the document window."
