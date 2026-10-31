@@ -179,6 +179,22 @@ module CryptoContract =
     let unsupportedDigest (name: string) : CryptoOutcome<'T> =
         CryptoOutcome.Unsupported $"SubtleCrypto.digest supports SHA-1, SHA-256, SHA-384 and SHA-512, not '{name}'."
 
+    /// <summary>The SubtleCrypto method name of <c>operation</c>, such as <c>digest</c> or <c>generateKey</c>.</summary>
+    let operationName (operation: SubtleOperation) =
+        match operation with
+        | SubtleOperation.Digest -> "digest"
+        | SubtleOperation.Encrypt -> "encrypt"
+        | SubtleOperation.Decrypt -> "decrypt"
+        | SubtleOperation.Sign -> "sign"
+        | SubtleOperation.Verify -> "verify"
+        | SubtleOperation.GenerateKey -> "generateKey"
+        | SubtleOperation.DeriveKey -> "deriveKey"
+        | SubtleOperation.DeriveBits -> "deriveBits"
+        | SubtleOperation.ImportKey -> "importKey"
+        | SubtleOperation.ExportKey -> "exportKey"
+        | SubtleOperation.WrapKey -> "wrapKey"
+        | SubtleOperation.UnwrapKey -> "unwrapKey"
+
     /// <summary>
     /// The availability every provider shares: digest of a SHA algorithm, and Unsupported for every other operation
     /// and algorithm.
@@ -190,4 +206,4 @@ module CryptoContract =
         match operation, digestAlgorithm algorithm with
         | SubtleOperation.Digest, Some _ -> CryptoOutcome.Value ()
         | SubtleOperation.Digest, None -> unsupportedDigest algorithm
-        | _ -> CryptoOutcome.Unsupported $"SubtleCrypto {operation} is not implemented for '{algorithm}'."
+        | _ -> CryptoOutcome.Unsupported $"SubtleCrypto.{operationName operation} is not implemented for '{algorithm}'."
