@@ -53,6 +53,7 @@
     <Compile Include="Frames.fs" />
     <Compile Include="Canvas.fs" />
     <Compile Include="ValueFactories.fs" />
+    <Compile Include="WakeLocks.fs" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
