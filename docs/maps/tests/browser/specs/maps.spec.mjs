@@ -2,17 +2,19 @@ import { readdirSync, readFileSync } from "node:fs";
 import { test, expect, openMaps } from "./fixtures.mjs";
 
 const guide = "guide/signal-maps/";
+const coldCompilerBudgetMs = 30_000;
+const warmCompilerBudgetMs = 5_000;
 
 test("the live editor compiles a map and its controls update the graph", async ({ page, problems }) => {
-  test.setTimeout(30_000);
+  test.setTimeout(45_000);
   await page.goto(guide);
   const run = page.getByRole("button", { name: "Run", exact: true });
   await run.click();
-  await expect(run).toBeEnabled({ timeout: 20_000 });
+  await expect(run).toBeEnabled({ timeout: coldCompilerBudgetMs });
   await page.getByRole("button", { name: "Result", exact: true }).click();
   const result = page.frameLocator(".nacara-live__pane--result iframe");
   const map = result.locator(".rv-map");
-  await expect(map.locator(".rv-map-node").first()).toBeVisible({ timeout: 20_000 });
+  await expect(map.locator(".rv-map-node").first()).toBeVisible({ timeout: warmCompilerBudgetMs });
   await result.getByRole("button", { name: "Settle 4", exact: true }).click();
   await expect(map.locator(".rv-map__log")).toContainText("Total 12");
   await result.getByRole("button", { name: "Fail", exact: true }).click();
@@ -25,7 +27,7 @@ test("the live editor compiles a map and its controls update the graph", async (
   expect(source).toContain("price.Value * 3");
   await editor.fill(source.replace("price.Value * 3", "price.Value * 5"));
   await run.click();
-  await expect(run).toBeEnabled({ timeout: 20_000 });
+  await expect(run).toBeEnabled({ timeout: warmCompilerBudgetMs });
   await result.getByRole("button", { name: "Settle 4", exact: true }).click();
   await expect(map.locator(".rv-map__log")).toContainText("Total 20");
   await result.getByRole("button", { name: "Settle 5", exact: true }).click();
@@ -280,7 +282,7 @@ test("the landing state dial honours reduced motion and remains keyboard accessi
 });
 
 test("the editable example compiles and mounts its map on Run", async ({ page, problems }) => {
-  test.setTimeout(30_000);
+  test.setTimeout(40_000);
   await page.goto(guide);
   await page.getByRole("button", { name: "Run" }).click();
   const output = async () => {
@@ -288,7 +290,7 @@ test("the editable example compiles and mounts its map on Run", async ({ page, p
       if (frame.url() === "about:srcdoc" && (await frame.locator(".rv-map-node").count().catch(() => 0)) > 0) return frame;
     return undefined;
   };
-  await expect.poll(output, { timeout: 20_000, intervals: [100] }).toBeTruthy();
+  await expect.poll(output, { timeout: coldCompilerBudgetMs, intervals: [100] }).toBeTruthy();
   const frame = await output();
   // The output pane may sit behind another tab; the press reaches the map either way.
   await frame.locator(".rv-map__button", { hasText: "Settle 4" }).dispatchEvent("click");
