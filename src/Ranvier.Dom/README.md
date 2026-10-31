@@ -33,6 +33,15 @@ Browser code uses `Ranvier.Dom.ComputedStyles.forDocument document`; the native 
 its host provider. Elements belong to the provider's document. Unresolved pseudo-element selectors
 return empty declarations; later style changes update successful queries.
 
+`Document.createNodeIterator` and `Document.createTreeWalker` take a `NodeFilter`, a function from `Node` to
+`NodeFilterResult` (`Accept` = 1, `Reject` = 2, `Skip` = 3). In a browser build the function is the DOM filter
+callback; the native View backend wraps it in a host filter. The `filter` getters return the same function, or
+`None`. An exception raised by the function stops the traversal and propagates from the traversal method.
+`whatToShow` defaults to every node type (`0xFFFFFFFF`).
+
+`MathMLMathElement` is the interface of the MathML `math` element on the native backend. Chromium exposes the
+element as `MathMLElement`, which the interface extends.
+
 `Element.getClientRects()` and `Range.getClientRects()` return the engine's fragment rectangle snapshot.
 `DOMRectList.length` counts its entries, and `item` returns a null-capable `DOMRect` for each index.
 Coordinates retain double precision; an out-of-range item returns null.
