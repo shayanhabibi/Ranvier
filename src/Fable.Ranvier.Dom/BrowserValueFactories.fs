@@ -89,7 +89,7 @@ module BrowserValueFactories =
                 unbox<DocumentFragment>(run (fun () -> construct0 window "DocumentFragment"))
 
             member _.CreateRange() =
-                unbox<Range>(run (fun () -> construct0 window "Range"))
+                unbox<Ranvier.Dom.Range>(run (fun () -> construct0 window "Range"))
 
             member _.CreateStaticRange(startContainer, startOffset, endContainer, endOffset) =
                 let raw = createEmpty<obj>

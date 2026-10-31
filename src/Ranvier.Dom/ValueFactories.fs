@@ -99,7 +99,7 @@ type ValueFactoryService =
     /// <summary>An empty DocumentFragment.</summary>
     abstract CreateDocumentFragment: unit -> DocumentFragment
     /// <summary>A Range collapsed at the start of the document.</summary>
-    abstract CreateRange: unit -> Range
+    abstract CreateRange: unit -> Ranvier.Dom.Range
     /// <summary>A StaticRange over the given boundary points; offsets past a node's length are kept as given.</summary>
     /// <remarks>An Attr or DocumentType container raises ValueFactoryException InvalidNodeTypeError.</remarks>
     abstract CreateStaticRange: startContainer: Node * startOffset: uint32 * endContainer: Node * endOffset: uint32 -> StaticRange
