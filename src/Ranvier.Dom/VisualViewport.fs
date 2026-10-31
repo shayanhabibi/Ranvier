@@ -73,10 +73,10 @@ type VisualViewportService =
     /// <summary>
     /// Sets the page scale, as a pinch zoom does, and scrolls the scaled document to <c>originX</c>, <c>originY</c>.
     /// </summary>
-    /// <exception cref="T:System.ArgumentOutOfRangeException"><c>scale</c> is not finite and above 0.</exception>
+    /// <exception cref="T:System.ArgumentException"><c>scale</c> is not finite and above 0.</exception>
     abstract SetPageScale: scale: float * originX: int * originY: int -> Result<unit, VisualViewportUnavailable>
     /// <summary>Sets the viewport edges that host UI covers.</summary>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">An inset is not finite and at least 0.</exception>
+    /// <exception cref="T:System.ArgumentException">An inset is not finite and at least 0.</exception>
     abstract SetObscuredInsets: insets: VisualViewportInsets -> Result<unit, VisualViewportUnavailable>
     /// <summary>Adds an observer and returns an idempotent removal handle.</summary>
     abstract Subscribe: observer: (VisualViewportChange -> unit) -> IDisposable
@@ -131,7 +131,7 @@ module VisualViewports =
                 live ()
 
                 if not (finite scale) || scale <= 0.0 then
-                    raise (ArgumentOutOfRangeException (nameof scale, scale, "The page scale must be finite and above 0"))
+                    invalidArg (nameof scale) "The page scale must be finite and above 0"
 
                 provider.SetPageScale (scale, originX, originY)
 
@@ -143,7 +143,7 @@ module VisualViewports =
 
                 for value in [ insets.Top; insets.Right; insets.Bottom; insets.Left ] do
                     if not (finite value) || value < 0.0 then
-                        raise (ArgumentOutOfRangeException (nameof insets, value, "Each inset must be finite and at least 0"))
+                        invalidArg (nameof insets) "Each inset must be finite and at least 0"
 
                 provider.SetObscuredInsets insets
 

@@ -17,7 +17,7 @@
   `Resized | Scrolled`, each carrying the state read when the event fired.
 - `VisualViewportProvider` holds the shared `VisualViewport` object, `Read`, `SetPageScale` and `SetObscuredInsets`.
 - `VisualViewportService` has `Current`, `SetPageScale`, `SetObscuredInsets`, `Subscribe` and `Dispose`. Its inputs
-  raise `ArgumentOutOfRangeException` for a scale that is non-finite or at most 0, and for an inset that is
+  raise `ArgumentException` for a scale that is non-finite or at most 0, and for an inset that is
   non-finite or negative.
 
 `VisualViewport` is the generated shared interface of `Generated/Dom.fs`, copied whole from Ranvier.WebCore
